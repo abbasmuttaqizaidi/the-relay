@@ -46,6 +46,8 @@ const searchSchema = z.object({
   q: fallback(z.string(), "").default(""),
 });
 
+type SearchParams = z.infer<typeof searchSchema>;
+
 export const Route = createFileRoute("/opportunities")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
@@ -313,7 +315,7 @@ function OpportunitiesPage() {
             <SearchInput
               value={q}
               onChange={(v) =>
-                navigate({ search: (prev) => ({ ...prev, q: v }) })
+                navigate({ search: (prev: SearchParams) => ({ ...prev, q: v }) })
               }
             />
 
@@ -323,7 +325,7 @@ function OpportunitiesPage() {
               value={type}
               onChange={(v) =>
                 navigate({
-                  search: (prev) => ({ ...prev, type: v as typeof type }),
+                  search: (prev: SearchParams) => ({ ...prev, type: v as typeof type }),
                 })
               }
             />
@@ -333,7 +335,7 @@ function OpportunitiesPage() {
               value={industry}
               onChange={(v) =>
                 navigate({
-                  search: (prev) => ({ ...prev, industry: v as typeof industry }),
+                  search: (prev: SearchParams) => ({ ...prev, industry: v as typeof industry }),
                 })
               }
             />
@@ -343,7 +345,7 @@ function OpportunitiesPage() {
               value={geo}
               onChange={(v) =>
                 navigate({
-                  search: (prev) => ({ ...prev, geo: v as typeof geo }),
+                  search: (prev: SearchParams) => ({ ...prev, geo: v as typeof geo }),
                 })
               }
             />
