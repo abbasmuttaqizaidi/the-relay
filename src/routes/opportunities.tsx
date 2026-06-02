@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
@@ -12,7 +12,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useInterestStore, type InterestRecord } from "@/lib/interest-store";
+import {
+  useInterestStore,
+  useReciprocity,
+  RECIPROCITY_WEIGHTS,
+  type InterestRecord,
+} from "@/lib/interest-store";
 
 function mockContact(company: string): NonNullable<InterestRecord["contact"]> {
   const first = company.split(/\s+/)[0] ?? "Ops";
@@ -424,15 +429,57 @@ function PageNav() {
             <span className="opacity-40">Intelligence</span>
           </div>
         </div>
-        <Link
-          to="/"
-          hash="apply"
-          className="bg-foreground text-background px-4 py-2 text-[11px] font-mono uppercase tracking-widest hover:bg-primary transition-colors"
-        >
-          Apply for Membership
-        </Link>
+        <div className="flex items-center gap-4">
+          <ReciprocityBadge />
+          <Link
+            to="/"
+            hash="apply"
+            className="bg-foreground text-background px-4 py-2 text-[11px] font-mono uppercase tracking-widest hover:bg-primary transition-colors"
+          >
+            Apply for Membership
+          </Link>
+        </div>
       </div>
     </nav>
+  );
+}
+
+function ReciprocityBadge() {
+  const { score, introductionsMade, mutualAcceptances, pending, declined } =
+    useReciprocity();
+  const prev = useRef(score);
+  const [pulse, setPulse] = useState(false);
+
+  useEffect(() => {
+    if (score !== prev.current) {
+      setPulse(true);
+      const t = setTimeout(() => setPulse(false), 1200);
+      prev.current = score;
+      return () => clearTimeout(t);
+    }
+  }, [score]);
+
+  return (
+    <div
+      title={`Introductions made: ${introductionsMade} · Mutual acceptances: ${mutualAcceptances} · Pending: ${pending} · Declined: ${declined}`}
+      className={`hidden sm:flex items-center gap-2 border px-3 py-1.5 transition-colors ${
+        pulse ? "border-primary bg-primary/10" : "border-border"
+      }`}
+    >
+      <span className="font-mono text-[9px] uppercase tracking-widest text-muted">
+        Reciprocity
+      </span>
+      <span
+        className={`font-display text-sm font-extrabold tabular-nums ${
+          pulse ? "text-primary" : "text-foreground"
+        }`}
+      >
+        {score}
+      </span>
+      <span className="font-mono text-[9px] text-muted">
+        · {mutualAcceptances}/{introductionsMade}
+      </span>
+    </div>
   );
 }
 
@@ -518,7 +565,9 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
 
   const onAccept = () => {
     respond(opp.id, "accepted", mockContact(opp.company));
-    toast.success(`${opp.company} accepted. Contact unlocked.`);
+    toast.success(
+      `${opp.company} accepted. Contact unlocked. +${RECIPROCITY_WEIGHTS.accepted} reciprocity.`,
+    );
   };
 
   const onDecline = () => {
@@ -566,8 +615,13 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
 
         {status === "accepted" && record?.contact && (
           <div className="mt-3 border border-primary/40 bg-primary/5 p-4 space-y-2">
-            <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
-              [ Contact unlocked · mutual acceptance ]
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                [ Contact unlocked · mutual acceptance ]
+              </div>
+              <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                + {RECIPROCITY_WEIGHTS.accepted} reciprocity
+              </div>
             </div>
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="font-display text-sm font-bold">

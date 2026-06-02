@@ -86,3 +86,45 @@ export function useInterestStore() {
 
   return { store, request, respond, withdraw };
 }
+
+// Reciprocity scoring — recalculated from the interest store.
+// Each request sent signals contribution (+5). Each mutual acceptance is
+// a completed handoff (+15). Declines are neutral (0).
+export const RECIPROCITY_WEIGHTS = {
+  request: 5,
+  accepted: 15,
+} as const;
+
+export type ReciprocityBreakdown = {
+  score: number;
+  introductionsMade: number;
+  mutualAcceptances: number;
+  pending: number;
+  declined: number;
+};
+
+export function computeReciprocity(store: Store): ReciprocityBreakdown {
+  const records = Object.values(store);
+  const introductionsMade = records.length;
+  const mutualAcceptances = records.filter((r) => r.status === "accepted").length;
+  const pending = records.filter((r) => r.status === "pending").length;
+  const declined = records.filter((r) => r.status === "declined").length;
+  const score =
+    introductionsMade * RECIPROCITY_WEIGHTS.request +
+    mutualAcceptances * RECIPROCITY_WEIGHTS.accepted;
+  return { score, introductionsMade, mutualAcceptances, pending, declined };
+}
+
+export function useReciprocity(): ReciprocityBreakdown {
+  const [store, setStore] = useState<Store>(() => read());
+  useEffect(() => {
+    const sync = () => setStore(read());
+    window.addEventListener("relay:interest", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("relay:interest", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+  return computeReciprocity(store);
+}
