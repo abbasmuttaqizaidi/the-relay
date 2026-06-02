@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
@@ -12,7 +12,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useInterestStore, type InterestRecord } from "@/lib/interest-store";
+import {
+  useInterestStore,
+  useReciprocity,
+  RECIPROCITY_WEIGHTS,
+  type InterestRecord,
+} from "@/lib/interest-store";
 
 function mockContact(company: string): NonNullable<InterestRecord["contact"]> {
   const first = company.split(/\s+/)[0] ?? "Ops";
