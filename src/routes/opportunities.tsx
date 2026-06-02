@@ -303,7 +303,7 @@ function OpportunitiesPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <PageNav />
-      <main className="max-w-7xl mx-auto px-6 py-12 md:py-16">
+      <main className="max-w-7xl mx-auto px-6 pt-6 pb-12 md:pt-8 md:pb-16">
         <header className="space-y-4 mb-12">
           <span className="font-mono text-[10px] text-primary uppercase tracking-widest">
             [ Discovery ]
@@ -407,24 +407,13 @@ function PageNav() {
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-10">
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to="/home" className="flex items-center gap-2 group">
             <span className="md:hidden font-display text-xl font-extrabold tracking-tighter uppercase">Relay</span>
-            <div className="hidden md:flex flex-col items-start gap-0.5">
-              <div className="flex items-end gap-1.5 leading-none">
-                <img
-                  src={logoUrl}
-                  alt="The Relay Logo"
-                  className="h-8 w-auto object-contain mix-blend-multiply"
-                />
-                <div className="h-4 w-px bg-foreground mb-1" />
-                <span className="font-display text-xl font-normal tracking-tight text-foreground group-hover:text-primary transition-colors leading-none">
-                  The Relay
-                </span>
-              </div>
-              <span className="font-mono text-[7.5px] uppercase tracking-[0.16em] text-muted-foreground pl-0.5 leading-none">
-                Business Opportunity Exchange
-              </span>
-            </div>
+            <img
+              src={logoUrl}
+              alt="The Relay Logo"
+              className="hidden md:block h-8 w-auto object-contain mix-blend-multiply"
+            />
           </Link>
           <div className="hidden md:flex gap-6 text-[11px] font-mono uppercase tracking-widest text-muted">
             <Link
@@ -441,11 +430,11 @@ function PageNav() {
         <div className="flex items-center gap-4">
           <ReciprocityBadge />
           <Link
-            to="/"
+            to="/home"
             hash="apply"
             className="bg-foreground text-background px-4 py-2 text-[11px] font-mono uppercase tracking-widest hover:bg-primary transition-colors"
           >
-            Apply for Membership
+            Apply
           </Link>
         </div>
       </div>
