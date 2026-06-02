@@ -56,11 +56,7 @@ export function useInterestStore() {
   }, []);
 
   const respond = useCallback(
-    (
-      id: string,
-      decision: "accepted" | "declined",
-      contact?: InterestRecord["contact"],
-    ) => {
+    (id: string, decision: "accepted" | "declined", contact?: InterestRecord["contact"]) => {
       const current = read();
       const existing = current[id];
       if (!existing) return;

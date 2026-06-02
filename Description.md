@@ -1,0 +1,211 @@
+# The Relay — Technical & Architectural Description
+
+Welcome to **The Relay**, an operator-grade, curated business opportunity network designed for verified businesses to exchange high-value partnerships, referrals, vendors, and hiring opportunities.
+
+This document provides a comprehensive technical, architectural, and structural breakdown of the repository.
+
+---
+
+## 🏗️ 1. Project Overview & Branding
+
+**The Relay** is built on a simple premise: **"Where growth finds momentum"**. It replaces the noise of traditional social feeds with a high-fidelity, high-trust ecosystem.
+
+- **The Core Metaphor:** A clean "baton pass" (the exchange of qualified business opportunities, warm introductions, and reseller partnerships).
+- **Target Audience:** Verified B2B SaaS founders, operators, marketing agencies, wellness brands, logistics providers, and high-growth startups.
+- **Design Philosophy:** High-contrast, Swiss-inspired modernist layout with a focus on data density, clean spacing, and structural borders.
+- **The Visual Theme & Color Palette:**
+  - **Primary / Accent:** Vibrant Operator Orange (`hsl(24 95% 45%)`) — representing momentum, action, and energy.
+  - **Background:** Soft Slate Off-White (`hsl(210 15% 98%)`) — offering a premium, comfortable reading contrast.
+  - **Foreground / Text:** Deep Charcoal/Navy (`hsl(215 25% 12%)`) — for strong readability.
+  - **Borders / Separators:** Semi-transparent matching borders (`hsl(215 25% 12% / 0.12)`) that feel extremely thin and clean.
+- **Typography:**
+  - **Body Copy:** Sans-serif **Inter** (`'Inter', ui-sans-serif, system-ui, sans-serif`) for crisp, readable UI elements.
+  - **Display & Titles:** Bold **Inter Tight** (`'Inter Tight', 'Inter', sans-serif`) for authoritative, balanced headings.
+  - **Monospaced Items:** Clean **JetBrains Mono** (`'JetBrains Mono', ui-monospace, monospace`) for metadata, status tags, protocols, and technical values.
+- **Micro-Animations & Motion:**
+  - **Expo Ease:** Employs an ultra-smooth custom timing function: `var(--ease-out-expo)` / `cubic-bezier(0.16, 1, 0.3, 1)`.
+  - **Momentum Slide (`.animate-momentum`):** Custom keyframe animations (`slide-in` from `-20px` X-axis with opacity) that make page entries feel alive, responsive, and tactile.
+
+---
+
+## 🛠️ 2. Core Technological Stack
+
+The application leverages a cutting-edge modern JavaScript/TypeScript stack:
+
+| Technology                                                               | Role                 | Details                                                                                                                   |
+| ------------------------------------------------------------------------ | -------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **[React 19](https://react.dev/)**                                       | Component Library    | Leverages the latest React 19 capabilities, running in an SSR-first environment.                                          |
+| **[TanStack Start](https://tanstack.com/router/v1/docs/start/overview)** | Full-Stack Framework | An SSR-first framework powered by **Nitro** and **Vite**, combining server-side routing, streaming, and client rendering. |
+| **[TanStack Router](https://tanstack.com/router)**                       | Routing Engine       | Type-safe, file-based routing with full path-parameter and query-parameter schema validation.                             |
+| **[Vite 7](https://vite.dev/)**                                          | Frontend Tooling     | High-speed module bundling, Hot Module Replacement (HMR), and server-side bundling.                                       |
+| **[Tailwind CSS v4.0](https://tailwindcss.com/)**                        | Styling Engine       | Uses `@tailwindcss/vite` to support CSS-first configurations, theme variables, and optimized compiling.                   |
+| **[TanStack Query v5](https://tanstack.com/query)**                      | Server State         | Handles asynchronous data queries, caching, and server-side state synchronization.                                        |
+| **[Radix UI Primitives](https://www.radix-ui.com/)**                     | UI Elements          | Accessible, unstyled primitives utilized for core user interface elements.                                                |
+| **[Zod](https://zod.dev/)**                                              | Schema Validation    | Provides runtime type validation for routing search queries, inputs, and reciprocity models.                              |
+| **[Bun](https://bun.sh/)**                                               | Package / Runtime    | Configured with `bun.lock` and `bunfig.toml` for exceptionally fast package resolution and scripts.                       |
+
+---
+
+## 📁 3. File & Directory Structure
+
+```
+.
+├── .git/                       # Git repository metadata
+├── .gitignore                  # Git untracked file configurations
+├── .prettierignore             # Prettier format rules exclusion
+├── .prettierrc                 # Prettier configuration rules
+├── .tanstack/                  # TanStack compiler metadata
+├── bun.lock                    # Bun package lock file
+├── bunfig.toml                 # Bun configuration file
+├── components.json             # Shadcn/Radix components layout schema
+├── eslint.config.js            # ESLint static code analysis rules
+├── node_modules/               # Installed dependencies
+├── package-lock.json           # npm dependency lock file
+├── package.json                # Project dependencies, metadata, and scripts
+├── tsconfig.json               # TypeScript compiler options
+├── vite.config.ts              # Vite configuration with TanStack & Tailwind integration
+└── src/                        # Main Application Code
+    ├── assets/                 # Static visual resources (e.g. baton.jpg)
+    ├── components/             # Custom interface components
+    │   └── ui/                 # 46 Radix-based UI primitive components (Button, Dialog, etc.)
+    ├── hooks/                  # Custom React hooks (e.g. use-mobile.tsx)
+    ├── lib/                    # Shared modules, APIs, and stores
+    │   ├── api/                # Mock or live API endpoint interfaces
+    │   ├── config.server.ts    # Server-side configurations
+    │   ├── error-capture.ts    # Catastrophic SSR error grabber
+    │   ├── error-page.ts       # Fallback error HTML template
+    │   ├── interest-store.ts   # LocalStorage interest registry & Reciprocity engine
+    │   └── utils.ts            # Tailwind classes utility merger (clsx + tailwind-merge)
+    ├── routes/                 # File-Based Routing System
+    │   ├── __root.tsx          # Application shell layout
+    │   ├── index.tsx           # Product landing page route
+    │   └── opportunities.tsx   # Opportunity dashboard route (validated parameters)
+    ├── routeTree.gen.ts        # AUTO-GENERATED type-safe route mapping
+    ├── router.tsx              # TanStack router setup & QueryClient instantiator
+    ├── server.ts               # SSR entrypoint & h3 server integration
+    ├── start.ts                # Client entrypoint & start configuration middleware
+    └── styles.css              # Custom global styles and Tailwind v4 directives
+```
+
+---
+
+## ⚡ 4. Code & Architecture Highlights
+
+### A. The SSR & Error Handling Engine
+
+The repository contains custom modules designed to capture SSR errors before the server engine (powered by H3/Nitro) swallows them:
+
+- **`src/lib/error-capture.ts`**: Implements an out-of-band logger using `globalThis.addEventListener("error")` and `unhandledrejection`. This ensures stack traces are preserved.
+- **`src/lib/error-page.ts`**: Houses a barebones, high-performance HTML error screen.
+- **`src/server.ts`**: Intercepts swallowed SSR crashes, formats them, and returns a clean 500 error page using the HTML template.
+
+### B. Gamified Reciprocity Engine (`src/lib/interest-store.ts`)
+
+Rather than relying on paid plans alone, access in The Relay is incentivized via a **Reciprocity Score**.
+
+1. **Actions & Statuses:** Users can express interest in opportunities. Records exist in states: `idle`, `pending`, `accepted`, or `declined`.
+2. **Contact Unlocking:** A target business’s BD contact details (name, email, role) are strictly hidden until the interest status is set to `accepted` (a successful baton pass).
+3. **Score Calculation:**
+   - Expressing Interest (Request Sent): **+5 Points**
+   - Mutual Connection (Request Accepted): **+15 Points**
+   - Decline: **Neutral (0 Points)**
+4. **Synchronization:** Uses custom window events (`relay:interest` and `storage`) to sync scores in real-time across multiple open tabs.
+
+### C. Type-Safe Dynamic Filtering (`src/routes/opportunities.tsx`)
+
+The Opportunities feed operates a data-dense workspace:
+
+- **Filtering Criteria:** Industry (SaaS, AI, Agency, etc.), Geography (USA, India, UAE, DACH, etc.), and Opportunity Type (Hiring, Vendor, Partnership, Distribution, etc.).
+- **Search Param Validation:** All query states (`q`, `industry`, `geo`, `type`) are bound strictly to the browser URL and validated using **Zod schema integration** inside the Route definition:
+
+  ```typescript
+  const searchSchema = z.object({
+    industry: fallback(z.enum(INDUSTRIES), "All").default("All"),
+    geo: fallback(z.enum(GEOGRAPHIES), "All").default("All"),
+    type: fallback(z.enum(TYPES), "All").default("All"),
+    q: fallback(z.string(), "").default(""),
+  });
+
+  export const Route = createFileRoute("/opportunities")({
+    validateSearch: zodValidator(searchSchema),
+    // ...
+  });
+  ```
+
+  This ensures that bookmarks, refreshes, and back/forward browser navigation preserve the exact filter state with total type-safety.
+
+### D. UI Component Primitives (`src/components/ui/`)
+
+The system comes with **46 highly polished UI primitives** that act as the design system's foundation:
+
+- **`sidebar.tsx`**: A feature-rich collapsible layout for dashboards.
+- **`chart.tsx`**: Layout helper wrapping Recharts, customized with Tailwind classes.
+- **`carousel.tsx`**: Dynamic slide layouts powered by `embla-carousel-react`.
+- **`dialog.tsx` / `drawer.tsx` / `sheet.tsx`**: Interactive overlays powered by Radix primitives and styled with seamless entry/exit animations.
+
+---
+
+## 🏃 5. Local Development Guide
+
+Ensure you have [Bun](https://bun.sh/) or [Node.js](https://nodejs.org/) installed.
+
+### 📦 1. Installation
+
+Using Bun (recommended):
+
+```bash
+bun install
+```
+
+Using npm:
+
+```bash
+npm install
+```
+
+### 🚀 2. Run Development Server
+
+Spins up the Vite development server with SSR support:
+
+```bash
+bun run dev
+# or
+npm run dev
+```
+
+The server will start at `http://localhost:3000` (or the default TanStack Start port).
+
+### 🏗️ 3. Production Build
+
+Compile the codebase into a production-ready bundle optimized with Nitro:
+
+```bash
+bun run build
+# or
+npm run build
+```
+
+### 🧹 4. Linting & Formatting
+
+To keep the codebase clean:
+
+```bash
+# Check code style with ESLint
+bun run lint
+
+# Automatically format code with Prettier
+bun run format
+```
+
+---
+
+## 📋 6. Key Routes Overview
+
+1. **`/` (Landing Page)**:
+   - Contains a gorgeous hero component showcasing verified network metrics.
+   - Lists the different business cooperation protocols (distribution, referrals, hiring, warm intros).
+   - Displays the reciprocity system preview and transparent membership pricing packages.
+2. **`/opportunities` (The Feed)**:
+   - The core interactive dashboard.
+   - Renders the opportunities catalogue, filters, trust score badges, and search bars.
+   - Includes the slide-out panels to pitch an introduction or view unlocked contact details.

@@ -294,14 +294,10 @@ function OpportunitiesPage() {
     });
   }, [industry, geo, type, q]);
 
-  const reset = () =>
-    navigate({ search: { industry: "All", geo: "All", type: "All", q: "" } });
+  const reset = () => navigate({ search: { industry: "All", geo: "All", type: "All", q: "" } });
 
   const activeCount =
-    (industry !== "All" ? 1 : 0) +
-    (geo !== "All" ? 1 : 0) +
-    (type !== "All" ? 1 : 0) +
-    (q ? 1 : 0);
+    (industry !== "All" ? 1 : 0) + (geo !== "All" ? 1 : 0) + (type !== "All" ? 1 : 0) + (q ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -312,12 +308,12 @@ function OpportunitiesPage() {
             [ Discovery ]
           </span>
           <h1 className="font-display text-4xl md:text-5xl font-extrabold tracking-tight leading-[1]">
-            Live opportunities, <span className="italic text-primary">filtered</span>{" "}
-            to your network.
+            Live opportunities, <span className="italic text-primary">filtered</span> to your
+            network.
           </h1>
           <p className="text-muted max-w-[55ch] leading-relaxed">
-            Every opportunity is posted by a verified business. Filter the feed by
-            industry, geography or opportunity type to find the handoffs that fit.
+            Every opportunity is posted by a verified business. Filter the feed by industry,
+            geography or opportunity type to find the handoffs that fit.
           </p>
         </header>
 
@@ -339,9 +335,7 @@ function OpportunitiesPage() {
 
             <SearchInput
               value={q}
-              onChange={(v) =>
-                navigate({ search: (prev: SearchParams) => ({ ...prev, q: v }) })
-              }
+              onChange={(v) => navigate({ search: (prev: SearchParams) => ({ ...prev, q: v }) })}
             />
 
             <FilterGroup
@@ -398,9 +392,7 @@ function OpportunitiesPage() {
             {filtered.length === 0 ? (
               <EmptyState onReset={reset} />
             ) : (
-              filtered.map((opp, i) => (
-                <ResultCard key={opp.id} opp={opp} delay={i * 40} />
-              ))
+              filtered.map((opp, i) => <ResultCard key={opp.id} opp={opp} delay={i * 40} />)
             )}
           </section>
         </div>
@@ -445,8 +437,7 @@ function PageNav() {
 }
 
 function ReciprocityBadge() {
-  const { score, introductionsMade, mutualAcceptances, pending, declined } =
-    useReciprocity();
+  const { score, introductionsMade, mutualAcceptances, pending, declined } = useReciprocity();
   const prev = useRef(score);
   const [pulse, setPulse] = useState(false);
 
@@ -466,9 +457,7 @@ function ReciprocityBadge() {
         pulse ? "border-primary bg-primary/10" : "border-border"
       }`}
     >
-      <span className="font-mono text-[9px] uppercase tracking-widest text-muted">
-        Reciprocity
-      </span>
+      <span className="font-mono text-[9px] uppercase tracking-widest text-muted">Reciprocity</span>
       <span
         className={`font-display text-sm font-extrabold tabular-nums ${
           pulse ? "text-primary" : "text-foreground"
@@ -483,13 +472,7 @@ function ReciprocityBadge() {
   );
 }
 
-function SearchInput({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
+function SearchInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div className="space-y-3">
       <label className="font-mono text-[10px] uppercase tracking-widest text-muted block">
@@ -518,9 +501,7 @@ function FilterGroup<T extends readonly string[]>({
 }) {
   return (
     <div className="space-y-3">
-      <div className="font-mono text-[10px] uppercase tracking-widest text-muted">
-        {label}
-      </div>
+      <div className="font-mono text-[10px] uppercase tracking-widest text-muted">{label}</div>
       <div className="flex flex-col">
         {options.map((opt) => {
           const active = opt === value;
@@ -597,9 +578,7 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
           </span>
         </div>
 
-        <h3 className="font-display text-xl font-bold leading-tight">
-          {opp.title}
-        </h3>
+        <h3 className="font-display text-xl font-bold leading-tight">{opp.title}</h3>
 
         <div className="flex items-center gap-2 font-mono text-[11px] text-muted">
           <span className="text-foreground font-medium">{opp.company}</span>
@@ -609,9 +588,7 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
           <span>{opp.geo}</span>
         </div>
 
-        <p className="text-sm text-muted leading-relaxed pt-1">
-          {opp.description}
-        </p>
+        <p className="text-sm text-muted leading-relaxed pt-1">{opp.description}</p>
 
         {status === "accepted" && record?.contact && (
           <div className="mt-3 border border-primary/40 bg-primary/5 p-4 space-y-2">
@@ -624,12 +601,8 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
               </div>
             </div>
             <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="font-display text-sm font-bold">
-                {record.contact.name}
-              </span>
-              <span className="font-mono text-[11px] text-muted">
-                · {record.contact.role}
-              </span>
+              <span className="font-display text-sm font-bold">{record.contact.name}</span>
+              <span className="font-mono text-[11px] text-muted">· {record.contact.role}</span>
             </div>
             <a
               href={`mailto:${record.contact.email}`}
@@ -673,8 +646,8 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
               [ Declined ]
             </div>
             <p className="text-xs text-muted">
-              {opp.company} chose not to accept this introduction. You can withdraw
-              and try again later.
+              {opp.company} chose not to accept this introduction. You can withdraw and try again
+              later.
             </p>
           </div>
         )}
@@ -688,12 +661,8 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
 
       <div className="md:w-36 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-center gap-3 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6">
         <div className="text-left md:text-center">
-          <div className="font-mono text-[10px] text-muted uppercase tracking-tighter">
-            Trust
-          </div>
-          <div className="font-display text-xl font-extrabold">
-            {opp.trustLevel}
-          </div>
+          <div className="font-mono text-[10px] text-muted uppercase tracking-tighter">Trust</div>
+          <div className="font-display text-xl font-extrabold">{opp.trustLevel}</div>
         </div>
 
         {status === "idle" && (
@@ -742,8 +711,9 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
               Request mutual acceptance
             </DialogTitle>
             <DialogDescription className="text-sm text-muted leading-relaxed">
-              Contact is unlocked only after <span className="text-foreground font-medium">{opp.company}</span>{" "}
-              accepts. Tell them who you are and why this is a fit — kept private until accepted.
+              Contact is unlocked only after{" "}
+              <span className="text-foreground font-medium">{opp.company}</span> accepts. Tell them
+              who you are and why this is a fit — kept private until accepted.
             </DialogDescription>
           </DialogHeader>
 
@@ -789,12 +759,8 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
 function EmptyState({ onReset }: { onReset: () => void }) {
   return (
     <div className="border border-dashed border-border p-16 text-center space-y-4">
-      <div className="font-mono text-[10px] uppercase tracking-widest text-muted">
-        No matches
-      </div>
-      <h3 className="font-display text-2xl font-bold">
-        No opportunities match these filters.
-      </h3>
+      <div className="font-mono text-[10px] uppercase tracking-widest text-muted">No matches</div>
+      <h3 className="font-display text-2xl font-bold">No opportunities match these filters.</h3>
       <p className="text-muted max-w-[40ch] mx-auto text-sm">
         Try widening industry or geography — or reset to view every live opportunity.
       </p>
