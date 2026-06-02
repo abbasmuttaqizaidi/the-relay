@@ -1,8 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { useInterestStore, type InterestRecord } from "@/lib/interest-store";
+
+function mockContact(company: string): NonNullable<InterestRecord["contact"]> {
+  const first = company.split(/\s+/)[0] ?? "Ops";
+  const slug = company.toLowerCase().replace(/[^a-z0-9]+/g, "");
+  return {
+    name: `${first} Partnerships`,
+    role: "BD Lead",
+    email: `partnerships@${slug}.com`,
+  };
+}
 
 const INDUSTRIES = [
   "All",
