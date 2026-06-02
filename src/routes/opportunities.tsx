@@ -565,7 +565,9 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
 
   const onAccept = () => {
     respond(opp.id, "accepted", mockContact(opp.company));
-    toast.success(`${opp.company} accepted. Contact unlocked.`);
+    toast.success(
+      `${opp.company} accepted. Contact unlocked. +${RECIPROCITY_WEIGHTS.accepted} reciprocity.`,
+    );
   };
 
   const onDecline = () => {
