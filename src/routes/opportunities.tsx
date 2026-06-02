@@ -615,8 +615,13 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
 
         {status === "accepted" && record?.contact && (
           <div className="mt-3 border border-primary/40 bg-primary/5 p-4 space-y-2">
-            <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
-              [ Contact unlocked · mutual acceptance ]
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                [ Contact unlocked · mutual acceptance ]
+              </div>
+              <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                + {RECIPROCITY_WEIGHTS.accepted} reciprocity
+              </div>
             </div>
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="font-display text-sm font-bold">
