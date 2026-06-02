@@ -497,6 +497,35 @@ function FilterGroup<T extends readonly string[]>({
 }
 
 function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
+  const { store, request, respond, withdraw } = useInterestStore();
+  const record = store[opp.id];
+  const status = record?.status ?? "idle";
+
+  const [open, setOpen] = useState(false);
+  const [pitch, setPitch] = useState("");
+
+  const submit = () => {
+    const trimmed = pitch.trim();
+    if (trimmed.length < 20) {
+      toast.error("Add a short context note (20+ characters).");
+      return;
+    }
+    request(opp.id, trimmed);
+    setOpen(false);
+    setPitch("");
+    toast.success("Interest sent. Awaiting mutual acceptance.");
+  };
+
+  const onAccept = () => {
+    respond(opp.id, "accepted", mockContact(opp.company));
+    toast.success(`${opp.company} accepted. Contact unlocked.`);
+  };
+
+  const onDecline = () => {
+    respond(opp.id, "declined");
+    toast(`${opp.company} declined this introduction.`);
+  };
+
   return (
     <article
       className="bg-card border border-border ring-1 ring-black/5 p-6 flex flex-col md:flex-row gap-6 hover:border-primary transition-colors animate-momentum"
@@ -535,14 +564,75 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
           {opp.description}
         </p>
 
+        {status === "accepted" && record?.contact && (
+          <div className="mt-3 border border-primary/40 bg-primary/5 p-4 space-y-2">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
+              [ Contact unlocked · mutual acceptance ]
+            </div>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="font-display text-sm font-bold">
+                {record.contact.name}
+              </span>
+              <span className="font-mono text-[11px] text-muted">
+                · {record.contact.role}
+              </span>
+            </div>
+            <a
+              href={`mailto:${record.contact.email}`}
+              className="font-mono text-[12px] text-foreground hover:text-primary transition-colors break-all"
+            >
+              {record.contact.email}
+            </a>
+          </div>
+        )}
+
+        {status === "pending" && (
+          <div className="mt-3 border border-dashed border-border p-4 space-y-2">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-muted">
+              [ Pitch sent · awaiting {opp.company} ]
+            </div>
+            <p className="text-xs text-muted italic">&ldquo;{record?.pitch}&rdquo;</p>
+            <div className="flex items-center gap-3 pt-1">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                Demo:
+              </span>
+              <button
+                onClick={onAccept}
+                className="font-mono text-[10px] uppercase tracking-widest text-primary hover:underline"
+              >
+                Simulate accept
+              </button>
+              <span className="text-muted">·</span>
+              <button
+                onClick={onDecline}
+                className="font-mono text-[10px] uppercase tracking-widest text-muted hover:text-destructive"
+              >
+                Simulate decline
+              </button>
+            </div>
+          </div>
+        )}
+
+        {status === "declined" && (
+          <div className="mt-3 border border-border p-4 space-y-2">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-destructive">
+              [ Declined ]
+            </div>
+            <p className="text-xs text-muted">
+              {opp.company} chose not to accept this introduction. You can withdraw
+              and try again later.
+            </p>
+          </div>
+        )}
+
         <div className="flex items-center justify-between pt-2">
           <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
-            {opp.interested} verified businesses interested
+            {opp.interested + (status !== "idle" ? 1 : 0)} verified businesses interested
           </span>
         </div>
       </div>
 
-      <div className="md:w-32 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-center gap-3 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6">
+      <div className="md:w-36 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-center gap-3 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6">
         <div className="text-left md:text-center">
           <div className="font-mono text-[10px] text-muted uppercase tracking-tighter">
             Trust
@@ -551,10 +641,93 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
             {opp.trustLevel}
           </div>
         </div>
-        <button className="flex-1 md:flex-none md:w-full py-2 px-3 bg-foreground text-background text-[10px] font-mono uppercase tracking-widest hover:bg-primary transition-colors">
-          Express Interest
-        </button>
+
+        {status === "idle" && (
+          <button
+            onClick={() => setOpen(true)}
+            className="flex-1 md:flex-none md:w-full py-2 px-3 bg-foreground text-background text-[10px] font-mono uppercase tracking-widest hover:bg-primary transition-colors"
+          >
+            Express Interest
+          </button>
+        )}
+
+        {status === "pending" && (
+          <div className="flex-1 md:flex-none md:w-full flex flex-col gap-2">
+            <div className="text-center py-2 px-3 border border-primary text-primary text-[10px] font-mono uppercase tracking-widest">
+              Pending
+            </div>
+            <button
+              onClick={() => withdraw(opp.id)}
+              className="text-[10px] font-mono uppercase tracking-widest text-muted hover:text-destructive transition-colors"
+            >
+              Withdraw
+            </button>
+          </div>
+        )}
+
+        {status === "accepted" && (
+          <div className="flex-1 md:flex-none md:w-full text-center py-2 px-3 bg-primary text-primary-foreground text-[10px] font-mono uppercase tracking-widest">
+            Accepted
+          </div>
+        )}
+
+        {status === "declined" && (
+          <button
+            onClick={() => withdraw(opp.id)}
+            className="flex-1 md:flex-none md:w-full py-2 px-3 border border-border text-foreground text-[10px] font-mono uppercase tracking-widest hover:border-primary hover:text-primary transition-colors"
+          >
+            Reset
+          </button>
+        )}
       </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl font-extrabold tracking-tight">
+              Request mutual acceptance
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted leading-relaxed">
+              Contact is unlocked only after <span className="text-foreground font-medium">{opp.company}</span>{" "}
+              accepts. Tell them who you are and why this is a fit — kept private until accepted.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-muted">
+              Opportunity · #{opp.id}
+            </div>
+            <div className="text-sm font-medium">{opp.title}</div>
+            <textarea
+              value={pitch}
+              onChange={(e) => setPitch(e.target.value)}
+              rows={5}
+              maxLength={500}
+              placeholder="Who you are, what you're shipping, and why this fits…"
+              className="w-full bg-background border border-border focus:border-primary focus:outline-none px-3 py-2.5 text-sm font-mono placeholder:text-muted/60 resize-none"
+            />
+            <div className="flex justify-between font-mono text-[10px] uppercase tracking-widest text-muted">
+              <span>Verified businesses only</span>
+              <span>{pitch.length}/500</span>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <button
+              onClick={() => setOpen(false)}
+              className="px-4 py-2 text-[11px] font-mono uppercase tracking-widest text-muted hover:text-foreground transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={submit}
+              className="px-5 py-2 bg-foreground text-background text-[11px] font-mono uppercase tracking-widest hover:bg-primary transition-colors"
+            >
+              Send Request
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </article>
   );
 }
