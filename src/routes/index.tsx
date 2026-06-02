@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import batonImg from "@/assets/baton.jpg";
+import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import {
   ArrowRight,
   ShieldCheck,
@@ -215,14 +216,12 @@ function Nav() {
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between">
         <div className="flex items-center gap-12">
-          <Link
-            to="/"
-            className="flex items-center gap-2 group font-display text-2xl font-extrabold tracking-tighter uppercase"
-          >
-            <span className="w-6 h-6 bg-primary flex items-center justify-center text-white text-xs font-mono tracking-normal font-semibold rounded-[2px] transition-transform group-hover:rotate-12">
-              R
-            </span>
-            <span className="group-hover:text-primary transition-colors">Relay</span>
+          <Link to="/" className="flex items-center gap-2 group">
+            <img
+              src={logoUrl}
+              alt="The Relay Logo"
+              className="h-15 w-auto object-contain mix-blend-multiply"
+            />
           </Link>
           <div className="hidden md:flex gap-8 text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
             <a href="#opportunities" className="hover:text-primary transition-colors">

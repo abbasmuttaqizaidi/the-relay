@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import logoUrl from "../../assets/icons/logo-white-bg.png";
 import {
   Dialog,
   DialogContent,
@@ -406,8 +407,24 @@ function PageNav() {
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-10">
-          <Link to="/" className="font-display text-xl font-extrabold tracking-tighter uppercase">
-            Relay
+          <Link to="/" className="flex items-center gap-2 group">
+            <span className="md:hidden font-display text-xl font-extrabold tracking-tighter uppercase">Relay</span>
+            <div className="hidden md:flex flex-col items-start gap-0.5">
+              <div className="flex items-end gap-1.5 leading-none">
+                <img
+                  src={logoUrl}
+                  alt="The Relay Logo"
+                  className="h-8 w-auto object-contain mix-blend-multiply"
+                />
+                <div className="h-4 w-px bg-foreground mb-1" />
+                <span className="font-display text-xl font-normal tracking-tight text-foreground group-hover:text-primary transition-colors leading-none">
+                  The Relay
+                </span>
+              </div>
+              <span className="font-mono text-[7.5px] uppercase tracking-[0.16em] text-muted-foreground pl-0.5 leading-none">
+                Business Opportunity Exchange
+              </span>
+            </div>
           </Link>
           <div className="hidden md:flex gap-6 text-[11px] font-mono uppercase tracking-widest text-muted">
             <Link
