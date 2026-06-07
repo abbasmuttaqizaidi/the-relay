@@ -85,6 +85,15 @@
   }
 }
 
+@keyframes sweep-shine {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 @layer utilities {
   .animate-momentum {
     animation: slide-in 0.6s var(--ease-out-expo) both;
@@ -92,6 +101,19 @@
 
   .animate-badge-shine {
     animation: badge-shine 2.8s ease-in-out infinite;
+  }
+
+  .animate-sweep-shine {
+    background: linear-gradient(
+      120deg,
+      #0f172a 30%,
+      #3f4f6e 45%,
+      #8ba3cf 50%,
+      #3f4f6e 55%,
+      #0f172a 70%
+    );
+    background-size: 200% auto;
+    animation: sweep-shine 3s linear infinite;
   }
 }
 

@@ -50,16 +50,30 @@ export async function resolveOrCreateUserDuringOnboarding(): Promise<User> {
     throw new Error("Conflict: A verified email address must exist in Clerk to complete sign up.");
   }
 
-  let dbUser = await UserService.getUserByClerkId(userId);
+  let dbUser: User | null = await UserService.getUserByClerkId(userId);
   if (!dbUser) {
     console.log(`[Clerk Auth Sync] Registering new Clerk user during onboarding: ${userId}`);
     dbUser = await UserService.createUser({ clerk_user_id: userId, email });
   } else if (!dbUser.email) {
     // Sync email in database if it was somehow missing
-    dbUser = await prisma.user.update({
+    const updated = await prisma.user.update({
       where: { id: dbUser.id },
       data: { email },
     });
+    dbUser = {
+      id: updated.id,
+      clerk_user_id: updated.clerk_user_id,
+      email: updated.email,
+      created_at: updated.created_at.toISOString(),
+    };
+    
+    // Update cache
+    const { serverCache } = await import("./server-cache");
+    serverCache.set(`user:clerk:${updated.clerk_user_id}`, dbUser, 300);
+  }
+
+  if (!dbUser) {
+    throw new Error("Internal Server Error: Failed to resolve database user.");
   }
 
   return dbUser;

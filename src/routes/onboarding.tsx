@@ -125,11 +125,6 @@ function OnboardingPage() {
           linkedin_url: linkedinUrl || undefined,
           logo_url: finalLogoUrl,
         },
-        headers: {
-          // Pass Clerk token to authorize mapping creation
-          "x-clerk-user-id": token || undefined,
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       const mappedProfile = {

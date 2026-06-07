@@ -1063,7 +1063,9 @@ function Reciprocity() {
           <div>
             <div className="font-mono text-[10px] uppercase tracking-widest text-background/60 flex items-center gap-1.5">
               apex hr solutions
-              <BadgeCheck className="w-3.5 h-3.5 text-white fill-[#1877f2] shrink-0" title="Verified by Platform" />
+              <span title="Verified by Platform">
+                <BadgeCheck className="w-3.5 h-3.5 text-white fill-[#1877f2] shrink-0" />
+              </span>
             </div>
             <div className="font-display text-2xl font-extrabold mt-1 text-white flex items-center gap-2">
               Established · Approved Entity

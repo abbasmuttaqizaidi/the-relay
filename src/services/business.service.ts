@@ -1,6 +1,7 @@
 import { prisma } from "../db/prisma.server";
 import { Business, CreateBusinessDTO, UpdateBusinessDTO } from "../types";
 import { EmailService } from "./email.service";
+import { serverCache } from "../lib/server-cache";
 
 export class BusinessService {
   /**
@@ -35,7 +36,11 @@ export class BusinessService {
         return biz;
       });
 
-      return BusinessService.mapBusinessModel(business);
+      const result = BusinessService.mapBusinessModel(business);
+      // Cache the newly created business
+      serverCache.set(`business:id:${result.id}`, result, 300);
+      serverCache.set(`business:owner:${result.owner_user_id}`, result, 300);
+      return result;
     } catch (error: any) {
       console.error("[BusinessService.createBusiness] Error:", error);
       throw new Error(`Failed to create business: ${error.message || error}`);
@@ -66,7 +71,12 @@ export class BusinessService {
         },
       });
 
-      return BusinessService.mapBusinessModel(business);
+      const result = BusinessService.mapBusinessModel(business);
+      // Invalidate and write new cache
+      BusinessService.invalidateBusinessCache(result.id, result.owner_user_id);
+      serverCache.set(`business:id:${result.id}`, result, 300);
+      serverCache.set(`business:owner:${result.owner_user_id}`, result, 300);
+      return result;
     } catch (error: any) {
       console.error("[BusinessService.updateBusiness] Error:", error);
       throw new Error(`Failed to update business: ${error.message || error}`);
@@ -77,13 +87,19 @@ export class BusinessService {
    * Retrieves a business profile by ID.
    */
   static async getBusinessById(businessId: string): Promise<Business | null> {
+    const cacheKey = `business:id:${businessId}`;
+    const cached = serverCache.get<Business>(cacheKey);
+    if (cached) return cached;
+
     try {
       const business = await prisma.business.findUnique({
         where: { id: businessId },
       });
       if (!business) return null;
 
-      return BusinessService.mapBusinessModel(business);
+      const result = BusinessService.mapBusinessModel(business);
+      serverCache.set(cacheKey, result, 300);
+      return result;
     } catch (error: any) {
       console.error("[BusinessService.getBusinessById] Error:", error);
       throw new Error(`Failed to fetch business: ${error.message || error}`);
@@ -94,13 +110,19 @@ export class BusinessService {
    * Retrieves a business profile by Owner User ID.
    */
   static async getBusinessByOwner(ownerUserId: string): Promise<Business | null> {
+    const cacheKey = `business:owner:${ownerUserId}`;
+    const cached = serverCache.get<Business>(cacheKey);
+    if (cached) return cached;
+
     try {
       const business = await prisma.business.findFirst({
         where: { owner_user_id: ownerUserId },
       });
       if (!business) return null;
 
-      return BusinessService.mapBusinessModel(business);
+      const result = BusinessService.mapBusinessModel(business);
+      serverCache.set(cacheKey, result, 300);
+      return result;
     } catch (error: any) {
       console.error("[BusinessService.getBusinessByOwner] Error:", error);
       throw new Error(`Failed to fetch owner's business: ${error.message || error}`);
@@ -124,7 +146,9 @@ export class BusinessService {
         },
       });
 
-      return BusinessService.mapBusinessModel(business);
+      const result = BusinessService.mapBusinessModel(business);
+      BusinessService.invalidateBusinessCache(result.id, result.owner_user_id);
+      return result;
     } catch (error: any) {
       console.error("[BusinessService.markWebsiteVerified] Error:", error);
       throw new Error(`Failed to save website verification: ${error.message || error}`);
@@ -145,7 +169,9 @@ export class BusinessService {
         await EmailService.sendBusinessApproved(ownerEmail, business.company_name);
       }
 
-      return BusinessService.mapBusinessModel(business);
+      const result = BusinessService.mapBusinessModel(business);
+      BusinessService.invalidateBusinessCache(result.id, result.owner_user_id);
+      return result;
     } catch (error: any) {
       console.error("[BusinessService.approveBusiness] Error:", error);
       throw new Error(`Failed to approve business: ${error.message || error}`);
@@ -170,7 +196,9 @@ export class BusinessService {
         await EmailService.sendBusinessRejected(ownerEmail, business.company_name, reason);
       }
 
-      return BusinessService.mapBusinessModel(business);
+      const result = BusinessService.mapBusinessModel(business);
+      BusinessService.invalidateBusinessCache(result.id, result.owner_user_id);
+      return result;
     } catch (error: any) {
       console.error("[BusinessService.rejectBusiness] Error:", error);
       throw new Error(`Failed to reject business: ${error.message || error}`);
@@ -187,11 +215,18 @@ export class BusinessService {
         data: { status: "pending" },
       });
 
-      return BusinessService.mapBusinessModel(business);
+      const result = BusinessService.mapBusinessModel(business);
+      BusinessService.invalidateBusinessCache(result.id, result.owner_user_id);
+      return result;
     } catch (error: any) {
       console.error("[BusinessService.setBusinessStatusToPending] Error:", error);
       throw new Error(`Failed to set business status to pending: ${error.message || error}`);
     }
+  }
+
+  private static invalidateBusinessCache(businessId: string, ownerUserId: string) {
+    serverCache.delete(`business:id:${businessId}`);
+    serverCache.delete(`business:owner:${ownerUserId}`);
   }
 
   private static mapBusinessModel(business: any): Business {

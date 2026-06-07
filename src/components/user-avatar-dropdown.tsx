@@ -86,12 +86,22 @@ export function UserAvatarDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="focus:outline-none cursor-pointer group flex items-center gap-2.5 border border-slate-200 hover:border-slate-300 rounded-lg px-3 py-1.5 transition-all bg-white hover:shadow-sm">
-          {/* Left side: Name + Tier stacked vertically */}
-          <div className="flex flex-col items-end gap-0.5 min-w-0">
-            <span className="text-[11px] font-semibold text-slate-700 truncate max-w-[120px] leading-tight">
-              {displayName}
-            </span>
+        <button className="focus:outline-none cursor-pointer group flex items-center gap-3 border border-slate-200/80 hover:border-slate-300 hover:bg-slate-50/50 rounded-full pl-2 pr-4 py-1.5 transition-all bg-white hover:shadow-sm">
+          {/* Left side: Avatar */}
+          <Avatar className="w-8 h-8 border border-slate-200/80 group-hover:border-primary/50 transition-all shrink-0 rounded-full shadow-sm">
+            <AvatarImage
+              src={avatarSrc}
+              alt={displayName}
+              className="object-cover"
+              onError={() => setLogoFailed(true)}
+            />
+            <AvatarFallback className="text-[10px] font-mono font-bold bg-primary/10 text-primary">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+
+          {/* Right side: Badge + Name stacked vertically, aligned left */}
+          <div className="flex flex-col items-start gap-0.5 min-w-0">
             <TooltipSimple
               content={
                 <div className="p-2.5 max-w-[260px] space-y-2 text-left font-sans leading-normal">
@@ -125,24 +135,16 @@ export function UserAvatarDropdown() {
               side="bottom"
               align="end"
             >
-              <span className="inline-flex items-center gap-1 bg-slate-900 text-white text-[8px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 cursor-default">
-                {tierLabel === "Approved" && <Check className="w-2.5 h-2.5" />}
+              <span className={`inline-flex items-center text-white text-[7px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm cursor-default leading-none ${
+                tierLabel === "Approved" ? "animate-sweep-shine" : "bg-slate-900"
+              }`}>
                 {tierLabel}
               </span>
             </TooltipSimple>
+            <span className="text-[10.5px] font-bold text-slate-700 truncate max-w-[110px] leading-tight font-sans tracking-tight">
+              {displayName}
+            </span>
           </div>
-          {/* Right side: Avatar */}
-          <Avatar className="w-7 h-7 border border-border group-hover:border-primary transition-all shrink-0">
-            <AvatarImage
-              src={avatarSrc}
-              alt={displayName}
-              className="object-cover"
-              onError={() => setLogoFailed(true)}
-            />
-            <AvatarFallback className="text-[9px] font-mono font-bold bg-primary/10 text-primary">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 mt-2 bg-white border border-[#1f25301f] rounded-[4px] shadow-lg font-sans p-1" align="end">

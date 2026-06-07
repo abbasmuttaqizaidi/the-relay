@@ -482,10 +482,9 @@ function BusinessProfilePage() {
                 <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400">
                   Verification Tier
                 </span>
-                <span className="inline-flex items-center gap-1 bg-slate-900 text-white text-[8px] font-mono font-bold uppercase tracking-widest px-2 py-0.5">
-                  {tierLabel === "Approved" && (
-                    <Check className="w-2.5 h-2.5" />
-                  )}
+                <span className={`inline-flex items-center text-white text-[8px] font-mono font-bold uppercase tracking-widest px-3.5 py-1.5 shadow-sm ${
+                  tierLabel === "Approved" ? "animate-sweep-shine" : "bg-slate-900"
+                }`}>
                   {tierLabel}
                 </span>
               </div>

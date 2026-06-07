@@ -3,6 +3,7 @@ import { clerkClient } from "@clerk/tanstack-react-start/server";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { prisma } from "../db/prisma.server";
 import { z } from "zod";
+import { serverCache } from "../lib/server-cache";
 
 const deleteUserSchema = z.object({
   id: z.string().uuid(),
@@ -50,7 +51,7 @@ export const deleteUserFromAdmin = createServerFn({ method: "POST" })
     }
 
     // 4. Delete from Supabase with manual transactional cascade cleanup to guarantee no leftover records or constraint failures
-    const deletedUser = await prisma.$transaction(async (tx) => {
+    const { deletedUser, businessIds } = await prisma.$transaction(async (tx) => {
       // Find all businesses owned by this user
       const userBusinesses = await tx.business.findMany({
         where: { owner_user_id: data.id },
@@ -104,10 +105,19 @@ export const deleteUserFromAdmin = createServerFn({ method: "POST" })
       });
 
       // G. Finally, delete the User
-      return await tx.user.delete({
+      const user = await tx.user.delete({
         where: { id: data.id },
       });
+
+      return { deletedUser: user, businessIds };
     });
+
+    // Invalidate user cache and any owned business caches
+    serverCache.delete(`user:clerk:${data.clerk_user_id}`);
+    serverCache.delete(`business:owner:${data.id}`);
+    for (const businessId of businessIds) {
+      serverCache.delete(`business:id:${businessId}`);
+    }
 
     console.log(`[Admin Delete] Deleted user ${data.id} and all cascade business relations from Supabase.`);
     return { success: true, deletedUser };

@@ -5,6 +5,7 @@ import {
   UpdateOpportunityDTO,
   ListOpportunitiesFilters,
 } from "../types";
+import { serverCache } from "../lib/server-cache";
 
 export class OpportunityService {
   /**
@@ -53,13 +54,17 @@ export class OpportunityService {
         },
       });
 
-      return {
+      const result = {
         ...opportunity,
         type: opportunity.type as any,
         status: opportunity.status as any,
         created_at: opportunity.created_at.toISOString(),
         updated_at: opportunity.updated_at.toISOString(),
       };
+
+      // Invalidate opportunity cache
+      serverCache.delete(`opportunity:id:${opportunityId}`);
+      return result;
     } catch (error: any) {
       console.error("[OpportunityService.updateOpportunity] Error:", error);
       throw new Error(`Failed to update opportunity: ${error.message || error}`);
@@ -124,6 +129,10 @@ export class OpportunityService {
    * Retrieves a specific opportunity by its ID.
    */
   static async getOpportunityById(opportunityId: string) {
+    const cacheKey = `opportunity:id:${opportunityId}`;
+    const cached = serverCache.get<any>(cacheKey);
+    if (cached) return cached;
+
     try {
       const opp = await prisma.opportunity.findUnique({
         where: { id: opportunityId },
@@ -133,7 +142,7 @@ export class OpportunityService {
       });
       if (!opp) return null;
 
-      return {
+      const result = {
         ...opp,
         type: opp.type as any,
         status: opp.status as any,
@@ -148,6 +157,9 @@ export class OpportunityService {
             }
           : null,
       };
+
+      serverCache.set(cacheKey, result, 300); // Cache for 5 minutes
+      return result;
     } catch (error: any) {
       console.error("[OpportunityService.getOpportunityById] Error:", error);
       throw new Error(`Failed to get opportunity: ${error.message || error}`);

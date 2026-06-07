@@ -832,8 +832,7 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
         <div className="text-left md:text-center">
           <div className="font-mono text-[10px] text-muted uppercase tracking-tighter">Trust</div>
           <TooltipSimple content={<TierTooltipContent level={opp.trustLevel} />}>
-            <div className="font-display text-xs font-extrabold uppercase bg-secondary px-2 py-1 border border-border tracking-wider text-center cursor-default flex items-center justify-center gap-1">
-              {opp.trustLevel === "Approved" && <Check className="w-3 h-3 text-slate-800" />}
+            <div className="inline-flex items-center justify-center bg-slate-900 text-white text-[8px] font-mono font-bold uppercase tracking-widest px-3.5 py-1.5 shadow-sm cursor-default">
               {opp.trustLevel}
             </div>
           </TooltipSimple>
