@@ -747,7 +747,7 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
             {opp.company}
             {opp.trustLevel === "Approved" && (
               <TooltipSimple content="Approved with Relay">
-                <BadgeCheck className="w-4 h-4 text-white fill-[#1877f2] shrink-0 cursor-default" />
+                <BadgeCheck className="w-4 h-4 text-white fill-[#1877f2] shrink-0 cursor-default animate-badge-shine" />
               </TooltipSimple>
             )}
           </span>

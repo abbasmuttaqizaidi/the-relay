@@ -36,6 +36,13 @@ model Business {
   description             String?
   linkedin_url            String?
   logo_url                String?
+  hq_location             String?
+  founded_year            Int?
+  company_size            String?
+  company_type            String?
+  funding_stage           String?
+  twitter_url             String?
+  contact_email           String?
   status                  String    @default("pending")
   website_verified        Boolean   @default(false)
   website_verified_at     DateTime? @db.Timestamptz(6)

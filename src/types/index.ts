@@ -32,6 +32,13 @@ export interface Business {
   description: string | null;
   linkedin_url: string | null;
   logo_url: string | null;
+  hq_location: string | null;
+  founded_year: number | null;
+  company_size: string | null;
+  company_type: string | null;
+  funding_stage: string | null;
+  twitter_url: string | null;
+  contact_email: string | null;
   status: BusinessStatus;
   website_verified: boolean;
   website_verified_at: string | null;
@@ -109,6 +116,13 @@ export interface UpdateBusinessDTO {
   description?: string;
   linkedin_url?: string;
   logo_url?: string;
+  hq_location?: string;
+  founded_year?: number;
+  company_size?: string;
+  company_type?: string;
+  funding_stage?: string;
+  twitter_url?: string;
+  contact_email?: string;
 }
 
 export interface CreateOpportunityDTO {

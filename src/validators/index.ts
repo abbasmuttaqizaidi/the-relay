@@ -37,6 +37,13 @@ export const updateBusinessSchema = z.object({
   description: z.string().max(1000).optional(),
   linkedin_url: z.string().url().optional().or(z.literal("")),
   logo_url: z.string().url().optional().or(z.literal("")),
+  hq_location: z.string().optional().nullable().or(z.literal("")),
+  founded_year: z.number().int().optional().nullable(),
+  company_size: z.string().optional().nullable().or(z.literal("")),
+  company_type: z.string().optional().nullable().or(z.literal("")),
+  funding_stage: z.string().optional().nullable().or(z.literal("")),
+  twitter_url: z.string().optional().nullable().or(z.literal("")),
+  contact_email: z.string().optional().nullable().or(z.literal("")),
 });
 
 export const createOpportunitySchema = z.object({

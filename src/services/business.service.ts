@@ -35,15 +35,7 @@ export class BusinessService {
         return biz;
       });
 
-      return {
-        ...business,
-        status: business.status as any,
-        website_verified: business.website_verified,
-        website_verified_at: business.website_verified_at?.toISOString() ?? null,
-        website_verified_domain: business.website_verified_domain ?? null,
-        created_at: business.created_at.toISOString(),
-        updated_at: business.updated_at.toISOString(),
-      };
+      return BusinessService.mapBusinessModel(business);
     } catch (error: any) {
       console.error("[BusinessService.createBusiness] Error:", error);
       throw new Error(`Failed to create business: ${error.message || error}`);
@@ -64,18 +56,17 @@ export class BusinessService {
           description: dto.description,
           linkedin_url: dto.linkedin_url,
           logo_url: dto.logo_url,
+          hq_location: dto.hq_location,
+          founded_year: dto.founded_year,
+          company_size: dto.company_size,
+          company_type: dto.company_type,
+          funding_stage: dto.funding_stage,
+          twitter_url: dto.twitter_url,
+          contact_email: dto.contact_email,
         },
       });
 
-      return {
-        ...business,
-        status: business.status as any,
-        website_verified: business.website_verified,
-        website_verified_at: business.website_verified_at?.toISOString() ?? null,
-        website_verified_domain: business.website_verified_domain ?? null,
-        created_at: business.created_at.toISOString(),
-        updated_at: business.updated_at.toISOString(),
-      };
+      return BusinessService.mapBusinessModel(business);
     } catch (error: any) {
       console.error("[BusinessService.updateBusiness] Error:", error);
       throw new Error(`Failed to update business: ${error.message || error}`);
@@ -92,15 +83,7 @@ export class BusinessService {
       });
       if (!business) return null;
 
-      return {
-        ...business,
-        status: business.status as any,
-        website_verified: business.website_verified,
-        website_verified_at: business.website_verified_at?.toISOString() ?? null,
-        website_verified_domain: business.website_verified_domain ?? null,
-        created_at: business.created_at.toISOString(),
-        updated_at: business.updated_at.toISOString(),
-      };
+      return BusinessService.mapBusinessModel(business);
     } catch (error: any) {
       console.error("[BusinessService.getBusinessById] Error:", error);
       throw new Error(`Failed to fetch business: ${error.message || error}`);
@@ -117,15 +100,7 @@ export class BusinessService {
       });
       if (!business) return null;
 
-      return {
-        ...business,
-        status: business.status as any,
-        website_verified: business.website_verified,
-        website_verified_at: business.website_verified_at?.toISOString() ?? null,
-        website_verified_domain: business.website_verified_domain ?? null,
-        created_at: business.created_at.toISOString(),
-        updated_at: business.updated_at.toISOString(),
-      };
+      return BusinessService.mapBusinessModel(business);
     } catch (error: any) {
       console.error("[BusinessService.getBusinessByOwner] Error:", error);
       throw new Error(`Failed to fetch owner's business: ${error.message || error}`);
@@ -149,15 +124,7 @@ export class BusinessService {
         },
       });
 
-      return {
-        ...business,
-        status: business.status as any,
-        website_verified: business.website_verified,
-        website_verified_at: business.website_verified_at?.toISOString() ?? null,
-        website_verified_domain: business.website_verified_domain ?? null,
-        created_at: business.created_at.toISOString(),
-        updated_at: business.updated_at.toISOString(),
-      };
+      return BusinessService.mapBusinessModel(business);
     } catch (error: any) {
       console.error("[BusinessService.markWebsiteVerified] Error:", error);
       throw new Error(`Failed to save website verification: ${error.message || error}`);
@@ -178,12 +145,7 @@ export class BusinessService {
         await EmailService.sendBusinessApproved(ownerEmail, business.company_name);
       }
 
-      return {
-        ...business,
-        status: business.status as any,
-        created_at: business.created_at.toISOString(),
-        updated_at: business.updated_at.toISOString(),
-      };
+      return BusinessService.mapBusinessModel(business);
     } catch (error: any) {
       console.error("[BusinessService.approveBusiness] Error:", error);
       throw new Error(`Failed to approve business: ${error.message || error}`);
@@ -208,15 +170,53 @@ export class BusinessService {
         await EmailService.sendBusinessRejected(ownerEmail, business.company_name, reason);
       }
 
-      return {
-        ...business,
-        status: business.status as any,
-        created_at: business.created_at.toISOString(),
-        updated_at: business.updated_at.toISOString(),
-      };
+      return BusinessService.mapBusinessModel(business);
     } catch (error: any) {
       console.error("[BusinessService.rejectBusiness] Error:", error);
       throw new Error(`Failed to reject business: ${error.message || error}`);
     }
+  }
+
+  /**
+   * Sets a business profile status back to pending.
+   */
+  static async setBusinessStatusToPending(businessId: string): Promise<Business> {
+    try {
+      const business = await prisma.business.update({
+        where: { id: businessId },
+        data: { status: "pending" },
+      });
+
+      return BusinessService.mapBusinessModel(business);
+    } catch (error: any) {
+      console.error("[BusinessService.setBusinessStatusToPending] Error:", error);
+      throw new Error(`Failed to set business status to pending: ${error.message || error}`);
+    }
+  }
+
+  private static mapBusinessModel(business: any): Business {
+    return {
+      id: business.id,
+      owner_user_id: business.owner_user_id,
+      company_name: business.company_name,
+      website: business.website,
+      industry: business.industry,
+      description: business.description,
+      linkedin_url: business.linkedin_url,
+      logo_url: business.logo_url,
+      hq_location: business.hq_location,
+      founded_year: business.founded_year,
+      company_size: business.company_size,
+      company_type: business.company_type,
+      funding_stage: business.funding_stage,
+      twitter_url: business.twitter_url,
+      contact_email: business.contact_email,
+      status: business.status as any,
+      website_verified: business.website_verified,
+      website_verified_at: business.website_verified_at?.toISOString() ?? null,
+      website_verified_domain: business.website_verified_domain ?? null,
+      created_at: business.created_at.toISOString(),
+      updated_at: business.updated_at.toISOString(),
+    };
   }
 }

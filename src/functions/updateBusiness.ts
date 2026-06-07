@@ -28,6 +28,13 @@ export const updateBusiness = createServerFn({ method: "POST" })
       description: data.description,
       linkedin_url: data.linkedin_url,
       logo_url: data.logo_url,
+      hq_location: data.hq_location ?? undefined,
+      founded_year: data.founded_year ?? undefined,
+      company_size: data.company_size ?? undefined,
+      company_type: data.company_type ?? undefined,
+      funding_stage: data.funding_stage ?? undefined,
+      twitter_url: data.twitter_url ?? undefined,
+      contact_email: data.contact_email ?? undefined,
     });
   });
 export type UpdateBusinessFn = typeof updateBusiness;

@@ -268,12 +268,12 @@ function OnboardingPage() {
                   <Tag className="w-3 h-3" /> Primary Industry *
                 </label>
                 <Select value={industry} onValueChange={setIndustry}>
-                  <SelectTrigger className="w-full h-11 px-4 border border-border bg-slate-50 text-slate-800 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono cursor-pointer flex items-center justify-between">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select primary industry" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-border rounded-[2px] font-mono max-h-60 overflow-y-auto">
+                  <SelectContent className="max-h-60">
                     {INDUSTRIES.map((ind) => (
-                      <SelectItem key={ind} value={ind} className="cursor-pointer font-mono hover:bg-slate-50 focus:bg-slate-50">
+                      <SelectItem key={ind} value={ind}>
                         {ind}
                       </SelectItem>
                     ))}

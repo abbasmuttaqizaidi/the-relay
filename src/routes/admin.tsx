@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth, useUser, useClerk } from "@clerk/tanstack-react-start";
 import { getAdminUsers } from "../functions/getAdminUsers";
 import { deleteUserFromAdmin } from "../functions/deleteUserFromAdmin";
+import { updateBusinessStatus } from "../functions/updateBusinessStatus";
 import { toast } from "sonner";
 import {
   ShieldAlert,
@@ -18,6 +19,8 @@ import {
   Building,
   Clock,
   ArrowLeft,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import { Button } from "@/components/ui/button";
@@ -32,6 +35,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -195,6 +205,7 @@ function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -258,6 +269,32 @@ function AdminDashboard() {
       toast.error(err.message || "Failed to delete user.");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleStatusChange = async (
+    businessId: string,
+    newStatus: "pending" | "approved" | "rejected",
+    ownerEmail: string,
+    companyName: string
+  ) => {
+    setUpdatingStatusId(businessId);
+    try {
+      await updateBusinessStatus({
+        data: { business_id: businessId, status: newStatus, owner_email: ownerEmail },
+      });
+      toast.success(`${companyName} status changed to ${newStatus}.`);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.business?.id === businessId
+            ? { ...u, business: { ...u.business!, status: newStatus } }
+            : u
+        )
+      );
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update business status.");
+    } finally {
+      setUpdatingStatusId(null);
     }
   };
 
@@ -597,19 +634,57 @@ function AdminDashboard() {
                         })}
                       </TableCell>
                       <TableCell className="p-4 pr-6 text-right">
-                        <Button
-                          onClick={() => handleDeleteUser(user.id, user.clerk_user_id)}
-                          disabled={deletingId === user.id}
-                          variant="destructive"
-                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-red-500/10 rounded-[2px] bg-red-500/5 hover:bg-red-500 hover:text-white transition-all text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-none"
-                        >
-                          {deletingId === user.id ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-3 h-3" />
+                        <div className="flex items-center justify-end gap-3 flex-wrap">
+                          {/* Status Change Dropdown */}
+                          {user.business && (
+                            <Select
+                              value={user.business.status}
+                              onValueChange={(val) =>
+                                handleStatusChange(
+                                  user.business!.id,
+                                  val as "pending" | "approved" | "rejected",
+                                  user.email,
+                                  user.business!.company_name
+                                )
+                              }
+                              disabled={updatingStatusId === user.business.id}
+                            >
+                              <SelectTrigger className="w-[120px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0">
+                                {updatingStatusId === user.business.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
+                                ) : (
+                                  <SelectValue />
+                                )}
+                              </SelectTrigger>
+                              <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
+                                <SelectItem value="pending" className="cursor-pointer text-amber-600 focus:text-amber-700">
+                                  Pending
+                                </SelectItem>
+                                <SelectItem value="approved" className="cursor-pointer text-emerald-600 focus:text-emerald-700">
+                                  Approved
+                                </SelectItem>
+                                <SelectItem value="rejected" className="cursor-pointer text-red-600 focus:text-red-700">
+                                  Rejected
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
                           )}
-                          Delete
-                        </Button>
+
+                          {/* Delete button — always shown */}
+                          <Button
+                            onClick={() => handleDeleteUser(user.id, user.clerk_user_id)}
+                            disabled={deletingId === user.id}
+                            variant="destructive"
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-red-500/10 rounded-[2px] bg-red-500/5 hover:bg-red-500 hover:text-white transition-all text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-none"
+                          >
+                            {deletingId === user.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5" />
+                            )}
+                            Delete
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
