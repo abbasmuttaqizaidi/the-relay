@@ -164,22 +164,8 @@ export function UserAvatarDropdown() {
           <Building2 className="w-3.5 h-3.5 text-slate-400 group-focus:text-primary transition-colors" />
           <span>Business Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => navigate({ to: "/opportunities" })}
-          className="group px-3 py-2 text-xs text-slate-600 focus:bg-primary/10 focus:text-primary cursor-pointer flex items-center gap-2 rounded-sm transition-colors"
-        >
-          <User className="w-3.5 h-3.5 text-slate-400 group-focus:text-primary transition-colors" />
-          <span>Opportunities Board</span>
-        </DropdownMenuItem>
-        {user.primaryEmailAddress?.emailAddress === "zaidi.yam5@gmail.com" && (
-          <DropdownMenuItem
-            onClick={() => navigate({ to: "/admin" })}
-            className="group px-3 py-2 text-xs text-slate-600 focus:bg-primary/10 focus:text-primary cursor-pointer flex items-center gap-2 rounded-sm transition-colors"
-          >
-            <Shield className="w-3.5 h-3.5 text-slate-400 group-focus:text-primary transition-colors" />
-            <span>Control Panel</span>
-          </DropdownMenuItem>
-        )}
+
+
         <DropdownMenuSeparator className="bg-slate-100 my-1" />
         <DropdownMenuItem
           onClick={handleLogout}
