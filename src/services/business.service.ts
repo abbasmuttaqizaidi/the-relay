@@ -38,6 +38,9 @@ export class BusinessService {
       return {
         ...business,
         status: business.status as any,
+        website_verified: business.website_verified,
+        website_verified_at: business.website_verified_at?.toISOString() ?? null,
+        website_verified_domain: business.website_verified_domain ?? null,
         created_at: business.created_at.toISOString(),
         updated_at: business.updated_at.toISOString(),
       };
@@ -67,6 +70,9 @@ export class BusinessService {
       return {
         ...business,
         status: business.status as any,
+        website_verified: business.website_verified,
+        website_verified_at: business.website_verified_at?.toISOString() ?? null,
+        website_verified_domain: business.website_verified_domain ?? null,
         created_at: business.created_at.toISOString(),
         updated_at: business.updated_at.toISOString(),
       };
@@ -89,6 +95,9 @@ export class BusinessService {
       return {
         ...business,
         status: business.status as any,
+        website_verified: business.website_verified,
+        website_verified_at: business.website_verified_at?.toISOString() ?? null,
+        website_verified_domain: business.website_verified_domain ?? null,
         created_at: business.created_at.toISOString(),
         updated_at: business.updated_at.toISOString(),
       };
@@ -111,12 +120,47 @@ export class BusinessService {
       return {
         ...business,
         status: business.status as any,
+        website_verified: business.website_verified,
+        website_verified_at: business.website_verified_at?.toISOString() ?? null,
+        website_verified_domain: business.website_verified_domain ?? null,
         created_at: business.created_at.toISOString(),
         updated_at: business.updated_at.toISOString(),
       };
     } catch (error: any) {
       console.error("[BusinessService.getBusinessByOwner] Error:", error);
       throw new Error(`Failed to fetch owner's business: ${error.message || error}`);
+    }
+  }
+
+  /**
+   * Marks a business's website as verified in the database.
+   */
+  static async markWebsiteVerified(
+    businessId: string,
+    verifiedDomain: string,
+  ): Promise<Business> {
+    try {
+      const business = await prisma.business.update({
+        where: { id: businessId },
+        data: {
+          website_verified: true,
+          website_verified_at: new Date(),
+          website_verified_domain: verifiedDomain,
+        },
+      });
+
+      return {
+        ...business,
+        status: business.status as any,
+        website_verified: business.website_verified,
+        website_verified_at: business.website_verified_at?.toISOString() ?? null,
+        website_verified_domain: business.website_verified_domain ?? null,
+        created_at: business.created_at.toISOString(),
+        updated_at: business.updated_at.toISOString(),
+      };
+    } catch (error: any) {
+      console.error("[BusinessService.markWebsiteVerified] Error:", error);
+      throw new Error(`Failed to save website verification: ${error.message || error}`);
     }
   }
 

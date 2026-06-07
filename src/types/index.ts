@@ -33,6 +33,9 @@ export interface Business {
   linkedin_url: string | null;
   logo_url: string | null;
   status: BusinessStatus;
+  website_verified: boolean;
+  website_verified_at: string | null;
+  website_verified_domain: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -156,7 +156,7 @@ export function UserAvatarDropdown() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-slate-100 my-1" />
         <DropdownMenuItem
-          onClick={() => navigate({ to: "/onboarding" })}
+          onClick={() => navigate({ to: "/business-profile" })}
           className="group px-3 py-2 text-xs text-slate-600 focus:bg-primary/10 focus:text-primary cursor-pointer flex items-center gap-2 rounded-sm transition-colors"
         >
           <Building2 className="w-3.5 h-3.5 text-slate-400 group-focus:text-primary transition-colors" />
