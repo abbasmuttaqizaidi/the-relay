@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
+import { Show, UserButton, SignInButton } from "@clerk/tanstack-react-start";
 import batonImg from "@/assets/baton.jpg";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import {
@@ -254,12 +255,24 @@ function Nav() {
           >
             Explore Feed <ChevronRight className="w-3 h-3" />
           </Link>
-          <a
-            href="#pricing"
-            className="bg-foreground text-background px-5 py-2 text-[11px] font-mono uppercase tracking-widest hover:bg-primary hover:text-white transition-all rounded-[2px] shadow-sm font-semibold"
-          >
-            Apply
-          </a>
+
+          <Show when="signed-in">
+            <UserButton afterSignOutUrl="/home" />
+          </Show>
+
+          <Show when="signed-out">
+            <SignInButton mode="modal" forceRedirectUrl="/opportunities">
+              <button className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors cursor-pointer font-semibold">
+                Sign In
+              </button>
+            </SignInButton>
+            <Link
+              to="/signup"
+              className="bg-foreground text-background px-5 py-2 text-[11px] font-mono uppercase tracking-widest hover:bg-primary hover:text-white transition-all rounded-[2px] shadow-sm font-semibold flex items-center justify-center"
+            >
+              Sign Up
+            </Link>
+          </Show>
         </div>
       </div>
     </nav>
@@ -340,7 +353,7 @@ function Hero() {
             <div className="flex gap-6 relative">
               {/* Connecting line */}
               <div className="absolute top-8 bottom-[-32px] left-[15px] w-px border-l border-dashed border-border/80" />
-              
+
               <div className="w-8 h-8 rounded-[2px] bg-primary/10 border border-primary/20 flex items-center justify-center font-mono text-xs font-bold text-primary flex-none z-10">
                 01
               </div>
@@ -349,7 +362,8 @@ function Hero() {
                   Post Your Opportunity
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed max-w-[55ch]">
-                  Share exactly what you are looking for—a sales partner, a referral exchange, or a verified vendor. Standard forms keep the listings clean and noise-free.
+                  Share exactly what you are looking for—a sales partner, a referral exchange, or a
+                  verified vendor. Standard forms keep the listings clean and noise-free.
                 </p>
                 <div className="flex gap-2 pt-1.5 font-mono text-[9px] uppercase tracking-widest text-primary font-bold">
                   <span>[ Reseller Search ]</span>
@@ -362,7 +376,7 @@ function Hero() {
             <div className="flex gap-6 relative">
               {/* Connecting line */}
               <div className="absolute top-8 bottom-[-32px] left-[15px] w-px border-l border-dashed border-border/80" />
-              
+
               <div className="w-8 h-8 rounded-[2px] bg-primary/10 border border-primary/20 flex items-center justify-center font-mono text-xs font-bold text-primary flex-none z-10">
                 02
               </div>
@@ -371,7 +385,8 @@ function Hero() {
                   Approve the Connection
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed max-w-[55ch]">
-                  If another operator wants to connect, both of you must review and accept first. Direct contact info is only shared when both sides agree. Zero spam, zero noise.
+                  If another operator wants to connect, both of you must review and accept first.
+                  Direct contact info is only shared when both sides agree. Zero spam, zero noise.
                 </p>
                 <div className="flex items-center gap-2 pt-1.5 text-[9px] font-mono text-muted-foreground">
                   <span className="text-primary font-bold">MUTUAL APPROVAL REQUIRED</span>
@@ -389,7 +404,8 @@ function Hero() {
                   Direct Warm Introduction
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed max-w-[55ch]">
-                  Once matched, direct contact details (names, emails, roles) are unlocked immediately so you can jump straight to outcomes.
+                  Once matched, direct contact details (names, emails, roles) are unlocked
+                  immediately so you can jump straight to outcomes.
                 </p>
               </div>
             </div>
@@ -402,7 +418,8 @@ function Hero() {
                 The Give-to-Get Rule
               </div>
               <p className="text-[11px] text-muted-foreground max-w-[45ch] leading-relaxed">
-                To keep the community active, you earn points by responding to others or sharing deals. You use these points to unlock connections. No passive browsers allowed.
+                To keep the community active, you earn points by responding to others or sharing
+                deals. You use these points to unlock connections. No passive browsers allowed.
               </p>
             </div>
             <div className="px-4 py-2 border border-border/60 bg-card rounded-[2px] font-mono text-xs font-bold text-foreground shadow-sm flex-none">
@@ -1297,16 +1314,7 @@ function Pricing() {
             </div>
 
             <div className="pt-8 mt-8 border-t border-border/40">
-              {p.cta === "Apply for Membership" ? (
-                /*
-                <button
-                  className={`w-full py-4 font-mono text-xs uppercase tracking-widest transition-all rounded-[2px] font-bold bg-foreground text-background hover:bg-primary hover:text-white`}
-                >
-                  {p.cta}
-                </button>
-                */
-                null
-              ) : (
+              {p.cta === "Apply for Membership" ? null : (
                 <button
                   className={`w-full py-4 font-mono text-xs uppercase tracking-widest transition-all rounded-[2px] font-bold ${p.accent ? "bg-primary text-white hover:bg-primary/90 shadow-md shadow-primary/15" : "bg-foreground text-background hover:bg-primary hover:text-white"}`}
                 >

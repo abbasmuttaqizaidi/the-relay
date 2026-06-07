@@ -4,6 +4,8 @@ import { z } from "zod";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { useAuth } from "@clerk/tanstack-react-start";
+import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import logoUrl from "../../assets/icons/logo-white-bg.png";
 import {
   Dialog,
@@ -280,6 +282,24 @@ const TYPE_ACCENT: Record<string, string> = {
 function OpportunitiesPage() {
   const { industry, geo, type, q } = Route.useSearch();
   const navigate = Route.useNavigate();
+  const { isSignedIn, isLoaded } = useAuth();
+
+  useEffect(() => {
+    async function verifyOnboarding() {
+      if (isLoaded && isSignedIn) {
+        try {
+          const status = await checkOnboardingStatus();
+          if (status.isAuthenticated && !status.hasBusiness) {
+            toast.error("Please register your business profile to access the opportunities board.");
+            navigate({ to: "/onboarding", replace: true });
+          }
+        } catch (error) {
+          console.error("Error checking onboarding status:", error);
+        }
+      }
+    }
+    verifyOnboarding();
+  }, [isLoaded, isSignedIn, navigate]);
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -403,12 +423,42 @@ function OpportunitiesPage() {
 }
 
 function PageNav() {
+  const [profile, setProfile] = useState<{
+    companyName: string;
+    email: string;
+    verificationLevel: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const load = () => {
+      try {
+        const stored = localStorage.getItem("relay.profile.v1");
+        if (stored) {
+          setProfile(JSON.parse(stored));
+        } else {
+          setProfile(null);
+        }
+      } catch (_) {
+        setProfile(null);
+      }
+    };
+    load();
+    window.addEventListener("relay:profile", load);
+    window.addEventListener("storage", load);
+    return () => {
+      window.removeEventListener("relay:profile", load);
+      window.removeEventListener("storage", load);
+    };
+  }, []);
+
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-10">
           <Link to="/home" className="flex items-center gap-2 group">
-            <span className="md:hidden font-display text-xl font-extrabold tracking-tighter uppercase">Relay</span>
+            <span className="md:hidden font-display text-xl font-extrabold tracking-tighter uppercase">
+              Relay
+            </span>
             <img
               src={logoUrl}
               alt="The Relay Logo"
@@ -429,13 +479,32 @@ function PageNav() {
         </div>
         <div className="flex items-center gap-4">
           <ReciprocityBadge />
-          <Link
-            to="/home"
-            hash="apply"
-            className="bg-foreground text-background px-4 py-2 text-[11px] font-mono uppercase tracking-widest hover:bg-primary transition-colors"
-          >
-            Apply
-          </Link>
+          {profile ? (
+            <div className="flex items-center gap-2 border border-border bg-card px-3 py-1.5 rounded-[2px] font-mono text-[10px] shadow-sm animate-momentum">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-foreground font-semibold uppercase tracking-wider truncate max-w-[120px] md:max-w-[180px]">
+                {profile.companyName}
+              </span>
+              <span
+                className={`px-1.5 py-0.5 text-[8px] font-extrabold rounded-[2px] ${
+                  profile.verificationLevel === "L3"
+                    ? "border border-primary text-primary"
+                    : profile.verificationLevel === "L2"
+                      ? "bg-foreground text-background"
+                      : "bg-secondary text-muted-foreground"
+                }`}
+              >
+                {profile.verificationLevel}
+              </span>
+            </div>
+          ) : (
+            <Link
+              to="/signup"
+              className="bg-foreground text-background px-4 py-2 text-[11px] font-mono uppercase tracking-widest hover:bg-primary transition-colors"
+            >
+              Apply
+            </Link>
+          )}
         </div>
       </div>
     </nav>

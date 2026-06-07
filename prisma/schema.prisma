@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------
+// 1. MODELS DEFINITIONS
+// ---------------------------------------------------------
+
+model User {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clerk_user_id String   @unique
+  email         String?
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  businesses          Business[]
+  business_members    BusinessMember[]
+  saved_opportunities SavedOpportunity[]
+  notifications       Notification[]
+
+  @@map("users")
+}
+
+model Business {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  owner_user_id String   @db.Uuid
+  company_name  String
+  website       String
+  industry      String
+  description   String?
+  linkedin_url  String?
+  logo_url      String?
+  status        String   @default("pending")
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  owner            User             @relation(fields: [owner_user_id], references: [id], onDelete: Cascade)
+  members          BusinessMember[]
+  opportunities    Opportunity[]
+  interests        Interest[]
+
+  @@map("businesses")
+}
+
+model BusinessMember {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id String   @db.Uuid
+  user_id     String   @db.Uuid
+  role        String   @default("member")
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  business Business @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([business_id, user_id])
+  @@map("business_members")
+}
+
+model Opportunity {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id String   @db.Uuid
+  title       String
+  description String
+  type        String
+  status      String   @default("active")
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  business          Business           @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  interests         Interest[]
+  saved_by_users    SavedOpportunity[]
+
+  @@map("opportunities")
+}
+
+model Interest {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  opportunity_id String   @db.Uuid
+  business_id    String   @db.Uuid
+  status         String   @default("pending")
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  opportunity Opportunity @relation(fields: [opportunity_id], references: [id], onDelete: Cascade)
+  business    Business    @relation(fields: [business_id], references: [id], onDelete: Cascade)
+
+  @@map("interests")
+}
+
+model SavedOpportunity {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String   @db.Uuid
+  opportunity_id String   @db.Uuid
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  opportunity Opportunity @relation(fields: [opportunity_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, opportunity_id])
+  @@map("saved_opportunities")
+}
+
+model Notification {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String   @db.Uuid
+  title       String
+  description String?
+  is_read     Boolean  @default(false)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}

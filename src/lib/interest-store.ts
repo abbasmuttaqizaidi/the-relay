@@ -105,7 +105,21 @@ export function computeReciprocity(store: Store): ReciprocityBreakdown {
   const mutualAcceptances = records.filter((r) => r.status === "accepted").length;
   const pending = records.filter((r) => r.status === "pending").length;
   const declined = records.filter((r) => r.status === "declined").length;
+
+  let baseScore = 0;
+  if (typeof window !== "undefined") {
+    try {
+      const p = localStorage.getItem("relay.profile.v1");
+      if (p) {
+        baseScore = JSON.parse(p).score || 0;
+      }
+    } catch (_) {
+      baseScore = 0;
+    }
+  }
+
   const score =
+    baseScore +
     introductionsMade * RECIPROCITY_WEIGHTS.request +
     mutualAcceptances * RECIPROCITY_WEIGHTS.accepted;
   return { score, introductionsMade, mutualAcceptances, pending, declined };
@@ -116,9 +130,11 @@ export function useReciprocity(): ReciprocityBreakdown {
   useEffect(() => {
     const sync = () => setStore(read());
     window.addEventListener("relay:interest", sync);
+    window.addEventListener("relay:profile", sync);
     window.addEventListener("storage", sync);
     return () => {
       window.removeEventListener("relay:interest", sync);
+      window.removeEventListener("relay:profile", sync);
       window.removeEventListener("storage", sync);
     };
   }, []);

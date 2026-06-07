@@ -92,3 +92,12 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+/* Hide Clerk branding logo and footer panels */
+.cl-footer,
+.cl-internal-b3890c,
+.cl-clerk-branding,
+.cl-clerkBranding,
+.cl-card__footer {
+  display: none !important;
+}
