@@ -1,27 +1,47 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getAuthenticatedUser } from "../lib/auth.server";
+import { auth } from "@clerk/tanstack-react-start/server";
+import { UserService } from "../services/user.service";
 import { BusinessService } from "../services/business.service";
 
 export const checkOnboardingStatus = createServerFn({ method: "GET" })
   .handler(async () => {
     try {
-      // 1. Authenticate user (this will also register them in DB if newly signed up on Clerk)
-      const user = await getAuthenticatedUser();
+      // 1. Get Clerk user session ID
+      const { userId } = await auth();
 
-      // 2. Check if they have a business profile
-      const business = await BusinessService.getBusinessByOwner(user.id);
+      if (!userId) {
+        return {
+          isAuthenticated: false,
+          hasBusiness: false,
+          dbUserExists: false,
+        };
+      }
+
+      // 2. Check if the user is registered in the database Users table
+      const dbUser = await UserService.getUserByClerkId(userId);
+      if (!dbUser) {
+        return {
+          isAuthenticated: true, // Logged in via Clerk
+          hasBusiness: false,
+          dbUserExists: false, // NOT in DB
+        };
+      }
+
+      // 3. Check if they have a business profile
+      const business = await BusinessService.getBusinessByOwner(dbUser.id);
 
       return {
         isAuthenticated: true,
         hasBusiness: !!business,
+        dbUserExists: true,
         business,
       };
     } catch (error) {
-      // If not authenticated, return isAuthenticated: false
       return {
         isAuthenticated: false,
         hasBusiness: false,
-        error: error instanceof Error ? error.message : "Unauthorized",
+        dbUserExists: false,
+        error: error instanceof Error ? error.message : "Unauthorized Check",
       };
     }
   });

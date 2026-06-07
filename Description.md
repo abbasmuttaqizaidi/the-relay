@@ -101,7 +101,7 @@ The repository contains custom modules designed to capture SSR errors before the
 
 ### B. Gamified Reciprocity Engine (`src/lib/interest-store.ts`)
 
-Rather than relying on paid plans alone, access in The Relay is incentivized via a **Reciprocity Score**.
+Rather than relying on paid plans alone, access in The Relay is incentivized via a **Network Score** (historically referred to as **Reciprocity Score** in technical contexts).
 
 1. **Actions & Statuses:** Users can express interest in opportunities. Records exist in states: `idle`, `pending`, `accepted`, or `declined`.
 2. **Contact Unlocking:** A target business’s BD contact details (name, email, role) are strictly hidden until the interest status is set to `accepted` (a successful baton pass).

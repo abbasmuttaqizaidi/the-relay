@@ -1,13 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getAuthenticatedUser } from "../lib/auth.server";
+import { resolveOrCreateUserDuringOnboarding } from "../lib/auth.server";
 import { BusinessService } from "../services/business.service";
 import { createBusinessSchema } from "../validators";
 
 export const createBusiness = createServerFn({ method: "POST" })
   .inputValidator(createBusinessSchema)
   .handler(async ({ data }) => {
-    // 1. Authenticate user and auto-create DB record if needed
-    const user = await getAuthenticatedUser();
+    // 1. Authenticate user and initialize DB record if needed
+    const user = await resolveOrCreateUserDuringOnboarding();
 
     // 2. Check if user already owns a business profile
     const existingBusiness = await BusinessService.getBusinessByOwner(user.id);

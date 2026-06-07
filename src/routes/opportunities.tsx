@@ -1,12 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
-import logoUrl from "../../assets/icons/logo-white-bg.png";
+import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
+import { Loader2, BadgeCheck, Check } from "lucide-react";
+import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
+import { TooltipSimple } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -105,7 +107,7 @@ type Opportunity = {
   company: string;
   title: string;
   description: string;
-  trustLevel: "L1" | "L2" | "L3";
+  trustLevel: "Basic" | "Applied" | "Approved";
   postedAt: string;
   interested: number;
 };
@@ -120,7 +122,7 @@ const OPPORTUNITIES: Opportunity[] = [
     title: "Reseller partners for cloud automation suite",
     description:
       "Enterprise SaaS provider expanding into the DACH region. 20% recurring revenue share for active IT consultancies with SME books.",
-    trustLevel: "L3",
+    trustLevel: "Approved",
     postedAt: "2h ago",
     interested: 4,
   },
@@ -133,7 +135,7 @@ const OPPORTUNITIES: Opportunity[] = [
     title: "Integration partners for last-mile fragile-goods API",
     description:
       "Seeking Shopify Plus brands and 3PL platforms to integrate our specialized last-mile delivery API for fragile e-commerce goods.",
-    trustLevel: "L3",
+    trustLevel: "Approved",
     postedAt: "5h ago",
     interested: 9,
   },
@@ -146,7 +148,7 @@ const OPPORTUNITIES: Opportunity[] = [
     title: "ISO-certified biodegradable mailer vendor (10k/mo)",
     description:
       "Scaling premium wellness D2C line. Need ISO-certified biodegradable custom mailers at 10k units/month. EU manufacturing preferred.",
-    trustLevel: "L3",
+    trustLevel: "Approved",
     postedAt: "1d ago",
     interested: 6,
   },
@@ -159,7 +161,7 @@ const OPPORTUNITIES: Opportunity[] = [
     title: "Mutual referral: Shopify Plus dev shop",
     description:
       "We frequently turn away development-only requests from Shopify Plus brands. Looking for a high-quality dev partner for ongoing handoffs.",
-    trustLevel: "L2",
+    trustLevel: "Applied",
     postedAt: "1d ago",
     interested: 11,
   },
@@ -172,7 +174,7 @@ const OPPORTUNITIES: Opportunity[] = [
     title: "Fractional COO — B2B SaaS scaling $1M → $5M ARR",
     description:
       "Need a fractional COO with proven experience scaling B2B SaaS from $1M to $5M ARR. 2–3 days/week, 6-month engagement.",
-    trustLevel: "L2",
+    trustLevel: "Applied",
     postedAt: "2d ago",
     interested: 7,
   },
@@ -185,7 +187,7 @@ const OPPORTUNITIES: Opportunity[] = [
     title: "Founders who scaled diagnostic chains from ₹10L → ₹1Cr",
     description:
       "Seeking 1:1 conversations with founders who have scaled a diagnostic chain from ₹10L to ₹1Cr monthly. Paid advisory available.",
-    trustLevel: "L3",
+    trustLevel: "Approved",
     postedAt: "3d ago",
     interested: 5,
   },
@@ -198,7 +200,7 @@ const OPPORTUNITIES: Opportunity[] = [
     title: "Angel round — operator-investors in vertical AI",
     description:
       "Closing a ₹3Cr angel round. Looking for operator-investors with distribution into mid-market manufacturing or supply chain.",
-    trustLevel: "L3",
+    trustLevel: "Approved",
     postedAt: "3d ago",
     interested: 14,
   },
@@ -211,7 +213,7 @@ const OPPORTUNITIES: Opportunity[] = [
     title: "UK legal partners for SME HR clients",
     description:
       "Looking for boutique employment-law firms serving UK SMEs for a mutual client-referral and co-marketing arrangement.",
-    trustLevel: "L3",
+    trustLevel: "Approved",
     postedAt: "4d ago",
     interested: 8,
   },
@@ -224,7 +226,7 @@ const OPPORTUNITIES: Opportunity[] = [
     title: "ATS / CRM vendor for high-volume recruitment ops",
     description:
       "Evaluating ATS/CRM vendors capable of handling 5k+ candidate flow/month with strong API and India data residency.",
-    trustLevel: "L2",
+    trustLevel: "Applied",
     postedAt: "5d ago",
     interested: 3,
   },
@@ -237,7 +239,7 @@ const OPPORTUNITIES: Opportunity[] = [
     title: "Refer enterprise WordPress migrations",
     description:
       "Specialist in headless WordPress + Next.js migrations for UAE enterprises. Offering 10% lifetime referral on retainers.",
-    trustLevel: "L2",
+    trustLevel: "Applied",
     postedAt: "6d ago",
     interested: 2,
   },
@@ -250,7 +252,7 @@ const OPPORTUNITIES: Opportunity[] = [
     title: "US channel partners for mid-market HRIS",
     description:
       "Mid-market HRIS seeking US-based benefits brokers and PEO consultants for a 25% first-year channel commission.",
-    trustLevel: "L3",
+    trustLevel: "Approved",
     postedAt: "1w ago",
     interested: 6,
   },
@@ -263,7 +265,7 @@ const OPPORTUNITIES: Opportunity[] = [
     title: "Senior paid-social strategist (DTC focus)",
     description:
       "Senior strategist with $1M+/mo Meta + TikTok experience across DTC. Remote, retainer-based engagement preferred.",
-    trustLevel: "L1",
+    trustLevel: "Basic",
     postedAt: "1w ago",
     interested: 4,
   },
@@ -283,18 +285,46 @@ function OpportunitiesPage() {
   const { industry, geo, type, q } = Route.useSearch();
   const navigate = Route.useNavigate();
   const { isSignedIn, isLoaded } = useAuth();
+  const [isValidating, setIsValidating] = useState(true);
 
   useEffect(() => {
     async function verifyOnboarding() {
-      if (isLoaded && isSignedIn) {
-        try {
-          const status = await checkOnboardingStatus();
-          if (status.isAuthenticated && !status.hasBusiness) {
-            toast.error("Please register your business profile to access the opportunities board.");
-            navigate({ to: "/onboarding", replace: true });
+      if (isLoaded) {
+        if (isSignedIn) {
+          try {
+            const status = await checkOnboardingStatus();
+            if (status.isAuthenticated && !status.hasBusiness) {
+              toast.error("Please register your business profile to access the opportunities board.", {
+                id: "opportunities-onboarding-redirect",
+              });
+              navigate({ to: "/onboarding", replace: true });
+            } else {
+              if (status.business) {
+                let score = 0;
+                try {
+                  const stored = localStorage.getItem("relay.profile.v1");
+                  if (stored) {
+                    score = JSON.parse(stored).score || 0;
+                  }
+                } catch (_) {}
+
+                const mappedProfile = {
+                  companyName: status.business.company_name,
+                  verificationLevel: status.business.status === "approved" ? "Approved" : "Applied",
+                  logoUrl: status.business.logo_url || undefined,
+                  score,
+                };
+                localStorage.setItem("relay.profile.v1", JSON.stringify(mappedProfile));
+                window.dispatchEvent(new Event("relay:profile"));
+              }
+              setIsValidating(false);
+            }
+          } catch (error) {
+            console.error("Error checking onboarding status:", error);
+            setIsValidating(false);
           }
-        } catch (error) {
-          console.error("Error checking onboarding status:", error);
+        } else {
+          setIsValidating(false);
         }
       }
     }
@@ -302,7 +332,7 @@ function OpportunitiesPage() {
   }, [isLoaded, isSignedIn, navigate]);
 
   const filtered = useMemo(() => {
-    const query = q.trim().toLowerCase();
+    const query = (q || "").trim().toLowerCase();
     return OPPORTUNITIES.filter((o) => {
       if (industry !== "All" && o.industry !== industry) return false;
       if (geo !== "All" && o.geo !== geo) return false;
@@ -314,6 +344,35 @@ function OpportunitiesPage() {
       return true;
     });
   }, [industry, geo, type, q]);
+
+  if (isValidating) {
+    return (
+      <div className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-6 selection:bg-primary selection:text-white">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative">
+            {/* Pulsing visual glow effect behind logo */}
+            <div className="absolute -inset-4 bg-primary/5 rounded-full blur-xl animate-pulse" />
+            <img
+              src={logoUrl}
+              alt="The Relay Logo"
+              className="relative h-14 w-auto object-contain mix-blend-multiply transition-transform hover:scale-105 duration-300"
+            />
+          </div>
+          <div className="flex flex-col items-center space-y-2 pt-2">
+            <div className="flex items-center gap-2.5">
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-semibold">
+                Verifying Operator Identity
+              </span>
+            </div>
+            <span className="font-mono text-[9px] text-slate-400 uppercase tracking-widest animate-pulse">
+              Connecting to secure router...
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const reset = () => navigate({ search: { industry: "All", geo: "All", type: "All", q: "" } });
 
@@ -422,7 +481,55 @@ function OpportunitiesPage() {
   );
 }
 
+
+
+function TierTooltipContent({ level }: { level: string }) {
+  const levelKey = level === "Approved" ? "Approved" : level === "Applied" ? "Applied" : "Basic";
+
+  const details = {
+    Basic: {
+      title: "Verified Business",
+      badge: "Basic",
+      body: "Domain email check, SSL validation, and core founder verification. Surfaces basic referral, vendor, and warm intro requests with standard priority.",
+      req: "Email domain & Website lookup",
+    },
+    Applied: {
+      title: "Trusted Operator",
+      badge: "Applied",
+      body: "Founder identity & company LinkedIn registration validated manually. Unlocks direct connection unlocks, score boosts, and full access to private protocols.",
+      req: "LinkedIn + Founder Identity Match",
+    },
+    Approved: {
+      title: "Established Entity",
+      badge: "Approved",
+      body: "Corporate registry (CIN/GST/Tax certificate) or revenue proof checked. Highest trust, priority concierge matchmaking, and active surfacing top-tier listings.",
+      req: "Tax registration / Active Revenue proof",
+    },
+  }[levelKey];
+
+  return (
+    <div className="p-2.5 max-w-[260px] space-y-2 text-left font-sans leading-normal">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-1.5 gap-4">
+        <span className="font-display font-extrabold text-[12px] text-white">
+          {details.title}
+        </span>
+        <span className="font-mono text-[8px] px-1.5 py-0.5 bg-primary/20 text-primary border border-primary/30 rounded-[2px] font-bold uppercase tracking-wider">
+          {details.badge}
+        </span>
+      </div>
+      <p className="text-[10px] text-slate-400 leading-relaxed font-sans">
+        {details.body}
+      </p>
+      <div className="pt-1.5 border-t border-slate-800 flex flex-col gap-0.5 font-mono text-[8px] text-slate-500">
+        <span className="uppercase text-[7.5px] font-bold text-slate-400">Requirement:</span>
+        <span>{details.req}</span>
+      </div>
+    </div>
+  );
+}
+
 function PageNav() {
+  const { isSignedIn } = useAuth();
   const [profile, setProfile] = useState<{
     companyName: string;
     email: string;
@@ -453,16 +560,13 @@ function PageNav() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 h-14 md:h-18 flex items-center justify-between">
         <div className="flex items-center gap-10">
           <Link to="/home" className="flex items-center gap-2 group">
-            <span className="md:hidden font-display text-xl font-extrabold tracking-tighter uppercase">
-              Relay
-            </span>
             <img
               src={logoUrl}
               alt="The Relay Logo"
-              className="hidden md:block h-8 w-auto object-contain mix-blend-multiply"
+              className="h-10 md:h-14 w-auto object-contain mix-blend-multiply"
             />
           </Link>
           <div className="hidden md:flex gap-6 text-[11px] font-mono uppercase tracking-widest text-muted">
@@ -479,32 +583,15 @@ function PageNav() {
         </div>
         <div className="flex items-center gap-4">
           <ReciprocityBadge />
-          {profile ? (
-            <div className="flex items-center gap-2 border border-border bg-card px-3 py-1.5 rounded-[2px] font-mono text-[10px] shadow-sm animate-momentum">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-foreground font-semibold uppercase tracking-wider truncate max-w-[120px] md:max-w-[180px]">
-                {profile.companyName}
-              </span>
-              <span
-                className={`px-1.5 py-0.5 text-[8px] font-extrabold rounded-[2px] ${
-                  profile.verificationLevel === "L3"
-                    ? "border border-primary text-primary"
-                    : profile.verificationLevel === "L2"
-                      ? "bg-foreground text-background"
-                      : "bg-secondary text-muted-foreground"
-                }`}
-              >
-                {profile.verificationLevel}
-              </span>
-            </div>
-          ) : (
+          {(!isSignedIn || !profile) && (
             <Link
-              to="/signup"
+              to={isSignedIn ? "/onboarding" : "/signup"}
               className="bg-foreground text-background px-4 py-2 text-[11px] font-mono uppercase tracking-widest hover:bg-primary transition-colors"
             >
               Apply
             </Link>
           )}
+          {isSignedIn && <UserAvatarDropdown />}
         </div>
       </div>
     </nav>
@@ -532,7 +619,7 @@ function ReciprocityBadge() {
         pulse ? "border-primary bg-primary/10" : "border-border"
       }`}
     >
-      <span className="font-mono text-[9px] uppercase tracking-widest text-muted">Reciprocity</span>
+      <span className="font-mono text-[9px] uppercase tracking-widest text-muted">Network Score</span>
       <span
         className={`font-display text-sm font-extrabold tabular-nums ${
           pulse ? "text-primary" : "text-foreground"
@@ -656,7 +743,14 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
         <h3 className="font-display text-xl font-bold leading-tight">{opp.title}</h3>
 
         <div className="flex items-center gap-2 font-mono text-[11px] text-muted">
-          <span className="text-foreground font-medium">{opp.company}</span>
+          <span className="text-foreground font-medium flex items-center gap-1">
+            {opp.company}
+            {opp.trustLevel === "Approved" && (
+              <TooltipSimple content="Approved with Relay">
+                <BadgeCheck className="w-4 h-4 text-white fill-[#1877f2] shrink-0 cursor-default" />
+              </TooltipSimple>
+            )}
+          </span>
           <span>·</span>
           <span>{opp.industry}</span>
           <span>·</span>
@@ -737,7 +831,12 @@ function ResultCard({ opp, delay }: { opp: Opportunity; delay: number }) {
       <div className="md:w-36 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-center gap-3 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6">
         <div className="text-left md:text-center">
           <div className="font-mono text-[10px] text-muted uppercase tracking-tighter">Trust</div>
-          <div className="font-display text-xl font-extrabold">{opp.trustLevel}</div>
+          <TooltipSimple content={<TierTooltipContent level={opp.trustLevel} />}>
+            <div className="font-display text-xs font-extrabold uppercase bg-secondary px-2 py-1 border border-border tracking-wider text-center cursor-default flex items-center justify-center gap-1">
+              {opp.trustLevel === "Approved" && <Check className="w-3 h-3 text-slate-800" />}
+              {opp.trustLevel}
+            </div>
+          </TooltipSimple>
         </div>
 
         {status === "idle" && (

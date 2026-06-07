@@ -19,7 +19,19 @@ import {
   Clock,
   ArrowLeft,
 } from "lucide-react";
-import logoUrl from "../../assets/icons/logo-white-bg.png";
+import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Banner } from "@/components/ui/banner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -122,15 +134,15 @@ function AdminLoginForm() {
   return (
     <form onSubmit={handleLogin} className="space-y-5">
       {formError && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 font-mono text-[10px] uppercase rounded-[2px] leading-relaxed">
+        <Banner variant="danger">
           {formError}
-        </div>
+        </Banner>
       )}
       <div className="space-y-1">
         <label className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400">
           Email Address
         </label>
-        <input
+        <Input
           type="email"
           placeholder="operator@therelay.com"
           value={emailInput}
@@ -144,7 +156,7 @@ function AdminLoginForm() {
         <label className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400">
           Password
         </label>
-        <input
+        <Input
           type="password"
           placeholder="••••••••••••"
           value={passwordInput}
@@ -154,7 +166,7 @@ function AdminLoginForm() {
         />
       </div>
 
-      <button
+      <Button
         type="submit"
         disabled={loginLoading}
         className="w-full h-12 bg-[hsl(24_95%_45%)] hover:bg-orange-700 text-white rounded-[2px] font-mono font-bold uppercase tracking-widest text-xs shadow-none transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
@@ -166,7 +178,7 @@ function AdminLoginForm() {
         ) : (
           "Authenticate"
         )}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -205,7 +217,7 @@ function AdminDashboard() {
   useEffect(() => {
     if (isLoaded) {
       if (isSignedIn && user) {
-        toast.error("Access restricted: Redirected to home.");
+        toast.error("Access restricted: Redirected to home.", { id: "admin-access-restricted" });
         navigate({ to: "/home" });
       } else {
         const token = getAdminToken();
@@ -372,28 +384,34 @@ function AdminDashboard() {
     <div className="min-h-screen bg-[#f8f9fa] text-foreground font-sans flex flex-col justify-between">
       {/* Admin Navbar */}
       <header className="sticky top-0 z-50 border-b border-[#1f25301f] bg-white">
-        <div className="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-14 md:h-18 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logoUrl} alt="The Relay Logo" className="h-7 w-auto mix-blend-multiply" />
+            <img src={logoUrl} alt="The Relay Logo" className="h-10 md:h-14 w-auto object-contain mix-blend-multiply" />
             <span className="h-5 w-px bg-slate-200" />
-            <span className="font-mono text-[10px] bg-red-500/10 text-red-600 px-2 py-0.5 border border-red-500/10 font-bold uppercase rounded-[2px] tracking-wider">
+            <Badge
+              variant="danger"
+              className="font-mono text-[10px] px-2 py-0.5 font-bold uppercase rounded-[2px] tracking-wider"
+            >
               Control Panel
-            </span>
+            </Badge>
           </div>
           <div className="flex items-center gap-4">
-            <button
+            <Button
               onClick={fetchUsers}
-              className="p-2 border border-[#1f25301f] rounded-[2px] bg-slate-50 hover:bg-slate-100 transition-colors text-slate-600 hover:text-slate-900 cursor-pointer"
+              variant="outline"
+              size="icon"
+              className="w-8 h-8 border border-[#1f25301f] rounded-[2px] bg-slate-50 hover:bg-slate-100 transition-colors text-slate-600 hover:text-slate-900 cursor-pointer"
               title="Refresh Directory"
             >
               <RefreshCw className="w-4 h-4" />
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleAdminLogout}
-              className="text-xs font-mono font-bold uppercase tracking-widest text-red-600 hover:text-red-700 transition-colors cursor-pointer"
+              variant="ghost"
+              className="h-8 text-xs font-mono font-bold uppercase tracking-widest text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer rounded-[2px] px-3"
             >
               Logout Admin
-            </button>
+            </Button>
             <Link
               to="/opportunities"
               className="text-xs font-mono font-bold uppercase tracking-widest text-slate-600 hover:text-primary transition-colors"
@@ -408,9 +426,12 @@ function AdminDashboard() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-10 space-y-8 animate-momentum">
         {/* Header Title */}
         <div className="space-y-2">
-          <span className="font-mono text-[9px] text-primary uppercase tracking-widest font-bold">
+          <Badge
+            variant="outline"
+            className="font-mono text-[9px] text-primary border border-primary/10 bg-primary/5 uppercase tracking-widest font-bold rounded-[2px] px-2 py-0.5"
+          >
             [ System Admin Dashboard ]
-          </span>
+          </Badge>
           <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900">
             User Directory & Access Control
           </h1>
@@ -470,7 +491,7 @@ function AdminDashboard() {
           <div className="p-5 border-b border-[#1f25300d] flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-50/50">
             <div className="relative w-full sm:max-w-md">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search by Name, Email, Clerk ID, or Company Name..."
                 value={searchQuery}
@@ -485,32 +506,32 @@ function AdminDashboard() {
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left text-xs">
-              <thead className="bg-[#fafbfc] border-b border-[#1f253012] font-mono font-bold uppercase text-[9px] tracking-wider text-slate-500">
-                <tr>
-                  <th className="p-4 pl-6">Operator Name & Email</th>
-                  <th className="p-4">Identities (Clerk / DB)</th>
-                  <th className="p-4">Business Credentials</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Joined At</th>
-                  <th className="p-4 pr-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#1f25300a]">
+            <Table className="w-full border-collapse text-left text-xs">
+              <TableHeader className="bg-[#fafbfc] border-b border-[#1f253012] font-mono font-bold uppercase text-[9px] tracking-wider text-slate-500">
+                <TableRow>
+                  <TableHead className="p-4 pl-6">Operator Name & Email</TableHead>
+                  <TableHead className="p-4">Identities (Clerk / DB)</TableHead>
+                  <TableHead className="p-4">Business Credentials</TableHead>
+                  <TableHead className="p-4">Status</TableHead>
+                  <TableHead className="p-4">Joined At</TableHead>
+                  <TableHead className="p-4 pr-6 text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-[#1f25300a]">
                 {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="p-12 text-center text-slate-400 font-mono">
+                  <TableRow>
+                    <TableCell colSpan={6} className="p-12 text-center text-slate-400 font-mono">
                       No matching records found.
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   filteredUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="p-4 pl-6">
+                    <TableRow key={user.id} className="hover:bg-slate-50/50 transition-colors">
+                      <TableCell className="p-4 pl-6">
                         <div className="font-bold text-slate-900">{user.name}</div>
                         <div className="text-[11px] text-slate-500 font-mono mt-0.5">{user.email}</div>
-                      </td>
-                      <td className="p-4">
+                      </TableCell>
+                      <TableCell className="p-4">
                         <div className="font-mono text-[10px] text-slate-600">
                           <span className="text-[9px] font-bold text-slate-400 uppercase select-none mr-1">Clerk:</span>
                           {user.clerk_user_id}
@@ -519,8 +540,8 @@ function AdminDashboard() {
                           <span className="text-[9px] font-bold text-slate-400 uppercase select-none mr-1">DB:</span>
                           {user.id}
                         </div>
-                      </td>
-                      <td className="p-4">
+                      </TableCell>
+                      <TableCell className="p-4">
                         {user.business ? (
                           <div className="space-y-1">
                             <div className="font-bold text-slate-800 flex items-center gap-1">
@@ -546,39 +567,41 @@ function AdminDashboard() {
                             Not Onboarded
                           </span>
                         )}
-                      </td>
-                      <td className="p-4">
+                      </TableCell>
+                      <TableCell className="p-4">
                         {user.business ? (
-                          <span
-                            className={`inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase rounded-[2px] px-2 py-0.5 border ${
+                          <Badge
+                            variant={
                               user.business.status === "approved"
-                                ? "bg-green-500/10 text-green-600 border-green-500/10"
+                                ? "success"
                                 : user.business.status === "rejected"
-                                ? "bg-red-500/10 text-red-600 border-red-500/10"
-                                : "bg-amber-500/10 text-amber-600 border-amber-500/10"
-                            }`}
+                                ? "danger"
+                                : "warning"
+                            }
+                            className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase rounded-[2px] px-2 py-0.5"
                           >
                             {user.business.status === "approved" && (
                               <ShieldCheck className="w-3 h-3" />
                             )}
                             {user.business.status}
-                          </span>
+                          </Badge>
                         ) : (
                           <span className="text-slate-400">—</span>
                         )}
-                      </td>
-                      <td className="p-4 font-mono text-[10px] text-slate-500">
+                      </TableCell>
+                      <TableCell className="p-4 font-mono text-[10px] text-slate-500">
                         {new Date(user.created_at).toLocaleDateString(undefined, {
                           year: "numeric",
                           month: "short",
                           day: "numeric",
                         })}
-                      </td>
-                      <td className="p-4 pr-6 text-right">
-                        <button
+                      </TableCell>
+                      <TableCell className="p-4 pr-6 text-right">
+                        <Button
                           onClick={() => handleDeleteUser(user.id, user.clerk_user_id)}
                           disabled={deletingId === user.id}
-                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-red-500/10 rounded-[2px] bg-red-500/5 hover:bg-red-500 hover:text-white transition-all text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          variant="destructive"
+                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-red-500/10 rounded-[2px] bg-red-500/5 hover:bg-red-500 hover:text-white transition-all text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-none"
                         >
                           {deletingId === user.id ? (
                             <Loader2 className="w-3 h-3 animate-spin" />
@@ -586,13 +609,13 @@ function AdminDashboard() {
                             <Trash2 className="w-3 h-3" />
                           )}
                           Delete
-                        </button>
-                      </td>
-                    </tr>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </section>
       </main>

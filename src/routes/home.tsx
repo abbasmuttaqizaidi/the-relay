@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Show, UserButton, SignInButton } from "@clerk/tanstack-react-start";
+import { Show, SignInButton } from "@clerk/tanstack-react-start";
+import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import batonImg from "@/assets/baton.jpg";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import {
   ArrowRight,
   ShieldCheck,
+  BadgeCheck,
   TrendingUp,
   Zap,
   Users,
@@ -185,7 +187,7 @@ const protocols = [
       from: "Logistics Direct",
       to: "EcoRetail Brands",
       detail: "Warm connection request to VP of Supply Chain for direct rate renegotiation.",
-      value: "Baton Pass Completed L3",
+      value: "Baton Pass Approved",
     },
   },
 ];
@@ -215,19 +217,13 @@ function Landing() {
 function Nav() {
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 h-14 md:h-18 flex items-center justify-between">
         <div className="flex items-center gap-12">
           <Link to="/home" className="flex items-center gap-2 group">
-            <div className="flex items-center gap-2 md:hidden font-display text-2xl font-extrabold tracking-tighter uppercase">
-              <span className="w-6 h-6 bg-primary flex items-center justify-center text-white text-xs font-mono tracking-normal font-semibold rounded-[1px] transition-transform group-hover:rotate-12">
-                R
-              </span>
-              <span className="group-hover:text-primary transition-colors">Relay</span>
-            </div>
             <img
               src={logoUrl}
               alt="The Relay Logo"
-              className="hidden md:block h-15 w-auto object-contain mix-blend-multiply"
+              className="h-10 md:h-14 w-auto object-contain mix-blend-multiply"
             />
           </Link>
           <div className="hidden md:flex gap-8 text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
@@ -241,7 +237,7 @@ function Nav() {
               Verification
             </a>
             <a href="#score" className="hover:text-primary transition-colors">
-              Reciprocity
+              Network Score
             </a>
             {/* <a href="#pricing" className="hover:text-primary transition-colors">
               Membership
@@ -257,7 +253,7 @@ function Nav() {
           </Link>
 
           <Show when="signed-in">
-            <UserButton afterSignOutUrl="/home" />
+            <UserAvatarDropdown />
           </Show>
 
           <Show when="signed-out">
@@ -453,7 +449,7 @@ function MetricStrip() {
       trend: "84.2% rate",
     },
     {
-      label: "Reciprocity Speed",
+      label: "Network Score Speed",
       value: "3.4 Hrs Avg",
       subtitle: "Response velocity",
       trend: "+24% faster",
@@ -499,15 +495,15 @@ function BatonPassSimulator() {
       operator: "SaaS Founder (Bengaluru)",
       action: "Initiates Baton Pass",
       opportunity: "Referral: 10% commission on contract for AI customer service API integration",
-      status: "Verified L3",
-      points: "+5 Reciprocity",
+      status: "Approved",
+      points: "+5 Score",
     },
     {
       operator: "Agency Owner (Mumbai)",
       action: "Accepts & Intros Client",
       opportunity: "Introduces Enterprise Logistics client needing custom automation workflows",
-      status: "Trusted L2",
-      points: "+15 Reciprocity",
+      status: "Applied",
+      points: "+15 Score",
     },
     {
       operator: "Network Router (concierge)",
@@ -827,21 +823,21 @@ function ProtocolsSection() {
 function Verification() {
   const levels = [
     {
-      tag: "L1",
+      tag: "Basic",
       style: "bg-secondary text-foreground border border-border",
       title: "Verified Business",
       body: "Domain email check, SSL validation, and core founder verification. Surfaces basic referral, vendor, and warm intro requests with standard surfacing priority.",
       req: "Email domain & Website lookup",
     },
     {
-      tag: "L2",
+      tag: "Applied",
       style: "bg-foreground text-background border border-foreground font-bold",
       title: "Trusted Operator",
       body: "Founder identity & company LinkedIn registration validated manually. Unlocks direct connection unlocks, score boosts, and full access to private protocols.",
       req: "LinkedIn + Founder Identity Match",
     },
     {
-      tag: "L3",
+      tag: "Approved",
       style: "border-4 border-primary text-primary font-extrabold bg-primary/5",
       title: "Established Entity",
       body: "Corporate registry (CIN/GST/Tax certificate) or revenue proof checked. surcharges highest trust, priority concierge matchmaking, and active surfacing top-tier listings.",
@@ -942,7 +938,7 @@ function Reciprocity() {
     >
       <div className="lg:col-span-5 space-y-6 animate-momentum">
         <span className="font-mono text-[10px] text-primary font-bold uppercase tracking-widest block">
-          [ RECIPROCITY SCORE ENGINE ]
+          [ NETWORK SCORE ENGINE ]
         </span>
         <h2 className="font-display text-4xl font-extrabold tracking-tight leading-tight">
           Help the network, <br />
@@ -951,7 +947,7 @@ function Reciprocity() {
         </h2>
         <p className="text-muted-foreground text-sm leading-relaxed">
           Every profile demonstrates what you have given, not just what you have taken. The
-          Reciprocity Score incentives verified handoffs and warm intros. Maintain a high score to
+          The Network Score incentives verified handoffs and warm intros. Maintain a high score to
           unlock priority features.
         </p>
 
@@ -1065,11 +1061,12 @@ function Reciprocity() {
 
         <div className="flex items-center justify-between border-b border-white/12 pb-6 flex-wrap gap-4">
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-widest text-background/60">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-background/60 flex items-center gap-1.5">
               apex hr solutions
+              <BadgeCheck className="w-3.5 h-3.5 text-white fill-[#1877f2] shrink-0" title="Verified by Platform" />
             </div>
             <div className="font-display text-2xl font-extrabold mt-1 text-white flex items-center gap-2">
-              Established · L3 Entity
+              Established · Approved Entity
               <ShieldCheck className="w-5 h-5 text-primary" />
             </div>
           </div>
@@ -1117,7 +1114,7 @@ function Reciprocity() {
 
           <div className="flex items-center gap-3 text-xs font-mono transition-opacity duration-300">
             <Check className="w-4 h-4 text-emerald-500" />
-            <span className="text-white">L1 Standard Surfacing & Feed access</span>
+            <span className="text-white">Basic Standard Surfacing & Feed access</span>
             <span className="ml-auto text-[9px] px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-[2px]">
               Active
             </span>
@@ -1180,7 +1177,7 @@ function Reciprocity() {
 
         <div className="flex justify-between items-center pt-6 border-t border-white/12 text-[10px] font-mono text-background/60">
           <span>MEMO: REAL-TIME UPDATES VIA WINDOW EVENTS</span>
-          <span className="text-primary font-bold">L3 REGISTERED ENTITY</span>
+          <span className="text-primary font-bold">APPROVED REGISTERED ENTITY</span>
         </div>
       </div>
     </section>
@@ -1199,10 +1196,10 @@ function Pricing() {
       detail: billingCycle === "annual" ? "billed annually as ₹9,588" : "billed monthly",
       badge: "CORE NETWORK ACCESS",
       features: [
-        "Domain and website verified L1 status",
+        "Domain and website verified status",
         "Publish standard opportunities in feed",
         "Search & filter dynamic catalogue with schema type-safety",
-        "Basic Reciprocity Score engine inclusion",
+        "Basic Network Score engine inclusion",
         "Send 5 direct intro contact requests per month",
       ],
       cta: "Apply for Membership",
@@ -1216,7 +1213,7 @@ function Pricing() {
       detail: billingCycle === "annual" ? "billed annually as ₹47,988" : "billed monthly",
       badge: "CONCIERGE & PRIORITY SURFACING",
       features: [
-        "Corporate verified L3 status credential",
+        "Corporate verified Approved status credential",
         "Concierge matchmaking & verified double opt-in handoffs",
         "Priority SURFACING in top 5% of feed outcomes",
         "Custom window events real-time sync across multiple operator tabs",

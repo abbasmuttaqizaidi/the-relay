@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SignUp } from "@clerk/tanstack-react-start";
 import { ShieldCheck, ArrowLeft, ArrowRight, Star, Users, Briefcase } from "lucide-react";
-import logoUrl from "../../assets/icons/logo-white-bg.png";
+import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -56,15 +56,12 @@ function SignUpPage() {
     <div className="min-h-screen bg-[#f8f9fa] text-foreground font-sans flex flex-col justify-between selection:bg-primary selection:text-white">
       {/* Top Header */}
       <header className="sticky top-0 z-50 border-b border-[#1f25301f] bg-white/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-14 md:h-18 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 group">
-            <span className="md:hidden font-display text-xl font-extrabold tracking-tighter uppercase text-primary">
-              Relay
-            </span>
             <img
               src={logoUrl}
               alt="The Relay Logo"
-              className="hidden md:block h-8 w-auto object-contain mix-blend-multiply"
+              className="h-10 md:h-14 w-auto object-contain mix-blend-multiply"
             />
           </Link>
           <div>

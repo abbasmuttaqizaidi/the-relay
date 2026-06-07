@@ -14,7 +14,14 @@ import {
   Loader2,
   Lock,
 } from "lucide-react";
-import logoUrl from "../../assets/icons/logo-white-bg.png";
+import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
@@ -57,7 +64,9 @@ function OnboardingPage() {
   // Redirection guard if not signed in
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
-      toast.error("Please sign up or sign in to register your business.");
+      toast.error("Please sign up or sign in to register your business.", {
+        id: "onboarding-auth-required",
+      });
       navigate({ to: "/signup" });
     }
   }, [isLoaded, isSignedIn]);
@@ -90,6 +99,22 @@ function OnboardingPage() {
     try {
       const token = await getToken();
 
+      // Resolve logo URL from website domain if no custom logo is entered
+      let finalLogoUrl = logoUrlInput?.trim() || undefined;
+      if (!finalLogoUrl && website.trim()) {
+        try {
+          let hostname = website.trim();
+          if (!/^https?:\/\//i.test(hostname)) {
+            hostname = "http://" + hostname;
+          }
+          const parsed = new URL(hostname);
+          const domain = parsed.hostname.replace(/^www\./i, "");
+          if (domain) {
+            finalLogoUrl = `https://logo.clearbit.com/${domain}`;
+          }
+        } catch (_) {}
+      }
+
       // Call the TanStack Server Function
       await createBusiness({
         data: {
@@ -98,7 +123,7 @@ function OnboardingPage() {
           industry,
           description: description || undefined,
           linkedin_url: linkedinUrl || undefined,
-          logo_url: logoUrlInput || undefined,
+          logo_url: finalLogoUrl,
         },
         headers: {
           // Pass Clerk token to authorize mapping creation
@@ -106,6 +131,15 @@ function OnboardingPage() {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      const mappedProfile = {
+        companyName,
+        verificationLevel: "Applied",
+        logoUrl: finalLogoUrl,
+        score: 0,
+      };
+      localStorage.setItem("relay.profile.v1", JSON.stringify(mappedProfile));
+      window.dispatchEvent(new Event("relay:profile"));
 
       toast.success("Business profile registered successfully! Vetting pending.");
 
@@ -123,12 +157,12 @@ function OnboardingPage() {
     <div className="min-h-screen bg-[#f8f9fa] text-foreground font-sans flex flex-col justify-between selection:bg-primary selection:text-white">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-[#1f25301f] bg-white/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-14 md:h-18 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img
               src={logoUrl}
               alt="The Relay Logo"
-              className="h-8 w-auto object-contain mix-blend-multiply"
+              className="h-10 md:h-14 w-auto object-contain mix-blend-multiply"
             />
           </Link>
           <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
@@ -233,17 +267,18 @@ function OnboardingPage() {
                 <label className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1">
                   <Tag className="w-3 h-3" /> Primary Industry *
                 </label>
-                <select
-                  value={industry}
-                  onChange={(e) => setIndustry(e.target.value)}
-                  className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono cursor-pointer"
-                >
-                  {INDUSTRIES.map((ind) => (
-                    <option key={ind} value={ind}>
-                      {ind}
-                    </option>
-                  ))}
-                </select>
+                <Select value={industry} onValueChange={setIndustry}>
+                  <SelectTrigger className="w-full h-11 px-4 border border-border bg-slate-50 text-slate-800 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono cursor-pointer flex items-center justify-between">
+                    <SelectValue placeholder="Select primary industry" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border border-border rounded-[2px] font-mono max-h-60 overflow-y-auto">
+                    {INDUSTRIES.map((ind) => (
+                      <SelectItem key={ind} value={ind} className="cursor-pointer font-mono hover:bg-slate-50 focus:bg-slate-50">
+                        {ind}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1.5">
