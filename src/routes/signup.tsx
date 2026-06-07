@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { SignUp } from "@clerk/tanstack-react-start";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { SignUp, useAuth } from "@clerk/tanstack-react-start";
+import { useEffect } from "react";
 import { ShieldCheck, ArrowLeft, ArrowRight, Star, Users, Briefcase } from "lucide-react";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 
@@ -18,6 +19,15 @@ export const Route = createFileRoute("/signup")({
 });
 
 function SignUpPage() {
+  const { isSignedIn, isLoaded } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      navigate({ to: "/opportunities" });
+    }
+  }, [isLoaded, isSignedIn, navigate]);
+
   // Appearance overrides to align Clerk elements with The Relay's Swiss-inspired Operator Orange aesthetic
   const clerkAppearance = {
     layout: { shadow: "none" },
