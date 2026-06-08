@@ -4,8 +4,10 @@ import {
   CreateOpportunityDTO,
   UpdateOpportunityDTO,
   ListOpportunitiesFilters,
+  PromotionStatus,
 } from "../types";
 import { serverCache } from "../lib/server-cache";
+import { NotificationService } from "./notification.service";
 
 export class OpportunityService {
   /**
@@ -58,6 +60,7 @@ export class OpportunityService {
         ...opportunity,
         category: opportunity.category as any,
         status: opportunity.status as any,
+        promotion_status: opportunity.promotion_status as PromotionStatus,
         location: opportunity.location,
         offer_text: opportunity.offer_text,
         expires_at: opportunity.expires_at ? opportunity.expires_at.toISOString() : null,
@@ -104,6 +107,7 @@ export class OpportunityService {
         ...opportunity,
         category: opportunity.category as any,
         status: opportunity.status as any,
+        promotion_status: opportunity.promotion_status as PromotionStatus,
         location: opportunity.location,
         offer_text: opportunity.offer_text,
         expires_at: opportunity.expires_at ? opportunity.expires_at.toISOString() : null,
@@ -138,15 +142,47 @@ export class OpportunityService {
       const opportunity = await prisma.opportunity.update({
         where: { id: opportunityId },
         data: { promotion_status: promotionStatus },
+        include: {
+          business: true,
+        },
       });
 
       // Invalidate opportunity cache
       serverCache.delete(`opportunity:id:${opportunityId}`);
 
+      // Create notification for the business owner
+      try {
+        const ownerUserId = opportunity.business.owner_user_id;
+        let title = "";
+        let description = "";
+
+        if (promotionStatus === "promoted") {
+          title = "Listing Promotion Approved";
+          description = `Your request to promote opportunity "${opportunity.title}" (${opportunity.opportunity_number}) has been approved! It is now highlighted in the feed.`;
+        } else if (promotionStatus === "none") {
+          title = "Listing Promotion Declined";
+          description = `Your promotion status for opportunity "${opportunity.title}" (${opportunity.opportunity_number}) has been set to none.`;
+        }
+
+        if (title) {
+          await NotificationService.createNotification({
+            user_id: ownerUserId,
+            title,
+            description,
+          });
+        }
+      } catch (notifErr) {
+        console.error(
+          "[OpportunityService.updatePromotionStatus] Failed to create notification:",
+          notifErr,
+        );
+      }
+
       return {
         ...opportunity,
         category: opportunity.category as any,
         status: opportunity.status as any,
+        promotion_status: opportunity.promotion_status as PromotionStatus,
         location: opportunity.location,
         offer_text: opportunity.offer_text,
         expires_at: opportunity.expires_at ? opportunity.expires_at.toISOString() : null,
@@ -180,8 +216,8 @@ export class OpportunityService {
         include: {
           business: true,
           _count: {
-            select: { interests: true }
-          }
+            select: { interests: true },
+          },
         },
       });
       if (!opp) return null;
@@ -226,8 +262,8 @@ export class OpportunityService {
         where: { business_id: businessId },
         include: {
           _count: {
-            select: { interests: true }
-          }
+            select: { interests: true },
+          },
         },
         orderBy: { created_at: "desc" },
       });
@@ -271,8 +307,8 @@ export class OpportunityService {
         include: {
           business: true,
           _count: {
-            select: { interests: true }
-          }
+            select: { interests: true },
+          },
         },
         orderBy: {
           created_at: "desc",
