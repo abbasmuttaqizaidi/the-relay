@@ -22,6 +22,15 @@ export const updateOpportunity = createServerFn({ method: "POST" })
       throw new Error("Unauthorized: You do not have permission to modify this opportunity.");
     }
 
+    const finalPromote = data.promote !== undefined ? data.promote : (opportunity.promotion_status !== "none");
+    const finalHide = data.hide_company_name !== undefined && data.hide_company_name !== null 
+      ? data.hide_company_name 
+      : opportunity.hide_company_name;
+
+    if (finalPromote && finalHide) {
+      throw new Error("Bad Request: Promoted opportunities cannot be confidential. Please disable 'Hide company name' or promotion.");
+    }
+
     // 4. Delegate to Service Layer
     return await OpportunityService.updateOpportunity(data.opportunity_id, {
       title: data.title,

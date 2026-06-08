@@ -245,4 +245,11 @@ We decoupled the opportunities feed list to draw strict visual focus toward high
   - **Buttons**: Bright glowing Operator Orange CTA buttons (`bg-orange-600 hover:bg-orange-500 text-white`) for high click-through traction.
   - **Adaptive Card Breakpoints**: When multiple cards are tiled side-by-side in the desktop grid, they automatically render as vertical cards to prevent horizontal squeezing, only converting to side-by-side rows on wide displays (`xl` >= 1280px).
 
+### C. Opportunity Deletion Flow
+To allow business owners full lifecycle control over their listings, we implemented a secure permanent deletion flow:
+- **Database Service Method (`src/services/opportunity.service.ts`)**: Introduces `deleteOpportunity` which deletes the opportunity record directly (automatically cascading deletions of associated saved bookmarks and interest logs due to SQL schema constraints) and purges the cached record from `serverCache`.
+- **Server Action (`src/functions/deleteOpportunity.ts`)**: Performs session authentication and validates that the request initiator owns the business associated with the opportunity before proceeding.
+- **Frontend Dashboard Controls (`src/routes/opportunities.my.tsx`)**: Integrates "Delete" buttons (styled with `Trash2` icons) in both the desktop table rows and mobile card action shelves. Confirms intent with a browser dialog before execution.
+
+
 

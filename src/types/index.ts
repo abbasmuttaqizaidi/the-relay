@@ -2,7 +2,7 @@
 
 export type BusinessStatus = "pending" | "approved" | "rejected";
 export type BusinessMemberRole = "owner" | "admin" | "member";
-export type OpportunityCategory = "partnership" | "referral" | "distribution" | "vendor";
+export type OpportunityCategory = "partnership" | "referral" | "distribution" | "vendor" | "hiring" | "strategic_advice" | "investment";
 export type OpportunityStatus = "active" | "closed";
 export type PromotionStatus = "none" | "pending_promotion" | "promoted";
 export type InterestStatus = "pending" | "accepted" | "rejected";

@@ -9,6 +9,7 @@ import { getMyOpportunities } from "../functions/getMyOpportunities";
 import { createOpportunity } from "../functions/createOpportunity";
 import { updateOpportunity } from "../functions/updateOpportunity";
 import { closeOpportunity } from "../functions/closeOpportunity";
+import { deleteOpportunity } from "../functions/deleteOpportunity";
 import { countSavedOpportunities } from "../functions/countSavedOpportunities";
 import { getSavedOpportunities } from "../functions/getSavedOpportunities";
 import { removeSavedOpportunity } from "../functions/removeSavedOpportunity";
@@ -81,7 +82,7 @@ export const Route = createFileRoute("/opportunities/my")({
   component: MyOpportunitiesPage,
 });
 
-const CATEGORIES = ["partnership", "referral", "distribution", "vendor"] as const;
+const CATEGORIES = ["partnership", "referral", "distribution", "vendor", "hiring", "strategic_advice", "investment"] as const;
 
 function MyOpportunitiesPage() {
   const { isSignedIn, isLoaded, userId } = useAuth();
@@ -325,6 +326,11 @@ function MyOpportunitiesPage() {
       return;
     }
 
+    if (promote && hideCompanyName) {
+      toast.error("Promoted opportunities cannot be confidential. Please uncheck 'Hide company name' or 'Promote this listing'.");
+      return;
+    }
+
     try {
       setSubmitting(true);
       // Calculate expires_at Date
@@ -371,6 +377,11 @@ function MyOpportunitiesPage() {
       toast.error(
         `Description must be between 50 and 3000 characters. Currently: ${description.length}`,
       );
+      return;
+    }
+
+    if (promote && hideCompanyName) {
+      toast.error("Promoted opportunities cannot be confidential. Please uncheck 'Hide company name' or 'Promote this listing'.");
       return;
     }
 
@@ -427,6 +438,27 @@ function MyOpportunitiesPage() {
     } catch (err: any) {
       console.error("Close opportunity error:", err);
       toast.error(err.message || "Failed to close opportunity");
+    }
+  };
+
+  // Delete Opportunity
+  const handleDelete = async (opportunityId: string) => {
+    if (
+      !confirm(
+        "WARNING: Are you sure you want to delete this opportunity permanently? This action cannot be undone.",
+      )
+    )
+      return;
+
+    try {
+      await deleteOpportunity({
+        data: { opportunity_id: opportunityId },
+      });
+      toast.success("Opportunity Deleted Successfully");
+      await loadMyOpportunities();
+    } catch (err: any) {
+      console.error("Delete opportunity error:", err);
+      toast.error(err.message || "Failed to delete opportunity");
     }
   };
 
@@ -729,7 +761,7 @@ function MyOpportunitiesPage() {
                             </div>
                             <div className="inline-flex gap-1.5 flex-wrap">
                               <span className="px-2 py-0.5 border border-slate-200 bg-slate-100 text-[8px] font-mono font-bold uppercase tracking-wider text-slate-600 rounded-[2px]">
-                                {opp.category}
+                                {opp.category === "strategic_advice" ? "Strategic Advice" : opp.category}
                               </span>
                               {opp.hide_company_name && (
                                 <span className="px-2 py-0.5 border border-amber-200 bg-amber-50 text-[8px] font-mono font-bold uppercase tracking-wider text-amber-700 rounded-[2px] inline-flex items-center gap-0.5">
@@ -808,6 +840,17 @@ function MyOpportunitiesPage() {
                                 <XCircle className="w-3 h-3 text-red-400" /> Close
                               </button>
                             )}
+                            <button
+                              onClick={() => handleDelete(opp.id)}
+                              disabled={!isApproved}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1.5 border border-red-100 hover:border-red-600 text-[10px] font-mono font-bold uppercase tracking-widest rounded-[2px] transition-all bg-white cursor-pointer ${
+                                isApproved
+                                  ? "text-red-600 hover:bg-red-50/50"
+                                  : "opacity-30 cursor-not-allowed"
+                              }`}
+                            >
+                              <Trash2 className="w-3 h-3 text-red-400" /> Delete
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -837,7 +880,7 @@ function MyOpportunitiesPage() {
                         </h4>
                         <div className="flex flex-wrap gap-1.5 pt-1">
                           <span className="px-2 py-0.5 border border-slate-200 bg-slate-100 text-[8px] font-mono font-bold uppercase tracking-wider text-slate-600 rounded-[2px]">
-                            {opp.category}
+                            {opp.category === "strategic_advice" ? "Strategic Advice" : opp.category}
                           </span>
                           {opp.hide_company_name && (
                             <span className="px-2 py-0.5 border border-amber-200 bg-amber-50 text-[8px] font-mono font-bold uppercase tracking-wider text-amber-700 rounded-[2px] inline-flex items-center gap-0.5">
@@ -897,6 +940,17 @@ function MyOpportunitiesPage() {
                               <XCircle className="w-3 h-3 text-red-400" /> Close
                             </button>
                           )}
+                          <button
+                            onClick={() => handleDelete(opp.id)}
+                            disabled={!isApproved}
+                            className={`inline-flex items-center gap-1 px-2 py-1.5 border border-red-100 hover:border-red-600 text-[9px] font-mono font-bold uppercase tracking-widest rounded-[2px] transition-all bg-white cursor-pointer ${
+                              isApproved
+                                ? "text-red-600 hover:bg-red-50/50"
+                                : "opacity-30 cursor-not-allowed"
+                            }`}
+                          >
+                            <Trash2 className="w-3 h-3 text-red-400" /> Delete
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -962,7 +1016,7 @@ function MyOpportunitiesPage() {
                             </td>
                             <td className="py-4 px-6 font-mono text-[9px] uppercase tracking-wider font-bold">
                               <span className="px-2 py-0.5 rounded-[2px] bg-slate-100 text-slate-600 border border-slate-200/40">
-                                {opp.category}
+                                {opp.category === "strategic_advice" ? "Strategic Advice" : opp.category}
                               </span>
                             </td>
                             <td className="py-4 px-6 font-bold text-slate-700">{displayName}</td>
@@ -1059,7 +1113,7 @@ function MyOpportunitiesPage() {
                           <p className="text-[11px] font-bold text-slate-700">{displayName}</p>
                           <div className="flex flex-wrap gap-1.5 pt-1">
                             <span className="px-2 py-0.5 border border-slate-200 bg-slate-100 text-[8px] font-mono font-bold uppercase tracking-wider text-slate-600 rounded-[2px]">
-                              {opp.category}
+                              {opp.category === "strategic_advice" ? "Strategic Advice" : opp.category}
                             </span>
                           </div>
                         </div>
@@ -1154,7 +1208,7 @@ function MyOpportunitiesPage() {
                           </td>
                           <td className="py-4 px-6 font-mono text-[9px] uppercase tracking-wider font-bold">
                             <span className="px-2 py-0.5 rounded-[2px] bg-slate-100 text-slate-600 border border-slate-200/40">
-                              {opp.category || opp.type}
+                              {opp.category === "strategic_advice" ? "Strategic Advice" : (opp.category || opp.type)}
                             </span>
                           </td>
                           <td className="py-4 px-6 font-bold text-slate-700">{displayName}</td>
@@ -1222,7 +1276,7 @@ function MyOpportunitiesPage() {
                         <p className="text-[11px] font-bold text-slate-700">To: {displayName}</p>
                         <div className="flex flex-wrap gap-1.5 pt-1">
                           <span className="px-2 py-0.5 border border-slate-200 bg-slate-100 text-[8px] font-mono font-bold uppercase tracking-wider text-slate-600 rounded-[2px]">
-                            {opp.category || opp.type}
+                            {opp.category === "strategic_advice" ? "Strategic Advice" : (opp.category || opp.type)}
                           </span>
                         </div>
                       </div>
@@ -1313,6 +1367,11 @@ function MyOpportunitiesPage() {
                     Distribution (IT Consultancies, Resellers)
                   </SelectItem>
                   <SelectItem value="vendor">Vendor (Scaling pipeline requirements)</SelectItem>
+                  <SelectItem value="hiring">Hiring (Recruitment, Talent pipeline requests)</SelectItem>
+                  <SelectItem value="strategic_advice">
+                    Strategic Advice (Advisory, Board positions, Mentorship)
+                  </SelectItem>
+                  <SelectItem value="investment">Investment (Funding requests, Capital raises)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1413,10 +1472,13 @@ function MyOpportunitiesPage() {
                 checked={hideCompanyName}
                 onCheckedChange={(checked) => setHideCompanyName(!!checked)}
                 className="mt-0.5"
+                disabled={promote}
               />
               <label
                 htmlFor="hide_company_name_create"
-                className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 cursor-pointer flex flex-wrap items-center gap-1.5 select-none"
+                className={`text-[11px] font-mono font-bold uppercase tracking-wider cursor-pointer flex flex-wrap items-center gap-1.5 select-none ${
+                  promote ? "text-slate-400 cursor-not-allowed" : "text-slate-700"
+                }`}
               >
                 <span>Post anonymously (Hide company name from public feed)</span>
                 <TooltipSimple content="If checked, your company name is displayed as 'Confidential' and logo/LinkedIn links are hidden from non-owners in the public directories.">
@@ -1425,24 +1487,38 @@ function MyOpportunitiesPage() {
               </label>
             </div>
 
-            {/* Promote Opportunity Checkbox */}
-            <div className="flex items-start space-x-2.5 pt-1 pb-1">
+            {/* Promote Opportunity Banner */}
+            <div className={`p-3.5 border rounded-[4px] transition-all flex items-start space-x-3 mt-2 ${
+              hideCompanyName 
+                ? "bg-slate-50 border-slate-200/60 opacity-60 cursor-not-allowed" 
+                : promote
+                  ? "bg-orange-50/40 border-orange-200/80 shadow-xs"
+                  : "bg-white border-slate-200 hover:border-slate-300"
+            }`}>
               <Checkbox
                 id="promote_create"
                 checked={promote}
                 onCheckedChange={(checked) => setPromote(!!checked)}
-                className="mt-0.5"
+                className="mt-1 cursor-pointer"
+                disabled={hideCompanyName}
               />
-              <label
-                htmlFor="promote_create"
-                className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 cursor-pointer flex flex-wrap items-center gap-1.5 select-none"
-              >
-                <Megaphone className="w-3.5 h-3.5 text-primary" />
-                <span>Promote this opportunity</span>
-                <TooltipSimple content="Request promotion for this opportunity. Once approved by admin, it will be highlighted as 'Promoted' in the feed.">
-                  <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
-                </TooltipSimple>
-              </label>
+              <div className="space-y-1 select-none flex-1">
+                <label
+                  htmlFor="promote_create"
+                  className={`text-[10px] font-mono font-extrabold uppercase tracking-wider block ${
+                    hideCompanyName ? "text-slate-400 cursor-not-allowed" : "text-orange-600 cursor-pointer"
+                  }`}
+                >
+                  Promote listing for 10x visibility
+                </label>
+                <p className={`text-[11px] font-sans leading-relaxed ${
+                  hideCompanyName ? "text-slate-400" : "text-slate-500"
+                }`}>
+                  {hideCompanyName 
+                    ? "Featured listings must show your company name and cannot be posted anonymously." 
+                    : "Requests superadmin verification. Once approved, this listing is pinned to the Featured section in dark-theme with orange highlight."}
+                </p>
+              </div>
             </div>
 
             <DialogFooter className="sticky bottom-0 -mx-4 mt-2 flex flex-row items-center gap-2 border-t border-slate-100 bg-white px-4 pb-1 pt-4 sm:-mx-4 sm:justify-end sm:gap-3 sm:px-4 sm:pt-3">
@@ -1532,6 +1608,11 @@ function MyOpportunitiesPage() {
                     Distribution (IT Consultancies, Resellers)
                   </SelectItem>
                   <SelectItem value="vendor">Vendor (Scaling pipeline requirements)</SelectItem>
+                  <SelectItem value="hiring">Hiring (Recruitment, Talent pipeline requests)</SelectItem>
+                  <SelectItem value="strategic_advice">
+                    Strategic Advice (Advisory, Board positions, Mentorship)
+                  </SelectItem>
+                  <SelectItem value="investment">Investment (Funding requests, Capital raises)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1633,10 +1714,13 @@ function MyOpportunitiesPage() {
                 checked={hideCompanyName}
                 onCheckedChange={(checked) => setHideCompanyName(!!checked)}
                 className="mt-0.5"
+                disabled={promote}
               />
               <label
                 htmlFor="hide_company_name_edit"
-                className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 cursor-pointer flex flex-wrap items-center gap-1.5 select-none"
+                className={`text-[11px] font-mono font-bold uppercase tracking-wider cursor-pointer flex flex-wrap items-center gap-1.5 select-none ${
+                  promote ? "text-slate-400 cursor-not-allowed" : "text-slate-700"
+                }`}
               >
                 <span>Post anonymously (Hide company name from public feed)</span>
                 <TooltipSimple content="If checked, your company name is displayed as 'Confidential' and logo/LinkedIn links are hidden from non-owners in the public directories.">
@@ -1645,24 +1729,38 @@ function MyOpportunitiesPage() {
               </label>
             </div>
 
-            {/* Promote Opportunity Checkbox */}
-            <div className="flex items-start space-x-2.5 pt-1 pb-1">
+            {/* Promote Opportunity Banner */}
+            <div className={`p-3.5 border rounded-[4px] transition-all flex items-start space-x-3 mt-2 ${
+              hideCompanyName 
+                ? "bg-slate-50 border-slate-200/60 opacity-60 cursor-not-allowed" 
+                : promote
+                  ? "bg-orange-50/40 border-orange-200/80 shadow-xs"
+                  : "bg-white border-slate-200 hover:border-slate-300"
+            }`}>
               <Checkbox
                 id="promote_edit"
                 checked={promote}
                 onCheckedChange={(checked) => setPromote(!!checked)}
-                className="mt-0.5"
+                className="mt-1 cursor-pointer"
+                disabled={hideCompanyName}
               />
-              <label
-                htmlFor="promote_edit"
-                className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 cursor-pointer flex flex-wrap items-center gap-1.5 select-none"
-              >
-                <Megaphone className="w-3.5 h-3.5 text-primary" />
-                <span>Promote this opportunity</span>
-                <TooltipSimple content="Request promotion for this opportunity. Once approved by admin, it will be highlighted as 'Promoted' in the feed.">
-                  <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
-                </TooltipSimple>
-              </label>
+              <div className="space-y-1 select-none flex-1">
+                <label
+                  htmlFor="promote_edit"
+                  className={`text-[10px] font-mono font-extrabold uppercase tracking-wider block ${
+                    hideCompanyName ? "text-slate-400 cursor-not-allowed" : "text-orange-600 cursor-pointer"
+                  }`}
+                >
+                  Promote listing for 10x visibility
+                </label>
+                <p className={`text-[11px] font-sans leading-relaxed ${
+                  hideCompanyName ? "text-slate-400" : "text-slate-500"
+                }`}>
+                  {hideCompanyName 
+                    ? "Featured listings must show your company name and cannot be posted anonymously." 
+                    : "Requests superadmin verification. Once approved, this listing is pinned to the Featured section in dark-theme with orange highlight."}
+                </p>
+              </div>
             </div>
 
             <DialogFooter className="sticky bottom-0 -mx-4 mt-2 flex flex-row items-center gap-2 border-t border-slate-100 bg-white px-4 pb-1 pt-4 sm:-mx-4 sm:justify-end sm:gap-3 sm:px-4 sm:pt-3">
@@ -1736,7 +1834,7 @@ function MyOpportunitiesPage() {
                   <div className="space-y-4 pt-2">
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 bg-slate-100 text-slate-600 font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]">
-                        {selectedDetailOpp.category || selectedDetailOpp.type}
+                        {selectedDetailOpp.category === "strategic_advice" ? "Strategic Advice" : (selectedDetailOpp.category || selectedDetailOpp.type)}
                       </span>
                       {isInactive ? (
                         <span className="px-2 py-0.5 bg-red-50 text-red-600 font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]">

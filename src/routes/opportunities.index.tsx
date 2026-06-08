@@ -212,7 +212,9 @@ function OpportunitiesPage() {
       const mapped = (data || []).map((opp: any) => ({
         id: opp.id,
         opportunity_number: opp.opportunity_number,
-        type: (opp.category.charAt(0).toUpperCase() + opp.category.slice(1)) as any,
+        type: (opp.category === "strategic_advice"
+          ? "Strategic Advice"
+          : opp.category.charAt(0).toUpperCase() + opp.category.slice(1)) as any,
         industry: opp.business?.industry || "SaaS",
         geo: opp.location || "Remote",
         company: opp.business?.company_name || "Demo",

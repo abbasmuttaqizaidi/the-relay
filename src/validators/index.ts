@@ -5,7 +5,7 @@ export const uuidSchema = z.string().uuid("Invalid UUID format");
 
 export const businessStatusSchema = z.enum(["pending", "approved", "rejected"]);
 export const businessMemberRoleSchema = z.enum(["owner", "admin", "member"]);
-export const opportunityCategorySchema = z.enum(["partnership", "referral", "distribution", "vendor"]);
+export const opportunityCategorySchema = z.enum(["partnership", "referral", "distribution", "vendor", "hiring", "strategic_advice", "investment"]);
 export const opportunityStatusSchema = z.enum(["active", "closed"]);
 export const interestStatusSchema = z.enum(["pending", "accepted", "rejected"]);
 export const promotionStatusSchema = z.enum(["none", "pending_promotion", "promoted"]);

@@ -132,6 +132,22 @@ export class OpportunityService {
   }
 
   /**
+   * Deletes an opportunity.
+   */
+  static async deleteOpportunity(opportunityId: string): Promise<boolean> {
+    try {
+      await prisma.opportunity.delete({
+        where: { id: opportunityId },
+      });
+      serverCache.delete(`opportunity:id:${opportunityId}`);
+      return true;
+    } catch (error: any) {
+      console.error("[OpportunityService.deleteOpportunity] Error:", error);
+      throw new Error(`Failed to delete opportunity: ${error.message || error}`);
+    }
+  }
+
+  /**
    * Updates the promotion status of an opportunity (admin-only operation).
    */
   static async updatePromotionStatus(

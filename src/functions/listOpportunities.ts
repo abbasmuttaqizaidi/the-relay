@@ -4,7 +4,7 @@ import { z } from "zod";
 
 const listFiltersSchema = z.object({
   industry: z.string().optional(),
-  category: z.enum(["partnership", "referral", "distribution", "vendor"]).optional(),
+  category: z.enum(["partnership", "referral", "distribution", "vendor", "hiring", "strategic_advice", "investment"]).optional(),
   status: z.enum(["active", "closed"]).optional(),
   limit: z.number().optional(),
   offset: z.number().optional(),

@@ -24,6 +24,10 @@ export const createOpportunity = createServerFn({ method: "POST" })
       );
     }
 
+    if (data.promote && data.hide_company_name) {
+      throw new Error("Bad Request: Promoted opportunities cannot be confidential. Please disable 'Hide company name' or promotion.");
+    }
+
     // 4. Delegate to Service Layer
     return await OpportunityService.createOpportunity({
       business_id: business.id,

@@ -398,7 +398,7 @@ function SavedOpportunitiesPage() {
                           </td>
                           <td className="py-4 px-4 font-mono text-[9px] uppercase tracking-wider font-bold">
                             <span className="px-2 py-0.5 rounded-[2px] bg-slate-100 text-slate-600 border border-slate-200/40">
-                              {opp.category}
+                              {opp.category === "strategic_advice" ? "Strategic Advice" : opp.category}
                             </span>
                           </td>
                           <td className="py-4 px-4 font-bold text-slate-700">
@@ -491,7 +491,7 @@ function SavedOpportunitiesPage() {
                         <p className="text-[11px] font-bold text-slate-700">{displayName}</p>
                         <div className="flex flex-wrap gap-1.5 pt-1">
                           <span className="px-2 py-0.5 border border-slate-200 bg-slate-100 text-[8px] font-mono font-bold uppercase tracking-wider text-slate-600 rounded-[2px]">
-                            {opp.category}
+                            {opp.category === "strategic_advice" ? "Strategic Advice" : opp.category}
                           </span>
                         </div>
                       </div>
@@ -568,7 +568,7 @@ function SavedOpportunitiesPage() {
                 <div className="space-y-4 pt-2">
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 bg-slate-100 text-slate-600 font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]">
-                      {selectedOpp.category}
+                      {selectedOpp.category === "strategic_advice" ? "Strategic Advice" : selectedOpp.category}
                     </span>
                     {isInactive ? (
                       <span className="px-2 py-0.5 bg-red-50 text-red-600 font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]">
