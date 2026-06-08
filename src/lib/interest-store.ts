@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 export type InterestStatus = "idle" | "pending" | "accepted" | "declined";
 
 export type InterestRecord = {
+  id?: string;
   status: InterestStatus;
   pitch: string;
   requestedAt: string;

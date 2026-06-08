@@ -5,7 +5,7 @@ export type BusinessMemberRole = "owner" | "admin" | "member";
 export type OpportunityCategory = "partnership" | "referral" | "distribution" | "vendor" | "hiring" | "strategic_advice" | "investment";
 export type OpportunityStatus = "active" | "closed";
 export type PromotionStatus = "none" | "pending_promotion" | "promoted";
-export type InterestStatus = "pending" | "accepted" | "rejected";
+export type InterestStatus = "pending" | "accepted" | "declined" | "withdrawn";
 
 // ---------------------------------------------------------
 // DATABASE MODELS
@@ -70,10 +70,13 @@ export interface Opportunity {
 export interface Interest {
   id: string; // UUID
   opportunity_id: string; // UUID references opportunities.id
-  business_id: string; // UUID references businesses.id
+  requesting_business_id: string; // UUID references businesses.id
+  message: string | null;
   status: InterestStatus;
   created_at: string;
+  updated_at: string;
 }
+
 
 export interface SavedOpportunity {
   id: string; // UUID
@@ -153,6 +156,7 @@ export interface UpdateOpportunityDTO {
 export interface ExpressInterestDTO {
   opportunity_id: string;
   business_id: string;
+  message?: string;
 }
 
 export interface CreateNotificationDTO {

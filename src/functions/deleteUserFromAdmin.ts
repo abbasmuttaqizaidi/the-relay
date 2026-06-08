@@ -63,7 +63,7 @@ export const deleteUserFromAdmin = createServerFn({ method: "POST" })
       await tx.interest.deleteMany({
         where: {
           OR: [
-            { business_id: { in: businessIds } },
+            { requesting_business_id: { in: businessIds } },
             { opportunity: { business_id: { in: businessIds } } },
           ],
         },

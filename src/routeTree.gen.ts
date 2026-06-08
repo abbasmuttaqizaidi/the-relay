@@ -19,7 +19,10 @@ import { Route as BusinessProfileRouteImport } from './routes/business-profile'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OpportunitiesIndexRouteImport } from './routes/opportunities.index'
+import { Route as RequestsSentRouteImport } from './routes/requests.sent'
+import { Route as RequestsIncomingRouteImport } from './routes/requests.incoming'
 import { Route as OpportunitiesMyRouteImport } from './routes/opportunities.my'
+import { Route as ConnectionsIdRouteImport } from './routes/connections.$id'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -71,10 +74,25 @@ const OpportunitiesIndexRoute = OpportunitiesIndexRouteImport.update({
   path: '/',
   getParentRoute: () => OpportunitiesRoute,
 } as any)
+const RequestsSentRoute = RequestsSentRouteImport.update({
+  id: '/requests/sent',
+  path: '/requests/sent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RequestsIncomingRoute = RequestsIncomingRouteImport.update({
+  id: '/requests/incoming',
+  path: '/requests/incoming',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OpportunitiesMyRoute = OpportunitiesMyRouteImport.update({
   id: '/my',
   path: '/my',
   getParentRoute: () => OpportunitiesRoute,
+} as any)
+const ConnectionsIdRoute = ConnectionsIdRouteImport.update({
+  id: '/connections/$id',
+  path: '/connections/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -87,7 +105,10 @@ export interface FileRoutesByFullPath {
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
+  '/connections/$id': typeof ConnectionsIdRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
+  '/requests/incoming': typeof RequestsIncomingRoute
+  '/requests/sent': typeof RequestsSentRoute
   '/opportunities/': typeof OpportunitiesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -99,7 +120,10 @@ export interface FileRoutesByTo {
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
+  '/connections/$id': typeof ConnectionsIdRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
+  '/requests/incoming': typeof RequestsIncomingRoute
+  '/requests/sent': typeof RequestsSentRoute
   '/opportunities': typeof OpportunitiesIndexRoute
 }
 export interface FileRoutesById {
@@ -113,7 +137,10 @@ export interface FileRoutesById {
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
+  '/connections/$id': typeof ConnectionsIdRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
+  '/requests/incoming': typeof RequestsIncomingRoute
+  '/requests/sent': typeof RequestsSentRoute
   '/opportunities/': typeof OpportunitiesIndexRoute
 }
 export interface FileRouteTypes {
@@ -128,7 +155,10 @@ export interface FileRouteTypes {
     | '/query-relay'
     | '/saved-opportunities'
     | '/signup'
+    | '/connections/$id'
     | '/opportunities/my'
+    | '/requests/incoming'
+    | '/requests/sent'
     | '/opportunities/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -140,7 +170,10 @@ export interface FileRouteTypes {
     | '/query-relay'
     | '/saved-opportunities'
     | '/signup'
+    | '/connections/$id'
     | '/opportunities/my'
+    | '/requests/incoming'
+    | '/requests/sent'
     | '/opportunities'
   id:
     | '__root__'
@@ -153,7 +186,10 @@ export interface FileRouteTypes {
     | '/query-relay'
     | '/saved-opportunities'
     | '/signup'
+    | '/connections/$id'
     | '/opportunities/my'
+    | '/requests/incoming'
+    | '/requests/sent'
     | '/opportunities/'
   fileRoutesById: FileRoutesById
 }
@@ -167,6 +203,9 @@ export interface RootRouteChildren {
   QueryRelayRoute: typeof QueryRelayRoute
   SavedOpportunitiesRoute: typeof SavedOpportunitiesRoute
   SignupRoute: typeof SignupRoute
+  ConnectionsIdRoute: typeof ConnectionsIdRoute
+  RequestsIncomingRoute: typeof RequestsIncomingRoute
+  RequestsSentRoute: typeof RequestsSentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -241,12 +280,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OpportunitiesIndexRouteImport
       parentRoute: typeof OpportunitiesRoute
     }
+    '/requests/sent': {
+      id: '/requests/sent'
+      path: '/requests/sent'
+      fullPath: '/requests/sent'
+      preLoaderRoute: typeof RequestsSentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/requests/incoming': {
+      id: '/requests/incoming'
+      path: '/requests/incoming'
+      fullPath: '/requests/incoming'
+      preLoaderRoute: typeof RequestsIncomingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/opportunities/my': {
       id: '/opportunities/my'
       path: '/my'
       fullPath: '/opportunities/my'
       preLoaderRoute: typeof OpportunitiesMyRouteImport
       parentRoute: typeof OpportunitiesRoute
+    }
+    '/connections/$id': {
+      id: '/connections/$id'
+      path: '/connections/$id'
+      fullPath: '/connections/$id'
+      preLoaderRoute: typeof ConnectionsIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -275,6 +335,9 @@ const rootRouteChildren: RootRouteChildren = {
   QueryRelayRoute: QueryRelayRoute,
   SavedOpportunitiesRoute: SavedOpportunitiesRoute,
   SignupRoute: SignupRoute,
+  ConnectionsIdRoute: ConnectionsIdRoute,
+  RequestsIncomingRoute: RequestsIncomingRoute,
+  RequestsSentRoute: RequestsSentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

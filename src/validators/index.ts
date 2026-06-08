@@ -7,7 +7,7 @@ export const businessStatusSchema = z.enum(["pending", "approved", "rejected"]);
 export const businessMemberRoleSchema = z.enum(["owner", "admin", "member"]);
 export const opportunityCategorySchema = z.enum(["partnership", "referral", "distribution", "vendor", "hiring", "strategic_advice", "investment"]);
 export const opportunityStatusSchema = z.enum(["active", "closed"]);
-export const interestStatusSchema = z.enum(["pending", "accepted", "rejected"]);
+export const interestStatusSchema = z.enum(["pending", "accepted", "declined", "withdrawn"]);
 export const promotionStatusSchema = z.enum(["none", "pending_promotion", "promoted"]);
 
 // ---------------------------------------------------------
@@ -68,6 +68,7 @@ export const updateOpportunitySchema = z.object({
 
 export const expressInterestSchema = z.object({
   opportunity_id: uuidSchema,
+  message: z.string().max(500, "Message cannot exceed 500 characters").optional(),
 });
 
 export const approveBusinessSchema = z.object({

@@ -251,5 +251,41 @@ To allow business owners full lifecycle control over their listings, we implemen
 - **Server Action (`src/functions/deleteOpportunity.ts`)**: Performs session authentication and validates that the request initiator owns the business associated with the opportunity before proceeding.
 - **Frontend Dashboard Controls (`src/routes/opportunities.my.tsx`)**: Integrates "Delete" buttons (styled with `Trash2` icons) in both the desktop table rows and mobile card action shelves. Confirms intent with a browser dialog before execution.
 
+---
+
+## 🤝 9. B2B Interest Request Handshake Flow (MVP)
+
+We built the complete two-sided interest request handshake review loop matching the platform's core MVP logic:
+
+### A. Database and Schema Schema Alignment
+- **`interests` Table**: Redefined database structure to include `opportunity_id` (UUID references opportunities), `requesting_business_id` (UUID references businesses), `message` (pitch context text, optional), `status` (check constraints: `pending`, `accepted`, `declined`, `withdrawn`), and auto-updating `updated_at` timestamps. Added a unique index on `(opportunity_id, requesting_business_id)`.
+- **`activity_logs` Table**: Added a new model and database table `ActivityLog` storing action name (`Interest Sent`, `Interest Accepted`, `Interest Declined`, `Interest Withdrawn`), detailed logs, and timestamps.
+
+### B. Service & Server Function Layer
+- **`InterestService` (`src/services/interest.service.ts`)**: Created comprehensive database handlers:
+  - `expressInterest`: Records interest, generates a system notification for the opportunity owner, logs an email placeholder, and creates an `ActivityLog` entry.
+  - `withdrawInterest`: Transitions status to `withdrawn` (if currently `pending`) and logs an `ActivityLog` entry.
+  - `acceptInterest`: Transitions status to `accepted`, creates a notification for the requesting business ("Your Interest Was Accepted"), and logs an `ActivityLog` entry.
+  - `declineInterest`: Transitions status to `declined`, creates a notification for the requesting business ("Your Interest Was Declined"), and logs an `ActivityLog` entry.
+  - Query helper functions (`getIncoming`, `getSent`, `countIncoming`, `getRequestById`) to retrieve formatted lists of incoming/sent handshakes.
+- **TanStack Server Functions (`src/functions/`)**: Added `withdrawInterest.ts`, `acceptInterest.ts`, `declineInterest.ts`, `getIncomingRequests.ts`, `getSentRequests.ts`, and `getRequestById.ts` to perform session authentication checks, enforce owner/permissions rules, and bridge actions to the service layer.
+
+### C. Frontend Interaction & Click Flow
+- **Approved / Vetting Action Verification**: When expressing interest, the platform validates the business status. If the business status is `pending`/`applied` (Vetting Required), clicking "Express Interest" opens the **Business Verification Required** modal allowing them to bookmark/save the opportunity or cancel. If `approved`, it opens the **Express Interest** dialog where they can write an optional pitch message (max 500 characters, showing example guidelines).
+- **Outbound Handshake Dashboard Tabs (`/requests/incoming`, `/requests/sent`)**:
+  - **Incoming requests page**: Displays list of inbound pitches. Shows requesting business verification badges, message details, target opportunity link, and buttons to **Accept** or **Decline**. When accepted, it unlocks full contact details (Business Name, Website, LinkedIn, Public Email, Company Description) in-place.
+  - **Sent requests page**: Lists outbound requests showing current status (`Pending`, `Accepted`, `Declined`, `Withdrawn`). If pending, allows users to **Withdraw** the handshake request.
+- **Connection Established Page (`/connections/:id`)**: Renders connection confirmation overlay showing full profiles for both Business A (Requester) and Business B (Opportunity Owner). Displays a prominent CTA **Continue Conversation Externally** linking to a pre-filled group email template.
+
+---
+
+## 🛡️ 10. Agent Guidelines & Safety Guardrails
+
+To ensure development safety, all AI coding agents working on this project must adhere strictly to the following rules:
+- **No Destructive Commands**: Never execute any database drops, table wipes, force resets (`prisma db push --force-reset` or similar), or clean commands that remove database records or reset data states without explicit user verification and permission.
+- **No Git Commands**: Do not run any git commands (`git checkout`, `git reset`, `git push`, `git commit`, etc.) without explicit user permission.
+
+
+
 
 

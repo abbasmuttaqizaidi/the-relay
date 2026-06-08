@@ -504,6 +504,13 @@ function MyOpportunitiesPage() {
               >
                 My Opportunities
               </Link>
+              <Link
+                to="/requests/incoming"
+                activeProps={{ className: "text-slate-900 border-b-2 border-slate-900" }}
+                className="hover:text-slate-800 pb-1 transition-colors"
+              >
+                Requests
+              </Link>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4">

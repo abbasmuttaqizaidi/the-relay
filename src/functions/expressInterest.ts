@@ -28,6 +28,7 @@ export const expressInterest = createServerFn({ method: "POST" })
     return await InterestService.expressInterest({
       opportunity_id: data.opportunity_id,
       business_id: business.id,
+      message: data.message,
     });
   });
 export type ExpressInterestFn = typeof expressInterest;

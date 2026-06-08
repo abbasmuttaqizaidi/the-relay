@@ -227,6 +227,12 @@ function SavedOpportunitiesPage() {
               >
                 My Opportunities
               </Link>
+              <Link
+                to="/requests/incoming"
+                className="hover:text-slate-800 pb-1 transition-colors"
+              >
+                Requests
+              </Link>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4">

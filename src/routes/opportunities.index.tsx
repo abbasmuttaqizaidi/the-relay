@@ -10,6 +10,8 @@ import { expressInterest } from "../functions/expressInterest";
 import { saveOpportunity } from "../functions/saveOpportunity";
 import { removeSavedOpportunity } from "../functions/removeSavedOpportunity";
 import { getSavedOpportunities } from "../functions/getSavedOpportunities";
+import { withdrawInterest } from "../functions/withdrawInterest";
+import { getSentRequests } from "../functions/getSentRequests";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import {
@@ -360,6 +362,34 @@ function OpportunitiesPage() {
                 setMyBusinessId(status.business.id);
                 const s = status.business.status as string;
                 setMyBusinessStatus(s === "pending" || s === "applied" ? "applied" : (s as any));
+                
+                try {
+                  const sentRequests = await getSentRequests();
+                  const localStore = JSON.parse(localStorage.getItem("relay.interest.v1") || "{}");
+                  for (const req of sentRequests) {
+                    const isAccepted = req.status === "accepted";
+                    localStore[req.opportunity_id] = {
+                      id: req.id,
+                      status: req.status,
+                      pitch: req.message || "",
+                      requestedAt: req.created_at,
+                      respondedAt: req.updated_at,
+                      contact: isAccepted ? {
+                        name: req.opportunity.business.company_name,
+                        role: "Owner",
+                        email: req.opportunity.business.contact_email || "",
+                        website: req.opportunity.business.website || "",
+                        linkedin: req.opportunity.business.linkedin_url || "",
+                        description: req.opportunity.business.description || ""
+                      } : undefined
+                    };
+                  }
+                  localStorage.setItem("relay.interest.v1", JSON.stringify(localStore));
+                  window.dispatchEvent(new Event("relay:interest"));
+                } catch (syncErr) {
+                  console.error("Failed to sync interests:", syncErr);
+                }
+
                 let score = 0;
                 try {
                   const stored = localStorage.getItem("relay.profile.v1");
@@ -888,13 +918,22 @@ function PageNav() {
               Opportunities
             </Link>
             {isSignedIn && (
-              <Link
-                to="/opportunities/my"
-                activeProps={{ className: "text-slate-900 border-b-2 border-slate-900" }}
-                className="hover:text-slate-800 pb-1 transition-colors"
-              >
-                My Opportunities
-              </Link>
+              <>
+                <Link
+                  to="/opportunities/my"
+                  activeProps={{ className: "text-slate-900 border-b-2 border-slate-900" }}
+                  className="hover:text-slate-800 pb-1 transition-colors"
+                >
+                  My Opportunities
+                </Link>
+                <Link
+                  to="/requests/incoming"
+                  activeProps={{ className: "text-slate-900 border-b-2 border-slate-900" }}
+                  className="hover:text-slate-800 pb-1 transition-colors"
+                >
+                  Requests
+                </Link>
+              </>
             )}
             <span className="opacity-40 cursor-not-allowed">Network</span>
             <span className="opacity-40 cursor-not-allowed">Intelligence</span>
@@ -1118,23 +1157,41 @@ function ResultCard({
   const status = record?.status ?? "idle";
 
   const [open, setOpen] = useState(false);
+  const [verificationOpen, setVerificationOpen] = useState(false);
   const [pitch, setPitch] = useState("");
 
   const submit = async () => {
     const trimmed = pitch.trim();
-    if (trimmed.length < 20) {
-      toast.error("Add a short context note (20+ characters).");
-      return;
-    }
     try {
-      await expressInterest({ data: { opportunity_id: opp.id } });
-      request(opp.id, trimmed);
+      const res = await expressInterest({ data: { opportunity_id: opp.id, message: trimmed } });
+      request(opp.id, trimmed || "No context note provided.");
+      // Store the real interest ID in the client store so we can withdraw it later if needed
+      const currentStore = JSON.parse(localStorage.getItem("relay.interest.v1") || "{}");
+      if (currentStore[opp.id]) {
+        currentStore[opp.id].id = res.id;
+        localStorage.setItem("relay.interest.v1", JSON.stringify(currentStore));
+      }
       setOpen(false);
       setPitch("");
-      toast.success("Interest sent. Awaiting mutual acceptance.");
+      toast.success("Interest Sent Successfully", {
+        description: "The business owner will review your request.",
+      });
     } catch (err: any) {
       console.error("Failed to express interest:", err);
       toast.error(err.message || "Failed to express interest.");
+    }
+  };
+
+  const onWithdraw = async () => {
+    try {
+      if (record?.id) {
+        await withdrawInterest({ data: { interest_id: record.id } });
+      }
+      withdraw(opp.id);
+      toast.success("Interest request withdrawn successfully.");
+    } catch (err: any) {
+      console.error("Failed to withdraw interest:", err);
+      toast.error(err.message || "Failed to withdraw interest.");
     }
   };
 
@@ -1419,21 +1476,17 @@ function ResultCard({
           }`}>
             {opp.status === "closed" ? "Closed" : "Expired"}
           </div>
-        ) : myBusinessStatus !== "approved" ? (
-          <div className="flex-1 md:flex-none md:w-full flex flex-col gap-2">
-            <div className={`text-center py-2 px-3 border text-[9px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default ${
-              isPromoted
-                ? "border-slate-800 text-slate-500 bg-slate-900/50"
-                : "border-slate-200 text-slate-400 bg-slate-50/50"
-            }`}>
-              Vetting Required
-            </div>
-          </div>
         ) : (
           <div className="flex-1 md:flex-none md:w-full flex flex-col gap-2">
             {status === "idle" && (
               <button
-                onClick={() => setOpen(true)}
+                onClick={() => {
+                  if (myBusinessStatus === "approved") {
+                    setOpen(true);
+                  } else {
+                    setVerificationOpen(true);
+                  }
+                }}
                 className={`w-full py-2.5 px-3 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold ${
                   isPromoted
                     ? "bg-orange-600 hover:bg-orange-500 text-white border border-orange-500/30"
@@ -1454,12 +1507,12 @@ function ResultCard({
                   Pending
                 </div>
                 <button
-                  onClick={() => withdraw(opp.id)}
-                  className={`text-[9px] font-mono uppercase tracking-widest transition-colors font-bold ${
-                    isPromoted ? "text-slate-500 hover:text-red-400" : "text-slate-400 hover:text-red-600"
+                  onClick={onWithdraw}
+                  className={`text-[9px] font-mono uppercase tracking-widest transition-colors font-bold cursor-pointer ${
+                    isPromoted ? "text-slate-500 hover:text-red-450" : "text-slate-400 hover:text-red-600"
                   }`}
                 >
-                  Withdraw Pitch
+                  Withdraw
                 </button>
               </div>
             )}
@@ -1474,7 +1527,7 @@ function ResultCard({
 
             {status === "declined" && (
               <button
-                onClick={() => withdraw(opp.id)}
+                onClick={onWithdraw}
                 className={`py-2 px-3 border text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm cursor-pointer ${
                   isPromoted
                     ? "border-slate-800 text-slate-350 hover:border-orange-500 hover:text-orange-400 bg-slate-900/30"
@@ -1493,12 +1546,12 @@ function ResultCard({
         <DialogContent className="sm:max-w-lg bg-white border border-[#1f25301f] rounded-[4px] p-6 shadow-xl font-sans">
           <DialogHeader className="space-y-2">
             <DialogTitle className="font-display text-2xl font-extrabold tracking-tight text-slate-900">
-              Request introducing context
+              Express Interest
             </DialogTitle>
             <DialogDescription className="text-sm text-slate-500 leading-relaxed font-sans">
               Contact info will be unlocked only after{" "}
               <span className="text-slate-900 font-bold">{opp.company}</span> accepts your
-              handshake. Add a short context note on why this is a strategic fit.
+              handshake request.
             </DialogDescription>
           </DialogHeader>
 
@@ -1508,18 +1561,28 @@ function ResultCard({
               <span>#{opp.id}</span>
             </div>
             <div className="text-sm font-bold text-slate-800 break-words">{opp.title}</div>
-            <textarea
-              value={pitch}
-              onChange={(e) => setPitch(e.target.value)}
-              rows={5}
-              maxLength={500}
-              placeholder="Provide context on who you are, what you ship, and why this is a mutual win..."
-              className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-950 focus:outline-none px-3.5 py-3 text-sm font-mono placeholder:text-slate-400/80 resize-none rounded-[2px] transition-all"
-            />
+            
+            <div className="space-y-1">
+              <label className="font-mono text-[9px] uppercase tracking-widest text-slate-450 font-bold block">
+                Why are you interested?
+              </label>
+              <textarea
+                value={pitch}
+                onChange={(e) => setPitch(e.target.value)}
+                rows={4}
+                maxLength={500}
+                placeholder="Tell the business why you are a good fit for this opportunity."
+                className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-950 focus:outline-none px-3.5 py-3 text-xs font-mono placeholder:text-slate-400/80 resize-none rounded-[2px] transition-all"
+              />
+              <span className="text-[10px] text-slate-400 block italic leading-normal">
+                Example: We already work with 150 healthcare clinics across North India and can help expand distribution quickly.
+              </span>
+            </div>
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2 font-mono text-[9px] uppercase tracking-wider sm:tracking-widest text-slate-400 font-bold">
               <span>Operator network verification active</span>
-              <span className={pitch.length >= 20 ? "text-slate-700" : "text-amber-500"}>
-                {pitch.length}/500 chars (min 20)
+              <span className="text-slate-400">
+                {pitch.length}/500 chars (optional)
               </span>
             </div>
           </div>
@@ -1527,15 +1590,49 @@ function ResultCard({
           <DialogFooter className="gap-2 pt-4 border-t border-slate-100 mt-4">
             <button
               onClick={() => setOpen(false)}
-              className="px-4 py-2.5 text-[10px] font-mono uppercase tracking-widest text-slate-400 hover:text-slate-950 transition-colors font-bold"
+              className="px-4 py-2.5 text-[10px] font-mono uppercase tracking-widest text-slate-450 hover:text-slate-950 transition-colors font-bold cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={submit}
-              className="px-5 py-2.5 bg-slate-900 text-white text-[10px] font-mono uppercase tracking-widest hover:bg-primary transition-all rounded-[2px] shadow-sm hover:shadow"
+              className="px-5 py-2.5 bg-slate-900 text-white text-[10px] font-mono uppercase tracking-widest hover:bg-primary transition-all rounded-[2px] shadow-sm hover:shadow font-bold cursor-pointer"
             >
-              Submit Request
+              Send Interest
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Business Verification Required Dialog */}
+      <Dialog open={verificationOpen} onOpenChange={setVerificationOpen}>
+        <DialogContent className="sm:max-w-md bg-white border border-[#1f25301f] rounded-[4px] p-6 shadow-xl font-sans">
+          <DialogHeader className="space-y-2">
+            <DialogTitle className="font-display text-2xl font-extrabold tracking-tight text-slate-900">
+              Business Verification Required
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-500 leading-relaxed font-sans">
+              Your business is currently under review.
+              <br /><br />
+              You can save this opportunity and return after approval.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="gap-2 pt-4 border-t border-slate-100 mt-4">
+            <button
+              onClick={() => setVerificationOpen(false)}
+              className="px-4 py-2.5 text-[10px] font-mono uppercase tracking-widest text-slate-400 hover:text-slate-950 transition-colors font-bold cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                await onSaveToggle(opp.id, true);
+                setVerificationOpen(false);
+              }}
+              className="px-5 py-2.5 bg-slate-900 text-white text-[10px] font-mono uppercase tracking-widest hover:bg-primary transition-all rounded-[2px] shadow-sm hover:shadow font-bold cursor-pointer"
+            >
+              Save Opportunity
             </button>
           </DialogFooter>
         </DialogContent>
