@@ -62,6 +62,17 @@ const INDUSTRIES = [
   "Legal",
   "Healthcare",
   "Logistics",
+  "E-commerce",
+  "Real Estate",
+  "Fintech",
+  "Cybersecurity",
+  "Cloud & DevOps",
+  "Edtech",
+  "Consulting & Advisory",
+  "Web3 & Blockchain",
+  "HR Tech",
+  "Manufacturing",
+  "Media & Adtech",
 ] as const;
 
 const GEOGRAPHIES = [
@@ -137,42 +148,45 @@ type Opportunity = {
 const OPPORTUNITIES: Opportunity[] = [
   {
     id: "RY-9021",
-    type: "Distribution",
-    industry: "SaaS",
-    geo: "DACH",
-    company: "Cloudstack Systems",
-    title: "Reseller partners for cloud automation suite",
+    type: "Vendor",
+    industry: "E-commerce",
+    geo: "India",
+    company: "Velvet & Co",
+    title: "GOTS-certified organic cotton apparel manufacturer",
     description:
-      "Enterprise SaaS provider expanding into the DACH region. 20% recurring revenue share for active IT consultancies with SME books.",
+      "Scaling sustainable premium clothing line. Seeking a GOTS-certified contract manufacturer in India for low-minimum runs of activewear and loungewear.",
     trustLevel: "Approved",
     postedAt: "2h ago",
     interested: 4,
+    hide_company_name: true,
   },
   {
     id: "RY-8842",
-    type: "Partnership",
-    industry: "Logistics",
-    geo: "India",
-    company: "Nexus Logistics",
-    title: "Integration partners for last-mile fragile-goods API",
+    type: "Distribution",
+    industry: "E-commerce",
+    geo: "UAE",
+    company: "Sol Sunglasses",
+    title: "Boutique retail distribution partners in GCC",
     description:
-      "Seeking Shopify Plus brands and 3PL platforms to integrate our specialized last-mile delivery API for fragile e-commerce goods.",
+      "Premium polarized eyewear brand looking for retail distributors, boutique chain contacts, and resort partners across UAE, Qatar, and Saudi.",
     trustLevel: "Approved",
     postedAt: "5h ago",
     interested: 9,
+    hide_company_name: false,
   },
   {
     id: "RY-8721",
     type: "Vendor",
-    industry: "D2C Brand",
-    geo: "United Kingdom",
-    company: "Solvent Health",
-    title: "ISO-certified biodegradable mailer vendor (10k/mo)",
+    industry: "SaaS",
+    geo: "United States",
+    company: "Metric Flow",
+    title: "Performance marketing agency for vertical SaaS",
     description:
-      "Scaling premium wellness D2C line. Need ISO-certified biodegradable custom mailers at 10k units/month. EU manufacturing preferred.",
+      "Looking for a specialist B2B growth agency to manage paid social and search pipeline scaling from $20k to $100k MRR. ROI attribution setup required.",
     trustLevel: "Approved",
     postedAt: "1d ago",
     interested: 6,
+    hide_company_name: true,
   },
   {
     id: "RY-8612",
@@ -186,19 +200,21 @@ const OPPORTUNITIES: Opportunity[] = [
     trustLevel: "Applied",
     postedAt: "1d ago",
     interested: 11,
+    hide_company_name: false,
   },
   {
     id: "RY-8540",
     type: "Hiring",
-    industry: "AI & Automation",
+    industry: "Marketing Agency",
     geo: "Remote / Global",
-    company: "Nova AI",
-    title: "Fractional COO — B2B SaaS scaling $1M → $5M ARR",
+    company: "Apex Media",
+    title: "Senior Paid Media Buyer & DTC Growth Marketer",
     description:
-      "Need a fractional COO with proven experience scaling B2B SaaS from $1M to $5M ARR. 2–3 days/week, 6-month engagement.",
+      "Hiring a contract senior buyer with $5M+ spent on Meta/TikTok. Responsible for scaling DTC e-commerce accounts. Remote work available.",
     trustLevel: "Applied",
     postedAt: "2d ago",
     interested: 7,
+    hide_company_name: true,
   },
   {
     id: "RY-8488",
@@ -206,12 +222,13 @@ const OPPORTUNITIES: Opportunity[] = [
     industry: "Healthcare",
     geo: "India",
     company: "Aarogya Labs",
-    title: "Founders who scaled diagnostic chains from ₹10L → ₹1Cr",
+    title: "Founders who scaled diagnostic chains from ₹10L ➜ ₹1Cr",
     description:
       "Seeking 1:1 conversations with founders who have scaled a diagnostic chain from ₹10L to ₹1Cr monthly. Paid advisory available.",
     trustLevel: "Approved",
     postedAt: "3d ago",
     interested: 5,
+    hide_company_name: false,
   },
   {
     id: "RY-8401",
@@ -225,19 +242,21 @@ const OPPORTUNITIES: Opportunity[] = [
     trustLevel: "Approved",
     postedAt: "3d ago",
     interested: 14,
+    hide_company_name: true,
   },
   {
     id: "RY-8377",
     type: "Partnership",
-    industry: "Legal",
+    industry: "Real Estate",
     geo: "United Kingdom",
-    company: "Apex HR Solutions",
-    title: "UK legal partners for SME HR clients",
+    company: "Vanguard Properties",
+    title: "Real Estate development partners for co-living spaces",
     description:
-      "Looking for boutique employment-law firms serving UK SMEs for a mutual client-referral and co-marketing arrangement.",
+      "Boutique residential real estate firm looking for co-living operator partnerships to co-manage scaling studio portfolios in London.",
     trustLevel: "Approved",
     postedAt: "4d ago",
     interested: 8,
+    hide_company_name: false,
   },
   {
     id: "RY-8312",
@@ -251,6 +270,7 @@ const OPPORTUNITIES: Opportunity[] = [
     trustLevel: "Applied",
     postedAt: "5d ago",
     interested: 3,
+    hide_company_name: true,
   },
   {
     id: "RY-8240",
@@ -264,6 +284,7 @@ const OPPORTUNITIES: Opportunity[] = [
     trustLevel: "Applied",
     postedAt: "6d ago",
     interested: 2,
+    hide_company_name: true,
   },
   {
     id: "RY-8198",
@@ -277,6 +298,7 @@ const OPPORTUNITIES: Opportunity[] = [
     trustLevel: "Approved",
     postedAt: "1w ago",
     interested: 6,
+    hide_company_name: true,
   },
   {
     id: "RY-8120",
@@ -290,150 +312,7 @@ const OPPORTUNITIES: Opportunity[] = [
     trustLevel: "Basic",
     postedAt: "1w ago",
     interested: 4,
-  },
-  {
-    id: "RY-7901",
-    type: "Partnership",
-    industry: "AI & Automation",
-    geo: "Remote / Global",
-    company: "Synthetix Automations",
-    title: "Co-marketing and integration partners for voice-agent SDK",
-    description: "Seeking CRM and helpdesk SaaS platforms to integrate our real-time voice-agent SDK. Offering co-sell support and joint marketing pipeline.",
-    trustLevel: "Approved",
-    postedAt: "1w ago",
-    interested: 5,
-  },
-  {
-    id: "RY-7840",
-    type: "Referral",
-    industry: "Legal",
-    geo: "United States",
-    company: "Blackstone Counsel",
-    title: "Corporate formation referral swap for European operators",
-    description: "US-based corporate legal firm seeking EU law firms to swap inbound US expansion referrals. High quality, verified client flows only.",
-    trustLevel: "Approved",
-    postedAt: "2w ago",
-    interested: 8,
-  },
-  {
-    id: "RY-7732",
-    type: "Distribution",
-    industry: "SaaS",
-    geo: "DACH",
-    company: "Kaiser Cybersec",
-    title: "German localization and reseller channel partners",
-    description: "Enterprise zero-trust security vendor seeking German MSPs and resellers. 30% recurring margin, full training, and marketing collateral provided.",
-    trustLevel: "Applied",
-    postedAt: "2w ago",
-    interested: 3,
-  },
-  {
-    id: "RY-7650",
-    type: "Vendor",
-    industry: "D2C Brand",
-    geo: "India",
-    company: "Vedika Organics",
-    title: "GMP-certified contract manufacturer for herbal supplements",
-    description: "Scaling wellness D2C brand looking for GMP and AYUSH-certified manufacturers in India. Minimum run 5,000 units, contract packaging required.",
-    trustLevel: "Approved",
-    postedAt: "3w ago",
-    interested: 7,
-  },
-  {
-    id: "RY-7512",
-    type: "Partnership",
-    industry: "Development Agency",
-    geo: "UAE",
-    company: "Dubai Tech Architects",
-    title: "Cross-border dev handoff: Web3 and Solidity projects",
-    description: "We frequently get client inquiries for Web3 development which we don't specialize in. Looking for a trusted agency for outsourcing.",
-    trustLevel: "Applied",
-    postedAt: "3w ago",
-    interested: 9,
-  },
-  {
-    id: "RY-7489",
-    type: "Referral",
-    industry: "Recruitment",
-    geo: "United Kingdom",
-    company: "Oakridge Executive",
-    title: "Executive search placement referral exchange",
-    description: "UK executive search boutique looking for regional recruitment partners in UAE and APAC to handle global executive placements.",
-    trustLevel: "Approved",
-    postedAt: "4w ago",
-    interested: 6,
-  },
-  {
-    id: "RY-7321",
-    type: "Distribution",
-    industry: "AI & Automation",
-    geo: "Singapore",
-    company: "Aether Analytics",
-    title: "APAC distributor for computer vision retail suite",
-    description: "Enterprise computer vision SaaS looking for distributors with direct access to physical retail chains and malls in Southeast Asia.",
-    trustLevel: "Approved",
-    postedAt: "1m ago",
-    interested: 12,
-  },
-  {
-    id: "RY-7210",
-    type: "Vendor",
-    industry: "Marketing Agency",
-    geo: "Remote / Global",
-    company: "GrowthLoop Media",
-    title: "White-label TikTok and UGC video creators",
-    description: "Performance marketing agency seeking native English and German video creators for ongoing UGC ad campaigns. 50+ videos/month contract.",
-    trustLevel: "Basic",
-    postedAt: "1m ago",
-    interested: 15,
-  },
-  {
-    id: "RY-7150",
-    type: "Strategic Advice",
-    industry: "Healthcare",
-    geo: "India",
-    company: "MedPulse Systems",
-    title: "Advisory: HIPAA-compliant cloud migrations for hospitals",
-    description: "Seeking fractional health-tech consultants with deep expertise in cloud compliance for large diagnostic labs. Paid engagement.",
-    trustLevel: "Approved",
-    postedAt: "1m ago",
-    interested: 4,
-  },
-  {
-    id: "RY-7099",
-    type: "Investment",
-    industry: "SaaS",
-    geo: "Remote / Global",
-    company: "LeadFlow Technologies",
-    title: "Bridge round — operators with outbound B2B distribution",
-    description: "Closing $500k bridge round. Seeking strategic angel investors who can unlock enterprise outbound distribution channels in SaaS.",
-    trustLevel: "Applied",
-    postedAt: "1m ago",
-    interested: 11,
-  },
-  {
-    id: "RY-6990",
-    type: "Hiring",
-    industry: "AI & Automation",
-    geo: "India",
-    company: "Sentient Agents",
-    title: "Lead Gen AI Engineer — Prompt flow & LangChain specialist",
-    description: "Looking for an engineer experienced with complex Agentic workflows and LangChain/LangGraph. Full-time position, remote within India.",
-    trustLevel: "Approved",
-    postedAt: "2m ago",
-    interested: 9,
-  },
-  {
-    id: "RY-6842",
-    type: "Partnership",
-    industry: "D2C Brand",
-    geo: "United States",
-    company: "Luna Sleepwear",
-    title: "Co-branded bundle partnership: organic bedding & tea",
-    description: "Organic luxury sleepwear brand seeking premium herbal tea brands for a co-branded bundle campaign ahead of the holiday season.",
-    trustLevel: "Basic",
-    postedAt: "2m ago",
-    interested: 5,
+    hide_company_name: true,
   },
 ];
 
@@ -1132,7 +1011,11 @@ function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: num
 
   return (
     <article
-      className="bg-white border border-slate-200 hover:border-primary p-6 flex flex-col md:flex-row gap-6 hover:shadow-md rounded-[4px] transition-all duration-300 animate-momentum relative overflow-hidden"
+      className={`bg-white border p-6 flex flex-col md:flex-row gap-6 hover:shadow-md rounded-[4px] transition-all duration-300 animate-momentum relative overflow-hidden ${
+        opp.trustLevel === "Approved"
+          ? "border-slate-300/80 shadow-xs border-l-[3.5px] border-l-slate-900 bg-gradient-to-br from-slate-50/20 via-white to-white"
+          : "border-slate-200 hover:border-primary"
+      }`}
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="flex-1 space-y-3.5">
@@ -1146,6 +1029,11 @@ function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: num
             >
               {opp.type}
             </span>
+            {opp.trustLevel === "Approved" && (
+              <span className="px-2 py-0.5 bg-slate-900 text-white text-[8px] font-mono font-bold uppercase tracking-wider rounded-[2px] inline-flex items-center gap-0.5 shadow-sm">
+                ★ Verified
+              </span>
+            )}
             <span className="font-mono text-[9px] text-slate-400 font-medium">#{opp.opportunity_number || opp.id}</span>
           </div>
           <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold flex items-center gap-1">

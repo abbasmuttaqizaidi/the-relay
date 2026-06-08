@@ -45,6 +45,17 @@ const INDUSTRIES = [
   "Legal",
   "Healthcare",
   "Logistics",
+  "E-commerce",
+  "Real Estate",
+  "Fintech",
+  "Cybersecurity",
+  "Cloud & DevOps",
+  "Edtech",
+  "Consulting & Advisory",
+  "Web3 & Blockchain",
+  "HR Tech",
+  "Manufacturing",
+  "Media & Adtech",
 ];
 
 function OnboardingPage() {

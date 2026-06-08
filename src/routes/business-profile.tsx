@@ -69,6 +69,17 @@ const INDUSTRIES = [
   "Legal",
   "Healthcare",
   "Logistics",
+  "E-commerce",
+  "Real Estate",
+  "Fintech",
+  "Cybersecurity",
+  "Cloud & DevOps",
+  "Edtech",
+  "Consulting & Advisory",
+  "Web3 & Blockchain",
+  "HR Tech",
+  "Manufacturing",
+  "Media & Adtech",
 ];
 
 const COMPANY_SIZES = ["1-10", "11-50", "51-200", "201-500", "500+"];
