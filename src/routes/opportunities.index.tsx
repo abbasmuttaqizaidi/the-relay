@@ -12,7 +12,26 @@ import { removeSavedOpportunity } from "../functions/removeSavedOpportunity";
 import { getSavedOpportunities } from "../functions/getSavedOpportunities";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
-import { Loader2, BadgeCheck, Check, Search, MapPin, Briefcase, Calendar, Users, Building, ExternalLink, RefreshCw, SlidersHorizontal, Trash2, Lock, Bookmark, Menu, ChevronRight } from "lucide-react";
+import {
+  Loader2,
+  BadgeCheck,
+  Check,
+  Search,
+  MapPin,
+  Briefcase,
+  Calendar,
+  Users,
+  Building,
+  ExternalLink,
+  RefreshCw,
+  SlidersHorizontal,
+  Trash2,
+  Lock,
+  Bookmark,
+  Menu,
+  ChevronRight,
+  Sparkles,
+} from "lucide-react";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { TooltipSimple } from "@/components/ui/tooltip";
@@ -151,6 +170,7 @@ type Opportunity = {
   hide_company_name?: boolean;
   status?: string;
   expires_at?: string;
+  promotion_status?: string;
 };
 
 const TYPE_ACCENT: Record<string, string> = {
@@ -198,13 +218,19 @@ function OpportunitiesPage() {
         company: opp.business?.company_name || "Demo",
         title: opp.title,
         description: opp.description,
-        trustLevel: opp.business?.status === "approved" ? "Approved" : opp.business?.status === "rejected" ? "Basic" : "Applied",
+        trustLevel:
+          opp.business?.status === "approved"
+            ? "Approved"
+            : opp.business?.status === "rejected"
+              ? "Basic"
+              : "Applied",
         postedAt: formatPostedAt(opp.created_at),
         interested: opp.interestedCount || 0,
         business_id: opp.business_id,
         hide_company_name: opp.hide_company_name ?? false,
         status: opp.status,
         expires_at: opp.expires_at,
+        promotion_status: opp.promotion_status || "none",
       }));
       setDbOpps([...mapped, ...OPPORTUNITIES]);
     } catch (err) {
@@ -215,7 +241,9 @@ function OpportunitiesPage() {
     }
   };
 
-  const [myBusinessStatus, setMyBusinessStatus] = useState<"applied" | "approved" | "rejected" | null>(null);
+  const [myBusinessStatus, setMyBusinessStatus] = useState<
+    "applied" | "approved" | "rejected" | null
+  >(null);
   const [savedOpportunityIds, setSavedOpportunityIds] = useState<Set<string>>(new Set());
 
   const mockStorageKey = userId ? `relay_saved_mocks_${userId}` : "relay_saved_mocks";
@@ -276,12 +304,15 @@ function OpportunitiesPage() {
             },
           });
         } else {
-          toast.success("Opportunity Saved. You can review this opportunity after your business is approved.", {
-            action: {
-              label: "View",
-              onClick: () => navigate({ to: "/opportunities/my", search: { tab: "saved" } }),
+          toast.success(
+            "Opportunity Saved. You can review this opportunity after your business is approved.",
+            {
+              action: {
+                label: "View",
+                onClick: () => navigate({ to: "/opportunities/my", search: { tab: "saved" } }),
+              },
             },
-          });
+          );
         }
       } else {
         if (!isMock) {
@@ -292,7 +323,7 @@ function OpportunitiesPage() {
             const stored = localStorage.getItem(mockStorageKey);
             if (stored) mockIds = JSON.parse(stored);
           } catch (_) {}
-          mockIds = mockIds.filter(id => id !== oppId);
+          mockIds = mockIds.filter((id) => id !== oppId);
           localStorage.setItem(mockStorageKey, JSON.stringify(mockIds));
         }
         setSavedOpportunityIds((prev) => {
@@ -315,15 +346,18 @@ function OpportunitiesPage() {
           try {
             const status = await checkOnboardingStatus();
             if (status.isAuthenticated && !status.hasBusiness) {
-              toast.error("Please register your business profile to access the opportunities board.", {
-                id: "opportunities-onboarding-redirect",
-              });
+              toast.error(
+                "Please register your business profile to access the opportunities board.",
+                {
+                  id: "opportunities-onboarding-redirect",
+                },
+              );
               navigate({ to: "/onboarding", replace: true });
             } else {
               if (status.business) {
                 setMyBusinessId(status.business.id);
                 const s = status.business.status as string;
-                setMyBusinessStatus(s === "pending" || s === "applied" ? "applied" : s as any);
+                setMyBusinessStatus(s === "pending" || s === "applied" ? "applied" : (s as any));
                 let score = 0;
                 try {
                   const stored = localStorage.getItem("relay.profile.v1");
@@ -388,9 +422,9 @@ function OpportunitiesPage() {
     navigate({ search: (prev: SearchParams) => ({ ...prev, geo: searchStr }) });
   };
 
-  const filtered = useMemo(() => {
+  const { promotedOpps, regularOpps, totalCount } = useMemo(() => {
     const query = (q || "").trim().toLowerCase();
-    return dbOpps.filter((o) => {
+    const result = dbOpps.filter((o) => {
       if (activeIndustries.length > 0 && !activeIndustries.includes(o.industry)) return false;
       if (activeGeos.length > 0 && !activeGeos.includes(o.geo)) return false;
       if (type !== "All" && o.type !== type) return false;
@@ -401,6 +435,11 @@ function OpportunitiesPage() {
       }
       return true;
     });
+
+    const promoted = result.filter((o) => o.promotion_status === "promoted");
+    const regular = result.filter((o) => o.promotion_status !== "promoted");
+
+    return { promotedOpps: promoted, regularOpps: regular, totalCount: result.length };
   }, [dbOpps, activeIndustries, activeGeos, type, q, minInterested, maxInterested]);
 
   if (isValidating || loadingOpps) {
@@ -456,7 +495,8 @@ function OpportunitiesPage() {
         {/* Header Hero Section */}
         <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <p className="text-slate-500 text-xs md:text-[13px] max-w-[55ch] leading-relaxed">
-            Direct collaboration hub for verified founders and partners. Handshake directly, lock intros, and share network capital.
+            Direct collaboration hub for verified founders and partners. Handshake directly, lock
+            intros, and share network capital.
           </p>
           <div className="flex flex-wrap items-center gap-4 shrink-0 sm:justify-end">
             {isSignedIn && (
@@ -469,7 +509,7 @@ function OpportunitiesPage() {
             )}
             <div className="flex items-baseline gap-2 shrink-0 text-right">
               <span className="font-display text-2xl font-extrabold text-slate-950">
-                {filtered.length}
+                {totalCount}
               </span>
               <span className="text-slate-400 font-mono text-[9px] uppercase tracking-widest font-bold">
                 Listings Curated for you
@@ -486,7 +526,9 @@ function OpportunitiesPage() {
               return (
                 <button
                   key={t}
-                  onClick={() => navigate({ search: (prev: SearchParams) => ({ ...prev, type: t }) })}
+                  onClick={() =>
+                    navigate({ search: (prev: SearchParams) => ({ ...prev, type: t }) })
+                  }
                   className={`font-mono text-[10px] md:text-xs font-bold uppercase tracking-widest px-1 pb-3.5 border-b-2 transition-all shrink-0 cursor-pointer ${
                     active
                       ? "border-primary text-primary"
@@ -544,7 +586,11 @@ function OpportunitiesPage() {
                       </span>
                       <input
                         value={q}
-                        onChange={(e) => navigate({ search: (prev: SearchParams) => ({ ...prev, q: e.target.value }) })}
+                        onChange={(e) =>
+                          navigate({
+                            search: (prev: SearchParams) => ({ ...prev, q: e.target.value }),
+                          })
+                        }
                         placeholder="Company, title, keyword…"
                         className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-primary focus:outline-none pl-9 pr-3 py-2 text-sm font-mono placeholder:text-slate-400/80 transition-all rounded-[2px]"
                       />
@@ -584,19 +630,31 @@ function OpportunitiesPage() {
                     {/* Flipkart-style Min/Max displays */}
                     <div className="flex items-center justify-between gap-3 pt-2">
                       <div className="flex-1 border border-slate-200 rounded-[2px] p-2 bg-slate-50 flex flex-col">
-                        <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">Min Operators</span>
-                        <span className="text-sm font-mono font-bold text-slate-900">{minInterested}</span>
+                        <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">
+                          Min Operators
+                        </span>
+                        <span className="text-sm font-mono font-bold text-slate-900">
+                          {minInterested}
+                        </span>
                       </div>
                       <div className="text-slate-400 font-mono text-xs">—</div>
                       <div className="flex-1 border border-slate-200 rounded-[2px] p-2 bg-slate-50 flex flex-col">
-                        <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">Max Operators</span>
-                        <span className="text-sm font-mono font-bold text-slate-900">{maxInterested === 15 ? "15+" : maxInterested}</span>
+                        <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">
+                          Max Operators
+                        </span>
+                        <span className="text-sm font-mono font-bold text-slate-900">
+                          {maxInterested === 15 ? "15+" : maxInterested}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   {/* Accordion Panels */}
-                  <Accordion type="multiple" defaultValue={["industry", "geography"]} className="w-full">
+                  <Accordion
+                    type="multiple"
+                    defaultValue={["industry", "geography"]}
+                    className="w-full"
+                  >
                     <AccordionItem value="industry" className="border-b border-slate-100 py-1">
                       <AccordionTrigger className="font-mono text-[10px] uppercase tracking-widest text-slate-500 font-bold hover:no-underline hover:text-slate-900 py-3 cursor-pointer">
                         Industry
@@ -614,7 +672,9 @@ function OpportunitiesPage() {
                                   checked={active}
                                   onCheckedChange={() => toggleIndustry(opt)}
                                 />
-                                <span className={`text-xs font-medium font-sans ${active ? "text-slate-900 font-bold" : "text-slate-600"}`}>
+                                <span
+                                  className={`text-xs font-medium font-sans ${active ? "text-slate-900 font-bold" : "text-slate-600"}`}
+                                >
                                   {opt}
                                 </span>
                               </label>
@@ -637,11 +697,10 @@ function OpportunitiesPage() {
                                 key={opt}
                                 className="flex items-center gap-3 px-1 py-1.5 hover:bg-slate-50/50 rounded cursor-pointer transition-colors"
                               >
-                                <Checkbox
-                                  checked={active}
-                                  onCheckedChange={() => toggleGeo(opt)}
-                                />
-                                <span className={`text-xs font-medium font-sans ${active ? "text-slate-900 font-bold" : "text-slate-600"}`}>
+                                <Checkbox checked={active} onCheckedChange={() => toggleGeo(opt)} />
+                                <span
+                                  className={`text-xs font-medium font-sans ${active ? "text-slate-900 font-bold" : "text-slate-600"}`}
+                                >
                                   {opt}
                                 </span>
                               </label>
@@ -667,21 +726,60 @@ function OpportunitiesPage() {
         </div>
 
         {/* Opportunity Card List (Full-Width) */}
-        {filtered.length === 0 ? (
+        {totalCount === 0 ? (
           <EmptyState onReset={reset} />
         ) : (
-          <div className="space-y-4">
-            {filtered.map((opp, i) => (
-              <ResultCard
-                key={opp.id}
-                opp={opp}
-                delay={i * 40}
-                myBusinessId={myBusinessId}
-                myBusinessStatus={myBusinessStatus}
-                isSaved={savedOpportunityIds.has(opp.id)}
-                onSaveToggle={handleSaveToggle}
-              />
-            ))}
+          <div className="space-y-8">
+            {promotedOpps.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 border-b border-orange-200/60 pb-2.5">
+                  <span className="font-mono text-[10px] font-extrabold uppercase tracking-[0.2em] text-orange-600">
+                    Featured Partnerships & Opportunities
+                  </span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-orange-200/60 to-transparent ml-2" />
+                </div>
+                <div className={promotedOpps.length === 1 ? "grid grid-cols-1 gap-4" : "grid grid-cols-1 lg:grid-cols-2 gap-6"}>
+                  {promotedOpps.map((opp, i) => (
+                    <ResultCard
+                      key={opp.id}
+                      opp={opp}
+                      delay={i * 40}
+                      myBusinessId={myBusinessId}
+                      myBusinessStatus={myBusinessStatus}
+                      isSaved={savedOpportunityIds.has(opp.id)}
+                      onSaveToggle={handleSaveToggle}
+                      promotedCount={promotedOpps.length}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {regularOpps.length > 0 && (
+              <div className="space-y-4">
+                {promotedOpps.length > 0 && (
+                  <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2.5 pt-4">
+                    <span className="font-mono text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400">
+                      Standard Listings
+                    </span>
+                    <span className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent ml-2" />
+                  </div>
+                )}
+                <div className="space-y-4">
+                  {regularOpps.map((opp, i) => (
+                    <ResultCard
+                      key={opp.id}
+                      opp={opp}
+                      delay={(promotedOpps.length + i) * 40}
+                      myBusinessId={myBusinessId}
+                      myBusinessStatus={myBusinessStatus}
+                      isSaved={savedOpportunityIds.has(opp.id)}
+                      onSaveToggle={handleSaveToggle}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -716,22 +814,20 @@ function TierTooltipContent({ level }: { level: string }) {
   return (
     <div className="p-2.5 max-w-[260px] space-y-2 text-left font-sans leading-normal">
       <div className="flex items-center justify-between border-b border-slate-800 pb-1.5 gap-4">
-        <span className="font-display font-extrabold text-[12px] text-white">
-          {details.title}
-        </span>
-        <span className={`font-mono text-[8px] px-1.5 py-0.5 rounded-[2px] font-bold uppercase tracking-wider border ${
+        <span className="font-display font-extrabold text-[12px] text-white">{details.title}</span>
+        <span
+          className={`font-mono text-[8px] px-1.5 py-0.5 rounded-[2px] font-bold uppercase tracking-wider border ${
             levelKey === "Approved"
               ? "bg-primary/20 text-primary border-primary/30"
               : levelKey === "Applied"
-              ? "bg-amber-500/15 text-amber-600 border-amber-500/25"
-              : "bg-slate-700/20 text-slate-400 border-slate-600/30"
-          }`}>
+                ? "bg-amber-500/15 text-amber-600 border-amber-500/25"
+                : "bg-slate-700/20 text-slate-400 border-slate-600/30"
+          }`}
+        >
           {details.badge}
         </span>
       </div>
-      <p className="text-[10px] text-slate-400 leading-relaxed font-sans">
-        {details.body}
-      </p>
+      <p className="text-[10px] text-slate-400 leading-relaxed font-sans">{details.body}</p>
       <div className="pt-1.5 border-t border-slate-800 flex flex-col gap-0.5 font-mono text-[8px] text-slate-500">
         <span className="uppercase text-[7.5px] font-bold text-slate-400">Requirement:</span>
         <span>{details.req}</span>
@@ -828,12 +924,19 @@ function PageNav() {
                   <Menu className="w-4 h-4 text-slate-700" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-white p-6 w-[280px] flex flex-col justify-between border-l border-slate-200 shadow-2xl">
+              <SheetContent
+                side="right"
+                className="bg-white p-6 w-[280px] flex flex-col justify-between border-l border-slate-200 shadow-2xl"
+              >
                 <div className="space-y-8">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                    <img src={logoUrl} alt="Logo" className="h-8 w-auto object-contain mix-blend-multiply" />
+                    <img
+                      src={logoUrl}
+                      alt="Logo"
+                      className="h-8 w-auto object-contain mix-blend-multiply"
+                    />
                   </div>
-                  
+
                   <div className="flex flex-col gap-5 text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-bold">
                     <SheetClose asChild>
                       <Link
@@ -864,7 +967,9 @@ function PageNav() {
                   {isSignedIn && (
                     <div className="space-y-4">
                       <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-[2px] border border-slate-100">
-                        <span className="text-[9px] font-mono uppercase text-slate-400 tracking-wider font-bold">Account</span>
+                        <span className="text-[9px] font-mono uppercase text-slate-400 tracking-wider font-bold">
+                          Account
+                        </span>
                         <UserAvatarDropdown />
                       </div>
                       <ReciprocityBadge className="flex w-full justify-between" />
@@ -913,7 +1018,9 @@ function ReciprocityBadge({ className = "hidden sm:flex" }: { className?: string
         pulse ? "border-primary bg-primary/10" : "border-slate-200/80 bg-white"
       } ${className}`}
     >
-      <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold">Score</span>
+      <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold">
+        Score
+      </span>
       <span
         className={`font-display text-sm font-extrabold tabular-nums ${
           pulse ? "text-primary" : "text-slate-900"
@@ -962,7 +1069,9 @@ function FilterGroup<T extends readonly string[]>({
 }) {
   return (
     <div className="space-y-2.5">
-      <div className="font-mono text-[10px] uppercase tracking-widest text-slate-400 font-bold">{label}</div>
+      <div className="font-mono text-[10px] uppercase tracking-widest text-slate-400 font-bold">
+        {label}
+      </div>
       <div className="flex flex-col border border-slate-100 rounded-[2px] overflow-hidden">
         {options.map((opt) => {
           const active = opt === value;
@@ -992,6 +1101,7 @@ function ResultCard({
   myBusinessStatus,
   isSaved,
   onSaveToggle,
+  promotedCount = 0,
 }: {
   opp: Opportunity;
   delay: number;
@@ -999,6 +1109,7 @@ function ResultCard({
   myBusinessStatus: "applied" | "approved" | "rejected" | null;
   isSaved: boolean;
   onSaveToggle: (oppId: string, shouldSave: boolean) => void;
+  promotedCount?: number;
 }) {
   const { store, request, respond, withdraw } = useInterestStore();
   const record = store[opp.id];
@@ -1051,13 +1162,35 @@ function ResultCard({
         .substring(0, 2)
         .toUpperCase();
 
+  const isPromoted = opp.promotion_status === "promoted";
+
+  const isMultiPromoted = isPromoted && promotedCount > 1;
+
+  const cardClasses = isPromoted
+    ? "bg-slate-950 border-orange-500/40 hover:border-orange-400 text-slate-100 shadow-lg hover:shadow-orange-950/20 hover:shadow-xl border-l-[4.5px] border-l-orange-500 bg-gradient-to-br from-slate-900 to-slate-950"
+    : opp.trustLevel === "Approved"
+      ? "bg-white border-slate-300/80 hover:border-primary border-l-[3.5px] border-l-slate-900 bg-gradient-to-br from-slate-50/20 via-white to-white hover:shadow-md"
+      : "bg-white border-slate-200 hover:border-primary hover:shadow-md";
+
+  const typeTagClass = isPromoted
+    ? "bg-orange-500/15 text-orange-400 border border-orange-500/30"
+    : TYPE_ACCENT[opp.type] ?? "bg-slate-100 text-slate-600";
+
+  const articleLayoutClass = isMultiPromoted
+    ? "flex flex-col xl:flex-row gap-6"
+    : "flex flex-col md:flex-row gap-6";
+
+  const rightColClass = isMultiPromoted
+    ? `xl:w-40 flex flex-row xl:flex-col items-center xl:items-stretch justify-between xl:justify-center gap-4 border-t xl:border-t-0 xl:border-l pt-4 xl:pt-0 xl:pl-6 ${
+        isPromoted ? "border-slate-900" : "border-slate-100"
+      }`
+    : `md:w-40 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-center gap-4 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 ${
+        isPromoted ? "border-slate-900" : "border-slate-100"
+      }`;
+
   return (
     <article
-      className={`bg-white border p-4 sm:p-6 flex flex-col md:flex-row gap-6 hover:shadow-md rounded-[4px] transition-all duration-300 animate-momentum relative overflow-hidden ${
-        opp.trustLevel === "Approved"
-          ? "border-slate-300/80 shadow-xs border-l-[3.5px] border-l-slate-900 bg-gradient-to-br from-slate-50/20 via-white to-white"
-          : "border-slate-200 hover:border-primary"
-      }`}
+      className={`border p-4 sm:p-6 rounded-[4px] transition-all duration-300 animate-momentum relative overflow-hidden ${articleLayoutClass} ${cardClasses}`}
       style={{ animationDelay: `${delay}ms` }}
     >
       {/* Top-Right Bookmark Button */}
@@ -1067,14 +1200,18 @@ function ResultCard({
             e.preventDefault();
             onSaveToggle(opp.id, !isSaved);
           }}
-          className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-50 transition-colors text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer z-10"
+          className={`absolute top-4 right-4 p-1.5 rounded-full transition-colors focus:outline-none cursor-pointer z-10 ${
+            isPromoted ? "hover:bg-slate-900 text-slate-400 hover:text-slate-200" : "hover:bg-slate-50 text-slate-400 hover:text-slate-600"
+          }`}
           title={isSaved ? "Remove from saved" : "Save opportunity"}
         >
           <Bookmark
             className={`w-4 h-4 transition-all duration-200 ${
               isSaved
                 ? "fill-orange-500 text-orange-500 scale-110"
-                : "text-slate-300 hover:text-slate-500"
+                : isPromoted
+                  ? "text-slate-600 hover:text-slate-400"
+                  : "text-slate-300 hover:text-slate-500"
             }`}
           />
         </button>
@@ -1085,16 +1222,22 @@ function ResultCard({
         <div className="flex items-center justify-between gap-4 flex-wrap pr-8">
           <div className="flex items-center gap-2">
             <span
-              className={`px-2.5 py-0.5 text-[8.5px] font-mono font-bold uppercase tracking-wider rounded-[2px] ${
-                TYPE_ACCENT[opp.type] ?? "bg-slate-100 text-slate-600"
-              }`}
+              className={`px-2.5 py-0.5 text-[8.5px] font-mono font-bold uppercase tracking-wider rounded-[2px] ${typeTagClass}`}
             >
               {opp.type}
             </span>
 
-            <span className="font-mono text-[9px] text-slate-400 font-medium">#{opp.opportunity_number || opp.id}</span>
+            {isPromoted && (
+              <span className="inline-flex items-center px-2.5 py-0.5 text-[8.5px] font-mono font-bold uppercase tracking-wider rounded-[2px] bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm shadow-orange-950/50">
+                Featured
+              </span>
+            )}
+
+            <span className={`font-mono text-[9px] font-medium ${isPromoted ? "text-slate-500" : "text-slate-400"}`}>
+              #{opp.opportunity_number || opp.id}
+            </span>
           </div>
-          <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold flex items-center gap-1">
+          <span className={`font-mono text-[9px] uppercase tracking-widest font-bold flex items-center gap-1 ${isPromoted ? "text-slate-400" : "text-slate-400"}`}>
             <Calendar className="w-3 h-3" />
             {opp.postedAt}
           </span>
@@ -1102,20 +1245,32 @@ function ResultCard({
 
         {/* Title & Description */}
         <div className="space-y-1.5">
-          <h3 className="font-display text-xl font-bold leading-tight text-slate-900 group-hover:text-primary transition-colors">
+          <h3 className={`font-display text-xl font-bold leading-tight transition-colors ${
+            isPromoted
+              ? "text-slate-50 hover:text-orange-400"
+              : "text-slate-900 hover:text-primary"
+          }`}>
             {opp.title}
           </h3>
-          <p className="text-sm text-slate-600 leading-relaxed font-sans">{opp.description}</p>
+          <p className={`text-sm leading-relaxed font-sans ${isPromoted ? "text-slate-300" : "text-slate-600"}`}>
+            {opp.description}
+          </p>
         </div>
 
         {/* Company & Meta Info Row */}
-        <div className="flex items-center gap-3 font-mono text-[10px] text-slate-400 border-t border-slate-50 pt-3 flex-wrap">
+        <div className={`flex items-center gap-3 font-mono text-[10px] border-t pt-3 flex-wrap ${
+          isPromoted ? "border-slate-900 text-slate-400" : "border-slate-50 text-slate-400"
+        }`}>
           <div className="flex items-center gap-2">
             {/* Minimal company logo placeholder */}
-            <div className="w-5 h-5 rounded-[2px] bg-slate-100 border border-slate-200 flex items-center justify-center font-sans text-[8px] font-bold text-slate-600 uppercase">
+            <div className={`w-5 h-5 rounded-[2px] flex items-center justify-center font-sans text-[8px] font-bold uppercase ${
+              isPromoted
+                ? "bg-slate-900 border border-slate-800 text-orange-400"
+                : "bg-slate-100 border border-slate-200 text-slate-600"
+            }`}>
               {initials}
             </div>
-            <span className="text-slate-900 font-bold flex items-center gap-1.5">
+            <span className={`font-bold flex items-center gap-1.5 ${isPromoted ? "text-white" : "text-slate-900"}`}>
               {displayName}
               {opp.trustLevel === "Approved" && !shouldHide && (
                 <TooltipSimple content="Approved with Relay">
@@ -1126,34 +1281,50 @@ function ResultCard({
           </div>
           <span>·</span>
           <span className="flex items-center gap-1">
-            <Briefcase className="w-3.5 h-3.5 text-slate-300" />
+            <Briefcase className={`w-3.5 h-3.5 ${isPromoted ? "text-slate-500" : "text-slate-300"}`} />
             {opp.industry}
           </span>
           <span>·</span>
           <span className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-slate-300" />
+            <MapPin className={`w-3.5 h-3.5 ${isPromoted ? "text-slate-500" : "text-slate-300"}`} />
             {opp.geo}
           </span>
         </div>
 
         {/* Connection unlocked area */}
         {status === "accepted" && record?.contact && (
-          <div className="mt-4 border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-2 rounded-[2px] shadow-sm animate-momentum">
-            <div className="flex items-center justify-between gap-4 flex-wrap border-b border-emerald-500/10 pb-1.5">
-              <div className="font-mono text-[9px] uppercase tracking-widest text-emerald-600 font-bold">
+          <div className={`mt-4 border p-4 space-y-2 rounded-[2px] shadow-sm animate-momentum ${
+            isPromoted
+              ? "border-emerald-500/30 bg-emerald-950/20"
+              : "border-emerald-500/20 bg-emerald-50/5"
+          }`}>
+            <div className={`flex items-center justify-between gap-4 flex-wrap border-b pb-1.5 ${
+              isPromoted ? "border-emerald-500/20" : "border-emerald-500/10"
+            }`}>
+              <div className={`font-mono text-[9px] uppercase tracking-widest font-bold ${
+                isPromoted ? "text-emerald-400" : "text-emerald-600"
+              }`}>
                 [ Contact unlocked · mutual acceptance ]
               </div>
-              <div className="font-mono text-[9px] uppercase tracking-widest text-emerald-600 font-bold">
+              <div className={`font-mono text-[9px] uppercase tracking-widest font-bold ${
+                isPromoted ? "text-emerald-400" : "text-emerald-600"
+              }`}>
                 + {RECIPROCITY_WEIGHTS.accepted} reciprocity
               </div>
             </div>
             <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="font-display text-sm font-bold text-slate-900">{record.contact.name}</span>
-              <span className="font-mono text-[10px] text-slate-400 font-bold">· {record.contact.role}</span>
+              <span className={`font-display text-sm font-bold ${isPromoted ? "text-slate-100" : "text-slate-900"}`}>
+                {record.contact.name}
+              </span>
+              <span className="font-mono text-[10px] text-slate-400 font-bold">
+                · {record.contact.role}
+              </span>
             </div>
             <a
               href={`mailto:${record.contact.email}`}
-              className="font-mono text-[11px] text-emerald-600 hover:underline transition-colors break-all flex items-center gap-1.5"
+              className={`font-mono text-[11px] hover:underline transition-colors break-all flex items-center gap-1.5 ${
+                isPromoted ? "text-emerald-400 hover:text-emerald-300" : "text-emerald-600"
+              }`}
             >
               {record.contact.email}
               <ExternalLink className="w-3 h-3" />
@@ -1163,25 +1334,36 @@ function ResultCard({
 
         {/* Demo Pitch and Simulators */}
         {status === "pending" && (
-          <div className="mt-4 border border-dashed border-slate-200 bg-slate-50/50 p-4 space-y-3 rounded-[2px]">
-            <div className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold">
+          <div className={`mt-4 border border-dashed p-4 space-y-3 rounded-[2px] ${
+            isPromoted
+              ? "border-slate-800 bg-slate-900/30"
+              : "border-slate-200 bg-slate-50/50"
+          }`}>
+            <div className={`font-mono text-[9px] uppercase tracking-widest font-bold ${
+              isPromoted ? "text-slate-500" : "text-slate-400"
+            }`}>
               [ Pitch sent · awaiting {opp.company} ]
             </div>
-            <p className="text-xs text-slate-600 italic font-mono bg-white border border-slate-100 px-3 py-2 rounded-[2px]">
+            <p className={`text-xs italic font-mono border px-3 py-2 rounded-[2px] ${
+              isPromoted
+                ? "bg-slate-950 border-slate-900 text-slate-350"
+                : "bg-white border-slate-100 text-slate-600"
+            }`}>
               &ldquo;{record?.pitch}&rdquo;
             </p>
             <div className="flex items-center gap-3 pt-1 font-mono text-[9px]">
-              <span className="text-slate-400 font-bold">Demo actions:</span>
-              <button
-                onClick={onAccept}
-                className="text-emerald-600 font-bold hover:underline"
-              >
+              <span className={isPromoted ? "text-slate-500" : "text-slate-400"}>Demo actions:</span>
+              <button onClick={onAccept} className={`font-bold hover:underline ${
+                isPromoted ? "text-emerald-400 hover:text-emerald-300" : "text-emerald-600"
+              }`}>
                 Accept introduction
               </button>
-              <span className="text-slate-300">·</span>
+              <span className={isPromoted ? "text-slate-700" : "text-slate-300"}>·</span>
               <button
                 onClick={onDecline}
-                className="text-slate-500 hover:text-red-600 hover:underline transition-colors"
+                className={`transition-colors ${
+                  isPromoted ? "text-slate-400 hover:text-red-400" : "text-slate-50 hover:text-red-600"
+                }`}
               >
                 Decline introduction
               </button>
@@ -1191,40 +1373,57 @@ function ResultCard({
 
         {/* Declined Status */}
         {status === "declined" && (
-          <div className="mt-4 border border-red-200 bg-red-50/30 p-4 space-y-2 rounded-[2px]">
-            <div className="font-mono text-[9px] uppercase tracking-widest text-red-600 font-bold">
+          <div className={`mt-4 border p-4 space-y-2 rounded-[2px] ${
+            isPromoted
+              ? "border-red-500/30 bg-red-950/20 text-slate-300"
+              : "border-red-200 bg-red-50/30 text-slate-600"
+          }`}>
+            <div className="font-mono text-[9px] uppercase tracking-widest text-red-500 font-bold">
               [ Handoff declined ]
             </div>
-            <p className="text-xs text-slate-600">
-              {opp.company} chose not to accept this introduction. You can withdraw this pitch and try again later.
+            <p className="text-xs">
+              {opp.company} chose not to accept this introduction. You can withdraw this pitch and
+              try again later.
             </p>
           </div>
         )}
 
         {/* Bottom meta stats */}
-        <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+        <div className={`flex items-center justify-between pt-3 border-t ${isPromoted ? "border-slate-900" : "border-slate-100"}`}>
           <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5 text-slate-300" />
+            <Users className={`w-3.5 h-3.5 ${isPromoted ? "text-slate-600" : "text-slate-350"}`} />
             {opp.interested + (status !== "idle" ? 1 : 0)} verified businesses interested
           </span>
         </div>
       </div>
 
       {/* Right Column: Actions */}
-      <div className="md:w-40 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-center gap-4 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6">
-
+      <div className={rightColClass}>
         {opp.business_id === myBusinessId ? (
-          <div className="flex-1 md:flex-none md:w-full text-center py-2.5 px-3 border border-slate-200 text-slate-400 text-[9px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default bg-slate-50/50 flex items-center justify-center gap-1.5">
+          <div className={`flex-1 md:flex-none md:w-full text-center py-2.5 px-3 border text-[9px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default flex items-center justify-center gap-1.5 ${
+            isPromoted
+              ? "border-slate-800 text-slate-500 bg-slate-900/50"
+              : "border-slate-200 text-slate-400 bg-slate-50/50"
+          }`}>
             {opp.hide_company_name && <Lock className="w-3 h-3 text-amber-500" />}
             <span>Your Listing {opp.hide_company_name && "(Private)"}</span>
           </div>
-        ) : (opp.status === "closed" || (opp.expires_at ? new Date(opp.expires_at) < new Date() : false)) ? (
-          <div className="flex-1 md:flex-none md:w-full text-center py-2 px-3 border border-red-200 bg-red-50 text-red-600 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px]">
+        ) : opp.status === "closed" ||
+          (opp.expires_at ? new Date(opp.expires_at) < new Date() : false) ? (
+          <div className={`flex-1 md:flex-none md:w-full text-center py-2 px-3 border text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] ${
+            isPromoted
+              ? "border-red-500/30 bg-red-950/20 text-red-400"
+              : "border-red-200 bg-red-50 text-red-600"
+          }`}>
             {opp.status === "closed" ? "Closed" : "Expired"}
           </div>
         ) : myBusinessStatus !== "approved" ? (
           <div className="flex-1 md:flex-none md:w-full flex flex-col gap-2">
-            <div className="text-center py-2 px-3 border border-slate-200 text-slate-400 text-[9px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default bg-slate-50/50">
+            <div className={`text-center py-2 px-3 border text-[9px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default ${
+              isPromoted
+                ? "border-slate-800 text-slate-500 bg-slate-900/50"
+                : "border-slate-200 text-slate-400 bg-slate-50/50"
+            }`}>
               Vetting Required
             </div>
           </div>
@@ -1233,20 +1432,30 @@ function ResultCard({
             {status === "idle" && (
               <button
                 onClick={() => setOpen(true)}
-                className="w-full py-2.5 px-3 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
+                className={`w-full py-2.5 px-3 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold ${
+                  isPromoted
+                    ? "bg-orange-600 hover:bg-orange-500 text-white border border-orange-500/30"
+                    : "bg-slate-900 hover:bg-primary text-white border border-slate-900"
+                }`}
               >
                 Express Interest
               </button>
             )}
 
             {status === "pending" && (
-              <div className="flex flex-col gap-2">
-                <div className="text-center py-2 px-3 border border-amber-500/30 bg-amber-500/10 text-amber-600 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px]">
+              <div className="flex flex-col gap-2 w-full">
+                <div className={`text-center py-2 px-3 border text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] ${
+                  isPromoted
+                    ? "border-amber-500/30 bg-amber-950/20 text-amber-400"
+                    : "border-amber-500/30 bg-amber-50/50 text-amber-600"
+                }`}>
                   Pending
                 </div>
                 <button
                   onClick={() => withdraw(opp.id)}
-                  className="text-[9px] font-mono uppercase tracking-widest text-slate-400 hover:text-red-600 transition-colors font-bold"
+                  className={`text-[9px] font-mono uppercase tracking-widest transition-colors font-bold ${
+                    isPromoted ? "text-slate-500 hover:text-red-400" : "text-slate-400 hover:text-red-600"
+                  }`}
                 >
                   Withdraw Pitch
                 </button>
@@ -1254,7 +1463,9 @@ function ResultCard({
             )}
 
             {status === "accepted" && (
-              <div className="text-center py-2 px-3 bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] shadow-sm">
+              <div className={`text-center py-2 px-3 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] shadow-sm ${
+                isPromoted ? "bg-orange-600 text-white" : "bg-primary text-white"
+              }`}>
                 Connected
               </div>
             )}
@@ -1262,7 +1473,11 @@ function ResultCard({
             {status === "declined" && (
               <button
                 onClick={() => withdraw(opp.id)}
-                className="py-2 px-3 border border-slate-200 text-slate-600 text-[10px] font-mono uppercase tracking-widest hover:border-slate-800 hover:text-slate-800 transition-all rounded-[2px] shadow-sm cursor-pointer"
+                className={`py-2 px-3 border text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm cursor-pointer ${
+                  isPromoted
+                    ? "border-slate-800 text-slate-350 hover:border-orange-500 hover:text-orange-400 bg-slate-900/30"
+                    : "border-slate-200 text-slate-600 hover:border-slate-800 hover:text-slate-800 bg-white"
+                }`}
               >
                 Reset Card
               </button>
@@ -1280,7 +1495,8 @@ function ResultCard({
             </DialogTitle>
             <DialogDescription className="text-sm text-slate-500 leading-relaxed font-sans">
               Contact info will be unlocked only after{" "}
-              <span className="text-slate-900 font-bold">{opp.company}</span> accepts your handshake. Add a short context note on why this is a strategic fit.
+              <span className="text-slate-900 font-bold">{opp.company}</span> accepts your
+              handshake. Add a short context note on why this is a strategic fit.
             </DialogDescription>
           </DialogHeader>
 
@@ -1333,7 +1549,9 @@ function EmptyState({ onReset }: { onReset: () => void }) {
         <Building className="w-6 h-6" />
       </div>
       <div className="space-y-1.5">
-        <h3 className="font-display text-xl md:text-2xl font-bold text-slate-800">No opportunities found</h3>
+        <h3 className="font-display text-xl md:text-2xl font-bold text-slate-800">
+          No opportunities found
+        </h3>
         <p className="text-slate-400 max-w-[40ch] mx-auto text-xs font-mono uppercase tracking-wider">
           Try adjusting or resetting your filter configurations.
         </p>

@@ -223,3 +223,26 @@ bun run format
 - **Unified Sizing**: All main views of the application (Home page `/`, Opportunities feed `/opportunities`, Dashboard `/opportunities/my`, profile editing, and onboarding) must use **`max-w-7xl`** (`1280px`) layout containers.
 - **Consistent Grid Sizing**: Do **not** use `max-w-5xl` or `max-w-6xl` containers for main page or header elements, as this results in mismatched borders and excessive unused screen real estate on wider desktop displays.
 
+---
+
+## 🚀 8. Recent Feature Implementations & Promotions Flow
+
+In the recent release, we introduced the **Opportunity Promotion Flow**, giving verified business profiles the option to request a promotion on their listings for maximum traction, moderated by the superadmin, and distinctively highlighted on the feed.
+
+### A. Superadmin Promotion Control Loop
+- **Server Action (`src/functions/getAdminOpportunities.ts`)**: Retrieves all platform listings with their current `promotion_status` (`none`, `pending_promotion`, `promoted`).
+- **Admin Portal (`src/routes/admin.tsx`)**: Integrates dedicated admin control tabs where the superadmin can approve promotion requests (marking them `promoted`), reject requests, or revoke active promotions (marking them `none`).
+- **Promotion Status Change Notifications**: When the superadmin changes the status of a promotion request, the server action triggers the database state transition and calls `NotificationService.createNotification` to alert the opportunity owner in real-time (e.g., notifying them when their promotion request is approved or rejected).
+
+### B. Curated & Separated Opportunities Feed (`src/routes/opportunities.index.tsx`)
+We decoupled the opportunities feed list to draw strict visual focus toward high-value, promoted listings:
+- **Featured & Standard Feed Sections**: Split the feed list into a top shelf (`Featured Partnerships & Opportunities` with a custom orange border/gradient divider) and a bottom feed (`Standard Listings` with a slate hairline separator).
+- **Dynamic Grid Layout**: 
+  - If there is only `1` promoted opportunity, it renders full-width.
+  - If there are `multiple` promoted opportunities, they automatically rearrange into a responsive 2-column grid layout (`grid-cols-1 lg:grid-cols-2 gap-6`) on desktop and wrap cleanly to 1-column on mobile.
+- **Premium Dark-Mode Theming for Featured Cards (`ResultCard`)**:
+  - **Visuals**: Dark charcoal/slate gradient background (`bg-slate-950 border-orange-500/40 border-l-[4.5px] border-l-orange-500`), high-contrast white text (`text-slate-50` titles, `text-slate-300` descriptions), and custom multi-color gradient `Featured` badges.
+  - **Buttons**: Bright glowing Operator Orange CTA buttons (`bg-orange-600 hover:bg-orange-500 text-white`) for high click-through traction.
+  - **Adaptive Card Breakpoints**: When multiple cards are tiled side-by-side in the desktop grid, they automatically render as vertical cards to prevent horizontal squeezing, only converting to side-by-side rows on wide displays (`xl` >= 1280px).
+
+
