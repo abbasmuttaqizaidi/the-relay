@@ -2,13 +2,19 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/sonner";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { listOpportunities } from "../functions/listOpportunities";
+import { expressInterest } from "../functions/expressInterest";
+import { saveOpportunity } from "../functions/saveOpportunity";
+import { removeSavedOpportunity } from "../functions/removeSavedOpportunity";
+import { getSavedOpportunities } from "../functions/getSavedOpportunities";
+import { OPPORTUNITIES } from "../lib/mock-opportunities";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
-import { Loader2, BadgeCheck, Check, Search, MapPin, Briefcase, Calendar, Users, Building, ExternalLink, RefreshCw, SlidersHorizontal, Trash2, Lock } from "lucide-react";
+import { Loader2, BadgeCheck, Check, Search, MapPin, Briefcase, Calendar, Users, Building, ExternalLink, RefreshCw, SlidersHorizontal, Trash2, Lock, Bookmark, Menu, ChevronRight } from "lucide-react";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
+import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { TooltipSimple } from "@/components/ui/tooltip";
 import {
   Dialog,
@@ -143,178 +149,9 @@ type Opportunity = {
   interested: number;
   business_id?: string;
   hide_company_name?: boolean;
+  status?: string;
+  expires_at?: string;
 };
-
-const OPPORTUNITIES: Opportunity[] = [
-  {
-    id: "RY-9021",
-    type: "Vendor",
-    industry: "E-commerce",
-    geo: "India",
-    company: "Velvet & Co",
-    title: "GOTS-certified organic cotton apparel manufacturer",
-    description:
-      "Scaling sustainable premium clothing line. Seeking a GOTS-certified contract manufacturer in India for low-minimum runs of activewear and loungewear.",
-    trustLevel: "Approved",
-    postedAt: "2h ago",
-    interested: 4,
-    hide_company_name: true,
-  },
-  {
-    id: "RY-8842",
-    type: "Distribution",
-    industry: "E-commerce",
-    geo: "UAE",
-    company: "Sol Sunglasses",
-    title: "Boutique retail distribution partners in GCC",
-    description:
-      "Premium polarized eyewear brand looking for retail distributors, boutique chain contacts, and resort partners across UAE, Qatar, and Saudi.",
-    trustLevel: "Approved",
-    postedAt: "5h ago",
-    interested: 9,
-    hide_company_name: false,
-  },
-  {
-    id: "RY-8721",
-    type: "Vendor",
-    industry: "SaaS",
-    geo: "United States",
-    company: "Metric Flow",
-    title: "Performance marketing agency for vertical SaaS",
-    description:
-      "Looking for a specialist B2B growth agency to manage paid social and search pipeline scaling from $20k to $100k MRR. ROI attribution setup required.",
-    trustLevel: "Approved",
-    postedAt: "1d ago",
-    interested: 6,
-    hide_company_name: true,
-  },
-  {
-    id: "RY-8612",
-    type: "Referral",
-    industry: "Marketing Agency",
-    geo: "India",
-    company: "Stratos Design",
-    title: "Mutual referral: Shopify Plus dev shop",
-    description:
-      "We frequently turn away development-only requests from Shopify Plus brands. Looking for a high-quality dev partner for ongoing handoffs.",
-    trustLevel: "Applied",
-    postedAt: "1d ago",
-    interested: 11,
-    hide_company_name: false,
-  },
-  {
-    id: "RY-8540",
-    type: "Hiring",
-    industry: "Marketing Agency",
-    geo: "Remote / Global",
-    company: "Apex Media",
-    title: "Senior Paid Media Buyer & DTC Growth Marketer",
-    description:
-      "Hiring a contract senior buyer with $5M+ spent on Meta/TikTok. Responsible for scaling DTC e-commerce accounts. Remote work available.",
-    trustLevel: "Applied",
-    postedAt: "2d ago",
-    interested: 7,
-    hide_company_name: true,
-  },
-  {
-    id: "RY-8488",
-    type: "Strategic Advice",
-    industry: "Healthcare",
-    geo: "India",
-    company: "Aarogya Labs",
-    title: "Founders who scaled diagnostic chains from ₹10L ➜ ₹1Cr",
-    description:
-      "Seeking 1:1 conversations with founders who have scaled a diagnostic chain from ₹10L to ₹1Cr monthly. Paid advisory available.",
-    trustLevel: "Approved",
-    postedAt: "3d ago",
-    interested: 5,
-    hide_company_name: false,
-  },
-  {
-    id: "RY-8401",
-    type: "Investment",
-    industry: "AI & Automation",
-    geo: "Singapore",
-    company: "Helix Ops",
-    title: "Angel round — operator-investors in vertical AI",
-    description:
-      "Closing a ₹3Cr angel round. Looking for operator-investors with distribution into mid-market manufacturing or supply chain.",
-    trustLevel: "Approved",
-    postedAt: "3d ago",
-    interested: 14,
-    hide_company_name: true,
-  },
-  {
-    id: "RY-8377",
-    type: "Partnership",
-    industry: "Real Estate",
-    geo: "United Kingdom",
-    company: "Vanguard Properties",
-    title: "Real Estate development partners for co-living spaces",
-    description:
-      "Boutique residential real estate firm looking for co-living operator partnerships to co-manage scaling studio portfolios in London.",
-    trustLevel: "Approved",
-    postedAt: "4d ago",
-    interested: 8,
-    hide_company_name: false,
-  },
-  {
-    id: "RY-8312",
-    type: "Vendor",
-    industry: "Recruitment",
-    geo: "India",
-    company: "Beacon Talent",
-    title: "ATS / CRM vendor for high-volume recruitment ops",
-    description:
-      "Evaluating ATS/CRM vendors capable of handling 5k+ candidate flow/month with strong API and India data residency.",
-    trustLevel: "Applied",
-    postedAt: "5d ago",
-    interested: 3,
-    hide_company_name: true,
-  },
-  {
-    id: "RY-8240",
-    type: "Referral",
-    industry: "Development Agency",
-    geo: "UAE",
-    company: "Forge Digital",
-    title: "Refer enterprise WordPress migrations",
-    description:
-      "Specialist in headless WordPress + Next.js migrations for UAE enterprises. Offering 10% lifetime referral on retainers.",
-    trustLevel: "Applied",
-    postedAt: "6d ago",
-    interested: 2,
-    hide_company_name: true,
-  },
-  {
-    id: "RY-8198",
-    type: "Distribution",
-    industry: "SaaS",
-    geo: "United States",
-    company: "Tideway HRIS",
-    title: "US channel partners for mid-market HRIS",
-    description:
-      "Mid-market HRIS seeking US-based benefits brokers and PEO consultants for a 25% first-year channel commission.",
-    trustLevel: "Approved",
-    postedAt: "1w ago",
-    interested: 6,
-    hide_company_name: true,
-  },
-  {
-    id: "RY-8120",
-    type: "Hiring",
-    industry: "Marketing Agency",
-    geo: "Remote / Global",
-    company: "Loft Performance",
-    title: "Senior paid-social strategist (DTC focus)",
-    description:
-      "Senior strategist with $1M+/mo Meta + TikTok experience across DTC. Remote, retainer-based engagement preferred.",
-    trustLevel: "Basic",
-    postedAt: "1w ago",
-    interested: 4,
-    hide_company_name: true,
-  },
-];
 
 const TYPE_ACCENT: Record<string, string> = {
   Partnership: "bg-primary/10 text-primary",
@@ -342,7 +179,7 @@ function formatPostedAt(dateString: string): string {
 function OpportunitiesPage() {
   const { industry, geo, type, q, minInterested, maxInterested } = Route.useSearch();
   const navigate = Route.useNavigate();
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded, userId } = useAuth();
   const [isValidating, setIsValidating] = useState(true);
   const [dbOpps, setDbOpps] = useState<any[]>([]);
   const [loadingOpps, setLoadingOpps] = useState(true);
@@ -366,6 +203,8 @@ function OpportunitiesPage() {
         interested: opp.interestedCount || 0,
         business_id: opp.business_id,
         hide_company_name: opp.hide_company_name ?? false,
+        status: opp.status,
+        expires_at: opp.expires_at,
       }));
       setDbOpps([...mapped, ...OPPORTUNITIES]);
     } catch (err) {
@@ -373,6 +212,99 @@ function OpportunitiesPage() {
       toast.error("Failed to load opportunities.");
     } finally {
       setLoadingOpps(false);
+    }
+  };
+
+  const [myBusinessStatus, setMyBusinessStatus] = useState<"applied" | "approved" | "rejected" | null>(null);
+  const [savedOpportunityIds, setSavedOpportunityIds] = useState<Set<string>>(new Set());
+
+  const mockStorageKey = userId ? `relay_saved_mocks_${userId}` : "relay_saved_mocks";
+
+  const loadSaved = async () => {
+    if (isSignedIn) {
+      try {
+        const saved = await getSavedOpportunities();
+        const dbIds = (saved || []).map((item: any) => item.opportunity_id);
+
+        let mockIds: string[] = [];
+        try {
+          console.log("[Explore Page] Reading mock saves from key:", mockStorageKey);
+          const stored = localStorage.getItem(mockStorageKey);
+          console.log("[Explore Page] Raw stored value in localStorage:", stored);
+          if (stored) {
+            mockIds = JSON.parse(stored);
+          }
+        } catch (err) {
+          console.error("[Explore Page] Error reading mock saves:", err);
+        }
+        console.log("[Explore Page] Resolved mock IDs:", mockIds);
+
+        setSavedOpportunityIds(new Set([...dbIds, ...mockIds]));
+      } catch (err) {
+        console.error("Failed to load saved opportunities:", err);
+      }
+    }
+  };
+
+  const handleSaveToggle = async (oppId: string, shouldSave: boolean) => {
+    const isMock = oppId.startsWith("RY-");
+    try {
+      if (shouldSave) {
+        if (!isMock) {
+          await saveOpportunity({ data: { opportunity_id: oppId } });
+        } else {
+          let mockIds: string[] = [];
+          try {
+            const stored = localStorage.getItem(mockStorageKey);
+            if (stored) mockIds = JSON.parse(stored);
+          } catch (_) {}
+          if (!mockIds.includes(oppId)) {
+            mockIds.push(oppId);
+            localStorage.setItem(mockStorageKey, JSON.stringify(mockIds));
+          }
+        }
+        setSavedOpportunityIds((prev) => {
+          const next = new Set(prev);
+          next.add(oppId);
+          return next;
+        });
+        if (myBusinessStatus === "approved") {
+          toast.success("Opportunity saved to your bookmarks.", {
+            action: {
+              label: "View",
+              onClick: () => navigate({ to: "/opportunities/my", search: { tab: "saved" } }),
+            },
+          });
+        } else {
+          toast.success("Opportunity Saved. You can review this opportunity after your business is approved.", {
+            action: {
+              label: "View",
+              onClick: () => navigate({ to: "/opportunities/my", search: { tab: "saved" } }),
+            },
+          });
+        }
+      } else {
+        if (!isMock) {
+          await removeSavedOpportunity({ data: { opportunity_id: oppId } });
+        } else {
+          let mockIds: string[] = [];
+          try {
+            const stored = localStorage.getItem(mockStorageKey);
+            if (stored) mockIds = JSON.parse(stored);
+          } catch (_) {}
+          mockIds = mockIds.filter(id => id !== oppId);
+          localStorage.setItem(mockStorageKey, JSON.stringify(mockIds));
+        }
+        setSavedOpportunityIds((prev) => {
+          const next = new Set(prev);
+          next.delete(oppId);
+          return next;
+        });
+        toast.success("Opportunity removed from saved.");
+      }
+    } catch (err: any) {
+      console.error("Failed to toggle save opportunity:", err);
+      toast.error(err.message || "Failed to update saved opportunity.");
     }
   };
 
@@ -390,6 +322,8 @@ function OpportunitiesPage() {
             } else {
               if (status.business) {
                 setMyBusinessId(status.business.id);
+                const s = status.business.status as string;
+                setMyBusinessStatus(s === "pending" || s === "applied" ? "applied" : s as any);
                 let score = 0;
                 try {
                   const stored = localStorage.getItem("relay.profile.v1");
@@ -408,6 +342,7 @@ function OpportunitiesPage() {
                 window.dispatchEvent(new Event("relay:profile"));
               }
               await loadData();
+              await loadSaved();
               setIsValidating(false);
             }
           } catch (error) {
@@ -517,7 +452,7 @@ function OpportunitiesPage() {
   return (
     <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-slate-900 selection:text-white">
       <PageNav />
-      <main className="max-w-5xl mx-auto px-6 pt-5 pb-16 md:pt-6 md:pb-24">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-16 md:pt-6 md:pb-24">
         {/* Header Hero Section */}
         <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <p className="text-slate-500 text-xs md:text-[13px] max-w-[55ch] leading-relaxed">
@@ -737,7 +672,15 @@ function OpportunitiesPage() {
         ) : (
           <div className="space-y-4">
             {filtered.map((opp, i) => (
-              <ResultCard key={opp.id} opp={opp} delay={i * 40} myBusinessId={myBusinessId} />
+              <ResultCard
+                key={opp.id}
+                opp={opp}
+                delay={i * 40}
+                myBusinessId={myBusinessId}
+                myBusinessStatus={myBusinessStatus}
+                isSaved={savedOpportunityIds.has(opp.id)}
+                onSaveToggle={handleSaveToggle}
+              />
             ))}
           </div>
         )}
@@ -776,7 +719,13 @@ function TierTooltipContent({ level }: { level: string }) {
         <span className="font-display font-extrabold text-[12px] text-white">
           {details.title}
         </span>
-        <span className="font-mono text-[8px] px-1.5 py-0.5 bg-primary/20 text-primary border border-primary/30 rounded-[2px] font-bold uppercase tracking-wider">
+        <span className={`font-mono text-[8px] px-1.5 py-0.5 rounded-[2px] font-bold uppercase tracking-wider border ${
+            levelKey === "Approved"
+              ? "bg-primary/20 text-primary border-primary/30"
+              : levelKey === "Applied"
+              ? "bg-amber-500/15 text-amber-600 border-amber-500/25"
+              : "bg-slate-700/20 text-slate-400 border-slate-600/30"
+          }`}>
           {details.badge}
         </span>
       </div>
@@ -823,8 +772,8 @@ function PageNav() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-      <div className="max-w-5xl mx-auto px-6 h-16 md:h-20 flex items-center justify-between">
-        <div className="flex items-center gap-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
+        <div className="flex items-center gap-4 md:gap-10">
           <Link to="/home" className="flex items-center gap-2 group">
             <img
               src={logoUrl}
@@ -853,24 +802,97 @@ function PageNav() {
             <span className="opacity-40 cursor-not-allowed">Intelligence</span>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <ReciprocityBadge />
+        <div className="flex items-center gap-2 md:gap-4">
+          <ReciprocityBadge className="hidden md:flex" />
           {(!isSignedIn || !profile) && (
             <Link
               to={isSignedIn ? "/onboarding" : "/signup"}
-              className="bg-slate-900 text-white px-5 py-2 text-[10px] font-mono uppercase tracking-widest hover:bg-primary transition-all rounded-[2px] shadow-sm hover:shadow"
+              className="hidden sm:inline-flex bg-slate-900 text-white px-5 py-2 text-[10px] font-mono uppercase tracking-widest hover:bg-primary transition-all rounded-[2px] shadow-sm hover:shadow"
             >
               Apply
             </Link>
           )}
-          {isSignedIn && <UserAvatarDropdown />}
+          {isSignedIn && (
+            <div className="hidden md:flex items-center gap-4">
+              <NotificationsDropdown />
+              <UserAvatarDropdown />
+            </div>
+          )}
+
+          {/* Mobile Navigation Trigger */}
+          <div className="md:hidden flex items-center gap-2">
+            {isSignedIn && <NotificationsDropdown />}
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="h-9 w-9 flex items-center justify-center border border-slate-200/80 rounded-[2px] bg-white hover:bg-slate-50 transition-colors cursor-pointer">
+                  <Menu className="w-4 h-4 text-slate-700" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-white p-6 w-[280px] flex flex-col justify-between border-l border-slate-200 shadow-2xl">
+                <div className="space-y-8">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <img src={logoUrl} alt="Logo" className="h-8 w-auto object-contain mix-blend-multiply" />
+                  </div>
+                  
+                  <div className="flex flex-col gap-5 text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-bold">
+                    <SheetClose asChild>
+                      <Link
+                        to="/opportunities"
+                        activeProps={{ className: "text-slate-900 font-extrabold" }}
+                        className="hover:text-slate-800 py-1 transition-colors flex items-center justify-between"
+                      >
+                        Opportunities <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+                      </Link>
+                    </SheetClose>
+                    {isSignedIn && (
+                      <SheetClose asChild>
+                        <Link
+                          to="/opportunities/my"
+                          activeProps={{ className: "text-slate-900 font-extrabold" }}
+                          className="hover:text-slate-800 py-1 transition-colors flex items-center justify-between"
+                        >
+                          My Opportunities <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+                        </Link>
+                      </SheetClose>
+                    )}
+                    <span className="opacity-30 py-1 cursor-not-allowed">Network</span>
+                    <span className="opacity-30 py-1 cursor-not-allowed">Intelligence</span>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-100 pt-6">
+                  {isSignedIn && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-[2px] border border-slate-100">
+                        <span className="text-[9px] font-mono uppercase text-slate-400 tracking-wider font-bold">Account</span>
+                        <UserAvatarDropdown />
+                      </div>
+                      <ReciprocityBadge className="flex w-full justify-between" />
+                    </div>
+                  )}
+                  {(!isSignedIn || !profile) && (
+                    <div className="flex flex-col gap-3">
+                      <SheetClose asChild>
+                        <Link
+                          to={isSignedIn ? "/onboarding" : "/signup"}
+                          className="w-full text-center bg-slate-900 hover:bg-orange-600 text-white py-2.5 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm font-bold flex items-center justify-center border border-slate-900"
+                        >
+                          Apply Now
+                        </Link>
+                      </SheetClose>
+                    </div>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </nav>
   );
 }
 
-function ReciprocityBadge() {
+function ReciprocityBadge({ className = "hidden sm:flex" }: { className?: string }) {
   const { score, introductionsMade, mutualAcceptances, pending, declined } = useReciprocity();
   const prev = useRef(score);
   const [pulse, setPulse] = useState(false);
@@ -887,9 +909,9 @@ function ReciprocityBadge() {
   return (
     <div
       title={`Introductions made: ${introductionsMade} · Mutual acceptances: ${mutualAcceptances} · Pending: ${pending} · Declined: ${declined}`}
-      className={`hidden sm:flex items-center gap-2.5 border rounded-[4px] px-3.5 py-2 transition-colors ${
+      className={`items-center gap-2.5 border rounded-[4px] px-3.5 py-2 transition-colors ${
         pulse ? "border-primary bg-primary/10" : "border-slate-200/80 bg-white"
-      }`}
+      } ${className}`}
     >
       <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold">Score</span>
       <span
@@ -963,7 +985,21 @@ function FilterGroup<T extends readonly string[]>({
   );
 }
 
-function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: number; myBusinessId: string | null }) {
+function ResultCard({
+  opp,
+  delay,
+  myBusinessId,
+  myBusinessStatus,
+  isSaved,
+  onSaveToggle,
+}: {
+  opp: Opportunity;
+  delay: number;
+  myBusinessId: string | null;
+  myBusinessStatus: "applied" | "approved" | "rejected" | null;
+  isSaved: boolean;
+  onSaveToggle: (oppId: string, shouldSave: boolean) => void;
+}) {
   const { store, request, respond, withdraw } = useInterestStore();
   const record = store[opp.id];
   const status = record?.status ?? "idle";
@@ -971,16 +1007,22 @@ function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: num
   const [open, setOpen] = useState(false);
   const [pitch, setPitch] = useState("");
 
-  const submit = () => {
+  const submit = async () => {
     const trimmed = pitch.trim();
     if (trimmed.length < 20) {
       toast.error("Add a short context note (20+ characters).");
       return;
     }
-    request(opp.id, trimmed);
-    setOpen(false);
-    setPitch("");
-    toast.success("Interest sent. Awaiting mutual acceptance.");
+    try {
+      await expressInterest({ data: { opportunity_id: opp.id } });
+      request(opp.id, trimmed);
+      setOpen(false);
+      setPitch("");
+      toast.success("Interest sent. Awaiting mutual acceptance.");
+    } catch (err: any) {
+      console.error("Failed to express interest:", err);
+      toast.error(err.message || "Failed to express interest.");
+    }
   };
 
   const onAccept = () => {
@@ -1011,16 +1053,36 @@ function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: num
 
   return (
     <article
-      className={`bg-white border p-6 flex flex-col md:flex-row gap-6 hover:shadow-md rounded-[4px] transition-all duration-300 animate-momentum relative overflow-hidden ${
+      className={`bg-white border p-4 sm:p-6 flex flex-col md:flex-row gap-6 hover:shadow-md rounded-[4px] transition-all duration-300 animate-momentum relative overflow-hidden ${
         opp.trustLevel === "Approved"
           ? "border-slate-300/80 shadow-xs border-l-[3.5px] border-l-slate-900 bg-gradient-to-br from-slate-50/20 via-white to-white"
           : "border-slate-200 hover:border-primary"
       }`}
       style={{ animationDelay: `${delay}ms` }}
     >
+      {/* Top-Right Bookmark Button */}
+      {opp.business_id !== myBusinessId && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onSaveToggle(opp.id, !isSaved);
+          }}
+          className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-50 transition-colors text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer z-10"
+          title={isSaved ? "Remove from saved" : "Save opportunity"}
+        >
+          <Bookmark
+            className={`w-4 h-4 transition-all duration-200 ${
+              isSaved
+                ? "fill-orange-500 text-orange-500 scale-110"
+                : "text-slate-300 hover:text-slate-500"
+            }`}
+          />
+        </button>
+      )}
+
       <div className="flex-1 space-y-3.5">
         {/* Top bar tags */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center justify-between gap-4 flex-wrap pr-8">
           <div className="flex items-center gap-2">
             <span
               className={`px-2.5 py-0.5 text-[8.5px] font-mono font-bold uppercase tracking-wider rounded-[2px] ${
@@ -1029,11 +1091,7 @@ function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: num
             >
               {opp.type}
             </span>
-            {opp.trustLevel === "Approved" && (
-              <span className="px-2 py-0.5 bg-slate-900 text-white text-[8px] font-mono font-bold uppercase tracking-wider rounded-[2px] inline-flex items-center gap-0.5 shadow-sm">
-                ★ Verified
-              </span>
-            )}
+
             <span className="font-mono text-[9px] text-slate-400 font-medium">#{opp.opportunity_number || opp.id}</span>
           </div>
           <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold flex items-center gap-1">
@@ -1059,7 +1117,7 @@ function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: num
             </div>
             <span className="text-slate-900 font-bold flex items-center gap-1.5">
               {displayName}
-              {opp.trustLevel === "Approved" && (
+              {opp.trustLevel === "Approved" && !shouldHide && (
                 <TooltipSimple content="Approved with Relay">
                   <BadgeCheck className="w-3.5 h-3.5 text-white fill-[#1877f2] shrink-0 cursor-default animate-badge-shine" />
                 </TooltipSimple>
@@ -1152,35 +1210,37 @@ function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: num
         </div>
       </div>
 
-      {/* Right Column: Trust Badge & Actions */}
+      {/* Right Column: Actions */}
       <div className="md:w-40 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-center gap-4 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6">
-        <div className="text-left md:text-center space-y-1">
-          <div className="font-mono text-[9px] text-slate-400 uppercase tracking-widest font-bold">Verification</div>
-          <TooltipSimple content={<TierTooltipContent level={opp.trustLevel} />}>
-            <div className="inline-flex items-center justify-center bg-slate-900 text-white text-[8px] font-mono font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-sm cursor-default">
-              {opp.trustLevel}
-            </div>
-          </TooltipSimple>
-        </div>
 
         {opp.business_id === myBusinessId ? (
           <div className="flex-1 md:flex-none md:w-full text-center py-2.5 px-3 border border-slate-200 text-slate-400 text-[9px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default bg-slate-50/50 flex items-center justify-center gap-1.5">
             {opp.hide_company_name && <Lock className="w-3 h-3 text-amber-500" />}
             <span>Your Listing {opp.hide_company_name && "(Private)"}</span>
           </div>
+        ) : (opp.status === "closed" || (opp.expires_at ? new Date(opp.expires_at) < new Date() : false)) ? (
+          <div className="flex-1 md:flex-none md:w-full text-center py-2 px-3 border border-red-200 bg-red-50 text-red-600 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px]">
+            {opp.status === "closed" ? "Closed" : "Expired"}
+          </div>
+        ) : myBusinessStatus !== "approved" ? (
+          <div className="flex-1 md:flex-none md:w-full flex flex-col gap-2">
+            <div className="text-center py-2 px-3 border border-slate-200 text-slate-400 text-[9px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default bg-slate-50/50">
+              Vetting Required
+            </div>
+          </div>
         ) : (
-          <>
+          <div className="flex-1 md:flex-none md:w-full flex flex-col gap-2">
             {status === "idle" && (
               <button
                 onClick={() => setOpen(true)}
-                className="flex-1 md:flex-none md:w-full py-2.5 px-3 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer"
+                className="w-full py-2.5 px-3 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
               >
                 Express Interest
               </button>
             )}
 
             {status === "pending" && (
-              <div className="flex-1 md:flex-none md:w-full flex flex-col gap-2">
+              <div className="flex flex-col gap-2">
                 <div className="text-center py-2 px-3 border border-amber-500/30 bg-amber-500/10 text-amber-600 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px]">
                   Pending
                 </div>
@@ -1194,7 +1254,7 @@ function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: num
             )}
 
             {status === "accepted" && (
-              <div className="flex-1 md:flex-none md:w-full text-center py-2 px-3 bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] shadow-sm">
+              <div className="text-center py-2 px-3 bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] shadow-sm">
                 Connected
               </div>
             )}
@@ -1202,12 +1262,12 @@ function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: num
             {status === "declined" && (
               <button
                 onClick={() => withdraw(opp.id)}
-                className="flex-1 md:flex-none md:w-full py-2 px-3 border border-slate-200 text-slate-600 text-[10px] font-mono uppercase tracking-widest hover:border-slate-800 hover:text-slate-800 transition-all rounded-[2px] shadow-sm cursor-pointer"
+                className="py-2 px-3 border border-slate-200 text-slate-600 text-[10px] font-mono uppercase tracking-widest hover:border-slate-800 hover:text-slate-800 transition-all rounded-[2px] shadow-sm cursor-pointer"
               >
                 Reset Card
               </button>
             )}
-          </>
+          </div>
         )}
       </div>
 
@@ -1225,11 +1285,11 @@ function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: num
           </DialogHeader>
 
           <div className="space-y-4 pt-2">
-            <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold border-b border-slate-100 pb-1">
+            <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-wider sm:tracking-widest text-slate-400 font-bold border-b border-slate-100 pb-1">
               <span>Selected Handoff</span>
               <span>#{opp.id}</span>
             </div>
-            <div className="text-sm font-bold text-slate-800">{opp.title}</div>
+            <div className="text-sm font-bold text-slate-800 break-words">{opp.title}</div>
             <textarea
               value={pitch}
               onChange={(e) => setPitch(e.target.value)}
@@ -1238,7 +1298,7 @@ function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: num
               placeholder="Provide context on who you are, what you ship, and why this is a mutual win..."
               className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-950 focus:outline-none px-3.5 py-3 text-sm font-mono placeholder:text-slate-400/80 resize-none rounded-[2px] transition-all"
             />
-            <div className="flex justify-between font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2 font-mono text-[9px] uppercase tracking-wider sm:tracking-widest text-slate-400 font-bold">
               <span>Operator network verification active</span>
               <span className={pitch.length >= 20 ? "text-slate-700" : "text-amber-500"}>
                 {pitch.length}/500 chars (min 20)
@@ -1268,12 +1328,12 @@ function ResultCard({ opp, delay, myBusinessId }: { opp: Opportunity; delay: num
 
 function EmptyState({ onReset }: { onReset: () => void }) {
   return (
-    <div className="border border-dashed border-slate-200 bg-white p-16 text-center space-y-5 rounded-[4px]">
+    <div className="border border-dashed border-slate-200 bg-white p-6 sm:p-10 md:p-16 text-center space-y-5 rounded-[4px]">
       <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center mx-auto text-slate-400">
         <Building className="w-6 h-6" />
       </div>
       <div className="space-y-1.5">
-        <h3 className="font-display text-2xl font-bold text-slate-800">No opportunities found</h3>
+        <h3 className="font-display text-xl md:text-2xl font-bold text-slate-800">No opportunities found</h3>
         <p className="text-slate-400 max-w-[40ch] mx-auto text-xs font-mono uppercase tracking-wider">
           Try adjusting or resetting your filter configurations.
         </p>

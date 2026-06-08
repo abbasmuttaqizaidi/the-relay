@@ -5,7 +5,7 @@ import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { updateBusiness } from "../functions/updateBusiness";
 import { verifyWebsite } from "../functions/verifyWebsite";
 import { uploadBusinessLogo } from "../functions/uploadBusinessLogo";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/sonner";
 import {
   Building2,
   Globe,
@@ -422,10 +422,10 @@ function BusinessProfilePage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-12 md:py-16 grid lg:grid-cols-12 gap-16 items-start">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-12 md:py-16 grid lg:grid-cols-12 gap-8 lg:gap-16 items-start">
         {/* Left: Identity Card */}
         <section className="lg:col-span-5 space-y-6 lg:sticky lg:top-28">
-          <div className="border border-[#1f25301f] bg-white p-8 rounded-[2px] space-y-6">
+          <div className="border border-[#1f25301f] bg-white p-5 sm:p-8 rounded-[2px] space-y-6">
             {/* Logo + Name */}
             <div className="flex items-start gap-4">
               {/* Clickable logo avatar with upload overlay */}
@@ -543,7 +543,7 @@ function BusinessProfilePage() {
             <TabsContent value="basic">
               <form
                 onSubmit={handleSave}
-                className="border border-[#1f25301f] bg-white p-8 rounded-[2px] space-y-6"
+                className="border border-[#1f25301f] bg-white p-5 sm:p-8 rounded-[2px] space-y-6"
               >
                 <h3 className="font-display text-lg font-bold tracking-tight text-slate-900 border-b border-[#1f25300d] pb-3">
                   Basic Details
@@ -794,7 +794,7 @@ function BusinessProfilePage() {
 
             {/* Tab 2: Website Verification Checklist */}
             <TabsContent value="verification">
-              <div className="border border-[#1f25301f] bg-white p-8 rounded-[2px] space-y-6">
+              <div className="border border-[#1f25301f] bg-white p-5 sm:p-8 rounded-[2px] space-y-6">
                 <div className="flex items-center justify-between border-b border-[#1f25300d] pb-3">
                   <h3 className="font-display text-lg font-bold tracking-tight text-slate-900 flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-primary" />

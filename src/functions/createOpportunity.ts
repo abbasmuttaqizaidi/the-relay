@@ -34,6 +34,7 @@ export const createOpportunity = createServerFn({ method: "POST" })
       offer_text: data.offer_text,
       expires_at: data.expires_at,
       hide_company_name: data.hide_company_name,
+      promotion_status: data.promote ? "pending_promotion" : "none",
     });
   });
 export type CreateOpportunityFn = typeof createOpportunity;

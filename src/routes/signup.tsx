@@ -86,14 +86,14 @@ function SignUpPage() {
       </header>
 
       {/* Main Content (Split Layout) */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-12 md:py-20 grid lg:grid-cols-12 gap-16 items-center">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-12 md:py-20 grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
         {/* Left Side: Modern Editorial Brand Banner */}
         <section className="lg:col-span-6 space-y-8 animate-momentum">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 border border-primary/20 bg-primary/5 rounded-[1px] text-[10px] font-mono text-primary uppercase tracking-widest font-bold">
               <ShieldCheck className="w-3.5 h-3.5" /> Hand-Vetted B2B Network
             </div>
-            <h1 className="font-display text-4xl md:text-5xl font-extrabold tracking-tight leading-none text-slate-900">
+            <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-none text-slate-900">
               Where growth <br />
               finds <span className="italic text-primary">momentum</span>.
             </h1>

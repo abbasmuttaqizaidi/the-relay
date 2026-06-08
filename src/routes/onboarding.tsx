@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { createBusiness } from "../functions/createBusiness";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/sonner";
 import {
   Building2,
   Globe,
@@ -177,7 +177,7 @@ function OnboardingPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-12 md:py-16 grid lg:grid-cols-12 gap-16 items-start">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-12 md:py-16 grid lg:grid-cols-12 gap-8 lg:gap-16 items-start">
         {/* Left Side: Editorial Banner */}
         <section className="lg:col-span-5 space-y-6 lg:sticky lg:top-28 animate-momentum">
           <div className="space-y-3">
@@ -229,7 +229,7 @@ function OnboardingPage() {
         <section className="lg:col-span-7">
           <form
             onSubmit={handleSubmit}
-            className="border border-[#1f25301f] bg-white p-8 rounded-[2px] space-y-6"
+            className="border border-[#1f25301f] bg-white p-5 sm:p-8 rounded-[2px] space-y-6"
           >
             <h3 className="font-display text-lg font-bold tracking-tight text-slate-900 border-b border-[#1f25300d] pb-3">
               Corporate Credentials

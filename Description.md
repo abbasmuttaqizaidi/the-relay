@@ -209,3 +209,17 @@ bun run format
    - The core interactive dashboard.
    - Renders the opportunities catalogue, filters, trust score badges, and search bars.
    - Includes the slide-out panels to pitch an introduction or view unlocked contact details.
+
+---
+
+## 🔔 7. Notifications & Global Layout Rules
+
+### A. B2B Notifications & Interest Expression
+- **Database Trigger**: When a user expresses interest in another user's opportunity on `/opportunities`, the submit handler triggers the backend `expressInterest` server action (`src/functions/expressInterest.ts`).
+- **Notification Generation**: This records the interest in the database and automatically triggers a notification record inside the `Notification` model using `NotificationService.createNotification` for the owner of the opportunity. It also queues a mock email to alert the user.
+- **Notification Dropdown**: Rendered next to the `UserAvatarDropdown` component in the main navigation headers for routes `/opportunities` and `/opportunities/my`. It polls every 30 seconds for live notification counts and allows users to mark notifications as read.
+
+### B. App Sizing & Layout Constraints (Width Guidelines)
+- **Unified Sizing**: All main views of the application (Home page `/`, Opportunities feed `/opportunities`, Dashboard `/opportunities/my`, profile editing, and onboarding) must use **`max-w-7xl`** (`1280px`) layout containers.
+- **Consistent Grid Sizing**: Do **not** use `max-w-5xl` or `max-w-6xl` containers for main page or header elements, as this results in mismatched borders and excessive unused screen real estate on wider desktop displays.
+

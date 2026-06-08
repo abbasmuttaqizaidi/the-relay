@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SavedOpportunitiesRouteImport } from './routes/saved-opportunities'
 import { Route as QueryRelayRouteImport } from './routes/query-relay'
 import { Route as OpportunitiesRouteImport } from './routes/opportunities'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -23,6 +24,11 @@ import { Route as OpportunitiesMyRouteImport } from './routes/opportunities.my'
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SavedOpportunitiesRoute = SavedOpportunitiesRouteImport.update({
+  id: '/saved-opportunities',
+  path: '/saved-opportunities',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QueryRelayRoute = QueryRelayRouteImport.update({
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRouteWithChildren
   '/query-relay': typeof QueryRelayRoute
+  '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/opportunities/': typeof OpportunitiesIndexRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/home': typeof HomeRoute
   '/onboarding': typeof OnboardingRoute
   '/query-relay': typeof QueryRelayRoute
+  '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/opportunities': typeof OpportunitiesIndexRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRouteWithChildren
   '/query-relay': typeof QueryRelayRoute
+  '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/opportunities/': typeof OpportunitiesIndexRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/query-relay'
+    | '/saved-opportunities'
     | '/signup'
     | '/opportunities/my'
     | '/opportunities/'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/onboarding'
     | '/query-relay'
+    | '/saved-opportunities'
     | '/signup'
     | '/opportunities/my'
     | '/opportunities'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/query-relay'
+    | '/saved-opportunities'
     | '/signup'
     | '/opportunities/my'
     | '/opportunities/'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   OpportunitiesRoute: typeof OpportunitiesRouteWithChildren
   QueryRelayRoute: typeof QueryRelayRoute
+  SavedOpportunitiesRoute: typeof SavedOpportunitiesRoute
   SignupRoute: typeof SignupRoute
 }
 
@@ -163,6 +176,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saved-opportunities': {
+      id: '/saved-opportunities'
+      path: '/saved-opportunities'
+      fullPath: '/saved-opportunities'
+      preLoaderRoute: typeof SavedOpportunitiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/query-relay': {
@@ -253,6 +273,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   OpportunitiesRoute: OpportunitiesRouteWithChildren,
   QueryRelayRoute: QueryRelayRoute,
+  SavedOpportunitiesRoute: SavedOpportunitiesRoute,
   SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport

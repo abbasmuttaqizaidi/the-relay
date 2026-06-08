@@ -4,6 +4,7 @@ export type BusinessStatus = "pending" | "approved" | "rejected";
 export type BusinessMemberRole = "owner" | "admin" | "member";
 export type OpportunityCategory = "partnership" | "referral" | "distribution" | "vendor";
 export type OpportunityStatus = "active" | "closed";
+export type PromotionStatus = "none" | "pending_promotion" | "promoted";
 export type InterestStatus = "pending" | "accepted" | "rejected";
 
 // ---------------------------------------------------------
@@ -60,6 +61,7 @@ export interface Opportunity {
   offer_text: string | null;
   status: OpportunityStatus;
   hide_company_name: boolean;
+  promotion_status: PromotionStatus;
   expires_at: string | null; // ISO Date String
   created_at: string;
   updated_at: string;
@@ -133,6 +135,7 @@ export interface CreateOpportunityDTO {
   offer_text?: string | null;
   expires_at?: string | null;
   hide_company_name?: boolean;
+  promotion_status?: PromotionStatus;
 }
 
 export interface UpdateOpportunityDTO {
@@ -144,6 +147,7 @@ export interface UpdateOpportunityDTO {
   expires_at?: string | null;
   status?: OpportunityStatus;
   hide_company_name?: boolean;
+  promotion_status?: PromotionStatus;
 }
 
 export interface ExpressInterestDTO {

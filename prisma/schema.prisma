@@ -83,6 +83,7 @@ model Opportunity {
   offer_text         String?
   status             String    @default("active")
   hide_company_name  Boolean   @default(false)
+  promotion_status   String    @default("none")
   expires_at         DateTime? @db.Timestamptz(6)
   created_at         DateTime  @default(now()) @db.Timestamptz(6)
   updated_at         DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
@@ -95,6 +96,7 @@ model Opportunity {
   @@index([category])
   @@index([status])
   @@index([created_at])
+  @@index([promotion_status])
   @@map("opportunities")
 }
 
@@ -121,6 +123,9 @@ model SavedOpportunity {
   opportunity Opportunity @relation(fields: [opportunity_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, opportunity_id])
+  @@index([user_id], map: "idx_saved_opportunities_user")
+  @@index([opportunity_id], map: "idx_saved_opportunities_opportunity")
+  @@index([created_at], map: "idx_saved_opportunities_created_at")
   @@map("saved_opportunities")
 }
 

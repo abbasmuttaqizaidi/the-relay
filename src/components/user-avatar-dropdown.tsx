@@ -1,7 +1,7 @@
 import { useUser, useClerk } from "@clerk/tanstack-react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/sonner";
 import { Building2, User, Shield, LogOut, Check } from "lucide-react";
 import { TooltipSimple } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -86,7 +86,7 @@ export function UserAvatarDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="focus:outline-none cursor-pointer group flex items-center gap-3 border border-slate-200/80 hover:border-slate-300 hover:bg-slate-50/50 rounded-full pl-2 pr-4 py-1.5 transition-all bg-white hover:shadow-sm">
+        <button className="focus:outline-none cursor-pointer group flex items-center gap-3 border border-slate-200/80 hover:border-slate-300 hover:bg-slate-50/50 rounded-full pl-2 pr-4 py-2.5 sm:py-1.5 transition-all bg-white hover:shadow-sm">
           {/* Left side: Avatar */}
           <Avatar className="w-8 h-8 border border-slate-200/80 group-hover:border-primary/50 transition-all shrink-0 rounded-full shadow-sm">
             <AvatarImage

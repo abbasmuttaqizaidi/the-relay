@@ -8,6 +8,7 @@ export const businessMemberRoleSchema = z.enum(["owner", "admin", "member"]);
 export const opportunityCategorySchema = z.enum(["partnership", "referral", "distribution", "vendor"]);
 export const opportunityStatusSchema = z.enum(["active", "closed"]);
 export const interestStatusSchema = z.enum(["pending", "accepted", "rejected"]);
+export const promotionStatusSchema = z.enum(["none", "pending_promotion", "promoted"]);
 
 // ---------------------------------------------------------
 // INPUT VALIDATORS
@@ -49,6 +50,7 @@ export const createOpportunitySchema = z.object({
   offer_text: z.string().optional().nullable(),
   expires_at: z.string().optional().nullable(),
   hide_company_name: z.boolean().optional().default(false),
+  promote: z.boolean().optional().default(false),
 });
 
 export const updateOpportunitySchema = z.object({
@@ -61,6 +63,7 @@ export const updateOpportunitySchema = z.object({
   expires_at: z.string().optional().nullable(),
   status: opportunityStatusSchema.optional(),
   hide_company_name: z.boolean().optional().nullable(),
+  promote: z.boolean().optional(),
 });
 
 export const expressInterestSchema = z.object({
@@ -81,4 +84,9 @@ export const saveOpportunitySchema = z.object({
 
 export const removeSavedOpportunitySchema = z.object({
   opportunity_id: uuidSchema,
+});
+
+export const updatePromotionStatusSchema = z.object({
+  opportunity_id: uuidSchema,
+  promotion_status: promotionStatusSchema,
 });

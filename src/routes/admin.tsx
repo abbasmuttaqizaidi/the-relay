@@ -4,7 +4,7 @@ import { useAuth, useUser, useClerk } from "@clerk/tanstack-react-start";
 import { getAdminUsers } from "../functions/getAdminUsers";
 import { deleteUserFromAdmin } from "../functions/deleteUserFromAdmin";
 import { updateBusinessStatus } from "../functions/updateBusinessStatus";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/sonner";
 import {
   ShieldAlert,
   Trash2,
@@ -542,70 +542,220 @@ function AdminDashboard() {
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto">
-            <Table className="w-full border-collapse text-left text-xs">
-              <TableHeader className="bg-[#fafbfc] border-b border-[#1f253012] font-mono font-bold uppercase text-[9px] tracking-wider text-slate-500">
-                <TableRow>
-                  <TableHead className="p-4 pl-6">Operator Name & Email</TableHead>
-                  <TableHead className="p-4">Identities (Clerk / DB)</TableHead>
-                  <TableHead className="p-4">Business Credentials</TableHead>
-                  <TableHead className="p-4">Status</TableHead>
-                  <TableHead className="p-4">Joined At</TableHead>
-                  <TableHead className="p-4 pr-6 text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-[#1f25300a]">
-                {filteredUsers.length === 0 ? (
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table className="w-full border-collapse text-left text-xs">
+                <TableHeader className="bg-[#fafbfc] border-b border-[#1f253012] font-mono font-bold uppercase text-[9px] tracking-wider text-slate-500">
                   <TableRow>
-                    <TableCell colSpan={6} className="p-12 text-center text-slate-400 font-mono">
-                      No matching records found.
-                    </TableCell>
+                    <TableHead className="p-4 pl-6">Operator Name & Email</TableHead>
+                    <TableHead className="p-4">Identities (Clerk / DB)</TableHead>
+                    <TableHead className="p-4">Business Credentials</TableHead>
+                    <TableHead className="p-4">Status</TableHead>
+                    <TableHead className="p-4">Joined At</TableHead>
+                    <TableHead className="p-4 pr-6 text-right">Actions</TableHead>
                   </TableRow>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <TableRow key={user.id} className="hover:bg-slate-50/50 transition-colors">
-                      <TableCell className="p-4 pl-6">
-                        <div className="font-bold text-slate-900">{user.name}</div>
-                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">{user.email}</div>
+                </TableHeader>
+                <TableBody className="divide-y divide-[#1f25300a]">
+                  {filteredUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="p-12 text-center text-slate-400 font-mono">
+                        No matching records found.
                       </TableCell>
-                      <TableCell className="p-4">
-                        <div className="font-mono text-[10px] text-slate-600">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase select-none mr-1">Clerk:</span>
-                          {user.clerk_user_id}
-                        </div>
-                        <div className="font-mono text-[10px] text-slate-600 mt-1">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase select-none mr-1">DB:</span>
-                          {user.id}
-                        </div>
-                      </TableCell>
-                      <TableCell className="p-4">
-                        {user.business ? (
-                          <div className="space-y-1">
-                            <div className="font-bold text-slate-800 flex items-center gap-1">
-                              <Building2 className="w-3.5 h-3.5 text-primary" />
-                              {user.business.company_name}
-                            </div>
-                            <div className="flex items-center gap-1.5 font-mono text-[10px] text-slate-500">
-                              <span>{user.business.industry}</span>
-                              <span>·</span>
-                              <a
-                                href={user.business.website}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-primary hover:underline flex items-center gap-0.5"
-                              >
-                                {user.business.website.replace(/^https?:\/\//i, "")}
-                                <ExternalLink className="w-2.5 h-2.5" />
-                              </a>
-                            </div>
+                    </TableRow>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <TableRow key={user.id} className="hover:bg-slate-50/50 transition-colors">
+                        <TableCell className="p-4 pl-6">
+                          <div className="font-bold text-slate-900">{user.name}</div>
+                          <div className="text-[11px] text-slate-500 font-mono mt-0.5">{user.email}</div>
+                        </TableCell>
+                        <TableCell className="p-4">
+                          <div className="font-mono text-[10px] text-slate-600">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase select-none mr-1">Clerk:</span>
+                            {user.clerk_user_id}
                           </div>
-                        ) : (
-                          <span className="font-mono text-[10px] text-slate-400 uppercase font-semibold">
-                            Not Onboarded
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="p-4">
+                          <div className="font-mono text-[10px] text-slate-600 mt-1">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase select-none mr-1">DB:</span>
+                            {user.id}
+                          </div>
+                        </TableCell>
+                        <TableCell className="p-4">
+                          {user.business ? (
+                            <div className="space-y-1">
+                              <div className="font-bold text-slate-800 flex items-center gap-1">
+                                <Building2 className="w-3.5 h-3.5 text-primary" />
+                                {user.business.company_name}
+                              </div>
+                              <div className="flex items-center gap-1.5 font-mono text-[10px] text-slate-500">
+                                <span>{user.business.industry}</span>
+                                <span>·</span>
+                                <a
+                                  href={user.business.website}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-primary hover:underline flex items-center gap-0.5"
+                                >
+                                  {user.business.website.replace(/^https?:\/\//i, "")}
+                                  <ExternalLink className="w-2.5 h-2.5" />
+                                </a>
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="font-mono text-[10px] text-slate-400 uppercase font-semibold">
+                              Not Onboarded
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="p-4">
+                          {user.business ? (
+                            <Badge
+                              variant={
+                                user.business.status === "approved"
+                                  ? "success"
+                                  : user.business.status === "rejected"
+                                  ? "danger"
+                                  : "warning"
+                              }
+                              className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase rounded-[2px] px-2 py-0.5"
+                            >
+                              {user.business.status === "approved" && (
+                                <ShieldCheck className="w-3 h-3" />
+                              )}
+                              {user.business.status}
+                            </Badge>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="p-4 font-mono text-[10px] text-slate-500">
+                          {new Date(user.created_at).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </TableCell>
+                        <TableCell className="p-4 pr-6 text-right">
+                          <div className="flex items-center justify-end gap-3 flex-wrap">
+                            {/* Status Change Dropdown */}
+                            {user.business && (
+                              <Select
+                                value={user.business.status}
+                                onValueChange={(val) =>
+                                  handleStatusChange(
+                                    user.business!.id,
+                                    val as "pending" | "approved" | "rejected",
+                                    user.email,
+                                    user.business!.company_name
+                                  )
+                                }
+                                disabled={updatingStatusId === user.business.id}
+                              >
+                                <SelectTrigger className="w-[120px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0">
+                                  {updatingStatusId === user.business.id ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
+                                  ) : (
+                                    <SelectValue />
+                                  )}
+                                </SelectTrigger>
+                                <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
+                                  <SelectItem value="pending" className="cursor-pointer text-amber-600 focus:text-amber-700">
+                                    Pending
+                                  </SelectItem>
+                                  <SelectItem value="approved" className="cursor-pointer text-emerald-600 focus:text-emerald-700">
+                                    Approved
+                                  </SelectItem>
+                                  <SelectItem value="rejected" className="cursor-pointer text-red-600 focus:text-red-700">
+                                    Rejected
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+
+                            {/* Delete button — always shown */}
+                            <Button
+                              onClick={() => handleDeleteUser(user.id, user.clerk_user_id)}
+                              disabled={deletingId === user.id}
+                              variant="destructive"
+                              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-red-500/10 rounded-[2px] bg-red-500/5 hover:bg-red-500 hover:text-white transition-all text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-none"
+                            >
+                              {deletingId === user.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3.5 h-3.5" />
+                              )}
+                              Delete
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="block md:hidden divide-y divide-[#1f25300a] bg-white border border-slate-200 rounded-[4px] shadow-xs">
+              {filteredUsers.length === 0 ? (
+                <div className="p-12 text-center text-slate-400 font-mono text-xs">
+                  No matching records found.
+                </div>
+              ) : (
+                filteredUsers.map((user) => (
+                  <div key={user.id} className="p-4 space-y-4 text-xs">
+                    {/* Operator Name & Email */}
+                    <div className="border-b border-slate-100 pb-2">
+                      <div className="font-bold text-slate-900 text-sm">{user.name}</div>
+                      <div className="text-[11px] text-slate-500 font-mono mt-0.5">{user.email}</div>
+                    </div>
+
+                    {/* Identities */}
+                    <div className="space-y-1 font-mono text-[10px] text-slate-600 bg-slate-50 p-2.5 rounded-[2px] border border-slate-100/50">
+                      <div>
+                        <span className="font-bold text-slate-400 uppercase select-none mr-1">Clerk:</span>
+                        {user.clerk_user_id}
+                      </div>
+                      <div>
+                        <span className="font-bold text-slate-400 uppercase select-none mr-1">DB:</span>
+                        {user.id}
+                      </div>
+                    </div>
+
+                    {/* Business Credentials */}
+                    <div>
+                      <div className="text-[10px] font-mono font-bold text-slate-400 uppercase mb-1">Business:</div>
+                      {user.business ? (
+                        <div className="space-y-1 bg-slate-50/50 p-2.5 rounded-[2px] border border-slate-100">
+                          <div className="font-bold text-slate-800 flex items-center gap-1">
+                            <Building2 className="w-3.5 h-3.5 text-primary" />
+                            {user.business.company_name}
+                          </div>
+                          <div className="flex items-center gap-1.5 font-mono text-[10px] text-slate-500">
+                            <span>{user.business.industry}</span>
+                            <span>·</span>
+                            <a
+                              href={user.business.website}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-primary hover:underline flex items-center gap-0.5"
+                            >
+                              {user.business.website.replace(/^https?:\/\//i, "")}
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="font-mono text-[10px] text-slate-400 uppercase font-semibold">
+                          Not Onboarded
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Status & Joined date */}
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <div>
+                        <span className="text-slate-400 mr-1.5">Status:</span>
                         {user.business ? (
                           <Badge
                             variant={
@@ -618,80 +768,79 @@ function AdminDashboard() {
                             className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase rounded-[2px] px-2 py-0.5"
                           >
                             {user.business.status === "approved" && (
-                              <ShieldCheck className="w-3 h-3" />
+                              <ShieldCheck className="w-3.5 h-3.5" />
                             )}
                             {user.business.status}
                           </Badge>
                         ) : (
                           <span className="text-slate-400">—</span>
                         )}
-                      </TableCell>
-                      <TableCell className="p-4 font-mono text-[10px] text-slate-500">
+                      </div>
+                      <div className="text-slate-500">
+                        <span className="text-slate-400 mr-1.5">Joined:</span>
                         {new Date(user.created_at).toLocaleDateString(undefined, {
                           year: "numeric",
                           month: "short",
                           day: "numeric",
                         })}
-                      </TableCell>
-                      <TableCell className="p-4 pr-6 text-right">
-                        <div className="flex items-center justify-end gap-3 flex-wrap">
-                          {/* Status Change Dropdown */}
-                          {user.business && (
-                            <Select
-                              value={user.business.status}
-                              onValueChange={(val) =>
-                                handleStatusChange(
-                                  user.business!.id,
-                                  val as "pending" | "approved" | "rejected",
-                                  user.email,
-                                  user.business!.company_name
-                                )
-                              }
-                              disabled={updatingStatusId === user.business.id}
-                            >
-                              <SelectTrigger className="w-[120px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0">
-                                {updatingStatusId === user.business.id ? (
-                                  <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
-                                ) : (
-                                  <SelectValue />
-                                )}
-                              </SelectTrigger>
-                              <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
-                                <SelectItem value="pending" className="cursor-pointer text-amber-600 focus:text-amber-700">
-                                  Pending
-                                </SelectItem>
-                                <SelectItem value="approved" className="cursor-pointer text-emerald-600 focus:text-emerald-700">
-                                  Approved
-                                </SelectItem>
-                                <SelectItem value="rejected" className="cursor-pointer text-red-600 focus:text-red-700">
-                                  Rejected
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          )}
+                      </div>
+                    </div>
 
-                          {/* Delete button — always shown */}
-                          <Button
-                            onClick={() => handleDeleteUser(user.id, user.clerk_user_id)}
-                            disabled={deletingId === user.id}
-                            variant="destructive"
-                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-red-500/10 rounded-[2px] bg-red-500/5 hover:bg-red-500 hover:text-white transition-all text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-none"
-                          >
-                            {deletingId === user.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 flex-wrap">
+                      {user.business && (
+                        <Select
+                          value={user.business.status}
+                          onValueChange={(val) =>
+                            handleStatusChange(
+                              user.business!.id,
+                              val as "pending" | "approved" | "rejected",
+                              user.email,
+                              user.business!.company_name
+                            )
+                          }
+                          disabled={updatingStatusId === user.business.id}
+                        >
+                          <SelectTrigger className="w-[120px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0">
+                            {updatingStatusId === user.business.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
                             ) : (
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <SelectValue />
                             )}
-                            Delete
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                          </SelectTrigger>
+                          <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
+                            <SelectItem value="pending" className="cursor-pointer text-amber-600 focus:text-amber-700">
+                              Pending
+                            </SelectItem>
+                            <SelectItem value="approved" className="cursor-pointer text-emerald-600 focus:text-emerald-700">
+                              Approved
+                            </SelectItem>
+                            <SelectItem value="rejected" className="cursor-pointer text-red-600 focus:text-red-700">
+                              Rejected
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+
+                      <Button
+                        onClick={() => handleDeleteUser(user.id, user.clerk_user_id)}
+                        disabled={deletingId === user.id}
+                        variant="destructive"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-red-500/10 rounded-[2px] bg-red-500/5 hover:bg-red-500 hover:text-white transition-all text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-none"
+                      >
+                        {deletingId === user.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5" />
+                        )}
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
         </section>
       </main>
 

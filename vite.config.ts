@@ -6,6 +6,10 @@ import tsConfigPaths from "vite-tsconfig-paths";
 import { nitro } from "nitro/vite";
 
 export default defineConfig({
+  server: {
+    port: 6009,
+    strictPort: true,
+  },
   css: {
     transformer: "lightningcss",
   },

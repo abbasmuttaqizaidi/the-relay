@@ -79,59 +79,22 @@ function QueryRelayPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-slate-50/50 text-slate-900 flex items-center justify-center px-4 py-12 selection:bg-slate-900 selection:text-white">
       <form
         id="nexorem-lead-form"
         onSubmit={handleSubmit}
-        style={{
-          maxWidth: 450,
-          margin: "20px auto",
-          fontFamily: "system-ui, -apple-system, sans-serif",
-          padding: 24,
-          border: "1px solid #e4e4e7",
-          borderRadius: 16,
-          background: "#ffffff",
-          boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
-          width: "100%",
-        }}
+        className="max-w-[450px] w-full bg-white border border-slate-200/80 p-6 sm:p-8 rounded-[4px] shadow-xs animate-momentum"
       >
-        <h3
-          style={{
-            marginTop: 0,
-            marginBottom: 6,
-            color: "#18181b",
-            fontSize: 18,
-            fontWeight: 700,
-            textAlign: "left",
-          }}
-        >
+        <h3 className="font-display text-xl font-black text-slate-950 uppercase tracking-tight mb-1">
           Contact Us
         </h3>
-        <p
-          style={{
-            marginTop: 0,
-            marginBottom: 20,
-            color: "#71717a",
-            fontSize: 12,
-            textAlign: "left",
-          }}
-        >
+        <p className="text-[10px] text-slate-400 font-mono uppercase tracking-wider mb-6">
           Please fill out this form to connect with our team.
         </p>
 
-        <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-          <div style={{ flex: 1, textAlign: "left" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: 10,
-                fontWeight: 650,
-                color: "#52525b",
-                marginBottom: 4,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="flex-1 text-left">
+            <label className="block text-[9px] font-mono font-bold uppercase tracking-widest text-slate-500 mb-1.5">
               First Name
             </label>
             <input
@@ -139,28 +102,11 @@ function QueryRelayPage() {
               name="first_name"
               value={firstName}
               onChange={handleInputChange(setFirstName)}
-              style={{
-                width: "100%",
-                padding: "8px 12px",
-                border: "1px solid #d4d4d8",
-                borderRadius: 8,
-                fontSize: 13,
-                boxSizing: "border-box",
-              }}
+              className="w-full h-10 px-3 border border-slate-200 bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs rounded-[2px] font-mono"
             />
           </div>
-          <div style={{ flex: 1, textAlign: "left" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: 10,
-                fontWeight: 650,
-                color: "#52525b",
-                marginBottom: 4,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
+          <div className="flex-1 text-left">
+            <label className="block text-[9px] font-mono font-bold uppercase tracking-widest text-slate-500 mb-1.5">
               Last Name
             </label>
             <input
@@ -168,30 +114,13 @@ function QueryRelayPage() {
               name="last_name"
               value={lastName}
               onChange={handleInputChange(setLastName)}
-              style={{
-                width: "100%",
-                padding: "8px 12px",
-                border: "1px solid #d4d4d8",
-                borderRadius: 8,
-                fontSize: 13,
-                boxSizing: "border-box",
-              }}
+              className="w-full h-10 px-3 border border-slate-200 bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs rounded-[2px] font-mono"
             />
           </div>
         </div>
 
-        <div style={{ marginBottom: 12, textAlign: "left" }}>
-          <label
-            style={{
-              display: "block",
-              fontSize: 10,
-              fontWeight: 650,
-              color: "#52525b",
-              marginBottom: 4,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          >
+        <div className="mb-4 text-left">
+          <label className="block text-[9px] font-mono font-bold uppercase tracking-widest text-slate-500 mb-1.5">
             Email Address
           </label>
           <input
@@ -199,29 +128,12 @@ function QueryRelayPage() {
             name="email"
             value={email}
             onChange={handleInputChange(setEmail)}
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              border: "1px solid #d4d4d8",
-              borderRadius: 8,
-              fontSize: 13,
-              boxSizing: "border-box",
-            }}
+            className="w-full h-10 px-3 border border-slate-200 bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs rounded-[2px] font-mono"
           />
         </div>
 
-        <div style={{ marginBottom: 12, textAlign: "left" }}>
-          <label
-            style={{
-              display: "block",
-              fontSize: 10,
-              fontWeight: 650,
-              color: "#52525b",
-              marginBottom: 4,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          >
+        <div className="mb-6 text-left">
+          <label className="block text-[9px] font-mono font-bold uppercase tracking-widest text-slate-500 mb-1.5">
             Phone Number
           </label>
           <input
@@ -230,14 +142,7 @@ function QueryRelayPage() {
             required
             value={phone}
             onChange={handleInputChange(setPhone)}
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              border: "1px solid #d4d4d8",
-              borderRadius: 8,
-              fontSize: 13,
-              boxSizing: "border-box",
-            }}
+            className="w-full h-10 px-3 border border-slate-200 bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs rounded-[2px] font-mono"
           />
         </div>
 
@@ -245,35 +150,20 @@ function QueryRelayPage() {
           type="submit"
           id="nexorem-submit-btn"
           disabled={isSubmitting}
-          style={{
-            width: "100%",
-            padding: 10,
-            border: "none",
-            borderRadius: 8,
-            background: "#1e1e1a",
-            color: "#f7f5f0",
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: "pointer",
-            transition: "background 0.2s",
-          }}
+          className="w-full bg-slate-900 hover:bg-orange-600 hover:border-orange-600 disabled:opacity-50 text-white h-11 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] font-bold shadow-sm flex items-center justify-center border border-slate-900 cursor-pointer"
         >
           {isSubmitting ? "Submitting..." : "Submit Lead"}
         </button>
 
-        <div
-          id="nexorem-status"
-          style={{
-            marginTop: 12,
-            fontSize: 12,
-            fontWeight: 600,
-            textAlign: "center",
-            display: statusVisible ? "block" : "none",
-            color: statusColor,
-          }}
-        >
-          {statusText}
-        </div>
+        {statusVisible && (
+          <div
+            id="nexorem-status"
+            className="mt-4 text-[10px] font-mono font-bold uppercase tracking-widest text-center"
+            style={{ color: statusColor }}
+          >
+            {statusText}
+          </div>
+        )}
       </form>
     </div>
   );

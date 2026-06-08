@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Show, SignInButton } from "@clerk/tanstack-react-start";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import {
   ArrowRight,
@@ -147,7 +149,7 @@ function Landing() {
 
       <Nav />
 
-      <main className="max-w-6xl mx-auto px-6 pt-6 md:pt-12 pb-24 space-y-28 relative">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 md:pt-12 pb-12 md:pb-24 space-y-16 md:space-y-28 relative">
         <HeroSection />
         <TickerSection />
         <InteractiveFeedPreview />
@@ -180,15 +182,14 @@ function Nav() {
           : "border-b border-transparent bg-transparent py-5"
       }`}
     >
-      <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
-        <div className="flex items-center gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+        <div className="flex items-center gap-4 md:gap-8">
           <Link to="/home" className="flex items-center gap-3 group">
             <img
               src={logoUrl}
               alt="The Relay Logo"
               className="h-9 md:h-11 w-auto object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-[1.02]"
             />
-
           </Link>
           <div className="hidden md:flex gap-6 text-[10px] font-mono uppercase tracking-[0.15em] text-slate-500 font-bold">
             <a href="#feed-simulator" className="hover:text-orange-600 transition-colors">
@@ -206,7 +207,7 @@ function Nav() {
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Link
             to="/opportunities"
             className="hidden sm:inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest px-4 py-2 border border-slate-300 hover:border-slate-800 hover:text-slate-950 transition-all rounded-[2px] bg-white font-bold"
@@ -219,18 +220,94 @@ function Nav() {
           </Show>
 
           <Show when="signed-out">
-            <SignInButton mode="modal" forceRedirectUrl="/opportunities">
-              <button className="text-[10px] font-mono uppercase tracking-widest text-slate-500 hover:text-slate-950 transition-colors cursor-pointer font-bold px-3 py-2">
-                Sign In
-              </button>
-            </SignInButton>
-            <Link
-              to="/signup"
-              className="bg-slate-900 hover:bg-orange-600 hover:border-orange-600 text-white px-5 py-2 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm font-bold flex items-center justify-center border border-slate-900"
-            >
-              Sign Up
-            </Link>
+            <div className="hidden sm:flex items-center gap-3">
+              <SignInButton mode="modal" forceRedirectUrl="/opportunities">
+                <button className="text-[10px] font-mono uppercase tracking-widest text-slate-500 hover:text-slate-950 transition-colors cursor-pointer font-bold px-3 py-2">
+                  Sign In
+                </button>
+              </SignInButton>
+              <Link
+                to="/signup"
+                className="bg-slate-900 hover:bg-orange-600 hover:border-orange-600 text-white px-5 py-2 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm font-bold flex items-center justify-center border border-slate-900"
+              >
+                Sign Up
+              </Link>
+            </div>
           </Show>
+
+          {/* Mobile Hamburg Trigger */}
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="h-9 w-9 flex items-center justify-center border border-slate-200/80 rounded-[2px] bg-white hover:bg-slate-50 transition-colors cursor-pointer">
+                  <Menu className="w-4 h-4 text-slate-700" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-white p-6 w-[280px] flex flex-col justify-between border-l border-slate-200 shadow-2xl">
+                <div className="space-y-8">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <img src={logoUrl} alt="Logo" className="h-8 w-auto object-contain mix-blend-multiply" />
+                  </div>
+                  
+                  <div className="flex flex-col gap-5 text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-bold">
+                    <SheetClose asChild>
+                      <a href="#feed-simulator" className="hover:text-orange-600 transition-colors py-1">
+                        Feed Simulator
+                      </a>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <a href="#pillars" className="hover:text-orange-600 transition-colors py-1">
+                        Ecosystem
+                      </a>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <a href="#calculator" className="hover:text-orange-600 transition-colors py-1">
+                        Reciprocity Calculator
+                      </a>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <a href="#onboarding" className="hover:text-orange-600 transition-colors py-1">
+                        Protocol Onboarding
+                      </a>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link to="/opportunities" className="hover:text-orange-600 transition-colors py-1 border-t border-slate-100 pt-4 text-slate-900 flex items-center justify-between">
+                        Explore Feed <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                      </Link>
+                    </SheetClose>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-100 pt-6">
+                  <Show when="signed-out">
+                    <div className="flex flex-col gap-3">
+                      <SheetClose asChild>
+                        <SignInButton mode="modal" forceRedirectUrl="/opportunities">
+                          <button className="w-full text-center text-[10px] font-mono uppercase tracking-widest text-slate-700 border border-slate-200 rounded-[2px] py-2.5 font-bold hover:bg-slate-50 transition-colors">
+                            Sign In
+                          </button>
+                        </SignInButton>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link
+                          to="/signup"
+                          className="w-full text-center bg-slate-900 hover:bg-orange-600 text-white py-2.5 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm font-bold flex items-center justify-center border border-slate-900"
+                        >
+                          Sign Up
+                        </Link>
+                      </SheetClose>
+                    </div>
+                  </Show>
+                  <Show when="signed-in">
+                    <div className="flex items-center justify-between bg-slate-50 p-3 rounded-[2px] border border-slate-100">
+                      <span className="text-[9px] font-mono uppercase text-slate-400 tracking-wider font-bold">Session Active</span>
+                      <UserAvatarDropdown />
+                    </div>
+                  </Show>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </nav>
@@ -258,7 +335,7 @@ function HeroSection() {
       <div className="absolute -top-12 -left-12 w-64 h-64 bg-orange-500/5 rounded-full blur-[80px] pointer-events-none" />
       <div className="absolute top-1/2 -right-12 w-80 h-80 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="grid lg:grid-cols-12 gap-12 items-center">
+      <div className="grid lg:grid-cols-12 gap-6 lg:gap-12 items-center">
         {/* Left Heading Content */}
         <div className="lg:col-span-7 space-y-6 text-left">
 
@@ -349,7 +426,7 @@ function TickerSection() {
 
   return (
     <section className="w-full border-y border-slate-200/70 py-4 bg-white/50 backdrop-blur-xs overflow-hidden">
-      <div className="max-w-6xl mx-auto flex items-center gap-4 text-xs font-mono">
+      <div className="max-w-7xl mx-auto flex items-center gap-4 text-xs font-mono">
         <span className="flex items-center gap-1.5 text-orange-600 font-bold uppercase tracking-wider shrink-0 bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-[2px] text-[10px]">
           <Activity className="w-3.5 h-3.5 animate-pulse" />
           Live Ledger
@@ -398,7 +475,7 @@ function InteractiveFeedPreview() {
   };
 
   return (
-    <section id="feed-simulator" className="space-y-8 border-t border-slate-200 pt-16">
+    <section id="feed-simulator" className="space-y-8 border-t border-slate-200 pt-10 md:pt-16">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="max-w-2xl space-y-3">
           <span className="font-mono text-[9px] text-orange-600 font-bold uppercase tracking-[0.2em] block">
@@ -507,12 +584,6 @@ function InteractiveFeedPreview() {
 
                   {/* Actions Right Side */}
                   <div className="md:w-44 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-center gap-4 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6">
-                    <div className="text-left md:text-center space-y-1">
-                      <span className="font-mono text-[8px] text-slate-400 uppercase tracking-widest font-bold block">Verification</span>
-                      <span className="inline-flex items-center justify-center bg-slate-900 text-white text-[8px] font-mono font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-xs cursor-default">
-                        {opp.badge}
-                      </span>
-                    </div>
 
                     <button
                       onClick={() => handleSimulatedAction(index)}
@@ -570,7 +641,7 @@ function ValuePropositions() {
   ];
 
   return (
-    <section id="pillars" className="space-y-8 border-t border-slate-200 pt-16">
+    <section id="pillars" className="space-y-8 border-t border-slate-200 pt-10 md:pt-16">
       <div className="max-w-2xl space-y-3">
         <span className="font-mono text-[9px] text-orange-600 font-bold uppercase tracking-[0.2em] block">
           [ DESIGN SYSTEM ]
@@ -624,8 +695,8 @@ function ReciprocityCalculator() {
   const currentTier = getTier(score);
 
   return (
-    <section id="calculator" className="border-t border-slate-200 pt-16">
-      <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+    <section id="calculator" className="border-t border-slate-200 pt-10 md:pt-16">
+      <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
         {/* Sliders Control Panel */}
         <div className="lg:col-span-5 space-y-6">
           <div className="space-y-3">
@@ -689,7 +760,7 @@ function ReciprocityCalculator() {
         </div>
 
         {/* Dashboard Score card Display */}
-        <div className="lg:col-span-7 bg-white border border-slate-200 p-8 rounded-[4px] shadow-sm flex flex-col justify-between min-h-[400px]">
+        <div className="lg:col-span-7 bg-white border border-slate-200 p-5 md:p-8 rounded-[4px] shadow-sm flex flex-col justify-between min-h-[300px] md:min-h-[400px]">
           <div className="flex items-center justify-between border-b border-slate-100 pb-6 flex-wrap gap-4">
             <div>
               <div className="font-mono text-[9px] uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
@@ -727,7 +798,7 @@ function ReciprocityCalculator() {
           </div>
 
           {/* Current Tier status block */}
-          <div className="my-6 p-4 bg-slate-50 border border-slate-100 rounded-[2px] flex items-center justify-between">
+          <div className="my-6 p-4 bg-slate-50 border border-slate-100 rounded-[2px] flex items-center justify-between flex-wrap gap-2">
             <span className="font-mono text-[10px] text-slate-500 uppercase tracking-widest">Current Rating Rank:</span>
             <span className={`px-3 py-1 border text-[10px] font-mono font-bold uppercase tracking-wider rounded-full ${currentTier.color} bg-white shadow-xs`}>
               {currentTier.name}
@@ -740,21 +811,21 @@ function ReciprocityCalculator() {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-xs font-mono">
                 <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span className="text-slate-700">Basic Opportunities Feed Browsing</span>
+                <span className="text-slate-700 flex-1 min-w-0 break-words md:truncate text-left">Basic Opportunities Feed Browsing</span>
                 <span className="ml-auto shrink-0 text-[8px] font-mono px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-[2px] font-bold">
                   ACTIVE
                 </span>
               </div>
               <div className={`flex items-center gap-3 text-xs font-mono transition-opacity duration-300 ${score >= 50 ? "opacity-100" : "opacity-30"}`}>
                 {score >= 50 ? <Check className="w-4 h-4 text-emerald-500 shrink-0" /> : <Lock className="w-4 h-4 text-slate-400 shrink-0" />}
-                <span className="text-slate-700">Unlock direct BD Contact Details</span>
+                <span className="text-slate-700 flex-1 min-w-0 break-words md:truncate text-left">Unlock direct BD Contact Details</span>
                 <span className={`ml-auto shrink-0 text-[8px] font-mono px-2 py-0.5 rounded-[2px] font-bold border ${score >= 50 ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-slate-100 border-slate-200 text-slate-400"}`}>
                   {score >= 50 ? "ACTIVE" : "LOCKED"}
                 </span>
               </div>
               <div className={`flex items-center gap-3 text-xs font-mono transition-opacity duration-300 ${score >= 75 ? "opacity-100" : "opacity-30"}`}>
                 {score >= 75 ? <Check className="w-4 h-4 text-emerald-500 shrink-0" /> : <Lock className="w-4 h-4 text-slate-400 shrink-0" />}
-                <span className="text-slate-700">Concierge Matching Priority (Top 15%)</span>
+                <span className="text-slate-700 flex-1 min-w-0 break-words md:truncate text-left">Concierge Matching Priority (Top 15%)</span>
                 <span className={`ml-auto shrink-0 text-[8px] font-mono px-2 py-0.5 rounded-[2px] font-bold border ${score >= 75 ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-slate-100 border-slate-200 text-slate-400"}`}>
                   {score >= 75 ? "ACTIVE" : "LOCKED"}
                 </span>
@@ -793,7 +864,7 @@ function OnboardingSteps() {
   ];
 
   return (
-    <section id="onboarding" className="space-y-8 border-t border-slate-200 pt-16">
+    <section id="onboarding" className="space-y-8 border-t border-slate-200 pt-10 md:pt-16">
       <div className="max-w-2xl space-y-3">
         <span className="font-mono text-[9px] text-orange-600 font-bold uppercase tracking-[0.2em] block">
           [ PROTOCOL ]
@@ -824,7 +895,7 @@ function OnboardingSteps() {
 
 function CTASection() {
   return (
-    <section className="border border-slate-200 bg-slate-900 text-white p-8 sm:p-14 rounded-[4px] text-center space-y-6 max-w-5xl mx-auto shadow-md relative overflow-hidden">
+    <section className="border border-slate-200 bg-slate-900 text-white p-8 sm:p-14 rounded-[4px] text-center space-y-6 max-w-7xl mx-auto shadow-md relative overflow-hidden">
       <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-[80px] pointer-events-none" />
       
       <div className="space-y-4 max-w-3xl mx-auto relative z-10">
@@ -863,7 +934,7 @@ function CTASection() {
 
 function Footer() {
   return (
-    <footer className="pt-16 border-t border-slate-200/80 flex flex-col md:flex-row gap-8 justify-between items-start md:items-center">
+    <footer className="pt-10 md:pt-16 border-t border-slate-200/80 flex flex-col md:flex-row gap-8 justify-between items-start md:items-center">
       <div className="space-y-3">
         <Link
           to="/home"

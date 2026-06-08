@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getAuthenticatedUser } from "../lib/auth.server";
-import { OpportunityService } from "../services/opportunity.service";
+import { SavedOpportunityService } from "../services/saved-opportunity.service";
 import { removeSavedOpportunitySchema } from "../validators";
 
 export const removeSavedOpportunity = createServerFn({ method: "POST" })
@@ -10,8 +10,6 @@ export const removeSavedOpportunity = createServerFn({ method: "POST" })
     const user = await getAuthenticatedUser();
 
     // 2. Delegate to Service Layer
-    await OpportunityService.removeSavedOpportunity(user.id, data.opportunity_id);
-
-    return { success: true, opportunity_id: data.opportunity_id };
+    return await SavedOpportunityService.remove(user.id, data.opportunity_id);
   });
 export type RemoveSavedOpportunityFn = typeof removeSavedOpportunity;

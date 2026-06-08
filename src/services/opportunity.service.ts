@@ -50,6 +50,7 @@ export class OpportunityService {
           expires_at: dto.expires_at ? new Date(dto.expires_at) : null,
           status: "active",
           hide_company_name: dto.hide_company_name ?? false,
+          promotion_status: dto.promotion_status || "none",
         },
       });
 
@@ -90,6 +91,9 @@ export class OpportunityService {
       if (dto.hide_company_name !== undefined) {
         dataToUpdate.hide_company_name = dto.hide_company_name;
       }
+      if (dto.promotion_status !== undefined) {
+        dataToUpdate.promotion_status = dto.promotion_status;
+      }
 
       const opportunity = await prisma.opportunity.update({
         where: { id: opportunityId },
@@ -121,6 +125,38 @@ export class OpportunityService {
    */
   static async closeOpportunity(opportunityId: string): Promise<Opportunity> {
     return this.updateOpportunity(opportunityId, { status: "closed" });
+  }
+
+  /**
+   * Updates the promotion status of an opportunity (admin-only operation).
+   */
+  static async updatePromotionStatus(
+    opportunityId: string,
+    promotionStatus: string,
+  ): Promise<Opportunity> {
+    try {
+      const opportunity = await prisma.opportunity.update({
+        where: { id: opportunityId },
+        data: { promotion_status: promotionStatus },
+      });
+
+      // Invalidate opportunity cache
+      serverCache.delete(`opportunity:id:${opportunityId}`);
+
+      return {
+        ...opportunity,
+        category: opportunity.category as any,
+        status: opportunity.status as any,
+        location: opportunity.location,
+        offer_text: opportunity.offer_text,
+        expires_at: opportunity.expires_at ? opportunity.expires_at.toISOString() : null,
+        created_at: opportunity.created_at.toISOString(),
+        updated_at: opportunity.updated_at.toISOString(),
+      };
+    } catch (error: any) {
+      console.error("[OpportunityService.updatePromotionStatus] Error:", error);
+      throw new Error(`Failed to update promotion status: ${error.message || error}`);
+    }
   }
 
   /**

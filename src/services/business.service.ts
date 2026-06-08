@@ -2,6 +2,7 @@ import { prisma } from "../db/prisma.server";
 import { Business, CreateBusinessDTO, UpdateBusinessDTO } from "../types";
 import { EmailService } from "./email.service";
 import { serverCache } from "../lib/server-cache";
+import { NotificationService } from "./notification.service";
 
 export class BusinessService {
   /**
@@ -167,6 +168,16 @@ export class BusinessService {
 
       if (ownerEmail) {
         await EmailService.sendBusinessApproved(ownerEmail, business.company_name);
+      }
+
+      try {
+        await NotificationService.createNotification({
+          user_id: business.owner_user_id,
+          title: "Business Profile Approved",
+          description: `Congratulations! Your business profile "${business.company_name}" has been approved. You now have full access to participate, express interest, and post opportunities.`,
+        });
+      } catch (notifErr) {
+        console.error("[BusinessService.approveBusiness] Failed to create approval notification:", notifErr);
       }
 
       const result = BusinessService.mapBusinessModel(business);
