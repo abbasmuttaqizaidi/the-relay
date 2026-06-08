@@ -73,19 +73,28 @@ model BusinessMember {
 }
 
 model Opportunity {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  business_id String   @db.Uuid
-  title       String
-  description String
-  type        String
-  status      String   @default("active")
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id        String    @db.Uuid
+  opportunity_number String    @unique
+  title              String
+  description        String
+  category           String
+  location           String?
+  offer_text         String?
+  status             String    @default("active")
+  hide_company_name  Boolean   @default(false)
+  expires_at         DateTime? @db.Timestamptz(6)
+  created_at         DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
 
-  business          Business           @relation(fields: [business_id], references: [id], onDelete: Cascade)
-  interests         Interest[]
-  saved_by_users    SavedOpportunity[]
+  business       Business           @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  interests      Interest[]
+  saved_by_users SavedOpportunity[]
 
+  @@index([business_id])
+  @@index([category])
+  @@index([status])
+  @@index([created_at])
   @@map("opportunities")
 }
 

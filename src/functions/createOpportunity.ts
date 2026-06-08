@@ -29,7 +29,11 @@ export const createOpportunity = createServerFn({ method: "POST" })
       business_id: business.id,
       title: data.title,
       description: data.description,
-      type: data.type,
+      category: data.category,
+      location: data.location,
+      offer_text: data.offer_text,
+      expires_at: data.expires_at,
+      hide_company_name: data.hide_company_name,
     });
   });
 export type CreateOpportunityFn = typeof createOpportunity;

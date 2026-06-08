@@ -26,8 +26,12 @@ export const updateOpportunity = createServerFn({ method: "POST" })
     return await OpportunityService.updateOpportunity(data.opportunity_id, {
       title: data.title,
       description: data.description,
-      type: data.type,
+      category: data.category,
+      location: data.location,
+      offer_text: data.offer_text,
+      expires_at: data.expires_at,
       status: data.status,
+      hide_company_name: data.hide_company_name !== null ? data.hide_company_name : undefined,
     });
   });
 export type UpdateOpportunityFn = typeof updateOpportunity;

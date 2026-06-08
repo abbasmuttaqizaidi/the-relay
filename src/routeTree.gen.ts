@@ -17,6 +17,8 @@ import { Route as HomeRouteImport } from './routes/home'
 import { Route as BusinessProfileRouteImport } from './routes/business-profile'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OpportunitiesIndexRouteImport } from './routes/opportunities.index'
+import { Route as OpportunitiesMyRouteImport } from './routes/opportunities.my'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -58,6 +60,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OpportunitiesIndexRoute = OpportunitiesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OpportunitiesRoute,
+} as any)
+const OpportunitiesMyRoute = OpportunitiesMyRouteImport.update({
+  id: '/my',
+  path: '/my',
+  getParentRoute: () => OpportunitiesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -65,9 +77,11 @@ export interface FileRoutesByFullPath {
   '/business-profile': typeof BusinessProfileRoute
   '/home': typeof HomeRoute
   '/onboarding': typeof OnboardingRoute
-  '/opportunities': typeof OpportunitiesRoute
+  '/opportunities': typeof OpportunitiesRouteWithChildren
   '/query-relay': typeof QueryRelayRoute
   '/signup': typeof SignupRoute
+  '/opportunities/my': typeof OpportunitiesMyRoute
+  '/opportunities/': typeof OpportunitiesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,9 +89,10 @@ export interface FileRoutesByTo {
   '/business-profile': typeof BusinessProfileRoute
   '/home': typeof HomeRoute
   '/onboarding': typeof OnboardingRoute
-  '/opportunities': typeof OpportunitiesRoute
   '/query-relay': typeof QueryRelayRoute
   '/signup': typeof SignupRoute
+  '/opportunities/my': typeof OpportunitiesMyRoute
+  '/opportunities': typeof OpportunitiesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,9 +101,11 @@ export interface FileRoutesById {
   '/business-profile': typeof BusinessProfileRoute
   '/home': typeof HomeRoute
   '/onboarding': typeof OnboardingRoute
-  '/opportunities': typeof OpportunitiesRoute
+  '/opportunities': typeof OpportunitiesRouteWithChildren
   '/query-relay': typeof QueryRelayRoute
   '/signup': typeof SignupRoute
+  '/opportunities/my': typeof OpportunitiesMyRoute
+  '/opportunities/': typeof OpportunitiesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +118,8 @@ export interface FileRouteTypes {
     | '/opportunities'
     | '/query-relay'
     | '/signup'
+    | '/opportunities/my'
+    | '/opportunities/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -108,9 +127,10 @@ export interface FileRouteTypes {
     | '/business-profile'
     | '/home'
     | '/onboarding'
-    | '/opportunities'
     | '/query-relay'
     | '/signup'
+    | '/opportunities/my'
+    | '/opportunities'
   id:
     | '__root__'
     | '/'
@@ -121,6 +141,8 @@ export interface FileRouteTypes {
     | '/opportunities'
     | '/query-relay'
     | '/signup'
+    | '/opportunities/my'
+    | '/opportunities/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -129,7 +151,7 @@ export interface RootRouteChildren {
   BusinessProfileRoute: typeof BusinessProfileRoute
   HomeRoute: typeof HomeRoute
   OnboardingRoute: typeof OnboardingRoute
-  OpportunitiesRoute: typeof OpportunitiesRoute
+  OpportunitiesRoute: typeof OpportunitiesRouteWithChildren
   QueryRelayRoute: typeof QueryRelayRoute
   SignupRoute: typeof SignupRoute
 }
@@ -192,8 +214,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/opportunities/': {
+      id: '/opportunities/'
+      path: '/'
+      fullPath: '/opportunities/'
+      preLoaderRoute: typeof OpportunitiesIndexRouteImport
+      parentRoute: typeof OpportunitiesRoute
+    }
+    '/opportunities/my': {
+      id: '/opportunities/my'
+      path: '/my'
+      fullPath: '/opportunities/my'
+      preLoaderRoute: typeof OpportunitiesMyRouteImport
+      parentRoute: typeof OpportunitiesRoute
+    }
   }
 }
+
+interface OpportunitiesRouteChildren {
+  OpportunitiesMyRoute: typeof OpportunitiesMyRoute
+  OpportunitiesIndexRoute: typeof OpportunitiesIndexRoute
+}
+
+const OpportunitiesRouteChildren: OpportunitiesRouteChildren = {
+  OpportunitiesMyRoute: OpportunitiesMyRoute,
+  OpportunitiesIndexRoute: OpportunitiesIndexRoute,
+}
+
+const OpportunitiesRouteWithChildren = OpportunitiesRoute._addFileChildren(
+  OpportunitiesRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -201,7 +251,7 @@ const rootRouteChildren: RootRouteChildren = {
   BusinessProfileRoute: BusinessProfileRoute,
   HomeRoute: HomeRoute,
   OnboardingRoute: OnboardingRoute,
-  OpportunitiesRoute: OpportunitiesRoute,
+  OpportunitiesRoute: OpportunitiesRouteWithChildren,
   QueryRelayRoute: QueryRelayRoute,
   SignupRoute: SignupRoute,
 }

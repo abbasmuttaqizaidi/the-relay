@@ -2,13 +2,7 @@
 
 export type BusinessStatus = "pending" | "approved" | "rejected";
 export type BusinessMemberRole = "owner" | "admin" | "member";
-export type OpportunityType =
-  | "growth_partner"
-  | "strategic_partner"
-  | "distribution_partner"
-  | "vendor"
-  | "hiring"
-  | "investment";
+export type OpportunityCategory = "partnership" | "referral" | "distribution" | "vendor";
 export type OpportunityStatus = "active" | "closed";
 export type InterestStatus = "pending" | "accepted" | "rejected";
 
@@ -58,10 +52,15 @@ export interface BusinessMember {
 export interface Opportunity {
   id: string; // UUID
   business_id: string; // UUID references businesses.id
+  opportunity_number: string;
   title: string;
   description: string;
-  type: OpportunityType;
+  category: OpportunityCategory;
+  location: string | null;
+  offer_text: string | null;
   status: OpportunityStatus;
+  hide_company_name: boolean;
+  expires_at: string | null; // ISO Date String
   created_at: string;
   updated_at: string;
 }
@@ -129,14 +128,22 @@ export interface CreateOpportunityDTO {
   business_id: string;
   title: string;
   description: string;
-  type: OpportunityType;
+  category: OpportunityCategory;
+  location?: string | null;
+  offer_text?: string | null;
+  expires_at?: string | null;
+  hide_company_name?: boolean;
 }
 
 export interface UpdateOpportunityDTO {
   title?: string;
   description?: string;
-  type?: OpportunityType;
+  category?: OpportunityCategory;
+  location?: string | null;
+  offer_text?: string | null;
+  expires_at?: string | null;
   status?: OpportunityStatus;
+  hide_company_name?: boolean;
 }
 
 export interface ExpressInterestDTO {
@@ -156,7 +163,7 @@ export interface CreateNotificationDTO {
 
 export interface ListOpportunitiesFilters {
   industry?: string;
-  type?: OpportunityType;
+  category?: OpportunityCategory | "All";
   status?: OpportunityStatus;
   limit?: number;
   offset?: number;

@@ -5,14 +5,7 @@ export const uuidSchema = z.string().uuid("Invalid UUID format");
 
 export const businessStatusSchema = z.enum(["pending", "approved", "rejected"]);
 export const businessMemberRoleSchema = z.enum(["owner", "admin", "member"]);
-export const opportunityTypeSchema = z.enum([
-  "growth_partner",
-  "strategic_partner",
-  "distribution_partner",
-  "vendor",
-  "hiring",
-  "investment",
-]);
+export const opportunityCategorySchema = z.enum(["partnership", "referral", "distribution", "vendor"]);
 export const opportunityStatusSchema = z.enum(["active", "closed"]);
 export const interestStatusSchema = z.enum(["pending", "accepted", "rejected"]);
 
@@ -47,17 +40,27 @@ export const updateBusinessSchema = z.object({
 });
 
 export const createOpportunitySchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  type: opportunityTypeSchema,
+  title: z.string().min(1, "Title is required"),
+  category: opportunityCategorySchema,
+  description: z.string()
+    .min(50, "Description must be at least 50 characters")
+    .max(3000, "Description cannot exceed 3000 characters"),
+  location: z.string().optional().nullable(),
+  offer_text: z.string().optional().nullable(),
+  expires_at: z.string().optional().nullable(),
+  hide_company_name: z.boolean().optional().default(false),
 });
 
 export const updateOpportunitySchema = z.object({
   opportunity_id: uuidSchema,
-  title: z.string().min(5).optional(),
-  description: z.string().min(10).optional(),
-  type: opportunityTypeSchema.optional(),
+  title: z.string().min(1).optional(),
+  category: opportunityCategorySchema.optional(),
+  description: z.string().min(50).max(3000).optional(),
+  location: z.string().optional().nullable(),
+  offer_text: z.string().optional().nullable(),
+  expires_at: z.string().optional().nullable(),
   status: opportunityStatusSchema.optional(),
+  hide_company_name: z.boolean().optional().nullable(),
 });
 
 export const expressInterestSchema = z.object({
