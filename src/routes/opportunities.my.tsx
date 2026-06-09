@@ -635,38 +635,38 @@ function MyOpportunitiesPage() {
         )}
 
         {/* Tab switcher */}
-        <div className="flex border-b border-slate-200 mb-6 font-mono text-xs uppercase tracking-wider font-bold">
+        <div className="flex border-b border-slate-200 mb-6 font-mono text-[10px] sm:text-xs uppercase tracking-wider font-bold">
           <button
             onClick={() => navigate({ to: "/opportunities/my", search: { tab: "posted" } })}
-            className={`py-3 px-6 border-b-2 transition-all cursor-pointer ${
+            className={`py-3 px-3 sm:px-6 border-b-2 transition-all cursor-pointer ${
               activeTab === "posted"
                 ? "border-slate-900 text-slate-900 font-extrabold"
                 : "border-transparent text-slate-400 hover:text-slate-700"
             }`}
           >
-            My Listings ({myOpps.length})
+            <span className="hidden sm:inline">My </span>Listings ({myOpps.length})
           </button>
           <button
             onClick={() => navigate({ to: "/opportunities/my", search: { tab: "saved" } })}
-            className={`py-3 px-6 border-b-2 transition-all cursor-pointer ${
+            className={`py-3 px-3 sm:px-6 border-b-2 transition-all cursor-pointer ${
               activeTab === "saved"
                 ? "border-slate-900 text-slate-900 font-extrabold"
                 : "border-transparent text-slate-400 hover:text-slate-700"
             }`}
           >
-            Saved Memos ({savedItems.length})
+            Saved<span className="hidden sm:inline"> Memos</span> ({savedItems.length})
           </button>
           <button
             onClick={() =>
               navigate({ to: "/opportunities/my", search: { tab: "pending-handshakes" } })
             }
-            className={`py-3 px-6 border-b-2 transition-all cursor-pointer ${
+            className={`py-3 px-3 sm:px-6 border-b-2 transition-all cursor-pointer ${
               activeTab === "pending-handshakes"
                 ? "border-slate-900 text-slate-900 font-extrabold"
                 : "border-transparent text-slate-400 hover:text-slate-700"
             }`}
           >
-            Interest Sent ({pendingHandshakes.length})
+            <span className="hidden sm:inline">Interest </span>Sent ({pendingHandshakes.length})
           </button>
         </div>
 
