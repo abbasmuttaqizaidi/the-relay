@@ -563,7 +563,7 @@ function OpportunitiesPage() {
     (minInterested !== 0 || maxInterested !== 15 ? 1 : 0);
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col">
+    <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col w-full max-w-full overflow-x-hidden">
       {(isValidating || loadingOpps) ? (
         <div className="flex-1 flex flex-col items-center justify-center px-6">
           <div className="flex flex-col items-center space-y-6">
@@ -619,7 +619,7 @@ function OpportunitiesPage() {
           </div>
         </div>
       ) : (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-16 md:pt-6 md:pb-24">
+        <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-16 md:pt-6 md:pb-24">
         {/* Header Hero Section */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 pb-6 border-b border-slate-200/80">
           <div className="space-y-2">
@@ -652,50 +652,20 @@ function OpportunitiesPage() {
           </div>
         </header>
 
-        {/* Unified Search & Quick Filter Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch gap-3 mb-6">
-          <div className="flex-1 relative">
-            <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <Search className="w-4 h-4 text-slate-400" />
-            </span>
-            <input
-              type="text"
-              placeholder="Search by company, title, or keywords..."
-              value={searchInputVal}
-              onChange={(e) => setSearchInputVal(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSearchSubmit();
-                }
-              }}
-              className="w-full bg-white border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none pl-9 pr-8 py-2.5 text-xs font-mono placeholder:text-slate-400/80 transition-all rounded-[3px] shadow-xs"
-            />
-            {searchInputVal && (
-              <button
-                onClick={() => {
-                  setSearchInputVal("");
-                  navigate({ search: (prev: SearchParams) => ({ ...prev, q: "" }) });
-                }}
-                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-650 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Filter Slider Sheet Trigger */}
-            <Sheet onOpenChange={(open) => {
-              if (open) {
-                setLocalQ(q);
-                setLocalMinInterested(minInterested);
-                setLocalMaxInterested(maxInterested);
-                setLocalActiveIndustries(activeIndustries);
-                setLocalActiveGeos(activeGeos);
-              }
-            }}>
-              <SheetTrigger asChild>
-                <button className="flex-1 sm:flex-none cursor-pointer group flex items-center justify-center gap-2 border border-slate-200/80 hover:border-slate-350 rounded-[3px] px-5 py-2.5 transition-all bg-white hover:shadow-sm font-mono text-[9px] uppercase tracking-widest font-bold text-slate-700 h-full">
+        {/* Quick Filter Bar */}
+        <div className="flex items-center justify-start mb-6">
+          {/* Filter Slider Sheet Trigger */}
+          <Sheet onOpenChange={(open) => {
+            if (open) {
+              setLocalQ(q);
+              setLocalMinInterested(minInterested);
+              setLocalMaxInterested(maxInterested);
+              setLocalActiveIndustries(activeIndustries);
+              setLocalActiveGeos(activeGeos);
+            }
+          }}>
+            <SheetTrigger asChild>
+              <button className="w-full sm:w-auto cursor-pointer group flex items-center justify-center gap-2 border border-slate-200/80 hover:border-slate-350 rounded-[3px] px-5 py-2.5 transition-all bg-white hover:shadow-sm font-mono text-[9px] uppercase tracking-widest font-bold text-slate-700">
                   <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-900 transition-colors" />
                   <span>Advanced Filters</span>
                   {activeCount > 0 && (
@@ -864,6 +834,29 @@ function OpportunitiesPage() {
                 </div>
               </SheetContent>
             </Sheet>
+        </div>
+
+        {/* Opportunity Types Tabs & Filter Row */}
+        <div className="border-b border-slate-200 mb-8 w-full overflow-hidden">
+          <div className="overflow-x-auto scrollbar-none flex flex-nowrap gap-2 md:gap-6 pb-px w-full">
+            {TYPES.map((t) => {
+              const active = t === type;
+              return (
+                <button
+                  key={t}
+                  onClick={() =>
+                    navigate({ search: (prev: SearchParams) => ({ ...prev, type: t }) })
+                  }
+                  className={`font-mono text-[10px] md:text-xs font-bold uppercase tracking-widest px-1 pb-3.5 border-b-2 transition-all shrink-0 cursor-pointer ${
+                    active
+                      ? "border-primary text-primary"
+                      : "border-transparent text-slate-400 hover:text-slate-700"
+                  }`}
+                >
+                  {t}
+                </button>
+              );
+            })}
           </div>
         </div>
 

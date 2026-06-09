@@ -115,6 +115,14 @@
     background-size: 200% auto;
     animation: sweep-shine 3s linear infinite;
   }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 @layer base {

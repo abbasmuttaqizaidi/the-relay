@@ -52,7 +52,7 @@ function IncomingRequestsPage() {
 
   useEffect(() => {
     let active = true;
-    
+
     // Safety timeout to clear loading screen after 3.5 seconds if network/Clerk hangs
     const safetyTimeout = setTimeout(() => {
       if (active) {
@@ -251,13 +251,12 @@ function IncomingRequestsPage() {
               return (
                 <div
                   key={req.id}
-                  className={`border rounded-[4px] p-5 sm:p-6 transition-all duration-200 bg-white shadow-sm hover:shadow-md ${
-                    isPending
-                      ? "border-slate-200"
-                      : isAccepted
-                        ? "border-emerald-500/30 border-l-[4px] border-l-emerald-500"
-                        : "border-slate-200/60 opacity-80"
-                  }`}
+                  className={`border rounded-[4px] p-5 sm:p-6 transition-all duration-200 bg-white shadow-sm hover:shadow-md ${isPending
+                    ? "border-slate-200"
+                    : isAccepted
+                      ? "border-emerald-500/30 border-l-[4px] border-l-emerald-500"
+                      : "border-slate-200/60 opacity-80"
+                    }`}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                     <div className="flex-1 space-y-4">
@@ -266,7 +265,7 @@ function IncomingRequestsPage() {
                         <span className="font-display font-extrabold text-lg text-slate-900">
                           {isPending || isWithdrawn ? "Confidential Business" : req.requesting_business.company_name}
                         </span>
-                        
+
                         {req.requesting_business.status === "approved" && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-mono font-bold uppercase tracking-wider rounded-[2px] border border-emerald-100">
                             <Shield className="w-2.5 h-2.5" /> Approved
@@ -355,19 +354,25 @@ function IncomingRequestsPage() {
                                 </a>
                               </div>
                             )}
-                             <div className="space-y-0.5">
-                              <span className="text-slate-400 text-[10px]">Public Contact Email</span>
+                            <div className="space-y-0.5">
+                              <span className="text-slate-400 text-[10px]">
+                                Public Contact Email
+                              </span>
                               <a
                                 href={`mailto:${req.requesting_business.contact_email || req.requesting_business.owner?.email || ""}`}
                                 className="font-mono font-bold text-slate-900 hover:text-primary hover:underline"
                               >
-                                {req.requesting_business.contact_email || req.requesting_business.owner?.email || "N/A"}
+                                {req.requesting_business.contact_email ||
+                                  req.requesting_business.owner?.email ||
+                                  "N/A"}
                               </a>
                             </div>
                           </div>
                           {req.requesting_business.description && (
                             <div className="space-y-1 pt-1.5 border-t border-emerald-500/10">
-                              <span className="text-slate-400 text-[10px] block">Company Description</span>
+                              <span className="text-slate-400 text-[10px] block">
+                                Company Description
+                              </span>
                               <p className="text-xs text-slate-600 leading-relaxed">
                                 {req.requesting_business.description}
                               </p>

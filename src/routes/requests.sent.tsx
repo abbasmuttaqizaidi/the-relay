@@ -313,7 +313,7 @@ function SentRequestsPage() {
                               </div>
                             )}
                             <div className="space-y-0.5">
-                              <span className="text-slate-400 text-[10px]">Contact Email</span>
+                              <span className="text-slate-400 text-[10px]">Email: </span>
                               <a
                                 href={`mailto:${targetBusiness.contact_email || targetBusiness.owner?.email || ""}`}
                                 className="font-mono font-bold text-slate-900 hover:text-primary hover:underline"
