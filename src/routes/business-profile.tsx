@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@clerk/tanstack-react-start";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { updateBusiness } from "../functions/updateBusiness";
 import { verifyWebsite } from "../functions/verifyWebsite";
@@ -143,6 +145,71 @@ function BusinessProfilePage() {
   const [fundingStage, setFundingStage] = useState("");
   const [twitterUrl, setTwitterUrl] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+
+  const startTour = () => {
+    const driverObj = driver({
+      showProgress: true,
+      popoverClass: "relay-tour-popover",
+      steps: [
+        {
+          element: "#profile-sidebar-card",
+          popover: {
+            title: "Business Card",
+            description: "Yahan aapki company ka display name, active logo, verification tier, aur join date highlight hoti hai.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "#profile-logo-upload",
+          popover: {
+            title: "Update Brand Logo",
+            description: "Yahan hover karke click karne se aap apni business profile ka logo upload/change kar sakte hain.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "#profile-tabs-list",
+          popover: {
+            title: "Profile Sections",
+            description: "Basic info edit karne aur domain check/SSL validation configurations review karne ke liye tabs switch karein.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "#profile-details-form",
+          popover: {
+            title: "Business Details Form",
+            description: "HQ location, founded year, target description, aur social URLs yahan feed karein taaki partners aapki entity ko identify kar sakein.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "#profile-save-btn",
+          popover: {
+            title: "Commit Changes",
+            description: "Details update karne ke baad Save Changes par click karein taaki database aur platform par modifications sync ho jayein.",
+            side: "top",
+            align: "center"
+          }
+        }
+      ]
+    });
+    driverObj.drive();
+  };
+
+  useEffect(() => {
+    const handleTourEvent = () => {
+      startTour();
+    };
+    window.addEventListener("relay:start-tour:business-profile", handleTourEvent);
+    return () => {
+      window.removeEventListener("relay:start-tour:business-profile", handleTourEvent);
+    };
+  }, [business]);
 
   // Track original values for dirty check
   const [originals, setOriginals] = useState({
@@ -413,11 +480,12 @@ function BusinessProfilePage() {
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-start">
           {/* Left: Identity Card */}
         <section className="lg:col-span-5 space-y-6 lg:sticky lg:top-28">
-          <div className="border border-[#1f25301f] bg-white p-5 sm:p-8 rounded-[2px] space-y-6">
+          <div id="profile-sidebar-card" className="border border-[#1f25301f] bg-white p-5 sm:p-8 rounded-[2px] space-y-6">
             {/* Logo + Name */}
             <div className="flex items-start gap-4">
               {/* Clickable logo avatar with upload overlay */}
               <div
+                id="profile-logo-upload"
                 className="relative w-16 h-16 border border-border rounded-[2px] bg-slate-50 flex items-center justify-center overflow-hidden shrink-0 group cursor-pointer"
                 onClick={() => logoInputRef.current?.click()}
                 title="Click to update logo"
@@ -522,7 +590,7 @@ function BusinessProfilePage() {
         {/* Right: Tabs containing Edit Form and Verification */}
         <section className="lg:col-span-7">
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="mb-6">
+            <TabsList id="profile-tabs-list" className="mb-6">
               <TabsTrigger value="basic">Basic Details</TabsTrigger>
               <TabsTrigger value="verification">Website Verification</TabsTrigger>
             </TabsList>
@@ -530,6 +598,7 @@ function BusinessProfilePage() {
             {/* Tab 1: Basic Details Form */}
             <TabsContent value="basic">
               <form
+                id="profile-details-form"
                 onSubmit={handleSave}
                 className="border border-[#1f25301f] bg-white p-5 sm:p-8 rounded-[2px] space-y-6"
               >
@@ -763,6 +832,7 @@ function BusinessProfilePage() {
                 </div>
 
                 <button
+                  id="profile-save-btn"
                   type="submit"
                   disabled={saving || !hasChanges}
                   className="w-full h-13 bg-primary text-white font-mono text-xs uppercase tracking-widest hover:bg-orange-700 transition-all rounded-[2px] font-bold flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50"

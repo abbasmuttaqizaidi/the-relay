@@ -1,4 +1,4 @@
-import { Link, useMatchRoute } from "@tanstack/react-router";
+import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { SignInButton } from "@clerk/tanstack-react-start";
 import { useEffect, useState } from "react";
@@ -12,6 +12,7 @@ import {
   Home,
   X,
   LogIn,
+  HelpCircle,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
@@ -26,11 +27,44 @@ interface NavbarProps {
 export function Navbar({ incomingCount = 0 }: NavbarProps) {
   const { isSignedIn } = useAuth();
   const matchRoute = useMatchRoute();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<{
     companyName: string;
     email: string;
     verificationLevel: string;
   } | null>(null);
+
+  const handleNavbarTourClick = () => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      if (path.includes("/opportunities/my")) {
+        window.dispatchEvent(new Event("relay:start-tour:my-opportunities"));
+      } else if (path.includes("/opportunities")) {
+        window.dispatchEvent(new Event("relay:start-tour:opportunities"));
+      } else if (path.includes("/business-profile")) {
+        window.dispatchEvent(new Event("relay:start-tour:business-profile"));
+      } else if (path.includes("/requests")) {
+        window.dispatchEvent(new Event("relay:start-tour:requests"));
+      } else if (path.includes("/saved-opportunities")) {
+        window.dispatchEvent(new Event("relay:start-tour:saved-opportunities"));
+      } else if (path.includes("/home")) {
+        window.dispatchEvent(new Event("relay:start-tour:home"));
+      } else if (path.includes("/onboarding")) {
+        window.dispatchEvent(new Event("relay:start-tour:onboarding"));
+      } else if (path.includes("/connections")) {
+        window.dispatchEvent(new Event("relay:start-tour:connection"));
+      } else if (path.includes("/query-relay")) {
+        window.dispatchEvent(new Event("relay:start-tour:query-relay"));
+      } else {
+        // Fallback: navigate to opportunities board and launch the feed tour
+        navigate({ to: "/opportunities" }).then(() => {
+          setTimeout(() => {
+            window.dispatchEvent(new Event("relay:start-tour:opportunities"));
+          }, 650);
+        });
+      }
+    }
+  };
 
   useEffect(() => {
     const load = () => {
@@ -123,7 +157,9 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-4">
-            <ReciprocityBadge className="flex" />
+            <div id="reciprocity-badge-nav">
+              <ReciprocityBadge className="flex" />
+            </div>
             {(!isSignedIn || !profile) && (
               <Link
                 to={isSignedIn ? "/onboarding" : "/signup"}
@@ -134,8 +170,19 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
             )}
             {isSignedIn && (
               <div className="flex items-center gap-4">
-                <NotificationsDropdown />
-                <UserAvatarDropdown />
+                <button
+                  onClick={handleNavbarTourClick}
+                  className="h-9 w-9 flex items-center justify-center border border-slate-200/60 rounded-full bg-white hover:bg-slate-50/50 hover:border-slate-300 transition-colors cursor-pointer active:scale-95"
+                  title="Take a Product Tour"
+                >
+                  <HelpCircle className="w-4 h-4 text-slate-500 hover:text-slate-800 transition-colors" />
+                </button>
+                <div id="notifications-nav-btn">
+                  <NotificationsDropdown />
+                </div>
+                <div id="user-avatar-nav-btn">
+                  <UserAvatarDropdown />
+                </div>
               </div>
             )}
           </div>
@@ -157,9 +204,20 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
             />
           </Link>
 
-          {/* Right: Notifications + Hamburger */}
+          {/* Right: Notifications + Tour + Hamburger */}
           <div className="flex items-center gap-2">
-            {isSignedIn && <NotificationsDropdown />}
+            {isSignedIn && (
+              <>
+                <button
+                  onClick={handleNavbarTourClick}
+                  className="h-9 w-9 flex items-center justify-center border border-slate-200/80 rounded-full bg-white hover:bg-slate-50 transition-colors cursor-pointer active:scale-95"
+                  title="Take a Product Tour"
+                >
+                  <HelpCircle className="w-4.5 h-4.5 text-slate-600 hover:text-slate-900 transition-colors" />
+                </button>
+                <NotificationsDropdown />
+              </>
+            )}
             <Sheet>
               <SheetTrigger asChild>
                 <button className="h-9 w-9 flex items-center justify-center border border-slate-200/80 rounded-full bg-white hover:bg-slate-50 transition-colors cursor-pointer active:scale-95">

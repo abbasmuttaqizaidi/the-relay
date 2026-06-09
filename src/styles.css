@@ -211,3 +211,99 @@
 .toaster .toast[data-type="success"] [data-button]:hover {
   background-color: hsl(24 95% 55%) !important;
 }
+
+/* ---------------------------------------------------------
+   DRIVER.JS CUSTOM STYLING OVERRIDES (PRODUCT TOUR)
+   --------------------------------------------------------- */
+.driver-popover.relay-tour-popover {
+  background-color: #ffffff !important;
+  color: hsl(215 25% 12%) !important;
+  border: 1px solid hsl(215 25% 12% / 0.12) !important;
+  border-radius: 4px !important;
+  font-family: var(--font-sans) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  padding: 16px !important;
+  max-width: 320px !important;
+}
+
+.driver-popover.relay-tour-popover .driver-popover-title {
+  font-family: var(--font-display) !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: hsl(215 25% 12%) !important;
+  margin-bottom: 6px !important;
+}
+
+.driver-popover.relay-tour-popover .driver-popover-description {
+  font-family: var(--font-sans) !important;
+  font-size: 11px !important;
+  color: hsl(215 15% 45%) !important;
+  line-height: 1.6 !important;
+}
+
+.driver-popover.relay-tour-popover .driver-popover-footer {
+  margin-top: 12px !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+.driver-popover.relay-tour-popover .driver-popover-btn {
+  font-family: var(--font-mono) !important;
+  font-size: 8.5px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-radius: 2px !important;
+  padding: 6px 12px !important;
+  font-weight: bold !important;
+  transition: all 0.15s ease !important;
+  cursor: pointer !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Close button style */
+.driver-popover.relay-tour-popover .driver-popover-close-btn {
+  color: hsl(215 15% 45%) !important;
+}
+.driver-popover.relay-tour-popover .driver-popover-close-btn:hover {
+  color: hsl(215 25% 12%) !important;
+}
+
+/* Next / Prev button styles */
+.driver-popover.relay-tour-popover .driver-popover-next-btn {
+  background-color: hsl(24 95% 45%) !important; /* Operator Orange */
+  color: #ffffff !important;
+  border: 1px solid hsl(24 95% 45%) !important;
+}
+.driver-popover.relay-tour-popover .driver-popover-next-btn:hover {
+  background-color: hsl(24 95% 55%) !important;
+}
+
+.driver-popover.relay-tour-popover .driver-popover-prev-btn {
+  background-color: transparent !important;
+  color: hsl(215 25% 12%) !important;
+  border: 1px solid hsl(215 25% 12% / 0.15) !important;
+}
+.driver-popover.relay-tour-popover .driver-popover-prev-btn:hover {
+  background-color: hsl(210 15% 96%) !important;
+}
+
+/* Progress bar indicator */
+.driver-popover.relay-tour-popover .driver-popover-progress-text {
+  font-family: var(--font-mono) !important;
+  font-size: 8px !important;
+  color: hsl(215 15% 60%) !important;
+  font-weight: bold !important;
+}
+
+/* Animated spotlight ring border */
+.driver-stage {
+  border-radius: 4px !important;
+  outline: 2px solid hsl(24 95% 45% / 0.6) !important;
+  transition: all 0.3s ease-out !important;
+}

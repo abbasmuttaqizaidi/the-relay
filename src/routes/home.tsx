@@ -14,6 +14,8 @@ import {
   MapPin
 } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
@@ -84,6 +86,49 @@ function StatCounter({ value, duration = 1500, trigger = false }: { value: numbe
 }
 
 function Landing() {
+  useEffect(() => {
+    const handleTourEvent = () => {
+      const driverObj = driver({
+        showProgress: true,
+        popoverClass: "relay-tour-popover",
+        steps: [
+          {
+            element: "#home-hero-section",
+            popover: {
+              title: "Welcome to The Relay",
+              description: "Ye live B2B opportunity exchange hub hai verified operators aur founders ke liye. Yahan se partnerships, referrals, vendors, aur warm intros trade hote hain.",
+              side: "bottom",
+              align: "center"
+            }
+          },
+          {
+            element: "#home-stats-section",
+            popover: {
+              title: "Active Network Statistics",
+              description: "Verified businesses, successful partnerships, aur active referrals key statistics yahan monitor karein.",
+              side: "top",
+              align: "center"
+            }
+          },
+          {
+            element: "#how-it-works",
+            popover: {
+              title: "Double Opt-In Mechanics",
+              description: "Platform kaise noise-free network maintain karta hai, and how introduction warm handshakes work.",
+              side: "top",
+              align: "center"
+            }
+          }
+        ]
+      });
+      driverObj.drive();
+    };
+    window.addEventListener("relay:start-tour:home", handleTourEvent);
+    return () => {
+      window.removeEventListener("relay:start-tour:home", handleTourEvent);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#fafbfc] text-slate-900 selection:bg-orange-600 selection:text-white font-sans antialiased overflow-x-hidden relative">
       <div 
@@ -112,7 +157,7 @@ function HeroSection() {
   const { ref, isVisible } = useReveal();
   
   return (
-    <div ref={ref} className="space-y-12 py-12 md:py-20 max-w-7xl mx-auto text-center">
+    <div id="home-hero-section" ref={ref} className="space-y-12 py-12 md:py-20 max-w-7xl mx-auto text-center">
       <div className="space-y-6 max-w-4xl mx-auto">
         <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tighter leading-[0.95] text-slate-950 uppercase">
           The opportunity network <br />
@@ -152,7 +197,7 @@ function HeroSection() {
         </button>
       </div>
 
-      <div className="pt-8 border-t border-slate-200">
+      <div id="home-stats-section" className="pt-8 border-t border-slate-200">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           <div className="space-y-1">
             <div className="text-3xl md:text-4xl font-display font-extrabold text-slate-950 tracking-tight">

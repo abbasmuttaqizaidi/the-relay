@@ -3,6 +3,8 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/components/ui/sonner";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { listOpportunities } from "../functions/listOpportunities";
@@ -223,6 +225,147 @@ function OpportunitiesPage() {
   const [loadingOpps, setLoadingOpps] = useState(true);
   const [myBusinessId, setMyBusinessId] = useState<string | null>(null);
   const [showTroubleshoot, setShowTroubleshoot] = useState(false);
+
+  const startTour = () => {
+    const isMobileViewport = typeof window !== "undefined" && window.innerWidth < 768;
+
+    const desktopSteps = [
+      {
+        element: "#opportunity-board-info",
+        popover: {
+          title: "Welcome to The Relay",
+          description: "Ye live B2B opportunity exchange hub hai verified operators aur founders ke liye. Yahan se partnerships, referrals, vendors, aur warm intros trade hote hain.",
+          side: "bottom" as const,
+          align: "start" as const
+        }
+      },
+      {
+        element: "#category-tabs-row",
+        popover: {
+          title: "Opportunity Categories",
+          description: "Alag-alag opportunities types jaise Partnerships, Referrals, Vendors, ya Hiring browse karne ke liye in tabs par switch karein.",
+          side: "bottom" as const,
+          align: "start" as const
+        }
+      },
+      {
+        element: "#advanced-filters-btn",
+        popover: {
+          title: "Advanced Filters",
+          description: "Geographies, target industries, aur interested operator limits select karne ke liye advanced filters use karein.",
+          side: "bottom" as const,
+          align: "start" as const
+        }
+      },
+      {
+        element: "#post-opportunity-btn",
+        popover: {
+          title: "Create Listings",
+          description: "Directly in-place form se platform par apni requirement list karein taaki interested partners pitch kar sakein.",
+          side: "bottom" as const,
+          align: "end" as const
+        }
+      },
+      {
+        element: "#reciprocity-badge-nav",
+        popover: {
+          title: "Network Score (Reciprocity)",
+          description: "Apna score maintain karein. Naye opportunity post karne par aur connections establish karne par score grow hota hai. Contact details unlock karne mein score mandatory hai.",
+          side: "bottom" as const,
+          align: "end" as const
+        }
+      },
+      {
+        element: "#notifications-nav-btn",
+        popover: {
+          title: "Real-Time Alerts",
+          description: "Jab koi user aapki list par interest show karega ya pitch request accept hogi, aapko notification alerts yahan milenge.",
+          side: "bottom" as const,
+          align: "end" as const
+        }
+      },
+      {
+        element: "#user-avatar-nav-btn",
+        popover: {
+          title: "Business Profile & Verification",
+          description: "Apne business verification level ko track karein (Approved, Applied, Basic), profile manage karein, ya sign out karein.",
+          side: "bottom" as const,
+          align: "end" as const
+        }
+      }
+    ];
+
+    const mobileSteps = [
+      {
+        element: "#opportunity-board-info",
+        popover: {
+          title: "Welcome to The Relay",
+          description: "Ye live B2B opportunity exchange hub hai verified operators aur founders ke liye. Yahan se partnerships, referrals, vendors, aur warm intros trade hote hain.",
+          side: "bottom" as const,
+          align: "start" as const
+        }
+      },
+      {
+        element: "#category-tabs-row",
+        popover: {
+          title: "Opportunity Categories",
+          description: "Alag-alag opportunities types jaise Partnerships, Referrals, Vendors, ya Hiring browse karne ke liye in tabs par switch karein.",
+          side: "bottom" as const,
+          align: "start" as const
+        }
+      },
+      {
+        element: "#advanced-filters-btn",
+        popover: {
+          title: "Advanced Filters",
+          description: "Geographies, target industries, aur interested operator limits select karne ke liye advanced filters use karein.",
+          side: "bottom" as const,
+          align: "start" as const
+        }
+      },
+      {
+        element: "#post-opportunity-btn",
+        popover: {
+          title: "Create Listings",
+          description: "Directly in-place form se platform par apni requirement list karein taaki interested partners pitch kar sakein.",
+          side: "bottom" as const,
+          align: "center" as const
+        }
+      }
+    ];
+
+    const driverObj = driver({
+      showProgress: true,
+      popoverClass: "relay-tour-popover",
+      steps: isMobileViewport ? mobileSteps : desktopSteps
+    });
+    driverObj.drive();
+  };
+
+  useEffect(() => {
+    // 1. Listen for navbar manual tour trigger event
+    const handleStartTourEvent = () => {
+      startTour();
+    };
+    window.addEventListener("relay:start-tour:opportunities", handleStartTourEvent);
+
+    // 2. Auto-run tour for first-time logged-in operators
+    let timer: any = null;
+    if (isLoaded && isSignedIn) {
+      const hasCompletedTour = localStorage.getItem("relay.tour_completed");
+      if (!hasCompletedTour) {
+        timer = setTimeout(() => {
+          startTour();
+          localStorage.setItem("relay.tour_completed", "true");
+        }, 1200);
+      }
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      window.removeEventListener("relay:start-tour:opportunities", handleStartTourEvent);
+    };
+  }, [isLoaded, isSignedIn]);
 
   const [searchInputVal, setSearchInputVal] = useState(q);
 
@@ -727,7 +870,7 @@ function OpportunitiesPage() {
         <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-16 md:pt-6 md:pb-24">
         {/* Header Hero Section */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 pb-6 border-b border-slate-200/80">
-          <div className="space-y-2">
+          <div id="opportunity-board-info" className="space-y-2">
             <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl uppercase">
               Opportunity Board
             </h1>
@@ -740,6 +883,7 @@ function OpportunitiesPage() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0">
             {isSignedIn && (
               <button
+                id="post-opportunity-btn"
                 onClick={handleOpenCreate}
                 className="bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-5 py-3 md:py-2.5 border border-slate-900 transition-all rounded-[2px] font-bold shadow-sm hover:shadow text-center cursor-pointer"
               >
@@ -770,7 +914,7 @@ function OpportunitiesPage() {
             }
           }}>
             <SheetTrigger asChild>
-              <button className="w-full sm:w-auto cursor-pointer group flex items-center justify-center gap-2 border border-slate-200/80 hover:border-slate-350 rounded-[3px] px-5 py-2.5 transition-all bg-white hover:shadow-sm font-mono text-[9px] uppercase tracking-widest font-bold text-slate-700">
+              <button id="advanced-filters-btn" className="w-full sm:w-auto cursor-pointer group flex items-center justify-center gap-2 border border-slate-200/80 hover:border-slate-350 rounded-[3px] px-5 py-2.5 transition-all bg-white hover:shadow-sm font-mono text-[9px] uppercase tracking-widest font-bold text-slate-700">
                   <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-900 transition-colors" />
                   <span>Advanced Filters</span>
                   {activeCount > 0 && (
@@ -942,7 +1086,7 @@ function OpportunitiesPage() {
         </div>
 
         {/* Opportunity Types Tabs & Filter Row */}
-        <div className="border-b border-slate-200 mb-8 w-full overflow-hidden">
+        <div id="category-tabs-row" className="border-b border-slate-200 mb-8 w-full overflow-hidden">
           <div className="overflow-x-auto scrollbar-none flex flex-nowrap gap-2 md:gap-6 pb-px w-full">
             {TYPES.map((t) => {
               const active = t === type;

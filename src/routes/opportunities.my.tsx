@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/tanstack-react-start";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { toast } from "@/components/ui/sonner";
@@ -132,6 +134,60 @@ function MyOpportunitiesPage() {
   useEffect(() => {
     setActiveTab(tab);
   }, [tab]);
+
+  const startTour = () => {
+    const driverObj = driver({
+      showProgress: true,
+      popoverClass: "relay-tour-popover",
+      steps: [
+        {
+          element: "#my-opportunities-info",
+          popover: {
+            title: "Operator Dashboard",
+            description: "Yahan aap platform par published listing memos ko manage aur tracks kar sakte hain.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "#my-post-opportunity-btn",
+          popover: {
+            title: "Publish Listing",
+            description: "Approved businesses yahan se direct naya requirement memorandum share kar sakte hain.",
+            side: "bottom",
+            align: "end"
+          }
+        },
+        {
+          element: "#my-dashboard-tabs",
+          popover: {
+            title: "Dashboard Navigation",
+            description: "Apni custom listings check karne, bookmark kiye deals dekhne, aur outbound pitches track karne ke liye tabs switch karein.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "#my-listings-container",
+          popover: {
+            title: "Memorandums & Pitches",
+            description: "Yahan active listings display hoti hain. Aap listing details view kar sakte hain, memo delete kar sakte hain, ya edit form trigger kar sakte hain.",
+            side: "top",
+            align: "center"
+          }
+        }
+      ]
+    });
+    driverObj.drive();
+  };
+
+  useEffect(() => {
+    const handleTourEvent = () => startTour();
+    window.addEventListener("relay:start-tour:my-opportunities", handleTourEvent);
+    return () => {
+      window.removeEventListener("relay:start-tour:my-opportunities", handleTourEvent);
+    };
+  }, [business]);
 
   useEffect(() => {
     if (create && business) {
@@ -579,7 +635,7 @@ function MyOpportunitiesPage() {
 
         {/* Header Title & Action button */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div className="space-y-1">
+          <div id="my-opportunities-info" className="space-y-1">
             <h1 className="font-display text-2xl font-black text-slate-950 uppercase tracking-tight">
               My Opportunities
             </h1>
@@ -590,6 +646,7 @@ function MyOpportunitiesPage() {
           </div>
 
           <button
+            id="my-post-opportunity-btn"
             onClick={handleOpenCreate}
             disabled={!isApproved}
             className={`inline-flex items-center gap-2 h-11 px-5 font-mono text-xs uppercase tracking-widest transition-all rounded-[2px] font-bold shadow-xs cursor-pointer ${
@@ -677,7 +734,7 @@ function MyOpportunitiesPage() {
         )}
 
         {/* Tab switcher */}
-        <div className="flex border-b border-slate-200 mb-6 font-mono text-[10px] sm:text-xs uppercase tracking-wider font-bold">
+        <div id="my-dashboard-tabs" className="flex border-b border-slate-200 mb-6 font-mono text-[10px] sm:text-xs uppercase tracking-wider font-bold">
           <button
             onClick={() => navigate({ to: "/opportunities/my", search: { tab: "posted" } })}
             className={`py-3 px-3 sm:px-6 border-b-2 transition-all cursor-pointer ${
@@ -713,7 +770,7 @@ function MyOpportunitiesPage() {
         </div>
 
         {/* Opportunities Table Container */}
-        <div className="border border-slate-200/80 bg-white rounded-[4px] overflow-hidden shadow-xs">
+        <div id="my-listings-container" className="border border-slate-200/80 bg-white rounded-[4px] overflow-hidden shadow-xs">
           {loadingList ? (
             <div className="py-20 flex flex-col items-center justify-center space-y-3">
               <Loader2 className="w-6 h-6 animate-spin text-slate-400" />

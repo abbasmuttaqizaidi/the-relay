@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/tanstack-react-start";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import { toast } from "@/components/ui/sonner";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
@@ -66,6 +68,42 @@ function SavedOpportunitiesPage() {
   const [interestOpen, setInterestOpen] = useState(false);
 
   const mockStorageKey = userId ? `relay_saved_mocks_${userId}` : "relay_saved_mocks";
+
+  const startTour = () => {
+    const driverObj = driver({
+      showProgress: true,
+      popoverClass: "relay-tour-popover",
+      steps: [
+        {
+          element: "#saved-opportunities-header-info",
+          popover: {
+            title: "Saved Memos",
+            description: "Yahan aapke dwara save ya bookmark kiye gaye business opportunities memorandums showcase hote hain.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "#saved-opportunities-list",
+          popover: {
+            title: "Bookmarked Listings",
+            description: "Aap save kiye gaye items ko click karke details dekh sakte hain, interest pitch submit kar sakte hain, ya list se remove kar sakte hain.",
+            side: "top",
+            align: "center"
+          }
+        }
+      ]
+    });
+    driverObj.drive();
+  };
+
+  useEffect(() => {
+    const handleTourEvent = () => startTour();
+    window.addEventListener("relay:start-tour:saved-opportunities", handleTourEvent);
+    return () => {
+      window.removeEventListener("relay:start-tour:saved-opportunities", handleTourEvent);
+    };
+  }, []);
 
   const loadData = async () => {
     try {
@@ -225,7 +263,7 @@ function SavedOpportunitiesPage() {
         </div>
 
         {/* Page Title & Status Banner */}
-        <div className="space-y-4 mb-8">
+        <div id="saved-opportunities-header-info" className="space-y-4 mb-8">
           <div className="flex items-baseline justify-between flex-wrap gap-4 border-b border-slate-200 pb-4">
             <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-950 uppercase">
               Saved Opportunities
@@ -251,38 +289,39 @@ function SavedOpportunitiesPage() {
         </div>
 
         {/* Saved List Table */}
-        {loadingList ? (
-          <div className="py-20 text-center flex flex-col items-center justify-center space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-            <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500 font-bold">
-              Loading shortlist...
-            </span>
-          </div>
-        ) : savedItems.length === 0 ? (
-          /* Empty State */
-          <div className="border border-slate-200 bg-white/60 backdrop-blur-xs py-20 px-8 text-center rounded-[4px] max-w-2xl mx-auto shadow-sm space-y-5 animate-momentum">
-            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
-              <BookmarkCheck className="w-6 h-6 text-slate-400" />
+        <div id="saved-opportunities-list">
+          {loadingList ? (
+            <div className="py-20 text-center flex flex-col items-center justify-center space-y-3">
+              <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+              <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                Loading shortlist...
+              </span>
             </div>
-            <div className="space-y-2">
-              <h2 className="font-display text-xl font-bold text-slate-900 uppercase tracking-tight">
-                No Saved Opportunities
-              </h2>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-                Save opportunities while exploring The Relay and revisit them later.
-              </p>
+          ) : savedItems.length === 0 ? (
+            /* Empty State */
+            <div className="border border-slate-200 bg-white/60 backdrop-blur-xs py-20 px-8 text-center rounded-[4px] max-w-2xl mx-auto shadow-sm space-y-5 animate-momentum">
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
+                <BookmarkCheck className="w-6 h-6 text-slate-400" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="font-display text-xl font-bold text-slate-900 uppercase tracking-tight">
+                  No Saved Opportunities
+                </h2>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+                  Save opportunities while exploring The Relay and revisit them later.
+                </p>
+              </div>
+              <Link
+                to="/opportunities"
+                className="inline-block bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-5 py-2.5 rounded-[2px] font-bold shadow-sm transition-all"
+              >
+                Explore Feed
+              </Link>
             </div>
-            <Link
-              to="/opportunities"
-              className="inline-block bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-5 py-2.5 rounded-[2px] font-bold shadow-sm transition-all"
-            >
-              Explore Feed
-            </Link>
-          </div>
-        ) : (
-          /* Responsive Table Layout */
-          <div className="border border-slate-200 bg-white rounded-[4px] shadow-sm overflow-hidden animate-momentum">
-            <>
+          ) : (
+            /* Responsive Table Layout */
+            <div className="border border-slate-200 bg-white rounded-[4px] shadow-sm overflow-hidden animate-momentum">
+              <>
               {/* Desktop Table View */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left border-collapse">
@@ -458,7 +497,8 @@ function SavedOpportunitiesPage() {
             </>
           </div>
         )}
-      </main>
+      </div>
+    </main>
 
       {/* Opportunity Detail Dialog */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>

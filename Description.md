@@ -305,6 +305,24 @@ To ensure a seamless experience on mobile viewports and reduce routing friction,
 
 ---
 
+## 🚶 12. Interactive Product Onboarding Tour
+To ensure user engagement and clean onboarding on first-time usage, we implemented an interactive step-by-step product walkthrough tour:
+- **Driver.js Engine**: Uses the framework-agnostic `driver.js` library, avoiding React 19 package version conflicts.
+- **Brand Theming & Typography**: Extended `src/styles.css` with overrides matching the typography (Inter / Inter Tight), color tokens (Operator Orange buttons & glowing spotlight), and mono spacing styles of the dashboard.
+- **Target Selectors**:
+  - `opportunity-board-info`: Dashboard title and introduction.
+  - `category-tabs-row`: Exchange types navigation.
+  - `advanced-filters-btn`: Geography and industry drawers.
+  - `post-opportunity-btn`: Listing creation trigger.
+  - `reciprocity-badge-nav`: Network reciprocity score tracker.
+  - `notifications-nav-btn`: Real-time notification inbox.
+  - `user-avatar-nav-btn`: Account verification and settings dropdown.
+- **Smart Triggers**:
+  - **Auto-Onboarding**: Runs automatically on the first visit to `/opportunities` for logged-in users. Uses localStorage key `relay.tour_completed` to prevent repeating.
+  - **Manual Trigger**: Integrates an elegant `Tour` button (with a `HelpCircle` icon) in the header next to "Post Opportunity" to replay the walkthrough anytime.
+
+---
+
 ## 🛡️ 10. Agent Guidelines & Safety Guardrails
 
 To ensure development safety, all AI coding agents working on this project must adhere strictly to the following rules:

@@ -19,6 +19,8 @@ import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 export const Route = createFileRoute("/connections/$id")({
   component: ConnectionEstablishedPage,
@@ -30,6 +32,51 @@ function ConnectionEstablishedPage() {
   const navigate = useNavigate();
   const [interest, setInterest] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  const startTour = () => {
+    const driverObj = driver({
+      showProgress: true,
+      popoverClass: "relay-tour-popover",
+      steps: [
+        {
+          element: "#connection-header",
+          popover: {
+            title: "Connection Unlocked",
+            description: "Dono businesses ne mutual interest accept kar liya hai, isliye direct contact details ab accessible hain.",
+            side: "bottom",
+            align: "center"
+          }
+        },
+        {
+          element: "#connection-cards-row",
+          popover: {
+            title: "Operator Profiles",
+            description: "Requester aur Listing Owner ke verification badge, LinkedIn profile, aur core domains check karein.",
+            side: "top",
+            align: "center"
+          }
+        },
+        {
+          element: "#connection-cta-box",
+          popover: {
+            title: "Initiate Communication",
+            description: "Yahan click karke direct email thread open karein aur platform se bahar collaborate karna shuru karein.",
+            side: "top",
+            align: "center"
+          }
+        }
+      ]
+    });
+    driverObj.drive();
+  };
+
+  useEffect(() => {
+    const handleTourEvent = () => startTour();
+    window.addEventListener("relay:start-tour:connection", handleTourEvent);
+    return () => {
+      window.removeEventListener("relay:start-tour:connection", handleTourEvent);
+    };
+  }, []);
 
   const loadInterest = async () => {
     try {
@@ -96,7 +143,7 @@ function ConnectionEstablishedPage() {
       {/* Main Body */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 md:px-6 py-10 md:py-16 flex flex-col items-center">
         {/* Banner */}
-        <div className="w-full text-center space-y-4 mb-10">
+        <div id="connection-header" className="w-full text-center space-y-4 mb-10">
           <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 px-4 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-widest font-extrabold">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Connection Established
           </div>
@@ -109,7 +156,7 @@ function ConnectionEstablishedPage() {
         </div>
 
         {/* Two Columns: Business Profiles */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full mb-12">
+        <div id="connection-cards-row" className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full mb-12">
           {/* Business A - Requesting */}
           <div className="bg-white border border-slate-200/80 rounded-[4px] p-6 sm:p-8 space-y-6 shadow-sm relative">
             <div className="absolute top-6 right-6 font-mono text-[8px] uppercase tracking-wider text-slate-400 font-bold border border-slate-100 px-2 py-0.5 rounded-[2px]">
@@ -238,7 +285,7 @@ function ConnectionEstablishedPage() {
         </div>
 
         {/* CTA Section */}
-        <div className="w-full bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-[4px] text-center text-white space-y-6">
+        <div id="connection-cta-box" className="w-full bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-[4px] text-center text-white space-y-6">
           <div className="space-y-1.5 max-w-xl mx-auto">
             <span className="font-mono text-[9px] uppercase tracking-widest text-slate-500 font-bold">
               [ DIRECT HANDOFF ACTIONS ]

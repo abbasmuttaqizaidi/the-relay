@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 export const Route = createFileRoute("/query-relay")({
   head: () => ({
@@ -23,6 +25,33 @@ function QueryRelayPage() {
   const [statusColor, setStatusColor] = useState("#16a34a");
   const [statusVisible, setStatusVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const startTour = () => {
+    const driverObj = driver({
+      showProgress: true,
+      popoverClass: "relay-tour-popover",
+      steps: [
+        {
+          element: "#nexorem-lead-form",
+          popover: {
+            title: "Contact Form",
+            description: "Apni custom inquiries ya queries submit karne ke liye is contact form ko fill up karein.",
+            side: "top",
+            align: "center"
+          }
+        }
+      ]
+    });
+    driverObj.drive();
+  };
+
+  useEffect(() => {
+    const handleTourEvent = () => startTour();
+    window.addEventListener("relay:start-tour:query-relay", handleTourEvent);
+    return () => {
+      window.removeEventListener("relay:start-tour:query-relay", handleTourEvent);
+    };
+  }, []);
 
   const handleInputChange =
     (setter: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) => {

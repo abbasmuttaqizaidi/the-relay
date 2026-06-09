@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
@@ -70,6 +72,42 @@ function OnboardingPage() {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [logoUrlInput, setLogoUrlInput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const startTour = () => {
+    const driverObj = driver({
+      showProgress: true,
+      popoverClass: "relay-tour-popover",
+      steps: [
+        {
+          element: "#onboarding-left-sidebar",
+          popover: {
+            title: "Setup Business Profile",
+            description: "Onboarding router yahan business state overview aur guidelines outline karta hai.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "#onboarding-form",
+          popover: {
+            title: "Credentials Submission",
+            description: "Platform verification complete karne ke liye details submit karein.",
+            side: "top",
+            align: "center"
+          }
+        }
+      ]
+    });
+    driverObj.drive();
+  };
+
+  useEffect(() => {
+    const handleTourEvent = () => startTour();
+    window.addEventListener("relay:start-tour:onboarding", handleTourEvent);
+    return () => {
+      window.removeEventListener("relay:start-tour:onboarding", handleTourEvent);
+    };
+  }, []);
 
   // Redirection guard if not signed in
   useEffect(() => {
@@ -163,7 +201,7 @@ function OnboardingPage() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-12 md:py-16 grid lg:grid-cols-12 gap-8 lg:gap-16 items-start">
         {/* Left Side: Editorial Banner */}
-        <section className="lg:col-span-5 space-y-6 lg:sticky lg:top-28 animate-momentum">
+        <section id="onboarding-left-sidebar" className="lg:col-span-5 space-y-6 lg:sticky lg:top-28 animate-momentum">
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-4">
               <span className="font-mono text-[10px] text-primary uppercase tracking-widest font-bold">
@@ -217,6 +255,7 @@ function OnboardingPage() {
         {/* Right Side: Form Layout */}
         <section className="lg:col-span-7">
           <form
+            id="onboarding-form"
             onSubmit={handleSubmit}
             className="border border-[#1f25301f] bg-white p-5 sm:p-8 rounded-[2px] space-y-6"
           >

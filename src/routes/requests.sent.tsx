@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { useEffect, useState } from "react";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import { toast } from "sonner";
 import {
   ExternalLink,
@@ -34,6 +36,51 @@ function SentRequestsPage() {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const startTour = () => {
+    const driverObj = driver({
+      showProgress: true,
+      popoverClass: "relay-tour-popover",
+      steps: [
+        {
+          element: "#requests-header-info",
+          popover: {
+            title: "Outbound Pitches",
+            description: "Yahan dusre active listings par aapki company dwara bhejey gaye pitches ka status track kar sakte hain.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "#requests-tabs-row",
+          popover: {
+            title: "Incoming & Outbound Requests",
+            description: "Inbound handshakes aur outbound pitch status sheets ke beech switch karne ke liye request links toggle karein.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "#requests-list-container",
+          popover: {
+            title: "Outbound Status List",
+            description: "Aapke sent requests aur unka live state (Pending, Accepted, Declined, Withdrawn) yahan se visual verify hota hai. Agar request pending hai toh aap use withdraw bhi kar sakte hain.",
+            side: "top",
+            align: "center"
+          }
+        }
+      ]
+    });
+    driverObj.drive();
+  };
+
+  useEffect(() => {
+    const handleTourEvent = () => startTour();
+    window.addEventListener("relay:start-tour:requests", handleTourEvent);
+    return () => {
+      window.removeEventListener("relay:start-tour:requests", handleTourEvent);
+    };
+  }, []);
 
   const loadRequests = async () => {
     try {
@@ -139,7 +186,7 @@ function SentRequestsPage() {
         </div>
         {/* Title Section */}
         <div className="mb-8 border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div className="space-y-1.5">
+          <div id="requests-header-info" className="space-y-1.5">
             <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
               Interest Requests
             </h1>
@@ -149,7 +196,7 @@ function SentRequestsPage() {
           </div>
 
           {/* Sub Navigation Tabs */}
-          <div className="w-full md:w-auto flex gap-1.5 bg-slate-100 p-1 rounded-[4px] border border-slate-200 font-mono text-[9.5px] uppercase tracking-wider font-bold">
+          <div id="requests-tabs-row" className="w-full md:w-auto flex gap-1.5 bg-slate-100 p-1 rounded-[4px] border border-slate-200 font-mono text-[9.5px] uppercase tracking-wider font-bold">
             <Link
               to="/requests/incoming"
               className="flex-1 md:flex-initial text-center px-4 py-2 text-slate-500 hover:text-slate-800 transition-colors"
@@ -166,7 +213,8 @@ function SentRequestsPage() {
         </div>
 
         {/* Loading State */}
-        {loading ? (
+        <div id="requests-list-container">
+          {loading ? (
           <div className="flex flex-col items-center justify-center py-20 border border-slate-200/80 bg-white rounded-[4px] shadow-sm">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-950 border-t-transparent mb-4"></div>
             <span className="font-mono text-[10px] uppercase tracking-widest text-slate-400 font-bold">
@@ -367,6 +415,7 @@ function SentRequestsPage() {
             })}
           </div>
         )}
+        </div>
       </main>
     </div>
   );
