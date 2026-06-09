@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useMatchRoute,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -12,6 +13,7 @@ import { ClerkProvider } from "@clerk/tanstack-react-start";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
+import { Navbar } from "@/components/navbar";
 
 function NotFoundComponent() {
   return (
@@ -74,7 +76,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "The Relay — Business Opportunity Network for Verified Businesses" },
       {
         name: "description",
@@ -133,7 +135,7 @@ function RootComponent() {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Navbar />
         <Outlet />
         <Toaster position="bottom-right" visibleToasts={1} />
       </QueryClientProvider>

@@ -400,30 +400,18 @@ function BusinessProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-foreground font-sans flex flex-col justify-between selection:bg-primary selection:text-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-[#1f25301f] bg-white/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 h-14 md:h-18 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <img
-              src={logoUrl}
-              alt="The Relay Logo"
-              className="h-10 md:h-14 w-auto object-contain mix-blend-multiply"
-            />
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              to="/opportunities"
-              className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
-            >
-              ← Back to Board
-            </Link>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-12 md:py-16 grid lg:grid-cols-12 gap-8 lg:gap-16 items-start">
-        {/* Left: Identity Card */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-1.5 pb-12 md:py-16">
+        <div className="mb-1.5 md:mb-6">
+          <Link
+            to="/opportunities"
+            className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-slate-500 hover:text-primary transition-colors font-bold"
+          >
+            ← Back to Board
+          </Link>
+        </div>
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-start">
+          {/* Left: Identity Card */}
         <section className="lg:col-span-5 space-y-6 lg:sticky lg:top-28">
           <div className="border border-[#1f25301f] bg-white p-5 sm:p-8 rounded-[2px] space-y-6">
             {/* Logo + Name */}
@@ -928,6 +916,7 @@ function BusinessProfilePage() {
             </TabsContent>
           </Tabs>
         </section>
+        </div>
       </main>
 
       {/* Footer */}

@@ -160,30 +160,19 @@ function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-foreground font-sans flex flex-col justify-between selection:bg-primary selection:text-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-[#1f25301f] bg-white/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 h-14 md:h-18 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <img
-              src={logoUrl}
-              alt="The Relay Logo"
-              className="h-10 md:h-14 w-auto object-contain mix-blend-multiply"
-            />
-          </Link>
-          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            <Lock className="w-3.5 h-3.5" /> Secure Onboarding
-          </div>
-        </div>
-      </header>
-
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-12 md:py-16 grid lg:grid-cols-12 gap-8 lg:gap-16 items-start">
         {/* Left Side: Editorial Banner */}
         <section className="lg:col-span-5 space-y-6 lg:sticky lg:top-28 animate-momentum">
           <div className="space-y-3">
-            <span className="font-mono text-[10px] text-primary uppercase tracking-widest font-bold">
-              [ Setup Your Operator Account ]
-            </span>
+            <div className="flex items-center justify-between gap-4">
+              <span className="font-mono text-[10px] text-primary uppercase tracking-widest font-bold">
+                [ Setup Your Operator Account ]
+              </span>
+              <div className="inline-flex items-center gap-1 bg-slate-100 border border-slate-200 text-slate-500 px-2.5 py-0.5 rounded-[2px] font-mono text-[9px] uppercase tracking-wider">
+                <Lock className="w-3.5 h-3.5" /> Secure Onboarding
+              </div>
+            </div>
             <h1 className="font-display text-3xl md:text-4xl font-extrabold tracking-tight leading-none text-slate-900">
               Register your <span className="italic text-primary">Business Profile</span>.
             </h1>

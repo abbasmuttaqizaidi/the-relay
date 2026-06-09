@@ -33,6 +33,7 @@ import {
   Menu,
   ChevronRight,
   Sparkles,
+  X,
 } from "lucide-react";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
@@ -208,6 +209,21 @@ function OpportunitiesPage() {
   const [loadingOpps, setLoadingOpps] = useState(true);
   const [myBusinessId, setMyBusinessId] = useState<string | null>(null);
   const [showTroubleshoot, setShowTroubleshoot] = useState(false);
+
+  const [searchInputVal, setSearchInputVal] = useState(q);
+
+  useEffect(() => {
+    setSearchInputVal(q);
+  }, [q]);
+
+  const handleSearchSubmit = () => {
+    navigate({
+      search: (prev: SearchParams) => ({
+        ...prev,
+        q: searchInputVal,
+      }),
+    });
+  };
 
   // Local drawer filter states (buffered until 'Apply Filters' is clicked)
   const [localQ, setLocalQ] = useState(q);
@@ -520,63 +536,7 @@ function OpportunitiesPage() {
     return { promotedOpps: promoted, regularOpps: regular, totalCount: result.length };
   }, [dbOpps, activeIndustries, activeGeos, type, q, minInterested, maxInterested]);
 
-  if (isValidating || loadingOpps) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 selection:bg-slate-900 selection:text-white">
-        <div className="flex flex-col items-center space-y-6">
-          <div className="relative">
-            <div className="absolute -inset-4 bg-slate-900/5 rounded-full blur-xl animate-pulse" />
-            <img
-              src={logoUrl}
-              alt="The Relay Logo"
-              className="relative h-12 w-auto object-contain mix-blend-multiply transition-transform hover:scale-105 duration-300"
-            />
-          </div>
-          <div className="flex flex-col items-center space-y-2 pt-2">
-            <div className="flex items-center gap-2.5">
-              <Loader2 className="w-4 h-4 animate-spin text-slate-800" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-semibold">
-                Verifying Operator Identity
-              </span>
-            </div>
-            <span className="font-mono text-[9px] text-slate-400 uppercase tracking-widest animate-pulse">
-              Connecting to secure router...
-            </span>
-          </div>
 
-          {showTroubleshoot && (
-            <div className="border border-slate-200 bg-white p-5 rounded-[4px] max-w-sm text-center space-y-3.5 shadow-lg animate-momentum z-10">
-              <p className="text-[11px] text-slate-500 leading-relaxed font-sans">
-                Authentication check is taking longer than expected. On production, this might be due to database connection limits or browser cookie restrictions.
-              </p>
-              <div className="flex gap-2.5 justify-center">
-                <button
-                  type="button"
-                  onClick={() => {
-                    loadData().finally(() => {
-                      setIsValidating(false);
-                    });
-                  }}
-                  className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-mono text-[9.5px] uppercase tracking-widest rounded-[2px] cursor-pointer font-bold shadow-sm"
-                >
-                  Force Load Board
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.location.reload();
-                  }}
-                  className="px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-mono text-[9.5px] uppercase tracking-widest rounded-[2px] cursor-pointer font-bold shadow-xs"
-                >
-                  Reload Page
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   const reset = () => {
     setLocalQ("");
@@ -603,59 +563,127 @@ function OpportunitiesPage() {
     (minInterested !== 0 || maxInterested !== 15 ? 1 : 0);
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-slate-900 selection:text-white">
-      <PageNav />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-16 md:pt-6 md:pb-24">
+    <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col">
+      {(isValidating || loadingOpps) ? (
+        <div className="flex-1 flex flex-col items-center justify-center px-6">
+          <div className="flex flex-col items-center space-y-6">
+            <div className="relative">
+              <div className="absolute -inset-4 bg-slate-900/5 rounded-full blur-xl animate-pulse" />
+              <img
+                src={logoUrl}
+                alt="The Relay Logo"
+                className="relative h-12 w-auto object-contain mix-blend-multiply transition-transform hover:scale-105 duration-300"
+              />
+            </div>
+            <div className="flex flex-col items-center space-y-2 pt-2">
+              <div className="flex items-center gap-2.5">
+                <Loader2 className="w-4 h-4 animate-spin text-slate-800" />
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-semibold">
+                  Verifying Operator Identity
+                </span>
+              </div>
+              <span className="font-mono text-[9px] text-slate-400 uppercase tracking-widest animate-pulse">
+                Connecting to secure router...
+              </span>
+            </div>
+
+            {showTroubleshoot && (
+              <div className="border border-slate-200 bg-white p-5 rounded-[4px] max-w-sm text-center space-y-3.5 shadow-lg animate-momentum z-10">
+                <p className="text-[11px] text-slate-500 leading-relaxed font-sans">
+                  Authentication check is taking longer than expected. On production, this might be due to database connection limits or browser cookie restrictions.
+                </p>
+                <div className="flex gap-2.5 justify-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      loadData().finally(() => {
+                        setIsValidating(false);
+                      });
+                    }}
+                    className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-mono text-[9.5px] uppercase tracking-widest rounded-[2px] cursor-pointer font-bold shadow-sm"
+                  >
+                    Force Load Board
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.location.reload();
+                    }}
+                    className="px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-mono text-[9.5px] uppercase tracking-widest rounded-[2px] cursor-pointer font-bold shadow-xs"
+                  >
+                    Reload Page
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-16 md:pt-6 md:pb-24">
         {/* Header Hero Section */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-          <p className="text-slate-500 text-xs md:text-[13px] max-w-[55ch] leading-relaxed">
-            Direct collaboration hub for verified founders and partners. Handshake directly, lock
-            intros, and share network capital.
-          </p>
-          <div className="flex flex-wrap items-center gap-4 shrink-0 sm:justify-end">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 pb-6 border-b border-slate-200/80">
+          <div className="space-y-2">
+            <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl uppercase">
+              Opportunity Board
+            </h1>
+            <p className="text-slate-500 text-xs md:text-[13px] max-w-[55ch] leading-relaxed">
+              Direct collaboration hub for verified founders and partners. Handshake directly, lock
+              intros, and share network capital.
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0">
             {isSignedIn && (
               <Link
                 to="/opportunities/my"
-                className="bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-4 py-2 border border-slate-900 transition-all rounded-[2px] font-bold shadow-sm hover:shadow"
+                className="bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-5 py-3 md:py-2.5 border border-slate-900 transition-all rounded-[2px] font-bold shadow-sm hover:shadow text-center"
               >
                 Post Opportunity
               </Link>
             )}
-            <div className="flex items-baseline gap-2 shrink-0 text-right">
-              <span className="font-display text-2xl font-extrabold text-slate-950">
-                {totalCount}
-              </span>
+            <div className="flex items-center justify-between sm:justify-end gap-3 border border-slate-200/80 bg-white p-3 md:p-2.5 rounded-[2px] shrink-0">
               <span className="text-slate-400 font-mono text-[9px] uppercase tracking-widest font-bold">
-                Listings Curated for you
+                Listings Curated
+              </span>
+              <span className="font-display text-xl md:text-2xl font-black text-slate-950">
+                {totalCount}
               </span>
             </div>
           </div>
         </header>
 
-        {/* Opportunity Types Tabs & Filter Row */}
-        <div className="flex items-center justify-between border-b border-slate-200 mb-8 gap-4">
-          <div className="overflow-x-auto scrollbar-none flex gap-2 md:gap-6 pb-px">
-            {TYPES.map((t) => {
-              const active = t === type;
-              return (
-                <button
-                  key={t}
-                  onClick={() =>
-                    navigate({ search: (prev: SearchParams) => ({ ...prev, type: t }) })
-                  }
-                  className={`font-mono text-[10px] md:text-xs font-bold uppercase tracking-widest px-1 pb-3.5 border-b-2 transition-all shrink-0 cursor-pointer ${
-                    active
-                      ? "border-primary text-primary"
-                      : "border-transparent text-slate-400 hover:text-slate-700"
-                  }`}
-                >
-                  {t}
-                </button>
-              );
-            })}
+        {/* Unified Search & Quick Filter Bar */}
+        <div className="flex flex-col sm:flex-row items-stretch gap-3 mb-6">
+          <div className="flex-1 relative">
+            <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+              <Search className="w-4 h-4 text-slate-400" />
+            </span>
+            <input
+              type="text"
+              placeholder="Search by company, title, or keywords..."
+              value={searchInputVal}
+              onChange={(e) => setSearchInputVal(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSearchSubmit();
+                }
+              }}
+              className="w-full bg-white border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none pl-9 pr-8 py-2.5 text-xs font-mono placeholder:text-slate-400/80 transition-all rounded-[3px] shadow-xs"
+            />
+            {searchInputVal && (
+              <button
+                onClick={() => {
+                  setSearchInputVal("");
+                  navigate({ search: (prev: SearchParams) => ({ ...prev, q: "" }) });
+                }}
+                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-650 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          <div className="pb-3 shrink-0">
+          <div className="flex items-center gap-2">
             {/* Filter Slider Sheet Trigger */}
             <Sheet onOpenChange={(open) => {
               if (open) {
@@ -667,9 +695,9 @@ function OpportunitiesPage() {
               }
             }}>
               <SheetTrigger asChild>
-                <button className="cursor-pointer group flex items-center gap-2 border border-slate-200/80 hover:border-slate-300 rounded-full px-4 py-1.5 transition-all bg-white hover:shadow-sm font-mono text-[9px] uppercase tracking-widest font-bold text-slate-700">
-                  <SlidersHorizontal className="w-3 h-3 text-slate-400 group-hover:text-slate-900 transition-colors" />
-                  <span>Filters</span>
+                <button className="flex-1 sm:flex-none cursor-pointer group flex items-center justify-center gap-2 border border-slate-200/80 hover:border-slate-350 rounded-[3px] px-5 py-2.5 transition-all bg-white hover:shadow-sm font-mono text-[9px] uppercase tracking-widest font-bold text-slate-700 h-full">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-900 transition-colors" />
+                  <span>Advanced Filters</span>
                   {activeCount > 0 && (
                     <span className="w-4.5 h-4.5 rounded-full bg-primary text-white text-[9px] font-sans flex items-center justify-center font-bold">
                       {activeCount}
@@ -687,7 +715,7 @@ function OpportunitiesPage() {
                   {activeCount > 0 && (
                     <button
                       onClick={reset}
-                      className="font-mono text-[10px] uppercase tracking-widest text-primary hover:text-slate-950 transition-colors flex items-center gap-1 font-bold"
+                      className="font-mono text-[10px] uppercase tracking-widest text-primary hover:text-slate-950 transition-colors flex items-center gap-1 font-bold cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       Clear All
@@ -697,23 +725,6 @@ function OpportunitiesPage() {
 
                 {/* Drawer Body (Flipkart style accordions) */}
                 <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-                  {/* Search Section */}
-                  <div className="space-y-2.5">
-                    <label className="font-mono text-[10px] uppercase tracking-widest text-slate-400 font-bold block">
-                      Search Keyword
-                    </label>
-                    <div className="relative">
-                      <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                        <Search className="w-4 h-4 text-slate-400" />
-                      </span>
-                      <input
-                        value={localQ}
-                        onChange={(e) => setLocalQ(e.target.value)}
-                        placeholder="Company, title, keyword…"
-                        className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-primary focus:outline-none pl-9 pr-3 py-2 text-sm font-mono placeholder:text-slate-400/80 transition-all rounded-[2px]"
-                      />
-                    </div>
-                  </div>
 
                   {/* Range Slider for interested operators */}
                   <div className="space-y-4 border-b border-slate-100 pb-6">
@@ -914,6 +925,7 @@ function OpportunitiesPage() {
           </div>
         )}
       </main>
+      )}
     </div>
   );
 }
@@ -964,176 +976,6 @@ function TierTooltipContent({ level }: { level: string }) {
         <span>{details.req}</span>
       </div>
     </div>
-  );
-}
-
-function PageNav() {
-  const { isSignedIn } = useAuth();
-  const [profile, setProfile] = useState<{
-    companyName: string;
-    email: string;
-    verificationLevel: string;
-  } | null>(null);
-
-  useEffect(() => {
-    const load = () => {
-      try {
-        const stored = localStorage.getItem("relay.profile.v1");
-        if (stored) {
-          setProfile(JSON.parse(stored));
-        } else {
-          setProfile(null);
-        }
-      } catch (_) {
-        setProfile(null);
-      }
-    };
-    load();
-    window.addEventListener("relay:profile", load);
-    window.addEventListener("storage", load);
-    return () => {
-      window.removeEventListener("relay:profile", load);
-      window.removeEventListener("storage", load);
-    };
-  }, []);
-
-  return (
-    <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-        <div className="flex items-center gap-4 md:gap-10">
-          <Link to="/home" className="flex items-center gap-2 group">
-            <img
-              src={logoUrl}
-              alt="The Relay Logo"
-              className="h-10 md:h-12 w-auto object-contain mix-blend-multiply"
-            />
-          </Link>
-          <div className="hidden md:flex gap-8 text-[11px] font-mono uppercase tracking-[0.15em] text-slate-400 font-bold">
-            <Link
-              to="/opportunities"
-              activeProps={{ className: "text-slate-900 border-b-2 border-slate-900" }}
-              className="hover:text-slate-800 pb-1 transition-colors"
-            >
-              Opportunities
-            </Link>
-            {isSignedIn && (
-              <>
-                <Link
-                  to="/opportunities/my"
-                  activeProps={{ className: "text-slate-900 border-b-2 border-slate-900" }}
-                  className="hover:text-slate-800 pb-1 transition-colors"
-                >
-                  My Opportunities
-                </Link>
-                <Link
-                  to="/requests/incoming"
-                  activeProps={{ className: "text-slate-900 border-b-2 border-slate-900" }}
-                  className="hover:text-slate-800 pb-1 transition-colors"
-                >
-                  Requests
-                </Link>
-              </>
-            )}
-            <span className="opacity-40 cursor-not-allowed">Network</span>
-            <span className="opacity-40 cursor-not-allowed">Intelligence</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 md:gap-4">
-          <ReciprocityBadge className="hidden md:flex" />
-          {(!isSignedIn || !profile) && (
-            <Link
-              to={isSignedIn ? "/onboarding" : "/signup"}
-              className="hidden sm:inline-flex bg-slate-900 text-white px-5 py-2 text-[10px] font-mono uppercase tracking-widest hover:bg-primary transition-all rounded-[2px] shadow-sm hover:shadow"
-            >
-              Apply
-            </Link>
-          )}
-          {isSignedIn && (
-            <div className="hidden md:flex items-center gap-4">
-              <NotificationsDropdown />
-              <UserAvatarDropdown />
-            </div>
-          )}
-
-          {/* Mobile Navigation Trigger */}
-          <div className="md:hidden flex items-center gap-2">
-            {isSignedIn && <NotificationsDropdown />}
-            <Sheet>
-              <SheetTrigger asChild>
-                <button className="h-9 w-9 flex items-center justify-center border border-slate-200/80 rounded-[2px] bg-white hover:bg-slate-50 transition-colors cursor-pointer">
-                  <Menu className="w-4 h-4 text-slate-700" />
-                </button>
-              </SheetTrigger>
-              <SheetContent
-                side="right"
-                className="bg-white p-6 w-[280px] flex flex-col justify-between border-l border-slate-200 shadow-2xl"
-              >
-                <div className="space-y-8">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                    <img
-                      src={logoUrl}
-                      alt="Logo"
-                      className="h-8 w-auto object-contain mix-blend-multiply"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-5 text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-bold">
-                    <SheetClose asChild>
-                      <Link
-                        to="/opportunities"
-                        activeProps={{ className: "text-slate-900 font-extrabold" }}
-                        className="hover:text-slate-800 py-1 transition-colors flex items-center justify-between"
-                      >
-                        Opportunities <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-                      </Link>
-                    </SheetClose>
-                    {isSignedIn && (
-                      <SheetClose asChild>
-                        <Link
-                          to="/opportunities/my"
-                          activeProps={{ className: "text-slate-900 font-extrabold" }}
-                          className="hover:text-slate-800 py-1 transition-colors flex items-center justify-between"
-                        >
-                          My Opportunities <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-                        </Link>
-                      </SheetClose>
-                    )}
-                    <span className="opacity-30 py-1 cursor-not-allowed">Network</span>
-                    <span className="opacity-30 py-1 cursor-not-allowed">Intelligence</span>
-                  </div>
-                </div>
-
-                <div className="border-t border-slate-100 pt-6">
-                  {isSignedIn && (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-[2px] border border-slate-100">
-                        <span className="text-[9px] font-mono uppercase text-slate-400 tracking-wider font-bold">
-                          Account
-                        </span>
-                        <UserAvatarDropdown />
-                      </div>
-                      <ReciprocityBadge className="flex w-full justify-between" />
-                    </div>
-                  )}
-                  {(!isSignedIn || !profile) && (
-                    <div className="flex flex-col gap-3">
-                      <SheetClose asChild>
-                        <Link
-                          to={isSignedIn ? "/onboarding" : "/signup"}
-                          className="w-full text-center bg-slate-900 hover:bg-orange-600 text-white py-2.5 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm font-bold flex items-center justify-center border border-slate-900"
-                        >
-                          Apply Now
-                        </Link>
-                      </SheetClose>
-                    </div>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-        </div>
-      </div>
-    </nav>
   );
 }
 

@@ -46,6 +46,7 @@ import {
   ExternalLink,
   Megaphone,
   Sparkles,
+  MoreVertical,
 } from "lucide-react";
 import {
   Dialog,
@@ -94,6 +95,12 @@ function MyOpportunitiesPage() {
   const [myOpps, setMyOpps] = useState<any[]>([]);
   const [loadingList, setLoadingList] = useState(true);
   const [savedCount, setSavedCount] = useState(0);
+  const approvedBannerKey = userId ? `relay_approved_banner_dismissed_${userId}` : "relay_approved_banner_dismissed";
+  const [approvedBannerDismissed, setApprovedBannerDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(approvedBannerKey) === "true";
+    } catch { return false; }
+  });
 
   // New Tab-related states
   const [activeTab, setActiveTab] = useState<"posted" | "saved" | "pending-handshakes">(tab);
@@ -112,6 +119,7 @@ function MyOpportunitiesPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedOpp, setSelectedOpp] = useState<any>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   // Form Fields
   const [title, setTitle] = useState("");
@@ -228,6 +236,14 @@ function MyOpportunitiesPage() {
       loadPendingHandshakes();
     }
   }, [store, isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setActiveMenuId(null);
+    };
+    window.addEventListener("click", handleOutsideClick);
+    return () => window.removeEventListener("click", handleOutsideClick);
+  }, []);
 
   useEffect(() => {
     async function verifyAndLoad() {
@@ -484,127 +500,33 @@ function MyOpportunitiesPage() {
     }
   };
 
-  if (isValidating) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
-        <div className="flex flex-col items-center space-y-6">
-          <img src={logoUrl} alt="Logo" className="h-12 w-auto object-contain mix-blend-multiply" />
-          <div className="flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-slate-800" />
-            <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600 font-semibold">
-              Loading Operator Dashboard
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   const isApproved = business?.status === "approved";
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-slate-900 selection:text-white">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4 md:gap-10">
-            <Link to="/home" className="flex items-center gap-2 group">
-              <img
-                src={logoUrl}
-                alt="Logo"
-                className="h-10 md:h-12 w-auto object-contain mix-blend-multiply"
-              />
-            </Link>
-            <div className="hidden md:flex gap-8 text-[11px] font-mono uppercase tracking-[0.15em] text-slate-400 font-bold">
-              <Link to="/opportunities" className="hover:text-slate-800 pb-1 transition-colors">
-                Opportunities
-              </Link>
-              <Link
-                to="/opportunities/my"
-                activeProps={{ className: "text-slate-900 border-b-2 border-slate-900" }}
-                className="hover:text-slate-800 pb-1 transition-colors"
-              >
-                My Opportunities
-              </Link>
-              <Link
-                to="/requests/incoming"
-                activeProps={{ className: "text-slate-900 border-b-2 border-slate-900" }}
-                className="hover:text-slate-800 pb-1 transition-colors"
-              >
-                Requests
-              </Link>
+    <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col">
+
+      {/* Main Workspace */}
+      {isValidating ? (
+        <div className="flex-1 flex flex-col items-center justify-center px-6">
+          <div className="flex flex-col items-center space-y-6">
+            <div className="relative">
+              <div className="absolute -inset-4 bg-slate-900/5 rounded-full blur-xl animate-pulse" />
+              <img src={logoUrl} alt="Logo" className="h-12 w-auto object-contain mix-blend-multiply" />
             </div>
-          </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <div className="hidden md:flex items-center gap-4">
-              <NotificationsDropdown />
-              <UserAvatarDropdown />
-            </div>
-
-            {/* Mobile Navigation Trigger */}
-            <div className="md:hidden flex items-center gap-2">
-              <NotificationsDropdown />
-              <Sheet>
-                <SheetTrigger asChild>
-                  <button className="h-9 w-9 flex items-center justify-center border border-slate-200/80 rounded-[2px] bg-white hover:bg-slate-50 transition-colors cursor-pointer">
-                    <Menu className="w-4 h-4 text-slate-700" />
-                  </button>
-                </SheetTrigger>
-                <SheetContent
-                  side="right"
-                  className="bg-white p-6 w-[280px] flex flex-col justify-between border-l border-slate-200 shadow-2xl"
-                >
-                  <div className="space-y-8">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                      <img
-                        src={logoUrl}
-                        alt="Logo"
-                        className="h-8 w-auto object-contain mix-blend-multiply"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-5 text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-bold">
-                      <SheetClose asChild>
-                        <Link
-                          to="/opportunities"
-                          className="hover:text-slate-800 py-1 transition-colors flex items-center justify-between"
-                        >
-                          Opportunities <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-                        </Link>
-                      </SheetClose>
-                      <SheetClose asChild>
-                        <Link
-                          to="/opportunities/my"
-                          activeProps={{ className: "text-slate-900 font-extrabold" }}
-                          className="hover:text-slate-800 py-1 transition-colors flex items-center justify-between"
-                        >
-                          My Opportunities <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-                        </Link>
-                      </SheetClose>
-                      <span className="opacity-30 py-1 cursor-not-allowed">Network</span>
-                      <span className="opacity-30 py-1 cursor-not-allowed">Intelligence</span>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-slate-100 pt-6">
-                    <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-[2px] border border-slate-100">
-                      <span className="text-[9px] font-mono uppercase text-slate-400 tracking-wider font-bold">
-                        Account
-                      </span>
-                      <UserAvatarDropdown />
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-slate-800" />
+              <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600 font-semibold">
+                Loading Operator Dashboard
+              </span>
             </div>
           </div>
         </div>
-      </nav>
-
-      {/* Main Workspace */}
-      <main className="max-w-7xl mx-auto px-6 pt-6 pb-24">
+      ) : (
+        <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-1.5 pb-24 md:pt-6">
         {/* Breadcrumb Back */}
-        <div className="mb-6">
+        <div className="mb-1.5 md:mb-6">
           <Link
             to="/opportunities"
             className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-800 transition-colors"
@@ -679,7 +601,7 @@ function MyOpportunitiesPage() {
           </>
         )}
 
-        {isApproved && savedCount > 0 && (
+        {isApproved && savedCount > 0 && !approvedBannerDismissed && (
           <div className="mb-8 border border-emerald-500/20 bg-emerald-50 p-5 rounded-[2px] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs animate-momentum">
             <div className="space-y-1 text-left">
               <h4 className="font-mono text-xs font-bold uppercase text-emerald-800 tracking-wider flex items-center gap-1.5">
@@ -692,12 +614,23 @@ function MyOpportunitiesPage() {
                 Opportunities.
               </p>
             </div>
-            <button
-              onClick={() => navigate({ to: "/opportunities/my", search: { tab: "saved" } })}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-mono uppercase tracking-widest px-4 py-2.5 rounded-[2px] font-bold shadow-xs hover:shadow text-center shrink-0 cursor-pointer"
-            >
-              Review Saved Memos
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => {
+                  setApprovedBannerDismissed(true);
+                  try { localStorage.setItem(approvedBannerKey, "true"); } catch {}
+                }}
+                className="border border-emerald-300 hover:border-emerald-500 text-emerald-700 hover:text-emerald-900 text-[10px] font-mono uppercase tracking-widest px-4 py-2.5 rounded-[2px] font-bold transition-all cursor-pointer"
+              >
+                Dismiss
+              </button>
+              <button
+                onClick={() => navigate({ to: "/opportunities/my", search: { tab: "saved" } })}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-mono uppercase tracking-widest px-4 py-2.5 rounded-[2px] font-bold shadow-xs hover:shadow text-center cursor-pointer"
+              >
+                Review Saved Memos
+              </button>
+            </div>
           </div>
         )}
 
@@ -889,7 +822,14 @@ function MyOpportunitiesPage() {
                 {/* Mobile Cards View */}
                 <div className="block md:hidden divide-y divide-slate-100 bg-white">
                   {myOpps.map((opp) => (
-                    <div key={opp.id} className="p-4 space-y-3">
+                    <div
+                      key={opp.id}
+                      className="p-4 space-y-3 cursor-pointer hover:bg-slate-50/50 transition-colors"
+                      onClick={() => {
+                        setSelectedDetailOpp(opp);
+                        setDetailOpen(true);
+                      }}
+                    >
                       <div className="flex items-center justify-between text-[10px] font-mono">
                         <span className="font-bold text-slate-600">
                           #{opp.opportunity_number || opp.id.substring(0, 8)}
@@ -942,42 +882,67 @@ function MyOpportunitiesPage() {
                             {opp.interestedCount} Operators
                           </span>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="relative">
                           <button
-                            onClick={() => handleOpenEdit(opp)}
-                            disabled={!isApproved}
-                            className={`inline-flex items-center gap-1 px-2 py-1.5 border border-slate-200 hover:border-slate-800 text-[9px] font-mono font-bold uppercase tracking-widest rounded-[2px] transition-all bg-white cursor-pointer ${
-                              isApproved
-                                ? "text-slate-700 hover:text-slate-900"
-                                : "opacity-30 cursor-not-allowed"
-                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuId(prev => prev === opp.id ? null : opp.id);
+                            }}
+                            className="p-1.5 border border-slate-200 hover:border-slate-800 text-slate-600 hover:text-slate-900 rounded-[2px] transition-all cursor-pointer bg-white"
                           >
-                            <Edit2 className="w-3 h-3 text-slate-400" /> Edit
+                            <MoreVertical className="w-4 h-4" />
                           </button>
-                          {opp.status === "active" && (
-                            <button
-                              onClick={() => handleClose(opp.id)}
-                              disabled={!isApproved}
-                              className={`inline-flex items-center gap-1 px-2 py-1.5 border border-red-100 hover:border-red-600 text-[9px] font-mono font-bold uppercase tracking-widest rounded-[2px] transition-all bg-white cursor-pointer ${
-                                isApproved
-                                  ? "text-red-600 hover:bg-red-50/50"
-                                  : "opacity-30 cursor-not-allowed"
-                              }`}
+                          {activeMenuId === opp.id && (
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              className="absolute right-0 bottom-full mb-1 z-30 min-w-[125px] bg-white border border-slate-200 rounded-[3px] shadow-lg py-1 font-mono text-[9px] font-bold uppercase tracking-wider text-left"
                             >
-                              <XCircle className="w-3 h-3 text-red-400" /> Close
-                            </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveMenuId(null);
+                                  handleOpenEdit(opp);
+                                }}
+                                disabled={!isApproved}
+                                className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors ${
+                                  isApproved ? "text-slate-700" : "opacity-30 cursor-not-allowed"
+                                }`}
+                              >
+                                <Edit2 className="w-3.5 h-3.5 text-slate-400" />
+                                Edit
+                              </button>
+                              {opp.status === "active" && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveMenuId(null);
+                                    handleClose(opp.id);
+                                  }}
+                                  disabled={!isApproved}
+                                  className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors ${
+                                    isApproved ? "text-red-600" : "opacity-30 cursor-not-allowed"
+                                  }`}
+                                >
+                                  <XCircle className="w-3.5 h-3.5 text-red-400" />
+                                  Close
+                                </button>
+                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveMenuId(null);
+                                  handleDelete(opp.id);
+                                }}
+                                disabled={!isApproved}
+                                className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors ${
+                                  isApproved ? "text-red-600" : "opacity-30 cursor-not-allowed"
+                                }`}
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                                Delete
+                              </button>
+                            </div>
                           )}
-                          <button
-                            onClick={() => handleDelete(opp.id)}
-                            disabled={!isApproved}
-                            className={`inline-flex items-center gap-1 px-2 py-1.5 border border-red-100 hover:border-red-600 text-[9px] font-mono font-bold uppercase tracking-widest rounded-[2px] transition-all bg-white cursor-pointer ${
-                              isApproved
-                                ? "text-red-600 hover:bg-red-50/50"
-                                : "opacity-30 cursor-not-allowed"
-                            }`}
-                          >
-                            <Trash2 className="w-3 h-3 text-red-400" /> Delete
-                          </button>
                         </div>
                       </div>
                     </div>
@@ -1155,23 +1120,46 @@ function MyOpportunitiesPage() {
                               {opp.location || "Remote"}
                             </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="relative">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedDetailOpp(opp);
-                                setDetailOpen(true);
+                                setActiveMenuId(prev => prev === opp.id ? null : opp.id);
                               }}
                               className="p-1.5 border border-slate-200 hover:border-slate-800 text-slate-600 hover:text-slate-900 rounded-[2px] transition-all cursor-pointer bg-white"
                             >
-                              <Eye className="w-3.5 h-3.5" />
+                              <MoreVertical className="w-4 h-4" />
                             </button>
-                            <button
-                              onClick={(e) => handleRemove(opp.id, e)}
-                              className="p-1.5 border border-slate-200 hover:border-red-600 text-slate-400 hover:text-red-600 rounded-[2px] transition-all cursor-pointer bg-white"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            {activeMenuId === opp.id && (
+                              <div
+                                onClick={(e) => e.stopPropagation()}
+                                className="absolute right-0 bottom-full mb-1 z-30 min-w-[125px] bg-white border border-slate-200 rounded-[3px] shadow-lg py-1 font-mono text-[9px] font-bold uppercase tracking-wider text-left"
+                              >
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveMenuId(null);
+                                    setSelectedDetailOpp(opp);
+                                    setDetailOpen(true);
+                                  }}
+                                  className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors text-slate-700"
+                                >
+                                  <Eye className="w-3.5 h-3.5 text-slate-400" />
+                                  View Brief
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveMenuId(null);
+                                    handleRemove(opp.id, e);
+                                  }}
+                                  className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors text-red-600"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                                  Remove
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1312,17 +1300,38 @@ function MyOpportunitiesPage() {
                           &ldquo;{record.pitch}&rdquo;
                         </div>
                       )}
-                      <div className="flex items-center justify-end border-t border-slate-50 pt-2.5">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedDetailOpp(opp);
-                            setDetailOpen(true);
-                          }}
-                          className="p-1.5 border border-slate-200 hover:border-slate-800 text-slate-600 hover:text-slate-900 rounded-[2px] transition-all cursor-pointer bg-white flex items-center gap-1.5 text-[9px] font-mono font-bold uppercase tracking-wider"
-                        >
-                          <Eye className="w-3.5 h-3.5" /> View Brief
-                        </button>
+                      <div className="flex items-center justify-between border-t border-slate-50 pt-2.5">
+                        <div />
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuId(prev => prev === opp.id ? null : opp.id);
+                            }}
+                            className="p-1.5 border border-slate-200 hover:border-slate-800 text-slate-600 hover:text-slate-900 rounded-[2px] transition-all cursor-pointer bg-white"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          {activeMenuId === opp.id && (
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              className="absolute right-0 bottom-full mb-1 z-30 min-w-[125px] bg-white border border-slate-200 rounded-[3px] shadow-lg py-1 font-mono text-[9px] font-bold uppercase tracking-wider text-left"
+                            >
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveMenuId(null);
+                                  setSelectedDetailOpp(opp);
+                                  setDetailOpen(true);
+                                }}
+                                className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors text-slate-700"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-slate-400" />
+                                View Brief
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -1332,6 +1341,7 @@ function MyOpportunitiesPage() {
           )}
         </div>
       </main>
+      )}
 
       {/* CREATE DIALOG */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>

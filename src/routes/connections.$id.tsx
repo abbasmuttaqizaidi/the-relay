@@ -18,6 +18,7 @@ import { getRequestById } from "../functions/getRequestById";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
+import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 
 export const Route = createFileRoute("/connections/$id")({
   component: ConnectionEstablishedPage,
@@ -91,42 +92,6 @@ function ConnectionEstablishedPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col">
-      {/* Header */}
-      <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4 md:gap-10">
-            <Link to="/home" className="flex items-center gap-2 group">
-              <span className="font-display font-extrabold text-lg tracking-tight group-hover:text-primary transition-colors">
-                THE RELAY
-              </span>
-            </Link>
-            <div className="hidden md:flex gap-8 text-[11px] font-mono uppercase tracking-[0.15em] text-slate-400 font-bold">
-              <Link
-                to="/opportunities"
-                className="hover:text-slate-800 pb-1 transition-colors"
-              >
-                Opportunities
-              </Link>
-              <Link
-                to="/opportunities/my"
-                className="hover:text-slate-800 pb-1 transition-colors"
-              >
-                My Opportunities
-              </Link>
-              <Link
-                to="/requests/incoming"
-                className="hover:text-slate-800 pb-1 transition-colors"
-              >
-                Requests
-              </Link>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <NotificationsDropdown />
-            <UserAvatarDropdown />
-          </div>
-        </div>
-      </nav>
 
       {/* Main Body */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 md:px-6 py-10 md:py-16 flex flex-col items-center">

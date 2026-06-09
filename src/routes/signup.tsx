@@ -64,29 +64,17 @@ function SignUpPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-foreground font-sans flex flex-col justify-between selection:bg-primary selection:text-white">
-      {/* Top Header */}
-      <header className="sticky top-0 z-50 border-b border-[#1f25301f] bg-white/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 h-14 md:h-18 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <img
-              src={logoUrl}
-              alt="The Relay Logo"
-              className="h-10 md:h-14 w-auto object-contain mix-blend-multiply"
-            />
-          </Link>
-          <div>
-            <Link
-              to="/"
-              className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
-            </Link>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content (Split Layout) */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-12 md:py-20 grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-1.5 pb-12 md:py-20">
+        <div className="mb-1.5 md:mb-6">
+          <Link
+            to="/home"
+            className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors font-bold"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
+          </Link>
+        </div>
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
         {/* Left Side: Modern Editorial Brand Banner */}
         <section className="lg:col-span-6 space-y-8 animate-momentum order-2 lg:order-1">
           <div className="space-y-4">
@@ -178,6 +166,7 @@ function SignUpPage() {
             />
           </div>
         </section>
+        </div>
       </main>
 
       {/* Modern Compact Footer */}

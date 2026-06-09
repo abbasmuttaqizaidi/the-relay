@@ -77,8 +77,41 @@ export function UserAvatarDropdown() {
 
 
   const handleLogout = async () => {
-    await signOut();
-    localStorage.removeItem("relay.profile.v1"); // Clear company profile cache on logout
+    try {
+      await signOut();
+    } catch (err) {
+      console.error("Clerk signOut error:", err);
+    }
+
+    // Clear localStorage
+    try {
+      localStorage.clear();
+    } catch (e) {
+      console.error("Failed to clear localStorage:", e);
+    }
+
+    // Clear sessionStorage
+    try {
+      sessionStorage.clear();
+    } catch (e) {
+      console.error("Failed to clear sessionStorage:", e);
+    }
+
+    // Clear cookies
+    try {
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=." + window.location.hostname.replace(/^www\./, "");
+      }
+    } catch (e) {
+      console.error("Failed to clear cookies:", e);
+    }
+
     toast.success("Signed out successfully.", { id: "signout-success" });
     navigate({ to: "/home" });
   };

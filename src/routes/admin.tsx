@@ -490,24 +490,25 @@ function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-foreground font-sans flex flex-col justify-between">
-      {/* Admin Navbar */}
-      <header className="sticky top-0 z-50 border-b border-[#1f25301f] bg-white">
-        <div className="max-w-7xl mx-auto px-6 h-14 md:h-18 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img
-              src={logoUrl}
-              alt="The Relay Logo"
-              className="h-10 md:h-14 w-auto object-contain mix-blend-multiply"
-            />
-            <span className="h-5 w-px bg-slate-200" />
+      {/* Main Content */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-10 space-y-8 animate-momentum">
+        {/* Header Title */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-[#1f25301f] pb-6">
+          <div className="space-y-2">
             <Badge
-              variant="danger"
-              className="font-mono text-[10px] px-2 py-0.5 font-bold uppercase rounded-[2px] tracking-wider"
+              variant="outline"
+              className="font-mono text-[9px] text-primary border border-primary/10 bg-primary/5 uppercase tracking-widest font-bold rounded-[2px] px-2 py-0.5"
             >
-              Control Panel
+              [ System Admin Dashboard ]
             </Badge>
+            <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900">
+              Control Center Dashboard
+            </h1>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Manage operators, verify businesses, and moderate listing promotions.
+            </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Button
               onClick={fetchAdminData}
               variant="outline"
@@ -524,32 +525,7 @@ function AdminDashboard() {
             >
               Logout Admin
             </Button>
-            <Link
-              to="/opportunities"
-              className="text-xs font-mono font-bold uppercase tracking-widest text-slate-600 hover:text-primary transition-colors"
-            >
-              Go to Feed
-            </Link>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-10 space-y-8 animate-momentum">
-        {/* Header Title */}
-        <div className="space-y-2">
-          <Badge
-            variant="outline"
-            className="font-mono text-[9px] text-primary border border-primary/10 bg-primary/5 uppercase tracking-widest font-bold rounded-[2px] px-2 py-0.5"
-          >
-            [ System Admin Dashboard ]
-          </Badge>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900">
-            Control Center Dashboard
-          </h1>
-          <p className="text-xs text-slate-500 leading-relaxed">
-            Manage operators, verify businesses, and moderate listing promotions.
-          </p>
         </div>
 
         {/* Stats Grid */}

@@ -94,8 +94,6 @@ function Landing() {
         }}
       />
 
-      <Nav />
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 space-y-16 md:space-y-24 relative pb-16 pt-4">
         <HeroSection />
         <ProblemSection />
@@ -107,50 +105,6 @@ function Landing() {
         <Footer />
       </main>
     </div>
-  );
-}
-
-function Nav() {
-  return (
-    <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/85 backdrop-blur-md py-2">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
-        <Link to="/home" className="flex items-center gap-3 group">
-          <img
-            src={logoUrl}
-            alt="The Relay Logo"
-            className="h-12 w-auto object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-[1.02]"
-          />
-        </Link>
-        
-        <div className="flex items-center gap-4">
-          <Show when="signed-in">
-            <Link
-              to="/opportunities"
-              className="h-10 px-4 inline-flex items-center justify-center bg-slate-900 text-white font-mono text-[10px] uppercase tracking-widest hover:bg-orange-600 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(234,88,12,0.15)] transition-all duration-300 rounded-[2px] font-bold shadow-sm"
-            >
-              Go to Feed
-            </Link>
-            <UserAvatarDropdown />
-          </Show>
-
-          <Show when="signed-out">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <SignInButton mode="modal" forceRedirectUrl="/opportunities">
-                <button className="text-[10px] font-mono uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors cursor-pointer font-bold px-3 py-2">
-                  Sign In
-                </button>
-              </SignInButton>
-              <Link
-                to="/signup"
-                className="bg-slate-900 hover:bg-orange-600 text-white px-4 py-2 text-[10px] font-mono uppercase tracking-widest transition-all duration-300 rounded-[2px] shadow-sm font-bold flex items-center justify-center border border-slate-900 hover:-translate-y-0.5"
-              >
-                Sign Up
-              </Link>
-            </div>
-          </Show>
-        </div>
-      </div>
-    </nav>
   );
 }
 

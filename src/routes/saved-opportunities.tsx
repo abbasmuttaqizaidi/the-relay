@@ -7,11 +7,7 @@ import { OPPORTUNITIES } from "../lib/mock-opportunities";
 import { getSavedOpportunities } from "../functions/getSavedOpportunities";
 import { removeSavedOpportunity } from "../functions/removeSavedOpportunity";
 import { expressInterest } from "../functions/expressInterest";
-import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
-import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
-import { NotificationsDropdown } from "@/components/notifications-dropdown";
-import { Menu, ChevronRight } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Navbar } from "@/components/navbar";
 import { useInterestStore, RECIPROCITY_WEIGHTS } from "@/lib/interest-store";
 import {
   ArrowLeft,
@@ -214,91 +210,11 @@ function SavedOpportunitiesPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-slate-900 selection:text-white">
-      {/* Navigation Header */}
-      <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4 md:gap-10">
-            <Link to="/home" className="flex items-center gap-2 group">
-              <img src={logoUrl} alt="Logo" className="h-10 md:h-12 w-auto object-contain mix-blend-multiply" />
-            </Link>
-            <div className="hidden md:flex gap-8 text-[11px] font-mono uppercase tracking-[0.15em] text-slate-400 font-bold">
-              <Link to="/opportunities" className="hover:text-slate-800 pb-1 transition-colors">
-                Opportunities
-              </Link>
-              <Link
-                to="/opportunities/my"
-                className="hover:text-slate-800 pb-1 transition-colors"
-              >
-                My Opportunities
-              </Link>
-              <Link
-                to="/requests/incoming"
-                className="hover:text-slate-800 pb-1 transition-colors"
-              >
-                Requests
-              </Link>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <div className="hidden md:flex items-center gap-4">
-              <NotificationsDropdown />
-              <UserAvatarDropdown />
-            </div>
-
-            {/* Mobile Navigation Trigger */}
-            <div className="md:hidden flex items-center gap-2">
-              <NotificationsDropdown />
-              <Sheet>
-                <SheetTrigger asChild>
-                  <button className="h-9 w-9 flex items-center justify-center border border-slate-200/80 rounded-[2px] bg-white hover:bg-slate-50 transition-colors cursor-pointer">
-                    <Menu className="w-4 h-4 text-slate-700" />
-                  </button>
-                </SheetTrigger>
-                <SheetContent side="right" className="bg-white p-6 w-[280px] flex flex-col justify-between border-l border-slate-200 shadow-2xl">
-                  <div className="space-y-8">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                      <img src={logoUrl} alt="Logo" className="h-8 w-auto object-contain mix-blend-multiply" />
-                    </div>
-                    
-                    <div className="flex flex-col gap-5 text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500 font-bold">
-                      <SheetClose asChild>
-                        <Link
-                          to="/opportunities"
-                          className="hover:text-slate-800 py-1 transition-colors flex items-center justify-between"
-                        >
-                          Opportunities <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-                        </Link>
-                      </SheetClose>
-                      <SheetClose asChild>
-                        <Link
-                          to="/opportunities/my"
-                          className="hover:text-slate-800 py-1 transition-colors flex items-center justify-between"
-                        >
-                          My Opportunities <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-                        </Link>
-                      </SheetClose>
-                      <span className="opacity-30 py-1 cursor-not-allowed">Network</span>
-                      <span className="opacity-30 py-1 cursor-not-allowed">Intelligence</span>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-slate-100 pt-6">
-                    <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-[2px] border border-slate-100">
-                      <span className="text-[9px] font-mono uppercase text-slate-400 tracking-wider font-bold">Account</span>
-                      <UserAvatarDropdown />
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-          </div>
-        </div>
-      </nav>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-24">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-1.5 pb-24 md:pt-6">
         {/* Back Link */}
-        <div className="mb-6">
+        <div className="mb-1.5 md:mb-6">
           <Link
             to="/opportunities"
             className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors font-bold"

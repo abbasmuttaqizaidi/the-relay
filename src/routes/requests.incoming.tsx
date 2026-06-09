@@ -12,9 +12,9 @@ import {
   Building2,
   MapPin,
   Calendar,
-  ArrowRight,
-  Shield,
   Activity,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { getIncomingRequests } from "../functions/getIncomingRequests";
 import { acceptInterest } from "../functions/acceptInterest";
@@ -169,65 +169,18 @@ function IncomingRequestsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col">
-      {/* Navigation Bar */}
-      <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4 md:gap-10">
-            <Link to="/home" className="flex items-center gap-2 group">
-              <img
-                src={logoUrl}
-                alt="The Relay Logo"
-                className="h-10 md:h-12 w-auto object-contain mix-blend-multiply"
-                onError={(e) => {
-                  // Fallback logo if missing
-                  (e.target as HTMLElement).style.display = "none";
-                }}
-              />
-              <span className="font-display font-extrabold text-lg tracking-tight group-hover:text-primary transition-colors">
-                THE RELAY
-              </span>
-            </Link>
-            <div className="hidden md:flex gap-8 text-[11px] font-mono uppercase tracking-[0.15em] text-slate-400 font-bold">
-              <Link
-                to="/opportunities"
-                activeProps={{ className: "text-slate-900 border-b-2 border-slate-900" }}
-                className="hover:text-slate-800 pb-1 transition-colors"
-              >
-                Opportunities
-              </Link>
-              <Link
-                to="/opportunities/my"
-                activeProps={{ className: "text-slate-900 border-b-2 border-slate-900" }}
-                className="hover:text-slate-800 pb-1 transition-colors"
-              >
-                My Opportunities
-              </Link>
-              <Link
-                to="/requests/incoming"
-                activeProps={{ className: "text-slate-900 border-b-2 border-slate-900" }}
-                className="hover:text-slate-800 pb-1 transition-colors flex items-center gap-1.5"
-              >
-                Requests
-                {incomingCount > 0 && (
-                  <span className="bg-red-500 text-white rounded-full text-[9px] px-1.5 py-0.5 font-sans font-bold leading-none animate-pulse">
-                    {incomingCount}
-                  </span>
-                )}
-              </Link>
-              <span className="opacity-40 cursor-not-allowed">Network</span>
-              <span className="opacity-40 cursor-not-allowed">Intelligence</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <ReciprocityBadge className="hidden md:flex" />
-            <NotificationsDropdown />
-            <UserAvatarDropdown />
-          </div>
-        </div>
-      </nav>
-
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-8 md:py-12">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 pt-1.5 pb-8 md:py-12">
+        {/* Breadcrumb Back */}
+        <div className="mb-1.5 md:mb-6">
+          <Link
+            to="/opportunities"
+            className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-800 transition-colors font-bold"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Feed
+          </Link>
+        </div>
+
         {/* Title Section */}
         <div className="mb-8 border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div className="space-y-1.5">
@@ -243,16 +196,16 @@ function IncomingRequestsPage() {
           </div>
 
           {/* Sub Navigation Tabs */}
-          <div className="flex gap-1.5 bg-slate-100 p-1 rounded-[4px] border border-slate-200 font-mono text-[9.5px] uppercase tracking-wider font-bold">
+          <div className="w-full md:w-auto flex gap-1.5 bg-slate-100 p-1 rounded-[4px] border border-slate-200 font-mono text-[9.5px] uppercase tracking-wider font-bold">
             <Link
               to="/requests/incoming"
-              className="px-4 py-2 bg-white text-slate-900 border border-slate-200/50 shadow-sm rounded-[2px]"
+              className="flex-1 md:flex-initial text-center px-4 py-2 bg-white text-slate-900 border border-slate-200/50 shadow-sm rounded-[2px]"
             >
               Incoming ({requests.length})
             </Link>
             <Link
               to="/requests/sent"
-              className="px-4 py-2 text-slate-500 hover:text-slate-800 transition-colors"
+              className="flex-1 md:flex-initial text-center px-4 py-2 text-slate-500 hover:text-slate-800 transition-colors"
             >
               Sent
             </Link>
