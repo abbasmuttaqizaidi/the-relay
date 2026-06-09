@@ -87,6 +87,29 @@ export const Route = createFileRoute("/opportunities/my")({
 
 const CATEGORIES = ["partnership", "referral", "distribution", "vendor", "hiring", "strategic_advice", "investment"] as const;
 
+const INDUSTRIES = [
+  "SaaS",
+  "Marketing Agency",
+  "Development Agency",
+  "AI & Automation",
+  "Recruitment",
+  "D2C Brand",
+  "Legal",
+  "Healthcare",
+  "Logistics",
+  "E-commerce",
+  "Real Estate",
+  "Fintech",
+  "Cybersecurity",
+  "Cloud & DevOps",
+  "Edtech",
+  "Consulting & Advisory",
+  "Web3 & Blockchain",
+  "HR Tech",
+  "Manufacturing",
+  "Media & Adtech",
+] as const;
+
 function MyOpportunitiesPage() {
   const { isSignedIn, isLoaded, userId } = useAuth();
   const navigate = useNavigate();
@@ -138,6 +161,7 @@ function MyOpportunitiesPage() {
   // Form Fields
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("partnership");
+  const [industry, setIndustry] = useState("SaaS");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [offerText, setOfferText] = useState("");
@@ -235,7 +259,7 @@ function MyOpportunitiesPage() {
       const dbMapped = (activeDbOpps || []).map((opp: any) => ({
         ...opp,
         company: opp.business?.company_name || "Confidential",
-        industry: opp.business?.industry || opp.category,
+        industry: opp.industry || opp.business?.industry || opp.category,
       }));
       const allOpps = [...dbMapped, ...OPPORTUNITIES];
       const pending = allOpps.filter((opp) => store[opp.id]?.status === "pending");
@@ -337,6 +361,7 @@ function MyOpportunitiesPage() {
     }
     setTitle("");
     setCategory("partnership");
+    setIndustry(business?.industry || "SaaS");
     setDescription("");
     setLocation("");
     setOfferText("");
@@ -355,6 +380,7 @@ function MyOpportunitiesPage() {
     setSelectedOpp(opp);
     setTitle(opp.title);
     setCategory(opp.category);
+    setIndustry(opp.industry || opp.business?.industry || "SaaS");
     setDescription(opp.description);
     setLocation(opp.location || "");
     setOfferText(opp.offer_text || "");
@@ -396,6 +422,7 @@ function MyOpportunitiesPage() {
         data: {
           title,
           category,
+          industry,
           description,
           location: location.trim() || null,
           offer_text: offerText.trim() || null,
@@ -452,6 +479,7 @@ function MyOpportunitiesPage() {
           opportunity_id: selectedOpp.id,
           title,
           category,
+          industry,
           description,
           location: location.trim() || null,
           offer_text: offerText.trim() || null,
@@ -1428,6 +1456,30 @@ function MyOpportunitiesPage() {
               </Select>
             </div>
 
+            {/* Industry selection */}
+            <div className="space-y-1">
+              <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                <span className="flex flex-wrap items-center gap-1">
+                  <Tag className="w-3 h-3" /> Industry Type *
+                </span>
+                <TooltipSimple content="Select the industry that fits this opportunity best.">
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                </TooltipSimple>
+              </label>
+              <Select value={industry} onValueChange={setIndustry}>
+                <SelectTrigger className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none cursor-pointer [&>span]:truncate">
+                  <SelectValue placeholder="Select Industry" />
+                </SelectTrigger>
+                <SelectContent className="bg-white max-h-60 overflow-y-auto">
+                  {INDUSTRIES.map((ind) => (
+                    <SelectItem key={ind} value={ind}>
+                      {ind}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Description */}
             <div className="space-y-1">
               <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5 justify-between">
@@ -1667,6 +1719,30 @@ function MyOpportunitiesPage() {
                     Strategic Advice (Advisory, Board positions, Mentorship)
                   </SelectItem>
                   <SelectItem value="investment">Investment (Funding requests, Capital raises)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Industry selection */}
+            <div className="space-y-1">
+              <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                <span className="flex flex-wrap items-center gap-1">
+                  <Tag className="w-3 h-3" /> Industry Type *
+                </span>
+                <TooltipSimple content="Select the industry that fits this opportunity best.">
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                </TooltipSimple>
+              </label>
+              <Select value={industry} onValueChange={setIndustry}>
+                <SelectTrigger className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none cursor-pointer [&>span]:truncate">
+                  <SelectValue placeholder="Select Industry" />
+                </SelectTrigger>
+                <SelectContent className="bg-white max-h-60 overflow-y-auto">
+                  {INDUSTRIES.map((ind) => (
+                    <SelectItem key={ind} value={ind}>
+                      {ind}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

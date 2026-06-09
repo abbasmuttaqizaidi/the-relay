@@ -47,6 +47,7 @@ export class OpportunityService {
           title: dto.title,
           description: dto.description,
           category: dto.category,
+          industry: dto.industry,
           location: dto.location || null,
           offer_text: dto.offer_text || null,
           expires_at: dto.expires_at ? new Date(dto.expires_at) : null,
@@ -85,6 +86,7 @@ export class OpportunityService {
       if (dto.title !== undefined) dataToUpdate.title = dto.title;
       if (dto.description !== undefined) dataToUpdate.description = dto.description;
       if (dto.category !== undefined) dataToUpdate.category = dto.category;
+      if (dto.industry !== undefined) dataToUpdate.industry = dto.industry;
       if (dto.location !== undefined) dataToUpdate.location = dto.location;
       if (dto.offer_text !== undefined) dataToUpdate.offer_text = dto.offer_text;
       if (dto.expires_at !== undefined) {
@@ -313,9 +315,14 @@ export class OpportunityService {
       }
 
       if (filters?.industry && filters.industry !== "All") {
-        whereClause.business = {
-          industry: filters.industry,
-        };
+        whereClause.OR = [
+          { industry: filters.industry },
+          {
+            business: {
+              industry: filters.industry,
+            },
+          },
+        ];
       }
 
       const opportunities = await prisma.opportunity.findMany({

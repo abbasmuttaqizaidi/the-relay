@@ -34,6 +34,7 @@ export const createOpportunity = createServerFn({ method: "POST" })
       title: data.title,
       description: data.description,
       category: data.category,
+      industry: data.industry,
       location: data.location,
       offer_text: data.offer_text,
       expires_at: data.expires_at,

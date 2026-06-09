@@ -99,7 +99,7 @@ export class SavedOpportunityService {
         opportunity: {
           ...item.opportunity,
           company: item.opportunity.business?.company_name || "Confidential",
-          industry: item.opportunity.business?.industry || item.opportunity.category,
+          industry: item.opportunity.industry || item.opportunity.business?.industry || item.opportunity.category,
           expires_at: item.opportunity.expires_at ? item.opportunity.expires_at.toISOString() : null,
         },
       }));

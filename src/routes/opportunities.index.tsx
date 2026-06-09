@@ -231,6 +231,7 @@ function OpportunitiesPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<"partnership" | "referral" | "distribution" | "vendor" | "hiring" | "strategic_advice" | "investment">("partnership");
+  const [formIndustry, setFormIndustry] = useState("SaaS");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [offerText, setOfferText] = useState("");
@@ -285,6 +286,7 @@ function OpportunitiesPage() {
     }
     setTitle("");
     setCategory("partnership");
+    setFormIndustry(business?.industry || "SaaS");
     setDescription("");
     setLocation("");
     setOfferText("");
@@ -326,6 +328,7 @@ function OpportunitiesPage() {
         data: {
           title,
           category,
+          industry: formIndustry,
           description,
           location: location.trim() || null,
           offer_text: offerText.trim() || null,
@@ -356,7 +359,7 @@ function OpportunitiesPage() {
         type: (opp.category === "strategic_advice"
           ? "Strategic Advice"
           : opp.category.charAt(0).toUpperCase() + opp.category.slice(1)) as any,
-        industry: opp.business?.industry || "SaaS",
+        industry: opp.industry || opp.business?.industry || "SaaS",
         geo: opp.location || "Remote",
         company: opp.business?.company_name || "Demo",
         title: opp.title,
@@ -1089,6 +1092,30 @@ function OpportunitiesPage() {
                     Strategic Advice (Advisory, Board positions, Mentorship)
                   </SelectItem>
                   <SelectItem value="investment">Investment (Funding requests, Capital raises)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Industry selection */}
+            <div className="space-y-1">
+              <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                <span className="flex flex-wrap items-center gap-1">
+                  <Tag className="w-3 h-3" /> Industry Type *
+                </span>
+                <TooltipSimple content="Select the industry that fits this opportunity best.">
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                </TooltipSimple>
+              </label>
+              <Select value={formIndustry} onValueChange={setFormIndustry}>
+                <SelectTrigger className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none cursor-pointer [&>span]:truncate">
+                  <SelectValue placeholder="Select Industry" />
+                </SelectTrigger>
+                <SelectContent className="bg-white max-h-60 overflow-y-auto">
+                  {INDUSTRIES.filter((ind) => ind !== "All").map((ind) => (
+                    <SelectItem key={ind} value={ind}>
+                      {ind}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -43,6 +43,7 @@ export const updateBusinessSchema = z.object({
 export const createOpportunitySchema = z.object({
   title: z.string().min(1, "Title is required"),
   category: opportunityCategorySchema,
+  industry: z.string().min(1, "Industry is required"),
   description: z.string()
     .min(50, "Description must be at least 50 characters")
     .max(3000, "Description cannot exceed 3000 characters"),
@@ -57,6 +58,7 @@ export const updateOpportunitySchema = z.object({
   opportunity_id: uuidSchema,
   title: z.string().min(1).optional(),
   category: opportunityCategorySchema.optional(),
+  industry: z.string().min(1).optional(),
   description: z.string().min(50).max(3000).optional(),
   location: z.string().optional().nullable(),
   offer_text: z.string().optional().nullable(),

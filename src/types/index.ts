@@ -134,6 +134,7 @@ export interface CreateOpportunityDTO {
   title: string;
   description: string;
   category: OpportunityCategory;
+  industry: string;
   location?: string | null;
   offer_text?: string | null;
   expires_at?: string | null;
@@ -145,6 +146,7 @@ export interface UpdateOpportunityDTO {
   title?: string;
   description?: string;
   category?: OpportunityCategory;
+  industry?: string;
   location?: string | null;
   offer_text?: string | null;
   expires_at?: string | null;

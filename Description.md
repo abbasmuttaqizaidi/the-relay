@@ -279,10 +279,32 @@ We built the complete two-sided interest request handshake review loop matching 
 
 ---
 
+## 📱 11. Recent Mobile Optimization & In-Place Creation Flow
+
+To ensure a seamless experience on mobile viewports and reduce routing friction, several responsive design optimizations and a dynamic in-place creation flow were implemented:
+
+### A. Mobile View Optimization & Overflow Fixes
+- **Spacing Reduction**: Minimized the vertical spacing between the back buttons (e.g., "Back to Feed") and headings under mobile headers to conserve vertical viewport space.
+- **Horizontal Scroll & Overflow Resolution**: Resolved issues with horizontal scrolling/page stretching by enforcing strict `w-full max-w-full overflow-x-hidden` on the root layouts and ensuring flex wrappers clip/nowrap cleanly.
+- **Full-Width Navigation Tabs**: Adapted the incoming and sent request navigation tabs to scale to full width on mobile viewports, maximizing touch target area.
+- **Simplified Single-Word Labels**: Shortened the opportunities dashboard tabs on mobile view for clarity and screen economy (e.g., "Listings", "Saved", "Sent").
+- **Scrollbar-Free Navigation**: Restored the opportunity types tab row to wrap in a `flex-nowrap overflow-x-auto scrollbar-none` wrapper, preventing layout breaking while keeping navigation accessible.
+
+### B. In-Place Creation Flow
+- **Direct Dialog Triggers**: Replaced the redirect logic for "Post Opportunity" from the explore page (`/opportunities`) to the operators dashboard (`/opportunities/my`) with a direct in-place `<Dialog>` modal trigger.
+- **Real-Time Feed Reload**: Once the form is submitted successfully, it calls `createOpportunity`, closes the modal in-place, and fires `await loadData()` to reload the feed without a full page refresh.
+
+> [!IMPORTANT]
+> **Zero Regression Policy:** All future edits, style changes, or layout updates must ensure zero layout regressions are introduced. Mobile responsiveness and component alignment across different device viewports must be preserved.
+
+---
+
 ## 🛡️ 10. Agent Guidelines & Safety Guardrails
 
 To ensure development safety, all AI coding agents working on this project must adhere strictly to the following rules:
 - **No Destructive Commands**: Never execute any database drops, table wipes, force resets (`prisma db push --force-reset` or similar), or clean commands that remove database records or reset data states without explicit user verification and permission.
+- **No Regressions**: Avoid introducing any style, alignment, or functional regressions across mobile or desktop views.
+- **No Unrequested Logic Disruptions**: Never modify, delete, rewrite, or break existing business logic, structure, or functional code of existing modules or features unless explicitly requested and approved by the user. Adhere strictly to the existing features and structure.
 - **No Git Commands**: Do not run any git commands (`git checkout`, `git reset`, `git push`, `git commit`, etc.) without explicit user permission.
 
 

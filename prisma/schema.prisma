@@ -79,6 +79,7 @@ model Opportunity {
   title              String
   description        String
   category           String
+  industry           String    @default("SaaS")
   location           String?
   offer_text         String?
   status             String    @default("active")
