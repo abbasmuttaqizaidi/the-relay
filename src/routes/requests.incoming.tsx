@@ -23,6 +23,7 @@ import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { ReciprocityBadge } from "@/components/reciprocity-badge";
+import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 
 export const Route = createFileRoute("/requests/incoming")({
   component: IncomingRequestsPage,
@@ -174,7 +175,7 @@ function IncomingRequestsPage() {
           <div className="flex items-center gap-4 md:gap-10">
             <Link to="/home" className="flex items-center gap-2 group">
               <img
-                src="/assets/logo.png"
+                src={logoUrl}
                 alt="The Relay Logo"
                 className="h-10 md:h-12 w-auto object-contain mix-blend-multiply"
                 onError={(e) => {
