@@ -332,7 +332,11 @@ export class InterestService {
           },
         },
         include: {
-          requesting_business: true,
+          requesting_business: {
+            include: {
+              owner: true,
+            },
+          },
           opportunity: true,
         },
         orderBy: {
@@ -357,7 +361,11 @@ export class InterestService {
         include: {
           opportunity: {
             include: {
-              business: true,
+              business: {
+                include: {
+                  owner: true,
+                },
+              },
             },
           },
         },
@@ -405,10 +413,18 @@ export class InterestService {
       return await prisma.interest.findUnique({
         where: { id: interestId },
         include: {
-          requesting_business: true,
+          requesting_business: {
+            include: {
+              owner: true,
+            },
+          },
           opportunity: {
             include: {
-              business: true,
+              business: {
+                include: {
+                  owner: true,
+                },
+              },
             },
           },
         },

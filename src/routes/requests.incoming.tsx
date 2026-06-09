@@ -99,7 +99,7 @@ function IncomingRequestsPage() {
           contact: {
             name: req.requesting_business.company_name,
             role: "Owner",
-            email: req.requesting_business.contact_email || "",
+            email: req.requesting_business.contact_email || req.requesting_business.owner?.email || "",
             website: req.requesting_business.website || "",
             linkedin: req.requesting_business.linkedin_url || "",
             description: req.requesting_business.description || "",
@@ -388,13 +388,13 @@ function IncomingRequestsPage() {
                                 </a>
                               </div>
                             )}
-                            <div className="space-y-0.5">
+                             <div className="space-y-0.5">
                               <span className="text-slate-400 text-[10px]">Public Contact Email</span>
                               <a
-                                href={`mailto:${req.requesting_business.contact_email || "N/A"}`}
+                                href={`mailto:${req.requesting_business.contact_email || req.requesting_business.owner?.email || ""}`}
                                 className="font-mono font-bold text-slate-900 hover:text-primary hover:underline"
                               >
-                                {req.requesting_business.contact_email || "N/A"}
+                                {req.requesting_business.contact_email || req.requesting_business.owner?.email || "N/A"}
                               </a>
                             </div>
                           </div>

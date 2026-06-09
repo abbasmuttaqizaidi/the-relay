@@ -14,6 +14,7 @@ import { countSavedOpportunities } from "../functions/countSavedOpportunities";
 import { getSavedOpportunities } from "../functions/getSavedOpportunities";
 import { removeSavedOpportunity } from "../functions/removeSavedOpportunity";
 import { listOpportunities } from "../functions/listOpportunities";
+import { expressInterest } from "../functions/expressInterest";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
 import { useInterestStore } from "@/lib/interest-store";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
@@ -124,7 +125,28 @@ function MyOpportunitiesPage() {
   const [promote, setPromote] = useState(false);
 
   // Handshake Interest flow states
-  const { store } = useInterestStore();
+  const { store, request } = useInterestStore();
+  const [pitch, setPitch] = useState("");
+  const [interestOpen, setInterestOpen] = useState(false);
+
+  const handleExpressInterest = async () => {
+    if (!selectedDetailOpp) return;
+    const trimmed = pitch.trim();
+    if (trimmed.length < 20) {
+      toast.error("Add a short context note (20+ characters).");
+      return;
+    }
+    try {
+      await expressInterest({ data: { opportunity_id: selectedDetailOpp.id } });
+      request(selectedDetailOpp.id, trimmed);
+      setInterestOpen(false);
+      setPitch("");
+      toast.success("Interest sent. Awaiting mutual acceptance.");
+    } catch (err: any) {
+      console.error("Failed to express interest:", err);
+      toast.error(err.message || "Failed to express interest.");
+    }
+  };
 
   // Fetch list of owner's opportunities
   const loadMyOpportunities = async () => {
@@ -670,12 +692,12 @@ function MyOpportunitiesPage() {
                 Opportunities.
               </p>
             </div>
-            <Link
-              to="/saved-opportunities"
+            <button
+              onClick={() => navigate({ to: "/opportunities/my", search: { tab: "saved" } })}
               className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-mono uppercase tracking-widest px-4 py-2.5 rounded-[2px] font-bold shadow-xs hover:shadow text-center shrink-0 cursor-pointer"
             >
-              Review Saved Opportunities
-            </Link>
+              Review Saved Memos
+            </button>
           </div>
         )}
 
@@ -776,8 +798,7 @@ function MyOpportunitiesPage() {
                                 </span>
                               )}
                               {opp.promotion_status === "promoted" && (
-                                <span className="px-2 py-0.5 border border-orange-200 bg-orange-50 text-[8px] font-mono font-bold uppercase tracking-wider text-orange-700 rounded-[2px] inline-flex items-center gap-0.5">
-                                  <Sparkles className="w-2.5 h-2.5 fill-orange-500 text-orange-500" />{" "}
+                                <span className="px-2 py-0.5 border border-orange-200 bg-orange-50 text-[8px] font-mono font-bold uppercase tracking-wider text-orange-700 rounded-[2px]">
                                   Promoted
                                 </span>
                               )}
@@ -895,8 +916,7 @@ function MyOpportunitiesPage() {
                             </span>
                           )}
                           {opp.promotion_status === "promoted" && (
-                            <span className="px-2 py-0.5 border border-orange-200 bg-orange-50 text-[8px] font-mono font-bold uppercase tracking-wider text-orange-700 rounded-[2px] inline-flex items-center gap-0.5">
-                              <Sparkles className="w-2.5 h-2.5 fill-orange-500 text-orange-500" />{" "}
+                            <span className="px-2 py-0.5 border border-orange-200 bg-orange-50 text-[8px] font-mono font-bold uppercase tracking-wider text-orange-700 rounded-[2px]">
                               Promoted
                             </span>
                           )}
@@ -1938,9 +1958,9 @@ function MyOpportunitiesPage() {
                     )}
                   </div>
 
-                  <DialogFooter className="border-t border-slate-100 pt-4 flex flex-row items-center justify-end gap-3 flex-wrap">
+                  <DialogFooter className="border-t border-slate-100 pt-4 flex flex-row items-center justify-between gap-3 flex-wrap">
                     {/* Show Remove button only if in Saved items list */}
-                    {savedItems.some((item) => item.opportunity_id === selectedDetailOpp.id) && (
+                    {savedItems.some((item) => item.opportunity_id === selectedDetailOpp.id) ? (
                       <button
                         onClick={() => handleRemove(selectedDetailOpp.id)}
                         className="py-2.5 px-4 border border-slate-200 text-slate-500 hover:border-red-600 hover:text-red-600 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] font-bold cursor-pointer inline-flex items-center gap-1.5"
@@ -1948,17 +1968,114 @@ function MyOpportunitiesPage() {
                         <Trash2 className="w-3.5 h-3.5" />
                         Remove
                       </button>
+                    ) : (
+                      <div />
                     )}
-                    <button
-                      onClick={() => setDetailOpen(false)}
-                      className="py-2.5 px-4 border border-slate-200 hover:border-slate-800 text-slate-700 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] font-bold cursor-pointer"
-                    >
-                      Close
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setDetailOpen(false)}
+                        className="py-2.5 px-4 border border-slate-200 hover:border-slate-800 text-slate-700 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] font-bold cursor-pointer"
+                      >
+                        Close
+                      </button>
+
+                      {/* Conditional Action based on approval status */}
+                      {!isInactive && (
+                        isApproved ? (
+                          <>
+                            {interestStatus === "idle" && (
+                              <button
+                                onClick={() => {
+                                  setDetailOpen(false);
+                                  setInterestOpen(true);
+                                }}
+                                className="py-2.5 px-4 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
+                              >
+                                Express Interest
+                              </button>
+                            )}
+                            {interestStatus === "pending" && (
+                              <span className="px-3.5 py-2.5 border border-amber-500/20 bg-amber-50/5 text-amber-600 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default">
+                                Pending Handshake
+                              </span>
+                            )}
+                            {interestStatus === "accepted" && (
+                              <span className="px-3.5 py-2.5 bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default">
+                                Connected
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-[9.5px] font-mono text-slate-400 font-bold uppercase tracking-wider bg-slate-50 border border-slate-200 px-3 py-2 rounded-[2px]">
+                            Interest locked (Applied)
+                          </span>
+                        )
+                      )}
+                    </div>
                   </DialogFooter>
                 </>
               );
             })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Express Interest Modal (For Approved Users) */}
+      <Dialog open={interestOpen} onOpenChange={setInterestOpen}>
+        <DialogContent className="sm:max-w-lg bg-white border border-[#1f25301f] rounded-[4px] p-6 shadow-xl font-sans">
+          {selectedDetailOpp && (
+            <>
+              <DialogHeader className="space-y-2">
+                <DialogTitle className="font-display text-2xl font-extrabold tracking-tight text-slate-900 uppercase">
+                  Request Introducing Context
+                </DialogTitle>
+                <DialogDescription className="text-sm text-slate-500 leading-relaxed font-sans">
+                  Contact details will be unlocked once <span className="text-slate-950 font-bold">{selectedDetailOpp.company || selectedDetailOpp.business?.company_name || "Confidential"}</span> accepts your handshake. Add a short context note on why this is a strategic fit.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-wider sm:tracking-widest text-slate-400 font-bold border-b border-slate-100 pb-1">
+                  <span>Selected Listing</span>
+                  <span>#{selectedDetailOpp.opportunity_number || selectedDetailOpp.id.substring(0, 8)}</span>
+                </div>
+                <div className="space-y-2">
+                  <label className="block font-mono text-[10px] uppercase tracking-wider sm:tracking-widest text-slate-400 font-bold">
+                    Strategic Context Pitch (20+ chars)
+                  </label>
+                  <textarea
+                    value={pitch}
+                    onChange={(e) => setPitch(e.target.value)}
+                    placeholder="e.g., We have organic distribution channels in India matching your apparel requirements..."
+                    className="w-full h-32 px-3.5 py-2.5 border border-slate-200 focus:border-slate-800 focus:ring-0 font-mono text-xs rounded-[2px] transition-all bg-slate-50/20 outline-none resize-none"
+                    maxLength={300}
+                  />
+                  <div className="flex flex-wrap justify-between items-center font-mono text-[9px] text-slate-400 font-medium gap-1">
+                    <span>{pitch.trim().length} / 300 characters</span>
+                    <span>Min 20 characters</span>
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="border-t border-slate-100 pt-4 flex items-center justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setInterestOpen(false);
+                    setPitch("");
+                    setDetailOpen(true);
+                  }}
+                  className="py-2.5 px-4 border border-slate-200 hover:border-slate-800 text-slate-700 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] font-bold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleExpressInterest}
+                  className="py-2.5 px-5 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
+                >
+                  Submit Handshake
+                </button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

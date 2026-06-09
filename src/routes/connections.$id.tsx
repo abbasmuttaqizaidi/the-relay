@@ -83,8 +83,11 @@ function ConnectionEstablishedPage() {
   const requestingBusiness = interest.requesting_business;
   const ownerBusiness = interest.opportunity.business;
 
+  const requestingEmail = requestingBusiness.contact_email || requestingBusiness.owner?.email || "";
+  const ownerEmail = ownerBusiness.contact_email || ownerBusiness.owner?.email || "";
+
   // Pre-formatted external mailto link combining both contact emails
-  const mailtoLink = `mailto:${requestingBusiness.contact_email || ""},${ownerBusiness.contact_email || ""}?subject=The Relay: Connection established between ${requestingBusiness.company_name} and ${ownerBusiness.company_name}&body=Hi team,%0D%0A%0D%0AWe established a mutual interest connection on The Relay regarding opportunity "${interest.opportunity.title}".%0D%0A%0D%0ALet's continue our conversation here.%0D%0A%0D%0ABest regards,`;
+  const mailtoLink = `mailto:${requestingEmail},${ownerEmail}?subject=The Relay: Connection established between ${requestingBusiness.company_name} and ${ownerBusiness.company_name}&body=Hi team,%0D%0A%0D%0AWe established a mutual interest connection on The Relay regarding opportunity "${interest.opportunity.title}".%0D%0A%0D%0ALet's continue our conversation here.%0D%0A%0D%0ABest regards,`;
 
   return (
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col">
@@ -196,10 +199,10 @@ function ConnectionEstablishedPage() {
               <div className="flex items-center justify-between py-1.5">
                 <span className="text-slate-400 font-medium flex items-center gap-1.5"><Mail className="w-3.5 h-3.5" /> Email</span>
                 <a
-                  href={`mailto:${requestingBusiness.contact_email || ""}`}
+                  href={`mailto:${requestingEmail}`}
                   className="font-mono font-bold hover:text-primary hover:underline text-slate-900"
                 >
-                  {requestingBusiness.contact_email || "N/A"}
+                  {requestingEmail || "N/A"}
                 </a>
               </div>
             </div>
@@ -259,10 +262,10 @@ function ConnectionEstablishedPage() {
               <div className="flex items-center justify-between py-1.5">
                 <span className="text-slate-400 font-medium flex items-center gap-1.5"><Mail className="w-3.5 h-3.5" /> Email</span>
                 <a
-                  href={`mailto:${ownerBusiness.contact_email || ""}`}
+                  href={`mailto:${ownerEmail}`}
                   className="font-mono font-bold hover:text-primary hover:underline text-slate-900"
                 >
-                  {ownerBusiness.contact_email || "N/A"}
+                  {ownerEmail || "N/A"}
                 </a>
               </div>
             </div>

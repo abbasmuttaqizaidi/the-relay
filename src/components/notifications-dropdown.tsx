@@ -54,6 +54,18 @@ export function NotificationsDropdown() {
   useEffect(() => {
     if (!isSignedIn) return;
 
+    loadNotifications();
+
+    const interval = setInterval(() => {
+      loadNotifications();
+    }, 30000); // 30s polling fallback
+
+    return () => clearInterval(interval);
+  }, [isSignedIn]);
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+
     let activeChannel: any = null;
 
     const setupRealtime = async () => {

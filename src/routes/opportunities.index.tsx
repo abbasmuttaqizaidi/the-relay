@@ -207,6 +207,26 @@ function OpportunitiesPage() {
   const [loadingOpps, setLoadingOpps] = useState(true);
   const [myBusinessId, setMyBusinessId] = useState<string | null>(null);
 
+  // Local drawer filter states (buffered until 'Apply Filters' is clicked)
+  const [localQ, setLocalQ] = useState(q);
+  const [localMinInterested, setLocalMinInterested] = useState(minInterested);
+  const [localMaxInterested, setLocalMaxInterested] = useState(maxInterested);
+  const [localActiveIndustries, setLocalActiveIndustries] = useState<string[]>([]);
+  const [localActiveGeos, setLocalActiveGeos] = useState<string[]>([]);
+
+  const handleApplyFilters = () => {
+    navigate({
+      search: (prev: SearchParams) => ({
+        ...prev,
+        q: localQ,
+        minInterested: localMinInterested,
+        maxInterested: localMaxInterested,
+        industry: localActiveIndustries.length === 0 ? "All" : localActiveIndustries.join(","),
+        geo: localActiveGeos.length === 0 ? "All" : localActiveGeos.join(","),
+      }),
+    });
+  };
+
   const loadData = async () => {
     try {
       setLoadingOpps(true);
@@ -377,7 +397,7 @@ function OpportunitiesPage() {
                       contact: isAccepted ? {
                         name: req.opportunity.business.company_name,
                         role: "Owner",
-                        email: req.opportunity.business.contact_email || "",
+                        email: req.opportunity.business.contact_email || req.opportunity.business.owner?.email || "",
                         website: req.opportunity.business.website || "",
                         linkedin: req.opportunity.business.linkedin_url || "",
                         description: req.opportunity.business.description || ""
@@ -462,7 +482,9 @@ function OpportunitiesPage() {
       if (type !== "All" && o.type !== type) return false;
       if (o.interested < minInterested || o.interested > maxInterested) return false;
       if (query) {
-        const hay = `${o.company} ${o.title} ${o.description}`.toLowerCase();
+        const oppNum = o.opportunity_number || "";
+        const shortId = o.id ? o.id.substring(0, 8) : "";
+        const hay = `${o.company} ${o.title} ${o.description} ${oppNum} #${oppNum} ${shortId} #${shortId}`.toLowerCase();
         if (!hay.includes(query)) return false;
       }
       return true;
@@ -502,7 +524,12 @@ function OpportunitiesPage() {
     );
   }
 
-  const reset = () =>
+  const reset = () => {
+    setLocalQ("");
+    setLocalMinInterested(0);
+    setLocalMaxInterested(15);
+    setLocalActiveIndustries([]);
+    setLocalActiveGeos([]);
     navigate({
       search: {
         industry: "All",
@@ -513,6 +540,7 @@ function OpportunitiesPage() {
         maxInterested: 15,
       },
     });
+  };
 
   const activeCount =
     (industry !== "All" ? 1 : 0) +
@@ -575,7 +603,15 @@ function OpportunitiesPage() {
 
           <div className="pb-3 shrink-0">
             {/* Filter Slider Sheet Trigger */}
-            <Sheet>
+            <Sheet onOpenChange={(open) => {
+              if (open) {
+                setLocalQ(q);
+                setLocalMinInterested(minInterested);
+                setLocalMaxInterested(maxInterested);
+                setLocalActiveIndustries(activeIndustries);
+                setLocalActiveGeos(activeGeos);
+              }
+            }}>
               <SheetTrigger asChild>
                 <button className="cursor-pointer group flex items-center gap-2 border border-slate-200/80 hover:border-slate-300 rounded-full px-4 py-1.5 transition-all bg-white hover:shadow-sm font-mono text-[9px] uppercase tracking-widest font-bold text-slate-700">
                   <SlidersHorizontal className="w-3 h-3 text-slate-400 group-hover:text-slate-900 transition-colors" />
@@ -617,12 +653,8 @@ function OpportunitiesPage() {
                         <Search className="w-4 h-4 text-slate-400" />
                       </span>
                       <input
-                        value={q}
-                        onChange={(e) =>
-                          navigate({
-                            search: (prev: SearchParams) => ({ ...prev, q: e.target.value }),
-                          })
-                        }
+                        value={localQ}
+                        onChange={(e) => setLocalQ(e.target.value)}
                         placeholder="Company, title, keyword…"
                         className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-primary focus:outline-none pl-9 pr-3 py-2 text-sm font-mono placeholder:text-slate-400/80 transition-all rounded-[2px]"
                       />
@@ -636,7 +668,7 @@ function OpportunitiesPage() {
                         Interested Businesses
                       </label>
                       <span className="font-mono text-[10px] text-primary font-bold">
-                        {minInterested} - {maxInterested === 15 ? "15+" : maxInterested}
+                        {localMinInterested} - {localMaxInterested === 15 ? "15+" : localMaxInterested}
                       </span>
                     </div>
 
@@ -645,15 +677,10 @@ function OpportunitiesPage() {
                         min={0}
                         max={15}
                         step={1}
-                        value={[minInterested, maxInterested]}
+                        value={[localMinInterested, localMaxInterested]}
                         onValueChange={([min, max]) => {
-                          navigate({
-                            search: (prev: SearchParams) => ({
-                              ...prev,
-                              minInterested: min,
-                              maxInterested: max,
-                            }),
-                          });
+                          setLocalMinInterested(min);
+                          setLocalMaxInterested(max);
                         }}
                         className="my-2"
                       />
@@ -666,7 +693,7 @@ function OpportunitiesPage() {
                           Min Operators
                         </span>
                         <span className="text-sm font-mono font-bold text-slate-900">
-                          {minInterested}
+                          {localMinInterested}
                         </span>
                       </div>
                       <div className="text-slate-400 font-mono text-xs">—</div>
@@ -675,7 +702,7 @@ function OpportunitiesPage() {
                           Max Operators
                         </span>
                         <span className="text-sm font-mono font-bold text-slate-900">
-                          {maxInterested === 15 ? "15+" : maxInterested}
+                          {localMaxInterested === 15 ? "15+" : localMaxInterested}
                         </span>
                       </div>
                     </div>
@@ -694,7 +721,7 @@ function OpportunitiesPage() {
                       <AccordionContent className="pt-2">
                         <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
                           {INDUSTRIES.filter((opt) => opt !== "All").map((opt) => {
-                            const active = activeIndustries.includes(opt);
+                            const active = localActiveIndustries.includes(opt);
                             return (
                               <label
                                 key={opt}
@@ -702,7 +729,13 @@ function OpportunitiesPage() {
                               >
                                 <Checkbox
                                   checked={active}
-                                  onCheckedChange={() => toggleIndustry(opt)}
+                                  onCheckedChange={() => {
+                                    if (active) {
+                                      setLocalActiveIndustries(prev => prev.filter(item => item !== opt));
+                                    } else {
+                                      setLocalActiveIndustries(prev => [...prev, opt]);
+                                    }
+                                  }}
                                 />
                                 <span
                                   className={`text-xs font-medium font-sans ${active ? "text-slate-900 font-bold" : "text-slate-600"}`}
@@ -723,13 +756,22 @@ function OpportunitiesPage() {
                       <AccordionContent className="pt-2">
                         <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
                           {GEOGRAPHIES.filter((opt) => opt !== "All").map((opt) => {
-                            const active = activeGeos.includes(opt);
+                            const active = localActiveGeos.includes(opt);
                             return (
                               <label
                                 key={opt}
                                 className="flex items-center gap-3 px-1 py-1.5 hover:bg-slate-50/50 rounded cursor-pointer transition-colors"
                               >
-                                <Checkbox checked={active} onCheckedChange={() => toggleGeo(opt)} />
+                                <Checkbox
+                                  checked={active}
+                                  onCheckedChange={() => {
+                                    if (active) {
+                                      setLocalActiveGeos(prev => prev.filter(item => item !== opt));
+                                    } else {
+                                      setLocalActiveGeos(prev => [...prev, opt]);
+                                    }
+                                  }}
+                                />
                                 <span
                                   className={`text-xs font-medium font-sans ${active ? "text-slate-900 font-bold" : "text-slate-600"}`}
                                 >
@@ -747,7 +789,10 @@ function OpportunitiesPage() {
                 {/* Drawer Footer */}
                 <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center gap-3">
                   <SheetClose asChild>
-                    <button className="w-full py-2.5 bg-slate-950 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer text-center font-bold">
+                    <button
+                      onClick={handleApplyFilters}
+                      className="w-full py-2.5 bg-slate-950 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer text-center font-bold"
+                    >
                       Apply Filters
                     </button>
                   </SheetClose>

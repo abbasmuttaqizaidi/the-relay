@@ -136,6 +136,10 @@ function SavedOpportunitiesPage() {
             navigate({ to: "/onboarding", replace: true });
           } else {
             setBusiness(status.business);
+            if (status.business?.status === "approved") {
+              navigate({ to: "/opportunities/my", search: { tab: "saved" }, replace: true });
+              return;
+            }
             await loadData();
           }
         } catch (err) {
