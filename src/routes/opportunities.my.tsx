@@ -1347,8 +1347,9 @@ function MyOpportunitiesPage() {
 
           <form
             onSubmit={handleCreateSubmit}
-            className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-4 sm:py-3"
+            className="min-h-0 flex-1 flex flex-col gap-0 overflow-hidden"
           >
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-4 sm:py-3 space-y-4">
             {/* Title */}
             <div className="space-y-1">
               <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
@@ -1547,8 +1548,9 @@ function MyOpportunitiesPage() {
                 </p>
               </div>
             </div>
+          </div>
 
-            <DialogFooter className="sticky bottom-0 -mx-4 mt-2 flex flex-row items-center gap-2 border-t border-slate-100 bg-white px-4 pb-1 pt-4 sm:-mx-4 sm:justify-end sm:gap-3 sm:px-4 sm:pt-3">
+          <DialogFooter className="border-t border-slate-100 bg-white px-4 py-3 sm:px-4 flex flex-row items-center justify-end gap-2 sm:gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setCreateOpen(false)}
@@ -1588,8 +1590,9 @@ function MyOpportunitiesPage() {
 
           <form
             onSubmit={handleEditSubmit}
-            className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-4 sm:py-3"
+            className="min-h-0 flex-1 flex flex-col gap-0 overflow-hidden"
           >
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-4 sm:py-3 space-y-4">
             {/* Title */}
             <div className="space-y-1">
               <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
@@ -1789,8 +1792,9 @@ function MyOpportunitiesPage() {
                 </p>
               </div>
             </div>
+          </div>
 
-            <DialogFooter className="sticky bottom-0 -mx-4 mt-2 flex flex-row items-center gap-2 border-t border-slate-100 bg-white px-4 pb-1 pt-4 sm:-mx-4 sm:justify-end sm:gap-3 sm:px-4 sm:pt-3">
+          <DialogFooter className="border-t border-slate-100 bg-white px-4 py-3 sm:px-4 flex flex-row items-center justify-end gap-2 sm:gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setEditOpen(false)}
