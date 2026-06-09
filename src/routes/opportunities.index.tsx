@@ -6,6 +6,7 @@ import { toast } from "@/components/ui/sonner";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { listOpportunities } from "../functions/listOpportunities";
+import { createOpportunity } from "../functions/createOpportunity";
 import { expressInterest } from "../functions/expressInterest";
 import { saveOpportunity } from "../functions/saveOpportunity";
 import { removeSavedOpportunity } from "../functions/removeSavedOpportunity";
@@ -34,6 +35,12 @@ import {
   ChevronRight,
   Sparkles,
   X,
+  Plus,
+  Tag,
+  HelpCircle,
+  Clock,
+  CheckCircle2,
+  Info,
 } from "lucide-react";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
@@ -47,6 +54,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -212,6 +226,19 @@ function OpportunitiesPage() {
 
   const [searchInputVal, setSearchInputVal] = useState(q);
 
+  // Form Dialog States for Create Opportunity (in-place modal)
+  const [business, setBusiness] = useState<any>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState<"partnership" | "referral" | "distribution" | "vendor" | "hiring" | "strategic_advice" | "investment">("partnership");
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [offerText, setOfferText] = useState("");
+  const [expiryDays, setExpiryDays] = useState("30");
+  const [submitting, setSubmitting] = useState(false);
+  const [hideCompanyName, setHideCompanyName] = useState(false);
+  const [promote, setPromote] = useState(false);
+
   useEffect(() => {
     setSearchInputVal(q);
   }, [q]);
@@ -243,6 +270,80 @@ function OpportunitiesPage() {
         geo: localActiveGeos.length === 0 ? "All" : localActiveGeos.join(","),
       }),
     });
+  };
+
+  // Open Create Dialog
+  const handleOpenCreate = () => {
+    if (!business || business.status !== "approved") {
+      toast.error(
+        `Forbidden: Your business profile status is "${business?.status || "pending"}". Only approved businesses can create opportunities.`,
+        {
+          duration: 5000,
+        },
+      );
+      return;
+    }
+    setTitle("");
+    setCategory("partnership");
+    setDescription("");
+    setLocation("");
+    setOfferText("");
+    setExpiryDays("30");
+    setHideCompanyName(false);
+    setPromote(false);
+    setCreateOpen(true);
+  };
+
+  // Submit Create Opportunity
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (title.trim().length === 0) {
+      toast.error("Title is required");
+      return;
+    }
+    if (description.trim().length < 50 || description.trim().length > 3000) {
+      toast.error(
+        `Description must be between 50 and 3000 characters. Currently: ${description.length}`,
+      );
+      return;
+    }
+
+    if (promote && hideCompanyName) {
+      toast.error("Promoted opportunities cannot be confidential. Please uncheck 'Hide company name' or 'Promote this listing'.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      // Calculate expires_at Date
+      let expires_at: string | null = null;
+      if (expiryDays !== "never") {
+        const days = parseInt(expiryDays, 10);
+        expires_at = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      }
+
+      await createOpportunity({
+        data: {
+          title,
+          category,
+          description,
+          location: location.trim() || null,
+          offer_text: offerText.trim() || null,
+          expires_at,
+          hide_company_name: hideCompanyName,
+          promote,
+        },
+      });
+
+      toast.success("Opportunity Created Successfully");
+      setCreateOpen(false);
+      await loadData();
+    } catch (err: any) {
+      console.error("Create opportunity error:", err);
+      toast.error(err.message || "Failed to create opportunity");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const loadData = async () => {
@@ -410,6 +511,7 @@ function OpportunitiesPage() {
               navigate({ to: "/onboarding", replace: true });
             } else {
               if (status.business) {
+                setBusiness(status.business);
                 setMyBusinessId(status.business.id);
                 const s = status.business.status as string;
                 setMyBusinessStatus(s === "pending" || s === "applied" ? "applied" : (s as any));
@@ -634,12 +736,12 @@ function OpportunitiesPage() {
           
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0">
             {isSignedIn && (
-              <Link
-                to="/opportunities/my"
-                className="bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-5 py-3 md:py-2.5 border border-slate-900 transition-all rounded-[2px] font-bold shadow-sm hover:shadow text-center"
+              <button
+                onClick={handleOpenCreate}
+                className="bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-5 py-3 md:py-2.5 border border-slate-900 transition-all rounded-[2px] font-bold shadow-sm hover:shadow text-center cursor-pointer"
               >
                 Post Opportunity
-              </Link>
+              </button>
             )}
             <div className="flex items-center justify-between sm:justify-end gap-3 border border-slate-200/80 bg-white p-3 md:p-2.5 rounded-[2px] shrink-0">
               <span className="text-slate-400 font-mono text-[9px] uppercase tracking-widest font-bold">
@@ -919,6 +1021,244 @@ function OpportunitiesPage() {
         )}
       </main>
       )}
+
+      {/* CREATE DIALOG */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="flex w-[calc(100vw-1rem)] max-w-[680px] h-[85dvh] sm:h-auto max-h-[88dvh] flex-col gap-0 overflow-hidden bg-white p-0 sm:p-0 text-left font-sans shadow-xl rounded-[4px] border border-slate-200">
+          <DialogHeader className="border-b border-slate-100 px-4 pb-3 pt-5 pr-12 sm:px-4 sm:pt-4 sm:pr-10">
+            <DialogTitle className="font-display text-base sm:text-lg font-black uppercase tracking-tight text-slate-950 leading-tight">
+              Post Opportunity Brief
+            </DialogTitle>
+            <DialogDescription className="text-slate-500 text-xs leading-relaxed">
+              Outline your requirements. Memos are distributed to verified operators matches.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={handleCreateSubmit}
+            className="min-h-0 flex-1 flex flex-col gap-0 overflow-hidden"
+          >
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-4 sm:py-3 space-y-4">
+            {/* Title */}
+            <div className="space-y-1">
+              <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                <span className="flex flex-wrap items-center gap-1">
+                  <Tag className="w-3 h-3" /> Opportunity Title *
+                </span>
+                <TooltipSimple content="Write a short, clear summary of what you are looking for (e.g. 'Looking for SEO Agency').">
+                  <HelpCircle className="w-3 h-3 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                </TooltipSimple>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Looking for SEO Agency / Shopify Dev Shop"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none"
+              />
+            </div>
+
+            {/* Category selection */}
+            <div className="space-y-1">
+              <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                <span className="flex flex-wrap items-center gap-1">
+                  <Briefcase className="w-3.5 h-3.5" /> Exchange Category *
+                </span>
+                <TooltipSimple content="Select the type of partnership layout (e.g. client referral exchange, distribution partner, or vendor).">
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-405 hover:text-slate-905 cursor-pointer transition-colors" />
+                </TooltipSimple>
+              </label>
+              <Select value={category} onValueChange={(val) => setCategory(val as any)}>
+                <SelectTrigger className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none cursor-pointer [&>span]:truncate">
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="partnership">
+                    Partnership (Integrations, API merges)
+                  </SelectItem>
+                  <SelectItem value="referral">
+                    Referral (Client exchanges, Mutual handoffs)
+                  </SelectItem>
+                  <SelectItem value="distribution">
+                    Distribution (IT Consultancies, Resellers)
+                  </SelectItem>
+                  <SelectItem value="vendor">Vendor (Scaling pipeline requirements)</SelectItem>
+                  <SelectItem value="hiring">Hiring (Recruitment, Talent pipeline requests)</SelectItem>
+                  <SelectItem value="strategic_advice">
+                    Strategic Advice (Advisory, Board positions, Mentorship)
+                  </SelectItem>
+                  <SelectItem value="investment">Investment (Funding requests, Capital raises)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-1">
+              <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5 justify-between">
+                <span className="flex flex-wrap items-center gap-1.5">
+                  <span className="flex flex-wrap items-center gap-1">
+                    <Info className="w-3 h-3" /> Brief Description *
+                  </span>
+                  <TooltipSimple content="Provide detailed context, scope, requirements, and target timeline for this growth request (50 to 3000 chars).">
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                  </TooltipSimple>
+                </span>
+                <span className="text-[8px] text-slate-400 font-normal lowercase">
+                  {description.length} / 50 min chars
+                </span>
+              </label>
+              <textarea
+                required
+                rows={4}
+                maxLength={3000}
+                placeholder="Describe your request in detail. Provide background context, scope of work, timeline, and expectations. Min 50 characters required."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full min-w-0 p-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono resize-y outline-none"
+              />
+            </div>
+
+            <div className="grid min-w-0 sm:grid-cols-2 gap-4">
+              {/* Location */}
+              <div className="space-y-1">
+                <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                  <span className="flex flex-wrap items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5" /> Location Target (Optional)
+                  </span>
+                  <TooltipSimple content="Optionally restrict your target partners to a specific country, region, or specify 'Remote' / 'Global'.">
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                  </TooltipSimple>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. India, USA, Global, Remote"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none"
+                />
+              </div>
+
+              {/* Expiry */}
+              <div className="space-y-1">
+                <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                  <span className="flex flex-wrap items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> Expiry Period (Optional)
+                  </span>
+                  <TooltipSimple content="Select when this listing will be automatically closed and hidden from the public feed.">
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                  </TooltipSimple>
+                </label>
+                <Select value={expiryDays} onValueChange={setExpiryDays}>
+                  <SelectTrigger className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none cursor-pointer [&>span]:truncate">
+                    <SelectValue placeholder="Select Expiry" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="30">30 Days</SelectItem>
+                    <SelectItem value="60">60 Days</SelectItem>
+                    <SelectItem value="90">90 Days</SelectItem>
+                    <SelectItem value="never">No Expiry</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* What Can You Offer */}
+            <div className="space-y-1">
+              <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                <span className="flex flex-wrap items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> What Can You Offer in Return? (Optional)
+                </span>
+                <TooltipSimple content="Explain what value, referral pipeline, or resources you can provide to the partner in return.">
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                </TooltipSimple>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Can introduce D2C brands / Provide recurring referrals"
+                value={offerText}
+                onChange={(e) => setOfferText(e.target.value)}
+                className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none"
+              />
+            </div>
+
+            {/* Post Anonymously Checkbox */}
+            <div className="flex items-start space-x-2.5 pt-2 pb-1">
+              <Checkbox
+                id="hide_company_name_create"
+                checked={hideCompanyName}
+                onCheckedChange={(checked) => setHideCompanyName(!!checked)}
+                className="mt-0.5"
+                disabled={promote}
+              />
+              <label
+                htmlFor="hide_company_name_create"
+                className={`text-[11px] font-mono font-bold uppercase tracking-wider cursor-pointer flex flex-wrap items-center gap-1.5 select-none ${
+                  promote ? "text-slate-400 cursor-not-allowed" : "text-slate-700"
+                }`}
+              >
+                <span>Post anonymously (Hide company name from public feed)</span>
+                <TooltipSimple content="If checked, your company name is displayed as 'Confidential' and logo/LinkedIn links are hidden from non-owners in the public directories.">
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                </TooltipSimple>
+              </label>
+            </div>
+
+            {/* Promote Opportunity Banner */}
+            <div className={`p-3.5 border rounded-[4px] transition-all flex items-start space-x-3 mt-2 ${
+              hideCompanyName 
+                ? "bg-slate-50 border-slate-200/60 opacity-60 cursor-not-allowed" 
+                : promote
+                  ? "bg-orange-50/40 border-orange-200/80 shadow-xs"
+                  : "bg-white border-slate-200 hover:border-slate-300"
+            }`}>
+              <Checkbox
+                id="promote_create"
+                checked={promote}
+                onCheckedChange={(checked) => setPromote(!!checked)}
+                className="mt-1 cursor-pointer"
+                disabled={hideCompanyName}
+              />
+              <div className="space-y-1 select-none flex-1">
+                <label
+                  htmlFor="promote_create"
+                  className={`text-[10px] font-mono font-extrabold uppercase tracking-wider block ${
+                    hideCompanyName ? "text-slate-400 cursor-not-allowed" : "text-orange-600 cursor-pointer"
+                  }`}
+                >
+                  Promote listing for 10x visibility
+                </label>
+                <p className={`text-[11px] font-sans leading-relaxed ${
+                  hideCompanyName ? "text-slate-400" : "text-slate-500"
+                }`}>
+                  {hideCompanyName 
+                    ? "Featured listings must show your company name and cannot be posted anonymously." 
+                    : "Requests superadmin verification. Once approved, this listing is pinned to the Featured section in dark-theme with orange highlight."}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="border-t border-slate-100 bg-white px-4 py-3 sm:px-4 flex flex-row items-center justify-end gap-2 sm:gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setCreateOpen(false)}
+                className="h-10 flex-1 px-4 py-2 border border-slate-200 hover:border-slate-800 text-[10px] font-mono font-bold uppercase tracking-widest rounded-[2px] transition-colors cursor-pointer bg-white sm:flex-none"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="h-10 flex-1 px-5 py-2 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest rounded-[2px] font-bold shadow-xs hover:shadow transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 sm:flex-none"
+              >
+                {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                Publish
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

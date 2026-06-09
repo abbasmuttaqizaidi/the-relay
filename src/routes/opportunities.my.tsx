@@ -68,6 +68,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const mySearchSchema = z.object({
   tab: fallback(z.enum(["posted", "saved", "pending-handshakes"]), "posted").default("posted"),
+  create: fallback(z.boolean(), false).default(false),
 });
 
 export const Route = createFileRoute("/opportunities/my")({
@@ -89,7 +90,7 @@ const CATEGORIES = ["partnership", "referral", "distribution", "vendor", "hiring
 function MyOpportunitiesPage() {
   const { isSignedIn, isLoaded, userId } = useAuth();
   const navigate = useNavigate();
-  const { tab } = Route.useSearch();
+  const { tab, create } = Route.useSearch();
   const [isValidating, setIsValidating] = useState(true);
   const [business, setBusiness] = useState<any>(null);
   const [myOpps, setMyOpps] = useState<any[]>([]);
@@ -108,6 +109,19 @@ function MyOpportunitiesPage() {
   useEffect(() => {
     setActiveTab(tab);
   }, [tab]);
+
+  useEffect(() => {
+    if (create && business) {
+      if (business.status === "approved") {
+        setCreateOpen(true);
+      } else {
+        toast.error(
+          `Forbidden: Your business profile status is "${business.status || "pending"}". Only approved businesses can create opportunities.`,
+        );
+      }
+      navigate({ search: (prev: any) => ({ ...prev, create: undefined }) });
+    }
+  }, [create, business, navigate]);
   const [savedItems, setSavedItems] = useState<any[]>([]);
   const [pendingHandshakes, setPendingHandshakes] = useState<any[]>([]);
   const [detailOpen, setDetailOpen] = useState(false);
