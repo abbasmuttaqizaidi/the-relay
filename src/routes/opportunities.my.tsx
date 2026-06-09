@@ -1335,7 +1335,7 @@ function MyOpportunitiesPage() {
 
       {/* CREATE DIALOG */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="flex w-[calc(100vw-1rem)] max-w-[680px] max-h-[88dvh] flex-col gap-0 overflow-hidden bg-white p-0 sm:p-0 text-left font-sans shadow-xl rounded-[4px] border border-slate-200">
+        <DialogContent className="flex w-[calc(100vw-1rem)] max-w-[680px] h-[85dvh] sm:h-auto max-h-[88dvh] flex-col gap-0 overflow-hidden bg-white p-0 sm:p-0 text-left font-sans shadow-xl rounded-[4px] border border-slate-200">
           <DialogHeader className="border-b border-slate-100 px-4 pb-3 pt-5 pr-12 sm:px-4 sm:pt-4 sm:pr-10">
             <DialogTitle className="font-display text-base sm:text-lg font-black uppercase tracking-tight text-slate-950 leading-tight">
               Post Opportunity Brief
@@ -1571,7 +1571,7 @@ function MyOpportunitiesPage() {
 
       {/* EDIT DIALOG */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="flex w-[calc(100vw-1rem)] max-w-[680px] max-h-[88dvh] flex-col gap-0 overflow-hidden bg-white p-0 sm:p-0 text-left font-sans shadow-xl rounded-[4px] border border-slate-200">
+        <DialogContent className="flex w-[calc(100vw-1rem)] max-w-[680px] h-[85dvh] sm:h-auto max-h-[88dvh] flex-col gap-0 overflow-hidden bg-white p-0 sm:p-0 text-left font-sans shadow-xl rounded-[4px] border border-slate-200">
           <DialogHeader className="border-b border-slate-100 px-4 pb-3 pt-5 pr-12 sm:px-4 sm:pt-4 sm:pr-10">
             <DialogTitle className="font-display text-base sm:text-lg font-black uppercase tracking-tight text-slate-950 flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-4 leading-tight">
               <span className="min-w-0">Edit Opportunity Brief</span>
