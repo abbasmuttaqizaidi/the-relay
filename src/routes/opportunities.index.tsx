@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
+import { ReciprocityBadge } from "@/components/reciprocity-badge";
 import { TooltipSimple } from "@/components/ui/tooltip";
 import {
   Dialog,
@@ -206,6 +207,7 @@ function OpportunitiesPage() {
   const [dbOpps, setDbOpps] = useState<any[]>([]);
   const [loadingOpps, setLoadingOpps] = useState(true);
   const [myBusinessId, setMyBusinessId] = useState<string | null>(null);
+  const [showTroubleshoot, setShowTroubleshoot] = useState(false);
 
   // Local drawer filter states (buffered until 'Apply Filters' is clicked)
   const [localQ, setLocalQ] = useState(q);
@@ -364,11 +366,23 @@ function OpportunitiesPage() {
   };
 
   useEffect(() => {
+    let active = true;
+
+    // Safety timeout to show troubleshooting helper if network/Clerk hangs
+    const safetyTimeout = setTimeout(() => {
+      if (active) {
+        console.warn("[Opportunities] Onboarding verification safety timeout triggered.");
+        setShowTroubleshoot(true);
+      }
+    }, 3500);
+
     async function verifyOnboarding() {
       if (isLoaded) {
         if (isSignedIn) {
           try {
             const status = await checkOnboardingStatus();
+            if (!active) return;
+            
             if (status.isAuthenticated && !status.hasBusiness) {
               toast.error(
                 "Please register your business profile to access the opportunities board.",
@@ -376,6 +390,7 @@ function OpportunitiesPage() {
                   id: "opportunities-onboarding-redirect",
                 },
               );
+              clearTimeout(safetyTimeout);
               navigate({ to: "/onboarding", replace: true });
             } else {
               if (status.business) {
@@ -429,19 +444,28 @@ function OpportunitiesPage() {
               }
               await loadData();
               await loadSaved();
+              clearTimeout(safetyTimeout);
               setIsValidating(false);
             }
           } catch (error) {
             console.error("Error checking onboarding status:", error);
+            await loadData();
+            clearTimeout(safetyTimeout);
             setIsValidating(false);
           }
         } else {
           await loadData();
+          clearTimeout(safetyTimeout);
           setIsValidating(false);
         }
       }
     }
     verifyOnboarding();
+
+    return () => {
+      active = false;
+      clearTimeout(safetyTimeout);
+    };
   }, [isLoaded, isSignedIn, navigate]);
 
   const activeIndustries = useMemo<string[]>(() => {
@@ -519,6 +543,36 @@ function OpportunitiesPage() {
               Connecting to secure router...
             </span>
           </div>
+
+          {showTroubleshoot && (
+            <div className="border border-slate-200 bg-white p-5 rounded-[4px] max-w-sm text-center space-y-3.5 shadow-lg animate-momentum z-10">
+              <p className="text-[11px] text-slate-500 leading-relaxed font-sans">
+                Authentication check is taking longer than expected. On production, this might be due to database connection limits or browser cookie restrictions.
+              </p>
+              <div className="flex gap-2.5 justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    loadData().finally(() => {
+                      setIsValidating(false);
+                    });
+                  }}
+                  className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-mono text-[9.5px] uppercase tracking-widest rounded-[2px] cursor-pointer font-bold shadow-sm"
+                >
+                  Force Load Board
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.reload();
+                  }}
+                  className="px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-mono text-[9.5px] uppercase tracking-widest rounded-[2px] cursor-pointer font-bold shadow-xs"
+                >
+                  Reload Page
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1080,44 +1134,6 @@ function PageNav() {
         </div>
       </div>
     </nav>
-  );
-}
-
-function ReciprocityBadge({ className = "hidden sm:flex" }: { className?: string }) {
-  const { score, introductionsMade, mutualAcceptances, pending, declined } = useReciprocity();
-  const prev = useRef(score);
-  const [pulse, setPulse] = useState(false);
-
-  useEffect(() => {
-    if (score !== prev.current) {
-      setPulse(true);
-      const t = setTimeout(() => setPulse(false), 1200);
-      prev.current = score;
-      return () => clearTimeout(t);
-    }
-  }, [score]);
-
-  return (
-    <div
-      title={`Introductions made: ${introductionsMade} · Mutual acceptances: ${mutualAcceptances} · Pending: ${pending} · Declined: ${declined}`}
-      className={`items-center gap-2.5 border rounded-[4px] px-3.5 py-2 transition-colors ${
-        pulse ? "border-primary bg-primary/10" : "border-slate-200/80 bg-white"
-      } ${className}`}
-    >
-      <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold">
-        Score
-      </span>
-      <span
-        className={`font-display text-sm font-extrabold tabular-nums ${
-          pulse ? "text-primary" : "text-slate-900"
-        }`}
-      >
-        {score}
-      </span>
-      <span className="font-mono text-[9px] text-slate-400 font-bold">
-        · {mutualAcceptances}/{introductionsMade}
-      </span>
-    </div>
   );
 }
 

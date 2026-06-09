@@ -21,23 +21,11 @@ import { withdrawInterest } from "../functions/withdrawInterest";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
-import { useReciprocity } from "@/lib/interest-store";
+import { ReciprocityBadge } from "@/components/reciprocity-badge";
 
 export const Route = createFileRoute("/requests/sent")({
   component: SentRequestsPage,
 });
-
-function ReciprocityBadge({ className }: { className?: string }) {
-  const { score } = useReciprocity();
-  return (
-    <div
-      className={`inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-200 rounded-[2px] font-mono text-[10px] text-slate-600 font-bold ${className}`}
-    >
-      <Activity className="w-3.5 h-3.5 text-orange-500" />
-      <span>Reciprocity: {score}</span>
-    </div>
-  );
-}
 
 function SentRequestsPage() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -59,19 +47,44 @@ function SentRequestsPage() {
   };
 
   useEffect(() => {
+    let active = true;
+    
+    // Safety timeout to clear loading screen after 3.5 seconds if network/Clerk hangs
+    const safetyTimeout = setTimeout(() => {
+      if (active) {
+        console.warn("[Sent Requests] Onboarding verification safety timeout triggered.");
+        loadRequests();
+      }
+    }, 3500);
+
     if (isLoaded) {
       if (!isSignedIn) {
+        clearTimeout(safetyTimeout);
         navigate({ to: "/signup", replace: true });
       } else {
-        checkOnboardingStatus().then((status) => {
-          if (status.isAuthenticated && !status.hasBusiness) {
-            navigate({ to: "/onboarding", replace: true });
-          } else {
+        checkOnboardingStatus()
+          .then((status) => {
+            if (!active) return;
+            if (status.isAuthenticated && !status.hasBusiness) {
+              clearTimeout(safetyTimeout);
+              navigate({ to: "/onboarding", replace: true });
+            } else {
+              clearTimeout(safetyTimeout);
+              loadRequests();
+            }
+          })
+          .catch((err) => {
+            console.error("Error verifying onboarding in sent requests:", err);
+            clearTimeout(safetyTimeout);
             loadRequests();
-          }
-        });
+          });
       }
     }
+
+    return () => {
+      active = false;
+      clearTimeout(safetyTimeout);
+    };
   }, [isLoaded, isSignedIn]);
 
   const handleWithdraw = async (interestId: string, opportunityTitle: string) => {
