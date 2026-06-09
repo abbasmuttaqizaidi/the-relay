@@ -313,11 +313,11 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
                   {isSignedIn ? (
                     <div className="space-y-3">
                       <ReciprocityBadge className="flex w-full justify-between" />
-                      <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                        <span className="text-[9px] font-mono uppercase text-slate-400 tracking-wider font-bold">
+                      <div className="space-y-2">
+                        <span className="text-[9.5px] font-mono uppercase text-slate-400 tracking-widest font-extrabold block px-1">
                           Account
                         </span>
-                        <UserAvatarDropdown />
+                        <UserAvatarDropdown isMobile={true} />
                       </div>
                     </div>
                   ) : (

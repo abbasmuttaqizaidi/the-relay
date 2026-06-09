@@ -294,6 +294,12 @@ To ensure a seamless experience on mobile viewports and reduce routing friction,
 - **Direct Dialog Triggers**: Replaced the redirect logic for "Post Opportunity" from the explore page (`/opportunities`) to the operators dashboard (`/opportunities/my`) with a direct in-place `<Dialog>` modal trigger.
 - **Real-Time Feed Reload**: Once the form is submitted successfully, it calls `createOpportunity`, closes the modal in-place, and fires `await loadData()` to reload the feed without a full page refresh.
 
+### C. Premium Responsive Avatar Redesign
+- **Sleek Frameless Design**: Removed the bulky, text-heavy pill button for the avatar trigger. Replaced it with a clean, modern, and compact container.
+- **Verification Status Indicator Rings & Dots**: Integrated color-coded status rings (amber/gold for Approved, indigo for Applied, slate for Basic) and indicator dots directly on the avatar circle. Hovering over the avatar shows a descriptive tier requirement tooltip.
+- **Full-Width Mobile Trigger**: Implemented a specialized `isMobile` mode rendering a native-looking settings card inside the mobile sheet, featuring rotating chevrons on dropdown open.
+- **Polished Dropdown Profile Card**: Redesigned the header label inside the dropdown menu, turning it into a gorgeous account details badge displaying user name, email, and tier tag.
+
 > [!IMPORTANT]
 > **Zero Regression Policy:** All future edits, style changes, or layout updates must ensure zero layout regressions are introduced. Mobile responsiveness and component alignment across different device viewports must be preserved.
 
