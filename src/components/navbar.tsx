@@ -161,12 +161,22 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
               <ReciprocityBadge className="flex" />
             </div>
             {(!isSignedIn || !profile) && (
-              <Link
-                to={isSignedIn ? "/onboarding" : "/signup"}
-                className="inline-flex bg-slate-900 text-white px-5 py-2 text-[10px] font-mono uppercase tracking-widest hover:bg-primary transition-all rounded-[2px] shadow-sm hover:shadow"
-              >
-                Apply
-              </Link>
+              <div className="flex items-center gap-3">
+                {!isSignedIn && (
+                  <Link
+                    to="/login"
+                    className="inline-flex border border-slate-300 hover:border-slate-800 text-slate-700 px-5 py-2 text-[10px] font-mono uppercase tracking-widest hover:-translate-y-0.5 transition-all rounded-[2px] shadow-sm hover:shadow"
+                  >
+                    Sign In
+                  </Link>
+                )}
+                <Link
+                  to={isSignedIn ? "/onboarding" : "/signup"}
+                  className="inline-flex bg-slate-900 text-white px-5 py-2 text-[10px] font-mono uppercase tracking-widest hover:bg-primary transition-all rounded-[2px] shadow-sm hover:shadow"
+                >
+                  Apply
+                </Link>
+              </div>
             )}
             {isSignedIn && (
               <div className="flex items-center gap-4">
@@ -388,11 +398,14 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
                           Apply Now
                         </Link>
                       </SheetClose>
-                      <SignInButton mode="modal" forceRedirectUrl="/opportunities">
-                        <button className="w-full text-center border border-slate-200 text-slate-600 py-3 text-[11px] font-mono uppercase tracking-widest hover:bg-slate-50 transition-all rounded-lg font-bold flex items-center justify-center gap-2 cursor-pointer">
+                      <SheetClose asChild>
+                        <Link
+                          to="/login"
+                          className="w-full text-center border border-slate-200 text-slate-600 py-3 text-[11px] font-mono uppercase tracking-widest hover:bg-slate-50 transition-all rounded-lg font-bold flex items-center justify-center gap-2 cursor-pointer"
+                        >
                           <LogIn className="w-3.5 h-3.5" /> Sign In
-                        </button>
-                      </SignInButton>
+                        </Link>
+                      </SheetClose>
                     </div>
                   )}
                 </div>

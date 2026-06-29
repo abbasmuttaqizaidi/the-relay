@@ -109,7 +109,7 @@ function SentRequestsPage() {
     if (isLoaded) {
       if (!isSignedIn) {
         clearTimeout(safetyTimeout);
-        navigate({ to: "/signup", replace: true });
+        navigate({ to: "/login", replace: true });
       } else {
         checkOnboardingStatus()
           .then((status) => {

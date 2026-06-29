@@ -516,36 +516,43 @@ function OpportunitiesPage() {
   const loadData = async () => {
     try {
       setLoadingOpps(true);
-      const data = await listOpportunities({});
-      const mapped = (data || []).map((opp: any) => ({
-        id: opp.id,
-        opportunity_number: opp.opportunity_number,
-        type: (opp.category === "strategic_advice"
-          ? "Strategic Advice"
-          : opp.category.charAt(0).toUpperCase() + opp.category.slice(1)) as any,
-        industry: opp.industry || opp.business?.industry || "SaaS",
-        geo: opp.location || "Remote",
-        company: opp.business?.company_name || "Demo",
-        title: opp.title,
-        description: opp.description,
-        trustLevel:
-          opp.business?.status === "approved"
-            ? "Approved"
-            : opp.business?.status === "rejected"
-              ? "Basic"
-              : "Applied",
-        postedAt: formatPostedAt(opp.created_at),
-        interested: opp.interestedCount || 0,
-        business_id: opp.business_id,
-        hide_company_name: opp.hide_company_name ?? false,
-        status: opp.status,
-        expires_at: opp.expires_at,
-        promotion_status: opp.promotion_status || "none",
-      }));
+      let mapped: any[] = [];
+      try {
+        const data = await listOpportunities({});
+        mapped = (data || []).map((opp: any) => ({
+          id: opp.id,
+          opportunity_number: opp.opportunity_number,
+          type: (opp.category === "strategic_advice"
+            ? "Strategic Advice"
+            : opp.category.charAt(0).toUpperCase() + opp.category.slice(1)) as any,
+          industry: opp.industry || opp.business?.industry || "SaaS",
+          geo: opp.location || "Remote",
+          company: opp.business?.company_name || "Demo",
+          title: opp.title,
+          description: opp.description,
+          trustLevel:
+            opp.business?.status === "approved"
+              ? "Approved"
+              : opp.business?.status === "rejected"
+                ? "Basic"
+                : "Applied",
+          postedAt: formatPostedAt(opp.created_at),
+          interested: opp.interestedCount || 0,
+          business_id: opp.business_id,
+          hide_company_name: opp.hide_company_name ?? false,
+          status: opp.status,
+          expires_at: opp.expires_at,
+          promotion_status: opp.promotion_status || "none",
+        }));
+      } catch (dbErr) {
+        console.error("Failed to query opportunities from database, falling back to mock data:", dbErr);
+        toast.error("Database connection failed. Displaying cached/mock opportunities.", {
+          id: "opportunities-db-offline-toast",
+        });
+      }
       setDbOpps([...mapped, ...OPPORTUNITIES]);
     } catch (err) {
-      console.error("Failed to load opportunities from database:", err);
-      toast.error("Failed to load opportunities.");
+      console.error("Critical error in loadData:", err);
     } finally {
       setLoadingOpps(false);
     }
@@ -748,7 +755,7 @@ function OpportunitiesPage() {
             id: "opportunities-auth-required",
           });
           clearTimeout(safetyTimeout);
-          navigate({ to: "/signup", replace: true });
+          navigate({ to: "/login", replace: true });
         }
       }
     }

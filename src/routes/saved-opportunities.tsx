@@ -160,7 +160,7 @@ function SavedOpportunitiesPage() {
     async function verifyUser() {
       if (isLoaded) {
         if (!isSignedIn) {
-          navigate({ to: "/signup", replace: true });
+          navigate({ to: "/login", replace: true });
           return;
         }
         try {

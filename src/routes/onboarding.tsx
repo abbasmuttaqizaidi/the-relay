@@ -115,7 +115,7 @@ function OnboardingPage() {
       toast.error("Please sign up or sign in to register your business.", {
         id: "onboarding-auth-required",
       });
-      navigate({ to: "/signup" });
+      navigate({ to: "/login" });
     }
   }, [isLoaded, isSignedIn]);
 

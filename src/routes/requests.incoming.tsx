@@ -17,6 +17,7 @@ import {
   Activity,
   ArrowLeft,
   ArrowRight,
+  Shield,
 } from "lucide-react";
 import { getIncomingRequests } from "../functions/getIncomingRequests";
 import { acceptInterest } from "../functions/acceptInterest";
@@ -111,7 +112,7 @@ function IncomingRequestsPage() {
     if (isLoaded) {
       if (!isSignedIn) {
         clearTimeout(safetyTimeout);
-        navigate({ to: "/signup", replace: true });
+        navigate({ to: "/login", replace: true });
       } else {
         // Check onboarding
         checkOnboardingStatus()

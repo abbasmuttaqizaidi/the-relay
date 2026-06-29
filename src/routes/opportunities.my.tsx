@@ -344,7 +344,7 @@ function MyOpportunitiesPage() {
       if (isLoaded) {
         if (!isSignedIn) {
           toast.error("Please sign in to access this page.", { id: "my-opps-auth-required" });
-          navigate({ to: "/home", replace: true });
+          navigate({ to: "/login", replace: true });
           return;
         }
 

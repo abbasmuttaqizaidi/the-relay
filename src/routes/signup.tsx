@@ -146,7 +146,7 @@ function SignUpPage() {
           <div className="pt-4 flex items-center gap-4 text-xs font-mono text-muted-foreground">
             <span>Already have an account?</span>
             <Link
-              to="/home"
+              to="/login"
               className="text-primary hover:text-orange-700 font-bold uppercase tracking-wider flex items-center gap-1"
             >
               Sign In <ArrowRight className="w-3.5 h-3.5" />
@@ -160,7 +160,7 @@ function SignUpPage() {
             <SignUp
               routing="path"
               path="/signup"
-              signInUrl="/home" // Under TanStack Router, our Sign In is handled by home/landing
+              signInUrl="/login" // Use our dedicated /login route
               forceRedirectUrl="/onboarding"
               appearance={clerkAppearance}
             />

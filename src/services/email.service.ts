@@ -58,16 +58,13 @@ export class EmailService {
     }
   }
 
-  static async sendWelcomeEmail(toEmail: string, userName?: string) {
-    const subject = "Welcome to The Relay — Where growth finds momentum";
-    const appUrl = process.env.APP_URL || "http://localhost:3000";
-
-    const html = `
+  private static wrapInBrandTemplate(headerTitle: string, bodyHtml: string): string {
+    return `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
-          <title>Welcome to The Relay</title>
+          <title>${headerTitle}</title>
           <style>
             body {
               font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -149,19 +146,7 @@ export class EmailService {
                 <h1 style="color: #ffffff; margin: 0;">THE RELAY</h1>
               </div>
               <div class="content">
-                <h2>Welcome to the Network, ${userName || "Operator"}!</h2>
-                <p>
-                  We are excited to have you join <strong>The Relay</strong> — a curated, high-trust network built specifically for verified founders, operators, and B2B leaders to exchange high-value partnerships, referrals, and vendors.
-                </p>
-                <p>
-                  Here, we replace noisy social feeds with a focused, two-sided double opt-in handshake. You can list opportunities or respond to existing requests from vetted peers.
-                </p>
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${appUrl}/opportunities" class="cta-button" style="color: #ffffff;">Explore Opportunities</a>
-                </div>
-                <p style="font-size: 13px; color: #64748b;">
-                  Need help? View our interactive product tour or reply directly to this email to get in touch with our team.
-                </p>
+                ${bodyHtml}
               </div>
               <div class="footer">
                 © 2026 The Relay Protocol · Double Opt-In Verified B2B Network
@@ -171,6 +156,29 @@ export class EmailService {
         </body>
       </html>
     `;
+  }
+
+  static async sendWelcomeEmail(toEmail: string, userName?: string) {
+    const subject = "Welcome to The Relay — Where growth finds momentum";
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
+
+    const bodyHtml = `
+      <h2>Welcome to the Network, ${userName || "Operator"}!</h2>
+      <p>
+        We are excited to have you join <strong>The Relay</strong> — a curated, high-trust network built specifically for verified founders, operators, and B2B leaders to exchange high-value partnerships, referrals, and vendors.
+      </p>
+      <p>
+        Here, we replace noisy social feeds with a focused, two-sided double opt-in handshake. You can list opportunities or respond to existing requests from vetted peers.
+      </p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${appUrl}/opportunities" class="cta-button" style="color: #ffffff;">Explore Opportunities</a>
+      </div>
+      <p style="font-size: 13px; color: #64748b;">
+        Need help? View our interactive product tour or reply directly to this email to get in touch with our team.
+      </p>
+    `;
+
+    const html = this.wrapInBrandTemplate(subject, bodyHtml);
 
     await this.sendEmail({
       to: toEmail,
@@ -183,13 +191,19 @@ export class EmailService {
 
   static async sendBusinessApproved(ownerEmail: string, companyName: string) {
     const subject = `Your business profile "${companyName}" has been approved!`;
-    const html = `
-      <div style="font-family: sans-serif; padding: 20px; color: #171e26;">
-        <h2 style="color: #de5609;">Business Approved!</h2>
-        <p>Your business profile for <strong>${companyName}</strong> has been successfully approved.</p>
-        <p>You can now post opportunities and pitch/express interest on the platform.</p>
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
+
+    const bodyHtml = `
+      <h2 style="color: #de5609;">Profile Approved</h2>
+      <p>Your business profile for <strong>${companyName}</strong> has been successfully approved.</p>
+      <p>You can now post opportunities, pitch warm introductions, and express interest on the platform.</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${appUrl}/opportunities" class="cta-button" style="color: #ffffff;">Go to Opportunities</a>
       </div>
     `;
+
+    const html = this.wrapInBrandTemplate("Profile Approved — The Relay", bodyHtml);
+
     await this.sendEmail({
       to: ownerEmail,
       subject,
@@ -201,13 +215,19 @@ export class EmailService {
 
   static async sendBusinessRejected(ownerEmail: string, companyName: string, reason?: string) {
     const subject = `Update regarding your business profile: ${companyName}`;
-    const html = `
-      <div style="font-family: sans-serif; padding: 20px; color: #171e26;">
-        <h2>Business Profile Update</h2>
-        <p>Your business profile for <strong>${companyName}</strong> was not approved at this time.</p>
-        <p>Reason: ${reason || "Did not meet criteria"}</p>
-      </div>
+
+    const bodyHtml = `
+      <h2>Profile Verification Update</h2>
+      <p>Thank you for submitting your profile for <strong>${companyName}</strong>.</p>
+      <p>Currently, our team was unable to approve your application.</p>
+      <p><strong>Reason provided:</strong> ${reason || "Did not meet criteria"}</p>
+      <p style="font-size: 13px; color: #64748b; margin-top: 30px;">
+        If you have questions or want to update your application details, please contact us.
+      </p>
     `;
+
+    const html = this.wrapInBrandTemplate("Profile Update — The Relay", bodyHtml);
+
     await this.sendEmail({
       to: ownerEmail,
       subject,
@@ -223,13 +243,19 @@ export class EmailService {
     pitchingCompanyName: string,
   ) {
     const subject = `New Interest in your Opportunity: ${opportunityTitle}`;
-    const html = `
-      <div style="font-family: sans-serif; padding: 20px; color: #171e26;">
-        <h2 style="color: #de5609;">New Interest Received!</h2>
-        <p>A user from <strong>${pitchingCompanyName}</strong> has expressed interest in your opportunity: <strong>${opportunityTitle}</strong>.</p>
-        <p>Check your incoming requests on the dashboard to accept or decline the handshake.</p>
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
+
+    const bodyHtml = `
+      <h2 style="color: #de5609;">New Interest Received!</h2>
+      <p>A verified operator from <strong>${pitchingCompanyName}</strong> has expressed interest in your opportunity: <strong>${opportunityTitle}</strong>.</p>
+      <p>Please log in to your dashboard to review their pitch and accept or decline the handshake.</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${appUrl}/requests/incoming" class="cta-button" style="color: #ffffff;">Review Handshake Request</a>
       </div>
     `;
+
+    const html = this.wrapInBrandTemplate("New Interest Received — The Relay", bodyHtml);
+
     await this.sendEmail({
       to: targetOwnerEmail,
       subject,

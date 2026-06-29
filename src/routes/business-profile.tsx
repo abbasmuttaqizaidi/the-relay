@@ -231,7 +231,7 @@ function BusinessProfilePage() {
       toast.error("Please sign in to view your business profile.", {
         id: "profile-auth-required",
       });
-      navigate({ to: "/signup" });
+      navigate({ to: "/login" });
     }
   }, [isLoaded, isSignedIn]);
 

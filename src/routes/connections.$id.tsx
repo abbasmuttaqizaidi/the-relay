@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   Lock,
+  ArrowLeft,
 } from "lucide-react";
 import { getRequestById } from "../functions/getRequestById";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
@@ -32,6 +33,7 @@ function ConnectionEstablishedPage() {
   const navigate = useNavigate();
   const [interest, setInterest] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [myBusinessId, setMyBusinessId] = useState<string | null>(null);
 
   const startTour = () => {
     const driverObj = driver({
@@ -100,12 +102,15 @@ function ConnectionEstablishedPage() {
   useEffect(() => {
     if (isLoaded) {
       if (!isSignedIn) {
-        navigate({ to: "/signup", replace: true });
+        navigate({ to: "/login", replace: true });
       } else {
         checkOnboardingStatus().then((status) => {
           if (status.isAuthenticated && !status.hasBusiness) {
             navigate({ to: "/onboarding", replace: true });
           } else {
+            if (status.business) {
+              setMyBusinessId(status.business.id);
+            }
             loadInterest();
           }
         });
@@ -137,82 +142,99 @@ function ConnectionEstablishedPage() {
   // Pre-formatted external mailto link combining both contact emails
   const mailtoLink = `mailto:${requestingEmail},${ownerEmail}?subject=The Relay: Connection established between ${requestingBusiness.company_name} and ${ownerBusiness.company_name}&body=Hi team,%0D%0A%0D%0AWe established a mutual interest connection on The Relay regarding opportunity "${interest.opportunity.title}".%0D%0A%0D%0ALet's continue our conversation here.%0D%0A%0D%0ABest regards,`;
 
+  const backRoute = myBusinessId === requestingBusiness.id ? "/requests/sent" : "/requests/incoming";
+
   return (
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col">
 
       {/* Main Body */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 md:px-6 py-10 md:py-16 flex flex-col items-center">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 md:px-6 py-8 md:py-16 flex flex-col items-center">
+        {/* Breadcrumb Back */}
+        <div className="w-full mb-4 md:mb-6">
+          <Link
+            to={backRoute}
+            className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-800 transition-colors font-bold"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Requests
+          </Link>
+        </div>
+
         {/* Banner */}
-        <div id="connection-header" className="w-full text-center space-y-4 mb-10">
+        <div id="connection-header" className="w-full text-center space-y-4 mb-8 md:mb-10">
           <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 px-4 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-widest font-extrabold">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Connection Established
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Connection Established
           </div>
-          <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-none">
             Introduction Active
           </h1>
-          <p className="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">
+          <p className="text-slate-500 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed px-2">
             Both operators have verified mutual interest. Direct channels are now unlocked for external communication.
           </p>
         </div>
 
         {/* Two Columns: Business Profiles */}
-        <div id="connection-cards-row" className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full mb-12">
+        <div id="connection-cards-row" className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 w-full mb-8 md:mb-12">
           {/* Business A - Requesting */}
-          <div className="bg-white border border-slate-200/80 rounded-[4px] p-6 sm:p-8 space-y-6 shadow-sm relative">
-            <div className="absolute top-6 right-6 font-mono text-[8px] uppercase tracking-wider text-slate-400 font-bold border border-slate-100 px-2 py-0.5 rounded-[2px]">
-              Requester
-            </div>
-            
-            <div className="space-y-4">
+          <div className="bg-white border border-slate-200/80 rounded-[4px] p-5 sm:p-8 space-y-5 shadow-sm relative">
+            <div className="flex justify-between items-start gap-4">
               <div className="space-y-1">
                 <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold block">
                   {requestingBusiness.industry} · {requestingBusiness.hq_location || "Global"}
                 </span>
-                <h2 className="font-display text-2xl font-extrabold text-slate-900 flex items-center gap-1.5">
+                <h2 className="font-display text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-1.5 flex-wrap">
                   {requestingBusiness.company_name}
-                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                  <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
                 </h2>
               </div>
-
-              {requestingBusiness.description && (
-                <p className="text-xs text-slate-500 leading-relaxed font-sans">
-                  {requestingBusiness.description}
-                </p>
-              )}
+              <div className="font-mono text-[8px] uppercase tracking-wider text-slate-400 font-bold border border-slate-100 px-2 py-0.5 rounded-[2px] shrink-0 mt-0.5">
+                Requester
+              </div>
             </div>
+            
+            {requestingBusiness.description && (
+              <p className="text-xs text-slate-500 leading-relaxed font-sans border-t border-slate-100/60 pt-4">
+                {requestingBusiness.description}
+              </p>
+            )}
 
-            <div className="border-t border-slate-100 pt-6 space-y-4 text-xs">
-              <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
-                <span className="text-slate-400 font-medium flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" /> Website</span>
+            <div className="border-t border-slate-100 pt-4 space-y-3.5 text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-slate-50 gap-1.5 sm:gap-4">
+                <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
+                  <Globe className="w-3.5 h-3.5" /> Website
+                </span>
                 <a
                   href={`https://${requestingBusiness.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-bold hover:text-primary hover:underline flex items-center gap-1 font-mono"
+                  className="font-bold hover:text-primary hover:underline flex items-center gap-1 font-mono break-all text-left sm:text-right self-start sm:self-auto max-w-full"
                 >
-                  {requestingBusiness.website} <ExternalLink className="w-3 h-3" />
+                  {requestingBusiness.website} <ExternalLink className="w-3 h-3 shrink-0" />
                 </a>
               </div>
 
               {requestingBusiness.linkedin_url && (
-                <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
-                  <span className="text-slate-400 font-medium flex items-center gap-1.5"><Linkedin className="w-3.5 h-3.5" /> LinkedIn</span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-slate-50 gap-1.5 sm:gap-4">
+                  <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
+                    <Linkedin className="w-3.5 h-3.5" /> LinkedIn
+                  </span>
                   <a
                     href={requestingBusiness.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-bold hover:text-primary hover:underline flex items-center gap-1"
+                    className="font-bold hover:text-primary hover:underline flex items-center gap-1 text-left sm:text-right self-start sm:self-auto break-all max-w-full"
                   >
-                    View Profile <ExternalLink className="w-3 h-3" />
+                    View Profile <ExternalLink className="w-3 h-3 shrink-0" />
                   </a>
                 </div>
               )}
 
-              <div className="flex items-center justify-between py-1.5">
-                <span className="text-slate-400 font-medium flex items-center gap-1.5"><Mail className="w-3.5 h-3.5" /> Email</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 gap-1.5 sm:gap-4">
+                <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
+                  <Mail className="w-3.5 h-3.5" /> Email
+                </span>
                 <a
                   href={`mailto:${requestingEmail}`}
-                  className="font-mono font-bold hover:text-primary hover:underline text-slate-900"
+                  className="font-mono font-bold hover:text-primary hover:underline text-slate-900 break-all text-left sm:text-right self-start sm:self-auto max-w-full"
                 >
                   {requestingEmail || "N/A"}
                 </a>
@@ -221,61 +243,66 @@ function ConnectionEstablishedPage() {
           </div>
 
           {/* Business B - Owner */}
-          <div className="bg-white border border-slate-200/80 rounded-[4px] p-6 sm:p-8 space-y-6 shadow-sm relative">
-            <div className="absolute top-6 right-6 font-mono text-[8px] uppercase tracking-wider text-slate-400 font-bold border border-slate-100 px-2 py-0.5 rounded-[2px]">
-              Listing Owner
-            </div>
-
-            <div className="space-y-4">
+          <div className="bg-white border border-slate-200/80 rounded-[4px] p-5 sm:p-8 space-y-5 shadow-sm relative">
+            <div className="flex justify-between items-start gap-4">
               <div className="space-y-1">
                 <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold block">
                   {ownerBusiness.industry} · {ownerBusiness.hq_location || "Global"}
                 </span>
-                <h2 className="font-display text-2xl font-extrabold text-slate-900 flex items-center gap-1.5">
+                <h2 className="font-display text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-1.5 flex-wrap">
                   {ownerBusiness.company_name}
-                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                  <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
                 </h2>
               </div>
-
-              {ownerBusiness.description && (
-                <p className="text-xs text-slate-500 leading-relaxed font-sans">
-                  {ownerBusiness.description}
-                </p>
-              )}
+              <div className="font-mono text-[8px] uppercase tracking-wider text-slate-400 font-bold border border-slate-100 px-2 py-0.5 rounded-[2px] shrink-0 mt-0.5">
+                Listing Owner
+              </div>
             </div>
 
-            <div className="border-t border-slate-100 pt-6 space-y-4 text-xs">
-              <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
-                <span className="text-slate-400 font-medium flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" /> Website</span>
+            {ownerBusiness.description && (
+              <p className="text-xs text-slate-500 leading-relaxed font-sans border-t border-slate-100/60 pt-4">
+                {ownerBusiness.description}
+              </p>
+            )}
+
+            <div className="border-t border-slate-100 pt-4 space-y-3.5 text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-slate-50 gap-1.5 sm:gap-4">
+                <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
+                  <Globe className="w-3.5 h-3.5" /> Website
+                </span>
                 <a
                   href={`https://${ownerBusiness.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-bold hover:text-primary hover:underline flex items-center gap-1 font-mono"
+                  className="font-bold hover:text-primary hover:underline flex items-center gap-1 font-mono break-all text-left sm:text-right self-start sm:self-auto max-w-full"
                 >
-                  {ownerBusiness.website} <ExternalLink className="w-3 h-3" />
+                  {ownerBusiness.website} <ExternalLink className="w-3 h-3 shrink-0" />
                 </a>
               </div>
 
               {ownerBusiness.linkedin_url && (
-                <div className="flex items-center justify-between py-1.5 border-b border-slate-50">
-                  <span className="text-slate-400 font-medium flex items-center gap-1.5"><Linkedin className="w-3.5 h-3.5" /> LinkedIn</span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-slate-50 gap-1.5 sm:gap-4">
+                  <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
+                    <Linkedin className="w-3.5 h-3.5" /> LinkedIn
+                  </span>
                   <a
                     href={ownerBusiness.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-bold hover:text-primary hover:underline flex items-center gap-1"
+                    className="font-bold hover:text-primary hover:underline flex items-center gap-1 text-left sm:text-right self-start sm:self-auto break-all max-w-full"
                   >
-                    View Profile <ExternalLink className="w-3 h-3" />
+                    View Profile <ExternalLink className="w-3 h-3 shrink-0" />
                   </a>
                 </div>
               )}
 
-              <div className="flex items-center justify-between py-1.5">
-                <span className="text-slate-400 font-medium flex items-center gap-1.5"><Mail className="w-3.5 h-3.5" /> Email</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 gap-1.5 sm:gap-4">
+                <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
+                  <Mail className="w-3.5 h-3.5" /> Email
+                </span>
                 <a
                   href={`mailto:${ownerEmail}`}
-                  className="font-mono font-bold hover:text-primary hover:underline text-slate-900"
+                  className="font-mono font-bold hover:text-primary hover:underline text-slate-900 break-all text-left sm:text-right self-start sm:self-auto max-w-full"
                 >
                   {ownerEmail || "N/A"}
                 </a>
@@ -285,25 +312,27 @@ function ConnectionEstablishedPage() {
         </div>
 
         {/* CTA Section */}
-        <div id="connection-cta-box" className="w-full bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-[4px] text-center text-white space-y-6">
+        <div id="connection-cta-box" className="w-full bg-slate-900 border border-slate-800 p-5 sm:p-8 rounded-[4px] text-center text-white space-y-6">
           <div className="space-y-1.5 max-w-xl mx-auto">
             <span className="font-mono text-[9px] uppercase tracking-widest text-slate-500 font-bold">
               [ DIRECT HANDOFF ACTIONS ]
             </span>
-            <h3 className="font-display text-xl font-bold">
+            <h3 className="font-display text-lg sm:text-xl font-bold">
               Ready to collaborate?
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed font-sans">
+            <p className="text-xs text-slate-400 leading-relaxed font-sans px-2">
               Click the button below to draft an email thread with both company contact addresses. Continue your conversation and negotiate deals outside Relay.
             </p>
           </div>
 
-          <a
-            href={mailtoLink}
-            className="inline-flex bg-white text-slate-950 px-6 py-3 text-[10px] font-mono uppercase tracking-widest hover:bg-slate-200 transition-all rounded-[2px] shadow-sm hover:shadow font-bold items-center gap-2"
-          >
-            Continue Conversation Externally <ArrowRight className="w-3.5 h-3.5" />
-          </a>
+          <div className="flex justify-center w-full px-2">
+            <a
+              href={mailtoLink}
+              className="inline-flex w-full sm:w-auto bg-white text-slate-950 px-6 py-3 text-[10px] font-mono uppercase tracking-widest hover:bg-slate-200 transition-all rounded-[2px] shadow-sm hover:shadow font-bold items-center justify-center gap-2"
+            >
+              Continue Conversation Externally <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+            </a>
+          </div>
         </div>
       </main>
     </div>
