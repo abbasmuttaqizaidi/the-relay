@@ -6,12 +6,10 @@ import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import {
   ArrowRight,
   ShieldCheck,
-  BadgeCheck,
   Zap,
   Check,
   Lock,
-  Award,
-  MapPin
+  Award
 } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { driver } from "driver.js";
@@ -143,7 +141,6 @@ function Landing() {
         <HeroSection />
         <ProblemSection />
         <HowItWorksSection />
-        <LiveBoardSection />
         <TrustSystemSection />
         <TestimonialsSection />
         <WhoIsItForSection />
@@ -164,7 +161,7 @@ function HeroSection() {
           for verified businesses
         </h1>
         <p className="text-slate-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-sans">
-          A double-opt-in transaction board where verified B2B founders, operators, and agencies exchange high-value commercial relationships without social media noise.
+          A double-opt-in transaction board where verified B2B founders, operators, and agencies exchange high-value commercial relationships <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-[2px] font-medium">without social media noise</span>.
         </p>
         <div className="text-slate-500 text-xs md:text-sm font-mono space-y-1 uppercase tracking-wider">
           <div>Built for exchanging referral partnerships, distribution deals, and vendor discovery.</div>
@@ -201,25 +198,25 @@ function HeroSection() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           <div className="space-y-1">
             <div className="text-3xl md:text-4xl font-display font-extrabold text-slate-950 tracking-tight">
-              <StatCounter value={1420} trigger={isVisible} />
+              <StatCounter value={86} trigger={isVisible} />
             </div>
             <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">Verified Businesses</div>
           </div>
           <div className="space-y-1">
             <div className="text-3xl md:text-4xl font-display font-extrabold text-slate-950 tracking-tight">
-              <StatCounter value={840} trigger={isVisible} />
+              <StatCounter value={62} trigger={isVisible} />
             </div>
             <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">Partnerships Formed</div>
           </div>
           <div className="space-y-1">
             <div className="text-3xl md:text-4xl font-display font-extrabold text-slate-950 tracking-tight">
-              <StatCounter value={2150} trigger={isVisible} />
+              <StatCounter value={95} trigger={isVisible} />
             </div>
             <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">Referral Deals Exchanged</div>
           </div>
           <div className="space-y-1">
             <div className="text-3xl md:text-4xl font-display font-extrabold text-orange-600 tracking-tight">
-              <StatCounter value={18} trigger={isVisible} />
+              <StatCounter value={12} trigger={isVisible} />
             </div>
             <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">Spots Remaining</div>
           </div>
@@ -362,124 +359,7 @@ function HowItWorksSection() {
   );
 }
 
-function LiveBoardSection() {
-  const { ref, isVisible } = useReveal();
 
-  const mockCards = [
-    {
-      type: "Referral",
-      company: "Shopify Dev Studio",
-      badge: "Approved",
-      title: "UX/UI agency referral partnership for custom storefront design briefs",
-      desc: "We regularly reject front-end design enquiries from our Shopify Plus development clients. Seeking a reliable design studio for reciprocal client handoffs. Offering 10% contract value finder fees.",
-      location: "Mumbai, India",
-    },
-    {
-      type: "Partnership",
-      company: "FragileRoute Logistics",
-      badge: "Approved",
-      title: "API integrations for fragile e-commerce cargo delivery service",
-      desc: "Seeking mid-market D2C wellness brands and 3PL partners to integrate our automated last-mile shipping API. Specifically optimized for handling glass and liquid package configurations.",
-      location: "London, UK",
-    },
-    {
-      type: "Distribution",
-      company: "CloudSync Platforms",
-      badge: "Approved",
-      title: "Regional reseller networks for cloud operations management suite",
-      desc: "Expanding B2B SaaS platform looking to connect with active IT consultancies and system integrators with SME enterprise relationships in DACH. Offering 20% lifetime recurring commissions.",
-      location: "Munich, Germany",
-    },
-    {
-      type: "Vendor",
-      company: "Aura Organics Group",
-      badge: "Approved",
-      title: "ISO-certified biodegradable shipping mailers and box manufacturer",
-      desc: "Scaling organic D2C cosmetics line. Need custom printed biodegradable mailers at 10,000 units per month. Manufacturing facilities based in the EU or United Kingdom preferred.",
-      location: "London, UK",
-    }
-  ];
-
-  const handleRespond = () => {
-    toast.success("Account Required", {
-      description: "Please sign up or sign in to respond to opportunities.",
-      duration: 4000,
-    });
-  };
-
-  return (
-    <div id="live-opportunities" ref={ref} className={`space-y-8 py-12 md:py-16 max-w-7xl mx-auto transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-      <div className="space-y-4 text-center max-w-2xl mx-auto">
-        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em] font-bold">[ ACTIVE LEDGER ]</span>
-        <h2 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight text-slate-950">
-          Live Opportunities
-        </h2>
-        <p className="text-slate-600 text-sm leading-relaxed font-sans">
-          Preview real B2B opportunities currently active on the platform. Sign up to submit your response pitch.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {mockCards.map((card, idx) => {
-          const typeColors = {
-            Referral: "bg-indigo-50 border-indigo-200 text-indigo-700",
-            Partnership: "bg-orange-50 border-orange-200 text-orange-700",
-            Distribution: "bg-emerald-50 border-emerald-200 text-emerald-700",
-            Vendor: "bg-purple-50 border-purple-200 text-purple-700",
-          }[card.type as "Referral" | "Partnership" | "Distribution" | "Vendor"];
-
-          return (
-            <div
-              key={idx}
-              className="bg-white border border-slate-200 hover:border-slate-800 p-6 rounded-[4px] shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-4 hover:-translate-y-1 group"
-            >
-              <div className="space-y-3">
-                {/* Meta Row */}
-                <div className="flex items-center justify-between">
-                  <span className={`px-2.5 py-0.5 border text-[9px] font-mono font-bold uppercase tracking-wider rounded-[2px] ${typeColors}`}>
-                    {card.type}
-                  </span>
-                  <div className="flex items-center gap-1.5 font-mono text-[9px] text-slate-400">
-                    <span className="flex items-center gap-1 font-bold text-slate-800">
-                      {card.company}
-                      <BadgeCheck className="w-3.5 h-3.5 text-white fill-blue-500 shrink-0" />
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      {card.location}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Headline */}
-                <h3 className="font-display text-base font-extrabold text-slate-950 group-hover:text-orange-600 transition-colors leading-tight">
-                  {card.title}
-                </h3>
-
-                {/* Description */}
-                <p className="text-slate-600 text-xs leading-relaxed font-sans line-clamp-2">
-                  {card.desc}
-                </p>
-              </div>
-
-              {/* Action */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest font-bold">Node #R-{2000 + idx}</span>
-                <button
-                  onClick={handleRespond}
-                  className="px-4 py-2 bg-slate-900 text-white text-[9px] font-mono uppercase tracking-widest font-bold rounded-[2px] hover:bg-orange-600 hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgba(234,88,12,0.2)] transition-all duration-300 cursor-pointer"
-                >
-                  Respond
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 function TrustSystemSection() {
   const { ref, isVisible } = useReveal();
