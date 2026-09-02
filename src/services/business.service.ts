@@ -235,6 +235,82 @@ export class BusinessService {
     }
   }
 
+  /**
+   * Lists verified network businesses with active opportunity counts and search/filter support.
+   */
+  static async listNetworkBusinesses(filter: {
+    q?: string;
+    industry?: string;
+    stage?: string;
+    size?: string;
+    status?: string;
+  } = {}): Promise<any[]> {
+    try {
+      const where: any = {
+        status: filter.status && filter.status !== "All" ? filter.status : { in: ["approved", "applied"] },
+      };
+
+      if (filter.industry && filter.industry !== "All") {
+        where.industry = filter.industry;
+      }
+
+      if (filter.stage && filter.stage !== "All") {
+        where.funding_stage = filter.stage;
+      }
+
+      if (filter.size && filter.size !== "All") {
+        where.company_size = filter.size;
+      }
+
+      if (filter.q && filter.q.trim()) {
+        const term = filter.q.trim();
+        where.OR = [
+          { company_name: { contains: term, mode: "insensitive" } },
+          { description: { contains: term, mode: "insensitive" } },
+          { website: { contains: term, mode: "insensitive" } },
+          { industry: { contains: term, mode: "insensitive" } },
+          { hq_location: { contains: term, mode: "insensitive" } },
+        ];
+      }
+
+      const businesses = await prisma.business.findMany({
+        where,
+        include: {
+          opportunities: {
+            where: { status: "active" },
+            select: {
+              id: true,
+              opportunity_number: true,
+              title: true,
+              category: true,
+              industry: true,
+              created_at: true,
+            },
+          },
+        },
+        orderBy: [
+          { created_at: "desc" },
+        ],
+      });
+
+      return businesses.map((b) => ({
+        ...BusinessService.mapBusinessModel(b),
+        active_opportunities: b.opportunities.map((o) => ({
+          id: o.id,
+          opportunity_number: o.opportunity_number,
+          title: o.title,
+          category: o.category,
+          industry: o.industry,
+          created_at: o.created_at.toISOString(),
+        })),
+        active_opportunities_count: b.opportunities.length,
+      }));
+    } catch (error: any) {
+      console.error("[BusinessService.listNetworkBusinesses] Error:", error);
+      throw new Error(`Failed to list network businesses: ${error.message || error}`);
+    }
+  }
+
   private static invalidateBusinessCache(businessId: string, ownerUserId: string) {
     serverCache.delete(`business:id:${businessId}`);
     serverCache.delete(`business:owner:${ownerUserId}`);

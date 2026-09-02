@@ -1742,20 +1742,20 @@ function ResultCard({
     : (TYPE_ACCENT[opp.type] ?? "bg-slate-100 text-slate-600");
 
   const articleLayoutClass = isMultiPromoted
-    ? "flex flex-col xl:flex-row gap-6"
-    : "flex flex-col md:flex-row gap-6";
+    ? "flex flex-col xl:flex-row gap-3.5 sm:gap-6"
+    : "flex flex-col md:flex-row gap-3.5 sm:gap-6";
 
   const rightColClass = isMultiPromoted
-    ? `xl:w-40 flex flex-row xl:flex-col items-center xl:items-stretch justify-between xl:justify-center gap-4 border-t xl:border-t-0 xl:border-l pt-4 xl:pt-0 xl:pl-6 ${
+    ? `xl:w-40 flex flex-row xl:flex-col items-center xl:items-stretch justify-between xl:justify-center gap-2.5 sm:gap-4 border-t xl:border-t-0 xl:border-l pt-2.5 sm:pt-4 xl:pt-0 xl:pl-6 ${
         isPromoted ? "border-slate-900" : "border-slate-100"
       }`
-    : `md:w-40 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-center gap-4 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 ${
+    : `md:w-40 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-center gap-2.5 sm:gap-4 border-t md:border-t-0 md:border-l pt-2.5 sm:pt-4 md:pt-0 md:pl-6 ${
         isPromoted ? "border-slate-900" : "border-slate-100"
       }`;
 
   return (
     <article
-      className={`border p-4 sm:p-6 rounded-[4px] transition-all duration-300 animate-momentum relative overflow-hidden ${articleLayoutClass} ${cardClasses}`}
+      className={`border p-3.5 sm:p-5 md:p-6 rounded-[4px] transition-all duration-300 animate-momentum relative overflow-hidden ${articleLayoutClass} ${cardClasses}`}
       style={{ animationDelay: `${delay}ms` }}
     >
       {/* Top-Right Bookmark Button */}
@@ -1765,7 +1765,7 @@ function ResultCard({
             e.preventDefault();
             onSaveToggle(opp.id, !isSaved);
           }}
-          className={`absolute top-4 right-4 p-1.5 rounded-full transition-colors focus:outline-none cursor-pointer z-10 ${
+          className={`absolute top-3 right-3 sm:top-4 sm:right-4 p-1 sm:p-1.5 rounded-full transition-colors focus:outline-none cursor-pointer z-10 ${
             isPromoted
               ? "hover:bg-slate-900 text-slate-400 hover:text-slate-200"
               : "hover:bg-slate-50 text-slate-400 hover:text-slate-600"
@@ -1773,7 +1773,7 @@ function ResultCard({
           title={isSaved ? "Remove from saved" : "Save opportunity"}
         >
           <Bookmark
-            className={`w-4 h-4 transition-all duration-200 ${
+            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-200 ${
               isSaved
                 ? "fill-orange-500 text-orange-500 scale-110"
                 : isPromoted
@@ -1784,30 +1784,30 @@ function ResultCard({
         </button>
       )}
 
-      <div className="flex-1 space-y-3.5">
+      <div className="flex-1 space-y-2.5 sm:space-y-3.5">
         {/* Top bar tags */}
-        <div className="flex items-center justify-between gap-4 flex-wrap pr-8">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-3 sm:gap-4 flex-wrap pr-7 sm:pr-8">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <span
-              className={`px-2.5 py-0.5 text-[8.5px] font-mono font-bold uppercase tracking-wider rounded-[2px] ${typeTagClass}`}
+              className={`px-2 sm:px-2.5 py-0.5 text-[8px] sm:text-[8.5px] font-mono font-bold uppercase tracking-wider rounded-[2px] ${typeTagClass}`}
             >
               {opp.type}
             </span>
 
             {isPromoted && (
-              <span className="inline-flex items-center px-2.5 py-0.5 text-[8.5px] font-mono font-bold uppercase tracking-wider rounded-[2px] bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm shadow-orange-950/50">
+              <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 text-[8px] sm:text-[8.5px] font-mono font-bold uppercase tracking-wider rounded-[2px] bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-sm shadow-orange-950/50">
                 Featured
               </span>
             )}
 
             <span
-              className={`font-mono text-[9px] font-medium ${isPromoted ? "text-slate-500" : "text-slate-400"}`}
+              className={`font-mono text-[8.5px] sm:text-[9px] font-medium ${isPromoted ? "text-slate-500" : "text-slate-400"}`}
             >
               #{opp.opportunity_number || opp.id}
             </span>
           </div>
           <span
-            className={`font-mono text-[9px] uppercase tracking-widest font-bold flex items-center gap-1 ${isPromoted ? "text-slate-400" : "text-slate-400"}`}
+            className={`font-mono text-[8.5px] sm:text-[9px] uppercase tracking-widest font-bold flex items-center gap-1 ${isPromoted ? "text-slate-400" : "text-slate-400"}`}
           >
             <Calendar className="w-3 h-3" />
             {opp.postedAt}
@@ -1815,9 +1815,9 @@ function ResultCard({
         </div>
 
         {/* Title & Description */}
-        <div className="space-y-1.5">
+        <div className="space-y-1 sm:space-y-1.5">
           <h3
-            className={`font-display text-xl font-bold leading-tight transition-colors ${
+            className={`font-display text-base sm:text-lg md:text-xl font-bold leading-snug sm:leading-tight transition-colors ${
               isPromoted
                 ? "text-slate-50 hover:text-orange-400"
                 : "text-slate-900 hover:text-primary"
@@ -1826,7 +1826,7 @@ function ResultCard({
             {opp.title}
           </h3>
           <p
-            className={`text-sm leading-relaxed font-sans ${isPromoted ? "text-slate-300" : "text-slate-600"}`}
+            className={`text-xs sm:text-sm line-clamp-2 sm:line-clamp-3 md:line-clamp-none leading-relaxed font-sans ${isPromoted ? "text-slate-300" : "text-slate-600"}`}
           >
             {opp.description}
           </p>
@@ -1834,14 +1834,14 @@ function ResultCard({
 
         {/* Company & Meta Info Row */}
         <div
-          className={`flex items-center gap-3 font-mono text-[10px] border-t pt-3 flex-wrap ${
+          className={`flex items-center gap-2 sm:gap-3 font-mono text-[9px] sm:text-[10px] border-t pt-2 sm:pt-3 flex-wrap ${
             isPromoted ? "border-slate-900 text-slate-400" : "border-slate-50 text-slate-400"
           }`}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Minimal company logo placeholder */}
             <div
-              className={`w-5 h-5 rounded-[2px] flex items-center justify-center font-sans text-[8px] font-bold uppercase ${
+              className={`w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] flex items-center justify-center font-sans text-[7.5px] sm:text-[8px] font-bold uppercase ${
                 isPromoted
                   ? "bg-slate-900 border border-slate-800 text-orange-400"
                   : "bg-slate-100 border border-slate-200 text-slate-600"
@@ -1850,7 +1850,7 @@ function ResultCard({
               {initials}
             </div>
             <span
-              className={`font-bold flex items-center gap-1.5 ${isPromoted ? "text-white" : "text-slate-900"}`}
+              className={`font-bold flex items-center gap-1 sm:gap-1.5 ${isPromoted ? "text-white" : "text-slate-900"}`}
             >
               {displayName}
               {opp.trustLevel === "Approved" && !shouldHide && (
@@ -1863,13 +1863,13 @@ function ResultCard({
           <span>·</span>
           <span className="flex items-center gap-1">
             <Briefcase
-              className={`w-3.5 h-3.5 ${isPromoted ? "text-slate-500" : "text-slate-300"}`}
+              className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isPromoted ? "text-slate-500" : "text-slate-300"}`}
             />
             {opp.industry}
           </span>
           <span>·</span>
           <span className="flex items-center gap-1">
-            <MapPin className={`w-3.5 h-3.5 ${isPromoted ? "text-slate-500" : "text-slate-300"}`} />
+            <MapPin className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isPromoted ? "text-slate-500" : "text-slate-300"}`} />
             {opp.geo}
           </span>
         </div>
@@ -1996,10 +1996,10 @@ function ResultCard({
 
         {/* Bottom meta stats */}
         <div
-          className={`flex items-center justify-between pt-3 border-t ${isPromoted ? "border-slate-900" : "border-slate-100"}`}
+          className={`flex items-center justify-between pt-2 sm:pt-3 border-t ${isPromoted ? "border-slate-900" : "border-slate-100"}`}
         >
-          <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold flex items-center gap-1.5">
-            <Users className={`w-3.5 h-3.5 ${isPromoted ? "text-slate-600" : "text-slate-350"}`} />
+          <span className="font-mono text-[8px] sm:text-[9px] uppercase tracking-wider sm:tracking-widest text-slate-400 font-bold flex items-center gap-1.5">
+            <Users className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isPromoted ? "text-slate-600" : "text-slate-350"}`} />
             {opp.interested + (status !== "idle" ? 1 : 0)} verified businesses interested
           </span>
         </div>
@@ -2009,7 +2009,7 @@ function ResultCard({
       <div className={rightColClass}>
         {opp.business_id === myBusinessId ? (
           <div
-            className={`flex-1 md:flex-none md:w-full text-center py-2.5 px-3 border text-[9px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default flex items-center justify-center gap-1.5 ${
+            className={`flex-1 md:flex-none md:w-full text-center py-2 sm:py-2.5 px-3 border text-[8.5px] sm:text-[9px] font-mono uppercase tracking-wider sm:tracking-widest font-bold rounded-[2px] cursor-default flex items-center justify-center gap-1.5 ${
               isPromoted
                 ? "border-slate-800 text-slate-500 bg-slate-900/50"
                 : "border-slate-200 text-slate-400 bg-slate-50/50"
@@ -2021,7 +2021,7 @@ function ResultCard({
         ) : opp.status === "closed" ||
           (opp.expires_at ? new Date(opp.expires_at) < new Date() : false) ? (
           <div
-            className={`flex-1 md:flex-none md:w-full text-center py-2 px-3 border text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] ${
+            className={`flex-1 md:flex-none md:w-full text-center py-2 px-3 border text-[9px] sm:text-[10px] font-mono uppercase tracking-wider sm:tracking-widest font-bold rounded-[2px] ${
               isPromoted
                 ? "border-red-500/30 bg-red-950/20 text-red-400"
                 : "border-red-200 bg-red-50 text-red-600"
@@ -2040,7 +2040,7 @@ function ResultCard({
                     setVerificationOpen(true);
                   }
                 }}
-                className={`w-full py-2.5 px-3 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold ${
+                className={`w-full py-2 sm:py-2.5 px-3 text-[9px] sm:text-[10px] font-mono uppercase tracking-wider sm:tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold ${
                   isPromoted
                     ? "bg-orange-600 hover:bg-orange-500 text-white border border-orange-500/30"
                     : "bg-slate-900 hover:bg-primary text-white border border-slate-900"
@@ -2051,9 +2051,9 @@ function ResultCard({
             )}
 
             {status === "pending" && (
-              <div className="flex flex-col gap-2 w-full">
+              <div className="flex flex-col gap-1.5 sm:gap-2 w-full">
                 <div
-                  className={`text-center py-2 px-3 border text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] ${
+                  className={`text-center py-1.5 sm:py-2 px-3 border text-[9px] sm:text-[10px] font-mono uppercase tracking-wider sm:tracking-widest font-bold rounded-[2px] ${
                     isPromoted
                       ? "border-amber-500/30 bg-amber-950/20 text-amber-400"
                       : "border-amber-500/30 bg-amber-50/50 text-amber-600"

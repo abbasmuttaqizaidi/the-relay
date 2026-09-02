@@ -14,6 +14,7 @@ import { Route as SavedOpportunitiesRouteImport } from './routes/saved-opportuni
 import { Route as QueryRelayRouteImport } from './routes/query-relay'
 import { Route as OpportunitiesRouteImport } from './routes/opportunities'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as NetworkRouteImport } from './routes/network'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as BusinessProfileRouteImport } from './routes/business-profile'
@@ -48,6 +49,11 @@ const OpportunitiesRoute = OpportunitiesRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NetworkRoute = NetworkRouteImport.update({
+  id: '/network',
+  path: '/network',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/business-profile': typeof BusinessProfileRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
+  '/network': typeof NetworkRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRouteWithChildren
   '/query-relay': typeof QueryRelayRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/business-profile': typeof BusinessProfileRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
+  '/network': typeof NetworkRoute
   '/onboarding': typeof OnboardingRoute
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/business-profile': typeof BusinessProfileRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
+  '/network': typeof NetworkRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRouteWithChildren
   '/query-relay': typeof QueryRelayRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/business-profile'
     | '/home'
     | '/login'
+    | '/network'
     | '/onboarding'
     | '/opportunities'
     | '/query-relay'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/business-profile'
     | '/home'
     | '/login'
+    | '/network'
     | '/onboarding'
     | '/query-relay'
     | '/saved-opportunities'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/business-profile'
     | '/home'
     | '/login'
+    | '/network'
     | '/onboarding'
     | '/opportunities'
     | '/query-relay'
@@ -211,6 +223,7 @@ export interface RootRouteChildren {
   BusinessProfileRoute: typeof BusinessProfileRoute
   HomeRoute: typeof HomeRoute
   LoginRoute: typeof LoginRoute
+  NetworkRoute: typeof NetworkRoute
   OnboardingRoute: typeof OnboardingRoute
   OpportunitiesRoute: typeof OpportunitiesRouteWithChildren
   QueryRelayRoute: typeof QueryRelayRoute
@@ -256,6 +269,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/network': {
+      id: '/network'
+      path: '/network'
+      fullPath: '/network'
+      preLoaderRoute: typeof NetworkRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -351,6 +371,7 @@ const rootRouteChildren: RootRouteChildren = {
   BusinessProfileRoute: BusinessProfileRoute,
   HomeRoute: HomeRoute,
   LoginRoute: LoginRoute,
+  NetworkRoute: NetworkRoute,
   OnboardingRoute: OnboardingRoute,
   OpportunitiesRoute: OpportunitiesRouteWithChildren,
   QueryRelayRoute: QueryRelayRoute,

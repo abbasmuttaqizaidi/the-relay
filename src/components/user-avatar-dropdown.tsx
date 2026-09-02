@@ -150,17 +150,17 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
   );
 
   // Status indicator styles
-  const statusDotClass = `absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm ${
+  const statusDotClass = `absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white shadow-xs ${
     tierLabel === "Approved"
-      ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-pulse"
+      ? "bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"
       : tierLabel === "Applied"
         ? "bg-indigo-500"
         : "bg-slate-400"
   }`;
 
-  const statusDotClassMobile = `absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
+  const statusDotClassMobile = `absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-1.5 border-white shadow-xs ${
     tierLabel === "Approved"
-      ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-pulse"
+      ? "bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"
       : tierLabel === "Applied"
         ? "bg-indigo-500"
         : "bg-slate-400"
@@ -170,12 +170,13 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {isMobile ? (
-          <button className="w-full focus:outline-none cursor-pointer group flex items-center justify-between border border-slate-200/80 hover:border-slate-300 hover:bg-slate-50/50 rounded-xl px-3.5 py-3 transition-all bg-white hover:shadow-sm">
-            <div className="flex items-center gap-3 min-w-0">
+          <button className="w-full focus:outline-none cursor-pointer group flex items-center justify-between border border-slate-200/90 hover:border-slate-300 hover:bg-slate-50/80 rounded-[8px] p-2.5 transition-all bg-white shadow-2xs">
+            {/* Left: Avatar + Truncated Text Stack */}
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
               <TooltipSimple content={tierTooltipContent} side="top" align="start">
                 <div className="relative shrink-0">
-                  <Avatar className={`w-10 h-10 border transition-all shrink-0 rounded-full shadow-sm ${
-                    tierLabel === "Approved" ? "border-amber-400/85 ring-2 ring-amber-400/10" : tierLabel === "Applied" ? "border-indigo-400/80 ring-2 ring-indigo-400/10" : "border-slate-200"
+                  <Avatar className={`w-8 h-8 border transition-all shrink-0 rounded-[6px] shadow-2xs ${
+                    tierLabel === "Approved" ? "border-amber-400/90 ring-1.5 ring-amber-400/20" : tierLabel === "Applied" ? "border-indigo-400/90 ring-1.5 ring-indigo-400/20" : "border-slate-200"
                   }`}>
                     <AvatarImage
                       src={avatarSrc}
@@ -183,7 +184,7 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
                       className="object-cover"
                       onError={() => setLogoFailed(true)}
                     />
-                    <AvatarFallback className="text-xs font-mono font-bold bg-primary/10 text-primary">
+                    <AvatarFallback className="text-[10px] font-mono font-bold bg-primary/10 text-primary">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
@@ -191,31 +192,32 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
                 </div>
               </TooltipSimple>
 
-              <div className="flex flex-col items-start min-w-0 text-left">
-                <span className="text-xs font-bold text-slate-800 truncate max-w-[160px] leading-tight font-sans tracking-tight group-hover:text-slate-900 transition-colors">
+              <div className="flex flex-col items-start min-w-0 flex-1 text-left">
+                <span className="text-xs font-bold text-slate-900 truncate w-full leading-tight font-sans tracking-tight">
                   {displayName}
                 </span>
-                <span className="text-[9.5px] font-mono text-slate-400 font-medium leading-none mt-1 tracking-wider uppercase">
-                  {tierLabel === "Approved" ? "Established Entity" : tierLabel === "Applied" ? "Trusted Operator" : "Verified Business"}
+                <span className="text-[9px] font-mono text-slate-400 font-medium leading-none mt-1 truncate w-full">
+                  {user.primaryEmailAddress?.emailAddress || "Verified Operator"}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center text-[8px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-sm ${
-                tierLabel === "Approved" ? "bg-amber-100 text-amber-800 border border-amber-200" : tierLabel === "Applied" ? "bg-indigo-100 text-indigo-800 border border-indigo-200" : "bg-slate-100 text-slate-700 border border-slate-200"
+            {/* Right: Tier Badge + Chevron (Non-shrinking, zero overlap) */}
+            <div className="flex items-center gap-1.5 shrink-0 ml-2">
+              <span className={`inline-flex items-center text-[8px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-[3px] shrink-0 ${
+                tierLabel === "Approved" ? "bg-amber-100 text-amber-900 border border-amber-300/80" : tierLabel === "Applied" ? "bg-indigo-100 text-indigo-900 border border-indigo-300/80" : "bg-slate-100 text-slate-700 border border-slate-200"
               }`}>
                 {tierLabel}
               </span>
-              <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-all duration-200 group-data-[state=open]:rotate-180" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 group-data-[state=open]:rotate-180 shrink-0" />
             </div>
           </button>
         ) : (
-          <button className="focus:outline-none cursor-pointer group flex items-center gap-2.5 border border-slate-200/60 hover:border-slate-300 hover:bg-slate-50/50 rounded-full pl-2 pr-3 py-1.5 transition-all bg-white hover:shadow-sm">
+          <button className="focus:outline-none cursor-pointer group flex items-center gap-2 border border-slate-200/80 hover:border-slate-300 hover:bg-slate-50/60 rounded-full pl-1.5 pr-2.5 py-1 transition-all bg-white shadow-2xs">
             <TooltipSimple content={tierTooltipContent} side="bottom" align="end">
               <div className="relative shrink-0">
-                <Avatar className={`w-8 h-8 border transition-all shrink-0 rounded-full shadow-sm ${
-                  tierLabel === "Approved" ? "border-amber-400/85 ring-2 ring-amber-400/10" : tierLabel === "Applied" ? "border-indigo-400/80 ring-2 ring-indigo-400/10" : "border-slate-200"
+                <Avatar className={`w-7 h-7 border transition-all shrink-0 rounded-full ${
+                  tierLabel === "Approved" ? "border-amber-400/90 ring-1.5 ring-amber-400/20" : tierLabel === "Applied" ? "border-indigo-400/90 ring-1.5 ring-indigo-400/20" : "border-slate-200"
                 }`}>
                   <AvatarImage
                     src={avatarSrc}
@@ -223,7 +225,7 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
                     className="object-cover"
                     onError={() => setLogoFailed(true)}
                   />
-                  <AvatarFallback className="text-[10px] font-mono font-bold bg-primary/10 text-primary">
+                  <AvatarFallback className="text-[9px] font-mono font-bold bg-primary/10 text-primary">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
@@ -231,16 +233,16 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
               </div>
             </TooltipSimple>
 
-            <div className="flex flex-col items-start min-w-0 pr-1 text-left">
-              <span className="text-[11px] font-bold text-slate-700 truncate max-w-[100px] leading-tight font-sans tracking-tight group-hover:text-slate-950 transition-colors">
+            <div className="flex flex-col items-start min-w-0 max-w-[120px] text-left">
+              <span className="text-[11px] font-bold text-slate-800 truncate leading-tight font-sans tracking-tight group-hover:text-slate-950 transition-colors">
                 {displayName}
               </span>
-              <span className="text-[8px] font-mono text-slate-400 font-bold leading-none mt-0.5 tracking-tight uppercase">
-                {tierLabel === "Approved" ? "Established" : tierLabel === "Applied" ? "Trusted" : "Verified"}
+              <span className="text-[7.5px] font-mono text-slate-400 font-bold leading-none mt-0.5 tracking-tight uppercase">
+                {tierLabel}
               </span>
             </div>
 
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-500 transition-all duration-200 group-data-[state=open]:rotate-180" />
+            <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 group-data-[state=open]:rotate-180 shrink-0" />
           </button>
         )}
       </DropdownMenuTrigger>
@@ -251,8 +253,8 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
             <span className="text-xs font-bold text-slate-900 truncate">
               {displayName}
             </span>
-            <span className={`inline-flex items-center text-[8px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm ${
-              tierLabel === "Approved" ? "bg-amber-100 text-amber-800 border border-amber-200" : tierLabel === "Applied" ? "bg-indigo-100 text-indigo-800 border border-indigo-200" : "bg-slate-100 text-slate-700 border border-slate-200"
+            <span className={`inline-flex items-center text-[8px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-[3px] shrink-0 shadow-2xs ${
+              tierLabel === "Approved" ? "bg-amber-100 text-amber-900 border border-amber-300/80" : tierLabel === "Applied" ? "bg-indigo-100 text-indigo-900 border border-indigo-300/80" : "bg-slate-100 text-slate-700 border border-slate-200"
             }`}>
               {tierLabel}
             </span>

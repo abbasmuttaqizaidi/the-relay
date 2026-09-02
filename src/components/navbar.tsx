@@ -13,6 +13,7 @@ import {
   X,
   LogIn,
   HelpCircle,
+  Building2,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
@@ -92,6 +93,7 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
   const isHome = !!matchRoute({ to: "/home", fuzzy: true });
   const isOpportunities = !!matchRoute({ to: "/opportunities", fuzzy: true });
   const isMyOpportunities = !!matchRoute({ to: "/opportunities/my", fuzzy: true });
+  const isNetwork = !!matchRoute({ to: "/network", fuzzy: true });
   const isRequests =
     !!matchRoute({ to: "/requests/incoming", fuzzy: true }) ||
     !!matchRoute({ to: "/requests/sent", fuzzy: true });
@@ -150,8 +152,6 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
                   </Link>
                 </>
               )}
-              <span className="opacity-40 cursor-not-allowed">Network</span>
-              <span className="opacity-40 cursor-not-allowed">Intelligence</span>
             </div>
           </div>
 
@@ -358,21 +358,6 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
                       </>
                     )}
 
-                    {/* Disabled links */}
-                    <div className="mt-2 pt-2 border-t border-slate-100">
-                      <span className="flex items-center gap-3 px-3 py-3 text-slate-300 cursor-not-allowed">
-                        <span className="w-4 h-4" />
-                        <span className="text-[12px] font-mono uppercase tracking-wider font-bold">
-                          Network
-                        </span>
-                      </span>
-                      <span className="flex items-center gap-3 px-3 py-3 text-slate-300 cursor-not-allowed">
-                        <span className="w-4 h-4" />
-                        <span className="text-[12px] font-mono uppercase tracking-wider font-bold">
-                          Intelligence
-                        </span>
-                      </span>
-                    </div>
                   </div>
                 </div>
 
