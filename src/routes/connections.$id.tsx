@@ -100,22 +100,33 @@ function ConnectionEstablishedPage() {
   };
 
   useEffect(() => {
-    if (isLoaded) {
-      if (!isSignedIn) {
-        navigate({ to: "/login", replace: true });
-      } else {
-        checkOnboardingStatus().then((status) => {
-          if (status.isAuthenticated && !status.hasBusiness) {
-            navigate({ to: "/onboarding", replace: true });
-          } else {
-            if (status.business) {
-              setMyBusinessId(status.business.id);
-            }
-            loadInterest();
-          }
-        });
-      }
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
+      const isOAuthHandshake =
+        typeof window !== "undefined" &&
+        (window.location.search.includes("__clerk") ||
+          window.location.hash.includes("__clerk") ||
+          window.location.search.includes("status=") ||
+          window.location.search.includes("created_session_id") ||
+          window.location.search.includes("redirect_url"));
+
+      if (isOAuthHandshake) return;
+
+      navigate({ to: "/login", replace: true });
+      return;
     }
+
+    checkOnboardingStatus().then((status) => {
+      if (status.isAuthenticated && !status.hasBusiness) {
+        navigate({ to: "/onboarding", replace: true });
+      } else {
+        if (status.business) {
+          setMyBusinessId(status.business.id);
+        }
+        loadInterest();
+      }
+    });
   }, [isLoaded, isSignedIn, id]);
 
   if (loading) {

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
@@ -340,41 +340,76 @@ function MyOpportunitiesPage() {
   }, []);
 
   useEffect(() => {
-    async function verifyAndLoad() {
-      if (isLoaded) {
-        if (!isSignedIn) {
-          toast.error("Please sign in to access this page.", { id: "my-opps-auth-required" });
-          navigate({ to: "/login", replace: true });
-          return;
-        }
+    let active = true;
 
+    const proceedWithStatus = async (status: any) => {
+      if (!active) return;
+      if (status.isAuthenticated && !status.hasBusiness) {
+        toast.error("Please register your business profile first.", {
+          id: "my-opps-onboarding-redirect",
+        });
+        navigate({ to: "/onboarding", replace: true });
+      } else {
+        setBusiness(status.business);
+        setIsValidating(false);
+        await loadMyOpportunities();
+        await loadSavedOpportunities();
+        await loadPendingHandshakes();
+        try {
+          const count = await countSavedOpportunities();
+          setSavedCount(count);
+        } catch (cErr) {
+          console.error("Failed to fetch saved count:", cErr);
+        }
+      }
+    };
+
+    if (isSignedIn) {
+      async function verifyUserAndLoad() {
         try {
           const status = await checkOnboardingStatus();
-          if (status.isAuthenticated && !status.hasBusiness) {
-            toast.error("Please register your business profile first.", {
-              id: "my-opps-onboarding-redirect",
-            });
-            navigate({ to: "/onboarding", replace: true });
-          } else {
-            setBusiness(status.business);
-            setIsValidating(false);
-            await loadMyOpportunities();
-            await loadSavedOpportunities();
-            await loadPendingHandshakes();
-            try {
-              const count = await countSavedOpportunities();
-              setSavedCount(count);
-            } catch (cErr) {
-              console.error("Failed to fetch saved count:", cErr);
-            }
+          if (!active) return;
+          if (status.isAuthenticated) {
+            await proceedWithStatus(status);
+            return;
           }
         } catch (error) {
           console.error("Error verifying onboarding status:", error);
           setIsValidating(false);
         }
       }
+      verifyUserAndLoad();
+
+      return () => {
+        active = false;
+      };
     }
-    verifyAndLoad();
+
+    const unauthenticatedRedirectTimer = setTimeout(async () => {
+      if (!active) return;
+      if (isSignedInRef.current) return;
+
+      try {
+        const status = await checkOnboardingStatus();
+        if (!active) return;
+        if (status.isAuthenticated) {
+          await proceedWithStatus(status);
+          return;
+        }
+      } catch (error) {
+        console.error("Fallback onboarding check error:", error);
+      }
+
+      if (!isSignedInRef.current && active) {
+        toast.error("Please sign in to access this page.", { id: "my-opps-auth-required" });
+        navigate({ to: "/login", replace: true });
+      }
+    }, 2500);
+
+    return () => {
+      active = false;
+      clearTimeout(unauthenticatedRedirectTimer);
+    };
   }, [isLoaded, isSignedIn, navigate]);
 
   const handleRemove = async (oppId: string, e?: React.MouseEvent) => {

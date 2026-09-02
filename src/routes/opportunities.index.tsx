@@ -220,6 +220,8 @@ function OpportunitiesPage() {
   const { industry, geo, type, q, minInterested, maxInterested } = Route.useSearch();
   const navigate = Route.useNavigate();
   const { isSignedIn, isLoaded, userId } = useAuth();
+  const isSignedInRef = useRef(isSignedIn);
+  isSignedInRef.current = isSignedIn;
   const [isValidating, setIsValidating] = useState(true);
   const [dbOpps, setDbOpps] = useState<any[]>([]);
   const [loadingOpps, setLoadingOpps] = useState(true);
@@ -665,105 +667,138 @@ function OpportunitiesPage() {
         console.warn("[Opportunities] Onboarding verification safety timeout triggered.");
         setShowTroubleshoot(true);
       }
-    }, 3500);
+    }, 4500);
 
-    async function verifyOnboarding() {
-      if (isLoaded) {
-        if (isSignedIn) {
+    const proceedWithStatus = async (status: any) => {
+      if (!active) return;
+
+      if (status.isAuthenticated && !status.hasBusiness) {
+        toast.error(
+          "Please register your business profile to access the opportunities board.",
+          {
+            id: "opportunities-onboarding-redirect",
+          },
+        );
+        clearTimeout(safetyTimeout);
+        navigate({ to: "/onboarding", replace: true });
+      } else {
+        if (status.business) {
+          setBusiness(status.business);
+          setMyBusinessId(status.business.id);
+          const s = status.business.status as string;
+          setMyBusinessStatus(s === "pending" || s === "applied" ? "applied" : (s as any));
+
           try {
-            const status = await checkOnboardingStatus();
-            if (!active) return;
-
-            if (status.isAuthenticated && !status.hasBusiness) {
-              toast.error(
-                "Please register your business profile to access the opportunities board.",
-                {
-                  id: "opportunities-onboarding-redirect",
-                },
-              );
-              clearTimeout(safetyTimeout);
-              navigate({ to: "/onboarding", replace: true });
-            } else {
-              if (status.business) {
-                setBusiness(status.business);
-                setMyBusinessId(status.business.id);
-                const s = status.business.status as string;
-                setMyBusinessStatus(s === "pending" || s === "applied" ? "applied" : (s as any));
-
-                try {
-                  const sentRequests = await getSentRequests();
-                  const localStore = JSON.parse(localStorage.getItem("relay.interest.v1") || "{}");
-                  for (const req of sentRequests) {
-                    const isAccepted = req.status === "accepted";
-                    localStore[req.opportunity_id] = {
-                      id: req.id,
-                      status: req.status,
-                      pitch: req.message || "",
-                      requestedAt: req.created_at,
-                      respondedAt: req.updated_at,
-                      contact: isAccepted
-                        ? {
-                            name: req.opportunity.business.company_name,
-                            role: "Owner",
-                            email:
-                              req.opportunity.business.contact_email ||
-                              req.opportunity.business.owner?.email ||
-                              "",
-                            website: req.opportunity.business.website || "",
-                            linkedin: req.opportunity.business.linkedin_url || "",
-                            description: req.opportunity.business.description || "",
-                          }
-                        : undefined,
-                    };
-                  }
-                  localStorage.setItem("relay.interest.v1", JSON.stringify(localStore));
-                  window.dispatchEvent(new Event("relay:interest"));
-                } catch (syncErr) {
-                  console.error("Failed to sync interests:", syncErr);
-                }
-
-                let score = 0;
-                try {
-                  const stored = localStorage.getItem("relay.profile.v1");
-                  if (stored) {
-                    score = JSON.parse(stored).score || 0;
-                  }
-                } catch (_) {}
-
-                const mappedProfile = {
-                  companyName: status.business.company_name,
-                  verificationLevel: status.business.status === "approved" ? "Approved" : "Applied",
-                  logoUrl: status.business.logo_url || undefined,
-                  score,
-                };
-                localStorage.setItem("relay.profile.v1", JSON.stringify(mappedProfile));
-                window.dispatchEvent(new Event("relay:profile"));
-              }
-              await loadData();
-              await loadSaved();
-              clearTimeout(safetyTimeout);
-              setIsValidating(false);
+            const sentRequests = await getSentRequests();
+            const localStore = JSON.parse(localStorage.getItem("relay.interest.v1") || "{}");
+            for (const req of sentRequests) {
+              const isAccepted = req.status === "accepted";
+              localStore[req.opportunity_id] = {
+                id: req.id,
+                status: req.status,
+                pitch: req.message || "",
+                requestedAt: req.created_at,
+                respondedAt: req.updated_at,
+                contact: isAccepted
+                  ? {
+                      name: req.opportunity.business.company_name,
+                      role: "Owner",
+                      email:
+                        req.opportunity.business.contact_email ||
+                        req.opportunity.business.owner?.email ||
+                        "",
+                      website: req.opportunity.business.website || "",
+                      linkedin: req.opportunity.business.linkedin_url || "",
+                      description: req.opportunity.business.description || "",
+                    }
+                  : undefined,
+              };
             }
-          } catch (error) {
-            console.error("Error checking onboarding status:", error);
-            await loadData();
-            clearTimeout(safetyTimeout);
-            setIsValidating(false);
+            localStorage.setItem("relay.interest.v1", JSON.stringify(localStore));
+            window.dispatchEvent(new Event("relay:interest"));
+          } catch (syncErr) {
+            console.error("Failed to sync interests:", syncErr);
           }
-        } else {
-          toast.error("Please sign in or sign up to access the opportunities board.", {
-            id: "opportunities-auth-required",
-          });
+
+          let score = 0;
+          try {
+            const stored = localStorage.getItem("relay.profile.v1");
+            if (stored) {
+              score = JSON.parse(stored).score || 0;
+            }
+          } catch (_) {}
+
+          const mappedProfile = {
+            companyName: status.business.company_name,
+            verificationLevel: status.business.status === "approved" ? "Approved" : "Applied",
+            logoUrl: status.business.logo_url || undefined,
+            score,
+          };
+          localStorage.setItem("relay.profile.v1", JSON.stringify(mappedProfile));
+          window.dispatchEvent(new Event("relay:profile"));
+        }
+        await loadData();
+        await loadSaved();
+        clearTimeout(safetyTimeout);
+        setIsValidating(false);
+      }
+    };
+
+    // 1. If signed in, verify onboarding and load feed immediately
+    if (isSignedIn) {
+      async function verifyUserAndLoad() {
+        try {
+          const status = await checkOnboardingStatus();
+          if (!active) return;
+          if (status.isAuthenticated) {
+            await proceedWithStatus(status);
+            return;
+          }
+        } catch (error) {
+          console.error("Error checking onboarding status:", error);
+          await loadData();
           clearTimeout(safetyTimeout);
-          navigate({ to: "/login", replace: true });
+          setIsValidating(false);
         }
       }
+      verifyUserAndLoad();
+
+      return () => {
+        active = false;
+        clearTimeout(safetyTimeout);
+      };
     }
-    verifyOnboarding();
+
+    // 2. If !isSignedIn, allow a grace period of 2.5s for Clerk OAuth/cookie hydration before redirecting
+    const unauthenticatedRedirectTimer = setTimeout(async () => {
+      if (!active) return;
+      if (isSignedInRef.current) return;
+
+      // Final server session fallback check
+      try {
+        const status = await checkOnboardingStatus();
+        if (!active) return;
+        if (status.isAuthenticated) {
+          await proceedWithStatus(status);
+          return;
+        }
+      } catch (error) {
+        console.error("Fallback server auth check error:", error);
+      }
+
+      if (!isSignedInRef.current && active) {
+        toast.error("Please sign in or sign up to access the opportunities board.", {
+          id: "opportunities-auth-required",
+        });
+        clearTimeout(safetyTimeout);
+        navigate({ to: "/login", replace: true });
+      }
+    }, 2500);
 
     return () => {
       active = false;
       clearTimeout(safetyTimeout);
+      clearTimeout(unauthenticatedRedirectTimer);
     };
   }, [isLoaded, isSignedIn, navigate]);
 

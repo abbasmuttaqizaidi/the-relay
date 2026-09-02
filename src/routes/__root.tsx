@@ -111,6 +111,30 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var s = window.location.search || '';
+                  var h = window.location.hash || '';
+                  if (
+                    s.indexOf('__clerk') !== -1 ||
+                    h.indexOf('__clerk') !== -1 ||
+                    s.indexOf('status=') !== -1 ||
+                    h.indexOf('status=') !== -1 ||
+                    s.indexOf('created_session_id') !== -1 ||
+                    h.indexOf('created_session_id') !== -1 ||
+                    s.indexOf('redirect_url') !== -1 ||
+                    h.indexOf('redirect_url') !== -1
+                  ) {
+                    document.documentElement.classList.add('clerk-oauth-resolving');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
         <HeadContent />
       </head>
       <body>

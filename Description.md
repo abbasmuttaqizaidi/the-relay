@@ -32,17 +32,20 @@ This document provides a comprehensive technical, architectural, and structural 
 
 The application leverages a cutting-edge modern JavaScript/TypeScript stack:
 
-| Technology                                                               | Role                 | Details                                                                                                                   |
-| ------------------------------------------------------------------------ | -------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **[React 19](https://react.dev/)**                                       | Component Library    | Leverages the latest React 19 capabilities, running in an SSR-first environment.                                          |
-| **[TanStack Start](https://tanstack.com/router/v1/docs/start/overview)** | Full-Stack Framework | An SSR-first framework powered by **Nitro** and **Vite**, combining server-side routing, streaming, and client rendering. |
-| **[TanStack Router](https://tanstack.com/router)**                       | Routing Engine       | Type-safe, file-based routing with full path-parameter and query-parameter schema validation.                             |
-| **[Vite 7](https://vite.dev/)**                                          | Frontend Tooling     | High-speed module bundling, Hot Module Replacement (HMR), and server-side bundling.                                       |
-| **[Tailwind CSS v4.0](https://tailwindcss.com/)**                        | Styling Engine       | Uses `@tailwindcss/vite` to support CSS-first configurations, theme variables, and optimized compiling.                   |
-| **[TanStack Query v5](https://tanstack.com/query)**                      | Server State         | Handles asynchronous data queries, caching, and server-side state synchronization.                                        |
-| **[Radix UI Primitives](https://www.radix-ui.com/)**                     | UI Elements          | Accessible, unstyled primitives utilized for core user interface elements.                                                |
-| **[Zod](https://zod.dev/)**                                              | Schema Validation    | Provides runtime type validation for routing search queries, inputs, and reciprocity models.                              |
-| **[Bun](https://bun.sh/)**                                               | Package / Runtime    | Configured with `bun.lock` and `bunfig.toml` for exceptionally fast package resolution and scripts.                       |
+| Technology                                                               | Role                    | Details                                                                                                                   |
+| ------------------------------------------------------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **[React 19](https://react.dev/)**                                       | Component Library       | Leverages the latest React 19 capabilities, running in an SSR-first environment.                                          |
+| **[TanStack Start](https://tanstack.com/router/v1/docs/start/overview)** | Full-Stack Framework    | An SSR-first framework powered by **Nitro** and **Vite**, combining server-side routing, streaming, and client rendering. |
+| **[TanStack Router](https://tanstack.com/router)**                       | Routing Engine          | Type-safe, file-based routing with full path-parameter and query-parameter schema validation.                             |
+| **[Clerk](https://clerk.com/)**                                          | Authentication Engine   | Secure JWT-based identity layer (`@clerk/tanstack-react-start`) supporting Google OAuth and email verification.           |
+| **[Prisma ORM](https://www.prisma.io/)**                                 | Database Access         | Type-safe PostgreSQL data layer integrated with Supabase.                                                                 |
+| **[Vite 7](https://vite.dev/)**                                          | Frontend Tooling        | High-speed module bundling, Hot Module Replacement (HMR), and server-side bundling.                                       |
+| **[Tailwind CSS v4.0](https://tailwindcss.com/)**                        | Styling Engine          | Uses `@tailwindcss/vite` to support CSS-first configurations, theme variables, and optimized compiling.                   |
+| **[TanStack Query v5](https://tanstack.com/query)**                      | Server State            | Handles asynchronous data queries, caching, and server-side state synchronization.                                        |
+| **[Radix UI Primitives](https://www.radix-ui.com/)**                     | UI Elements             | Accessible, unstyled primitives utilized for core user interface elements.                                                |
+| **[Zod](https://zod.dev/)**                                              | Schema Validation       | Provides runtime type validation for routing search queries, inputs, and reciprocity models.                              |
+| **[Driver.js](https://driverjs.com/)**                                   | User Onboarding Tour    | Lightweight, framework-agnostic interactive product walkthrough engine.                                                   |
+| **[Bun](https://bun.sh/)**                                               | Package / Runtime       | Configured with `bun.lock` and `bunfig.toml` for exceptionally fast package resolution and scripts.                       |
 
 ---
 
@@ -62,28 +65,58 @@ The application leverages a cutting-edge modern JavaScript/TypeScript stack:
 ├── node_modules/               # Installed dependencies
 ├── package-lock.json           # npm dependency lock file
 ├── package.json                # Project dependencies, metadata, and scripts
+├── prisma/                     # Database schema definitions & migrations
+│   └── schema.prisma           # Prisma PostgreSQL schema
 ├── tsconfig.json               # TypeScript compiler options
 ├── vite.config.ts              # Vite configuration with TanStack & Tailwind integration
 └── src/                        # Main Application Code
-    ├── assets/                 # Static visual resources (e.g. baton.jpg)
+    ├── assets/                 # Static visual resources (e.g. logos, illustrations)
     ├── components/             # Custom interface components
-    │   └── ui/                 # 46 Radix-based UI primitive components (Button, Dialog, etc.)
+    │   ├── ui/                 # 46 Radix-based UI primitive components (Button, Dialog, etc.)
+    │   ├── navbar.tsx          # Global responsive desktop & mobile navigation header
+    │   ├── notifications-dropdown.tsx # Real-time notification inbox with polling
+    │   ├── reciprocity-badge.tsx      # Network score display & tier badge
+    │   └── user-avatar-dropdown.tsx   # Verified profile avatar with tier indicators
+    ├── functions/              # TanStack Server Functions (RPC API endpoints)
+    │   ├── checkOnboardingStatus.ts   # Server-side auth & business profile verifier
+    │   ├── createBusiness.ts          # Business onboarding transaction handler
+    │   ├── createOpportunity.ts       # Listing publisher
+    │   ├── expressInterest.ts         # Inbound handshake initiator & alert trigger
+    │   ├── listOpportunities.ts       # Database opportunities querying with filters
+    │   └── ...                        # Additional action endpoints
     ├── hooks/                  # Custom React hooks (e.g. use-mobile.tsx)
     ├── lib/                    # Shared modules, APIs, and stores
-    │   ├── api/                # Mock or live API endpoint interfaces
-    │   ├── config.server.ts    # Server-side configurations
+    │   ├── auth.server.ts      # Server-side auth utilities & lazy DB user provisioning
+    │   ├── config.server.ts    # Server-side environment configurations
     │   ├── error-capture.ts    # Catastrophic SSR error grabber
     │   ├── error-page.ts       # Fallback error HTML template
     │   ├── interest-store.ts   # LocalStorage interest registry & Reciprocity engine
     │   └── utils.ts            # Tailwind classes utility merger (clsx + tailwind-merge)
     ├── routes/                 # File-Based Routing System
-    │   ├── __root.tsx          # Application shell layout
-    │   ├── index.tsx           # Product landing page route
-    │   └── opportunities.tsx   # Opportunity dashboard route (validated parameters)
+    │   ├── __root.tsx          # Application shell layout & ClerkProvider wrapper
+    │   ├── index.tsx           # Root redirect to /home
+    │   ├── home.tsx            # Marketing landing page
+    │   ├── login.tsx           # Clerk Sign-In portal
+    │   ├── signup.tsx          # Clerk Sign-Up / Apply portal
+    │   ├── onboarding.tsx      # Business registration & vetting submission
+    │   ├── opportunities.tsx   # Opportunities shell route
+    │   ├── opportunities.index.tsx # Core explore feed & filter dashboard
+    │   ├── opportunities.my.tsx    # Operator dashboard & listings management
+    │   ├── saved-opportunities.tsx # Bookmarked listings view
+    │   ├── requests.incoming.tsx   # Inbound B2B handshake review page
+    │   ├── requests.sent.tsx       # Outbound B2B handshake tracking page
+    │   ├── connections.$id.tsx     # Connection reveal & contact unlocking view
+    │   └── admin.tsx           # Superadmin moderation & promotions portal
+    ├── services/               # Database Service Layer (Prisma Business Logic)
+    │   ├── business.service.ts # Business profile creation & query handlers
+    │   ├── interest.service.ts # Handshake lifecycle & activity logging
+    │   ├── opportunity.service.ts # Opportunity CRUD operations & caching
+    │   ├── notification.service.ts # System alerts dispatcher
+    │   └── user.service.ts     # User lookup & provisioning
     ├── routeTree.gen.ts        # AUTO-GENERATED type-safe route mapping
     ├── router.tsx              # TanStack router setup & QueryClient instantiator
     ├── server.ts               # SSR entrypoint & h3 server integration
-    ├── start.ts                # Client entrypoint & start configuration middleware
+    ├── start.ts                # TanStack Start middleware & Clerk middleware setup
     └── styles.css              # Custom global styles and Tailwind v4 directives
 ```
 
@@ -111,22 +144,39 @@ Rather than relying on paid plans alone, access in The Relay is incentivized via
    - Decline: **Neutral (0 Points)**
 4. **Synchronization:** Uses custom window events (`relay:interest` and `storage`) to sync scores in real-time across multiple open tabs.
 
-### C. Type-Safe Dynamic Filtering (`src/routes/opportunities.tsx`)
+### C. Multi-Tier Authentication & Handshake Guard
+
+To prevent race conditions and redirect flickers during OAuth callbacks (e.g. Google Sign-In redirecting to `/opportunities` while the client SDK is still hydrating session tokens):
+
+1. **Primary Client Verification:** Checks if Clerk's client SDK reports `isSignedIn: true`. If valid, proceeds immediately.
+2. **Server Session Fallback:** If `isSignedIn` is temporarily resolving as `false` on initial mount, the route calls `checkOnboardingStatus()`. This server function verifies the active Clerk session cookies via server middleware (`clerkMiddleware()`). If verified on the server, the page loads without triggering unauthenticated redirects.
+3. **Grace Period Buffer:** Unauthenticated redirects wait a 600ms grace period to allow asynchronous OAuth handshakes to complete before kicking guest users to `/login`.
+
+### D. Lazy User Provisioning & Database Syncing
+
+To optimize database operations, user records in Supabase PostgreSQL are created lazily on first server interaction:
+- **`src/lib/auth.server.ts`**: When an authenticated user calls any server function, `getAuthenticatedUser()` extracts the Clerk user ID (`user_...`).
+- If no record exists in the `users` table, Prisma automatically provisions a new User UUID and links it to the Clerk ID.
+- Business registration inside `createBusiness` executes in an atomic `$transaction` linking `businesses` and `business_members`.
+
+### E. Type-Safe Dynamic Filtering (`src/routes/opportunities.index.tsx`)
 
 The Opportunities feed operates a data-dense workspace:
 
 - **Filtering Criteria:** Industry (SaaS, AI, Agency, etc.), Geography (USA, India, UAE, DACH, etc.), and Opportunity Type (Hiring, Vendor, Partnership, Distribution, etc.).
-- **Search Param Validation:** All query states (`q`, `industry`, `geo`, `type`) are bound strictly to the browser URL and validated using **Zod schema integration** inside the Route definition:
+- **Search Param Validation:** All query states (`q`, `industry`, `geo`, `type`, `minInterested`, `maxInterested`) are bound strictly to the browser URL and validated using **Zod schema integration** inside the Route definition:
 
   ```typescript
   const searchSchema = z.object({
-    industry: fallback(z.enum(INDUSTRIES), "All").default("All"),
-    geo: fallback(z.enum(GEOGRAPHIES), "All").default("All"),
-    type: fallback(z.enum(TYPES), "All").default("All"),
+    industry: fallback(z.string(), "All").default("All"),
+    geo: fallback(z.string(), "All").default("All"),
+    type: fallback(z.string(), "All").default("All"),
     q: fallback(z.string(), "").default(""),
+    minInterested: fallback(z.number(), 0).default(0),
+    maxInterested: fallback(z.number(), 15).default(15),
   });
 
-  export const Route = createFileRoute("/opportunities")({
+  export const Route = createFileRoute("/opportunities/")({
     validateSearch: zodValidator(searchSchema),
     // ...
   });
@@ -134,7 +184,7 @@ The Opportunities feed operates a data-dense workspace:
 
   This ensures that bookmarks, refreshes, and back/forward browser navigation preserve the exact filter state with total type-safety.
 
-### D. UI Component Primitives (`src/components/ui/`)
+### F. UI Component Primitives (`src/components/ui/`)
 
 The system comes with **46 highly polished UI primitives** that act as the design system's foundation:
 
@@ -279,7 +329,7 @@ We built the complete two-sided interest request handshake review loop matching 
 
 ---
 
-## 📱 11. Recent Mobile Optimization & In-Place Creation Flow
+## 📱 10. Mobile Optimization & In-Place Creation Flow
 
 To ensure a seamless experience on mobile viewports and reduce routing friction, several responsive design optimizations and a dynamic in-place creation flow were implemented:
 
@@ -305,7 +355,8 @@ To ensure a seamless experience on mobile viewports and reduce routing friction,
 
 ---
 
-## 🚶 12. Interactive Product Onboarding Tour
+## 🚶 11. Interactive Product Onboarding Tour
+
 To ensure user engagement and clean onboarding on first-time usage, we implemented an interactive step-by-step product walkthrough tour:
 - **Driver.js Engine**: Uses the framework-agnostic `driver.js` library, avoiding React 19 package version conflicts.
 - **Brand Theming & Typography**: Extended `src/styles.css` with overrides matching the typography (Inter / Inter Tight), color tokens (Operator Orange buttons & glowing spotlight), and mono spacing styles of the dashboard.
@@ -323,13 +374,14 @@ To ensure user engagement and clean onboarding on first-time usage, we implement
 
 ---
 
-## 🛡️ 10. Agent Guidelines & Safety Guardrails
+## 🛡️ 12. Agent Guidelines & Safety Guardrails
 
 To ensure development safety, all AI coding agents working on this project must adhere strictly to the following rules:
 - **No Destructive Commands**: Never execute any database drops, table wipes, force resets (`prisma db push --force-reset` or similar), or clean commands that remove database records or reset data states without explicit user verification and permission.
 - **No Regressions**: Avoid introducing any style, alignment, or functional regressions across mobile or desktop views.
 - **No Unrequested Logic Disruptions**: Never modify, delete, rewrite, or break existing business logic, structure, or functional code of existing modules or features unless explicitly requested and approved by the user. Adhere strictly to the existing features and structure.
 - **No Git Commands**: Do not run any git commands (`git checkout`, `git reset`, `git push`, `git commit`, etc.) without explicit user permission.
+
 
 
 

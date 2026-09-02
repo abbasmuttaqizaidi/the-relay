@@ -307,3 +307,11 @@
   outline: 2px solid hsl(24 95% 45% / 0.6) !important;
   transition: all 0.3s ease-out !important;
 }
+
+/* Zero-flicker instant OAuth resolution overlay */
+html.clerk-oauth-resolving .clerk-auth-layout {
+  display: none !important;
+}
+html.clerk-oauth-resolving .clerk-auth-loading-overlay {
+  display: flex !important;
+}

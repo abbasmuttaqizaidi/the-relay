@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
@@ -157,33 +157,69 @@ function SavedOpportunitiesPage() {
   };
 
   useEffect(() => {
-    async function verifyUser() {
-      if (isLoaded) {
-        if (!isSignedIn) {
-          navigate({ to: "/login", replace: true });
+    let active = true;
+
+    const proceedWithStatus = async (status: any) => {
+      if (!active) return;
+      if (status.isAuthenticated && !status.hasBusiness) {
+        toast.error("Please register your business profile first.");
+        navigate({ to: "/onboarding", replace: true });
+      } else {
+        setBusiness(status.business);
+        if (status.business?.status === "approved") {
+          navigate({ to: "/opportunities/my", search: { tab: "saved" }, replace: true });
           return;
         }
+        await loadData();
+        setIsValidating(false);
+      }
+    };
+
+    if (isSignedIn) {
+      async function verifyUser() {
         try {
           const status = await checkOnboardingStatus();
-          if (status.isAuthenticated && !status.hasBusiness) {
-            toast.error("Please register your business profile first.");
-            navigate({ to: "/onboarding", replace: true });
-          } else {
-            setBusiness(status.business);
-            if (status.business?.status === "approved") {
-              navigate({ to: "/opportunities/my", search: { tab: "saved" }, replace: true });
-              return;
-            }
-            await loadData();
+          if (!active) return;
+          if (status.isAuthenticated) {
+            await proceedWithStatus(status);
+            return;
           }
         } catch (err) {
           console.error("Error verifying onboarding status:", err);
-        } finally {
           setIsValidating(false);
         }
       }
+      verifyUser();
+
+      return () => {
+        active = false;
+      };
     }
-    verifyUser();
+
+    const unauthenticatedRedirectTimer = setTimeout(async () => {
+      if (!active) return;
+      if (isSignedInRef.current) return;
+
+      try {
+        const status = await checkOnboardingStatus();
+        if (!active) return;
+        if (status.isAuthenticated) {
+          await proceedWithStatus(status);
+          return;
+        }
+      } catch (err) {
+        console.error("Fallback auth check error in saved opportunities:", err);
+      }
+
+      if (!isSignedInRef.current && active) {
+        navigate({ to: "/login", replace: true });
+      }
+    }, 2500);
+
+    return () => {
+      active = false;
+      clearTimeout(unauthenticatedRedirectTimer);
+    };
   }, [isLoaded, isSignedIn, navigate]);
 
   const handleRemove = async (oppId: string, e?: React.MouseEvent) => {

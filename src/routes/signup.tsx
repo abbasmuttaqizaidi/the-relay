@@ -1,10 +1,36 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { SignUp, useAuth } from "@clerk/tanstack-react-start";
-import { useEffect } from "react";
-import { ShieldCheck, ArrowLeft, ArrowRight, Star, Users, Briefcase } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { ShieldCheck, ArrowLeft, ArrowRight, Star, Users, Briefcase, Loader2 } from "lucide-react";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
+import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 
 export const Route = createFileRoute("/signup")({
+  validateSearch: (search: Record<string, unknown>) => search,
+  beforeLoad: async ({ search }) => {
+    // If Clerk OAuth params are present, allow page mount so Clerk SDK can process ticket
+    const hasClerkParam = Object.keys(search || {}).some(
+      (k) => k.startsWith("__clerk") || k === "status" || k === "created_session_id"
+    );
+    if (hasClerkParam) {
+      return;
+    }
+
+    // If no OAuth params, check if already authenticated on server
+    try {
+      const authData = await checkOnboardingStatus();
+      if (authData?.isAuthenticated) {
+        throw redirect({
+          to: "/opportunities",
+          replace: true,
+        });
+      }
+    } catch (err) {
+      if (err && typeof err === "object" && "to" in err) {
+        throw err;
+      }
+    }
+  },
   head: () => ({
     meta: [
       { title: "Apply for Membership — The Relay" },
@@ -21,6 +47,32 @@ export const Route = createFileRoute("/signup")({
 function SignUpPage() {
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
+  const search = Route.useSearch();
+
+  const isReturningFromOAuth = useMemo(() => {
+    const searchKeys = Object.keys(search || {});
+    const hasSearchClerkParam = searchKeys.some(
+      (k) =>
+        k.startsWith("__clerk") ||
+        k === "status" ||
+        k === "created_session_id" ||
+        k === "redirect_url"
+    );
+    if (hasSearchClerkParam) return true;
+
+    if (typeof window !== "undefined") {
+      const locationSearch = window.location.search || "";
+      const locationHash = window.location.hash || "";
+      return (
+        locationSearch.includes("__clerk") ||
+        locationHash.includes("__clerk") ||
+        locationSearch.includes("status=") ||
+        locationSearch.includes("created_session_id") ||
+        locationSearch.includes("redirect_url")
+      );
+    }
+    return false;
+  }, [search]);
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
@@ -62,10 +114,48 @@ function SignUpPage() {
     },
   };
 
+  // Dynamic conditional check
+  const showLoader = isReturningFromOAuth || (isLoaded && isSignedIn);
+
   return (
-    <div className="min-h-screen bg-[#f8f9fa] text-foreground font-sans flex flex-col justify-between selection:bg-primary selection:text-white">
-      {/* Main Content (Split Layout) */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-1.5 pb-12 md:py-20">
+    <div className="min-h-screen bg-[#f8f9fa] text-foreground font-sans flex flex-col justify-between selection:bg-primary selection:text-white relative">
+      {/* 1. Branded Loading Screen (Shown during OAuth resolution or active session) */}
+      <div
+        className={`clerk-auth-loading-overlay min-h-screen flex-1 flex flex-col items-center justify-center px-6 selection:bg-primary selection:text-white ${
+          showLoader ? "flex" : "hidden"
+        }`}
+      >
+        <div className="flex flex-col items-center space-y-6 animate-momentum">
+          <div className="relative">
+            <div className="absolute -inset-4 bg-slate-900/5 rounded-full blur-xl animate-pulse" />
+            <img
+              src={logoUrl}
+              alt="The Relay Logo"
+              className="relative h-12 w-auto object-contain mix-blend-multiply"
+            />
+          </div>
+          <div className="flex flex-col items-center space-y-2 pt-2">
+            <div className="flex items-center gap-2.5">
+              <Loader2 className="w-4 h-4 animate-spin text-slate-800" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-semibold">
+                {isSignedIn ? "Authenticating Session" : "Completing Handshake"}
+              </span>
+            </div>
+            <span className="font-mono text-[9px] text-slate-400 uppercase tracking-widest animate-pulse">
+              {isSignedIn
+                ? "Redirecting to opportunities feed..."
+                : "Verifying credentials with Google..."}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Main Content (Split Layout - Hidden during OAuth resolution) */}
+      <main
+        className={`clerk-auth-layout flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-1.5 pb-12 md:py-20 ${
+          showLoader ? "opacity-0 pointer-events-none absolute -top-[9999px] -left-[9999px]" : ""
+        }`}
+      >
         <div className="mb-1.5 md:mb-6">
           <Link
             to="/home"

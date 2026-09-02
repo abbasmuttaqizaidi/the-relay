@@ -9,7 +9,13 @@ import {
   Zap,
   Check,
   Lock,
-  Award
+  Award,
+  Users,
+  Layers,
+  Handshake,
+  Network,
+  Repeat,
+  Workflow
 } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { driver } from "driver.js";
@@ -141,6 +147,7 @@ function Landing() {
         <HeroSection />
         <ProblemSection />
         <HowItWorksSection />
+        <ExchangeProtocolsSection />
         <TrustSystemSection />
         <TestimonialsSection />
         <WhoIsItForSection />
@@ -359,7 +366,107 @@ function HowItWorksSection() {
   );
 }
 
+function ExchangeProtocolsSection() {
+  const { ref, isVisible } = useReveal();
 
+  const protocols = [
+    {
+      code: "PROTOCOL #01",
+      icon: <Users className="w-5 h-5 text-primary" />,
+      title: "Referral Exchange & Finder Fees",
+      desc: "Partner with B2B agencies and consultancies to exchange client introductions for transparent finder fees or commission shares.",
+      specs: ["Typical Fee: 10% - 20% contract value", "Target: Agencies & Consultancies", "Validation: Signed agreement required"]
+    },
+    {
+      code: "PROTOCOL #02",
+      icon: <Layers className="w-5 h-5 text-primary" />,
+      title: "Distribution & Reselling Channels",
+      desc: "Connect SaaS founders with regional resellers, IT consultants, and distributors with established enterprise relationships.",
+      specs: ["Typical Margin: 20% - 30% recurring margin", "Target: SaaS & Tech Platforms", "Validation: Vetted reseller network"]
+    },
+    {
+      code: "PROTOCOL #03",
+      icon: <Handshake className="w-5 h-5 text-primary" />,
+      title: "Co-Marketing & Strategic Alliances",
+      desc: "Exchange co-selling initiatives, newsletter sponsorships, webinar swaps, or integrated product offerings to mutual audiences.",
+      specs: ["Goal: Audience & Lead Generation", "Target: High-growth B2B Brands", "Validation: Non-compete alignment"]
+    },
+    {
+      code: "PROTOCOL #04",
+      icon: <Network className="w-5 h-5 text-primary" />,
+      title: "Structured Vendor Discovery",
+      desc: "Post a structured brief to source high-fidelity service providers, custom manufacturers, or specialized software engineering groups.",
+      specs: ["Goal: Verified Service Procurement", "Target: Operational buyers", "Validation: Verified case studies"]
+    },
+    {
+      code: "PROTOCOL #05",
+      icon: <Repeat className="w-5 h-5 text-primary" />,
+      title: "Warm Operator Introductions",
+      desc: "Request or offer warm introductions for strategic advice, industry insights, localized market expansion, or board advisory roles.",
+      specs: ["Goal: Knowledge & Network Share", "Target: Verified Founders & GP/LPs", "Validation: Direct operator identity check"]
+    },
+    {
+      code: "PROTOCOL #06",
+      icon: <Workflow className="w-5 h-5 text-primary" />,
+      title: "Joint Venture & Co-Development",
+      desc: "Partner for shared technology integrations, co-development of B2B products, or strategic API licensing agreements.",
+      specs: ["Goal: Technical & Commercial Integration", "Target: Product & Engineering Directors", "Validation: Joint sandbox testing"]
+    }
+  ];
+
+  return (
+    <div id="exchange-protocols" ref={ref} className={`space-y-12 py-12 md:py-16 max-w-7xl mx-auto transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+      <div className="space-y-4 text-center max-w-2xl mx-auto">
+        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em] font-bold">[ SYSTEM CAPABILITIES ]</span>
+        <h2 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight text-slate-950">
+          Supported Exchange Protocols
+        </h2>
+        <p className="text-slate-600 text-sm leading-relaxed font-sans">
+          The Relay supports structured B2B exchange frameworks. Operators post opportunities adhering to these strict transaction categories.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {protocols.map((proto, idx) => (
+          <div
+            key={idx}
+            className="bg-white border border-slate-200 hover:border-slate-800 p-6 rounded-[4px] shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-4 hover:-translate-y-1 group"
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[9px] text-slate-400 uppercase tracking-widest block font-bold">
+                  {proto.code}
+                </span>
+                <div className="w-8 h-8 bg-slate-50 border border-slate-200/60 rounded-[2px] flex items-center justify-center shrink-0">
+                  {proto.icon}
+                </div>
+              </div>
+
+              <h3 className="font-display text-base font-extrabold text-slate-950 group-hover:text-primary transition-colors leading-tight">
+                {proto.title}
+              </h3>
+
+              <p className="text-slate-600 text-xs leading-relaxed font-sans">
+                {proto.desc}
+              </p>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100">
+              <ul className="font-mono text-[9px] text-slate-500 uppercase tracking-wider space-y-1">
+                {proto.specs.map((spec, sIdx) => (
+                  <li key={sIdx} className="flex items-center gap-1.5">
+                    <span className="text-primary font-bold">▪</span>
+                    <span>{spec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function TrustSystemSection() {
   const { ref, isVisible } = useReveal();

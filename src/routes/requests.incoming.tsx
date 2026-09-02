@@ -109,36 +109,72 @@ function IncomingRequestsPage() {
       }
     }, 3500);
 
-    if (isLoaded) {
-      if (!isSignedIn) {
-        clearTimeout(safetyTimeout);
-        navigate({ to: "/login", replace: true });
-      } else {
-        // Check onboarding
-        checkOnboardingStatus()
-          .then((status) => {
-            if (!active) return;
-            if (status.isAuthenticated && !status.hasBusiness) {
-              clearTimeout(safetyTimeout);
-              navigate({ to: "/onboarding", replace: true });
-            } else {
-              clearTimeout(safetyTimeout);
-              loadRequests();
-            }
-          })
-          .catch((err) => {
-            console.error("Error verifying onboarding in incoming requests:", err);
-            clearTimeout(safetyTimeout);
-            loadRequests();
-          });
+    async function verifyAndLoad() {
+      if (!isLoaded) return;
+
+      const proceedWithStatus = (status: any) => {
+        if (!active) return;
+        if (status.isAuthenticated && !status.hasBusiness) {
+          clearTimeout(safetyTimeout);
+          navigate({ to: "/onboarding", replace: true });
+        } else {
+          clearTimeout(safetyTimeout);
+          loadRequests();
+        }
+      };
+
+      if (isSignedIn) {
+        try {
+          const status = await checkOnboardingStatus();
+          if (!active) return;
+          if (status.isAuthenticated) {
+            proceedWithStatus(status);
+            return;
+          }
+        } catch (err) {
+          console.error("Error verifying onboarding in incoming requests:", err);
+          clearTimeout(safetyTimeout);
+          loadRequests();
+          return;
+        }
       }
+
+      // 2. Secondary check: If returning from OAuth callback, do NOT redirect to /login
+      const isOAuthHandshake =
+        typeof window !== "undefined" &&
+        (window.location.search.includes("__clerk") ||
+          window.location.hash.includes("__clerk") ||
+          window.location.search.includes("status=") ||
+          window.location.search.includes("created_session_id") ||
+          window.location.search.includes("redirect_url"));
+
+      if (isOAuthHandshake) {
+        return;
+      }
+
+      // 3. Fallback server session check
+      try {
+        const status = await checkOnboardingStatus();
+        if (!active) return;
+        if (status.isAuthenticated) {
+          proceedWithStatus(status);
+          return;
+        }
+      } catch (err) {
+        console.error("Fallback onboarding check error in incoming requests:", err);
+      }
+
+      clearTimeout(safetyTimeout);
+      navigate({ to: "/login", replace: true });
     }
+
+    verifyAndLoad();
 
     return () => {
       active = false;
       clearTimeout(safetyTimeout);
     };
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, navigate]);
 
   const handleAccept = async (interestId: string, companyName: string) => {
     try {
