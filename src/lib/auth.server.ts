@@ -59,12 +59,17 @@ export async function resolveOrCreateUserDuringOnboarding(): Promise<User> {
     console.log(`[Clerk Auth Sync] Registering new Clerk user during onboarding: ${userId}`);
     dbUser = await UserService.createUser({ clerk_user_id: userId, email });
 
-    // Trigger welcome email via Resend
-    try {
-      const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ");
-      await EmailService.sendWelcomeEmail(email, name || undefined);
-    } catch (emailErr) {
-      console.error(`[Clerk Auth Sync] Error sending welcome email to ${email}:`, emailErr);
+    // Trigger welcome email via Resend if not already sent
+    if (!clerkUser.privateMetadata?.welcome_email_sent) {
+      try {
+        const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ");
+        await EmailService.sendWelcomeEmail(email, name || undefined);
+        await client.users.updateUserMetadata(userId, {
+          privateMetadata: { welcome_email_sent: true },
+        });
+      } catch (emailErr) {
+        console.error(`[Clerk Auth Sync] Error sending welcome email to ${email}:`, emailErr);
+      }
     }
   } else if (!dbUser.email) {
     // Sync email in database if it was somehow missing

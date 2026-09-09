@@ -69,7 +69,7 @@ import { TooltipSimple } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const mySearchSchema = z.object({
-  tab: fallback(z.enum(["posted", "saved", "pending-handshakes"]), "posted").default("posted"),
+  tab: fallback(z.enum(["posted", "saved"]), "posted").default("posted"),
   create: fallback(z.boolean(), false).default(false),
 });
 
@@ -114,6 +114,8 @@ const INDUSTRIES = [
 
 function MyOpportunitiesPage() {
   const { isSignedIn, isLoaded, userId } = useAuth();
+  const isSignedInRef = useRef(isSignedIn);
+  isSignedInRef.current = isSignedIn;
   const navigate = useNavigate();
   const { tab, create } = Route.useSearch();
   const [isValidating, setIsValidating] = useState(true);
@@ -129,7 +131,7 @@ function MyOpportunitiesPage() {
   });
 
   // New Tab-related states
-  const [activeTab, setActiveTab] = useState<"posted" | "saved" | "pending-handshakes">(tab);
+  const [activeTab, setActiveTab] = useState<"posted" | "saved">(tab);
 
   useEffect(() => {
     setActiveTab(tab);
@@ -198,11 +200,10 @@ function MyOpportunitiesPage() {
           `Forbidden: Your business profile status is "${business.status || "pending"}". Only approved businesses can create opportunities.`,
         );
       }
-      navigate({ search: (prev: any) => ({ ...prev, create: undefined }) });
+      navigate({ to: "/opportunities/my", search: { tab, create: false } });
     }
-  }, [create, business, navigate]);
+  }, [create, business, navigate, tab]);
   const [savedItems, setSavedItems] = useState<any[]>([]);
-  const [pendingHandshakes, setPendingHandshakes] = useState<any[]>([]);
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedDetailOpp, setSelectedDetailOpp] = useState<any>(null);
 
@@ -309,28 +310,6 @@ function MyOpportunitiesPage() {
     }
   };
 
-  const loadPendingHandshakes = async () => {
-    try {
-      const activeDbOpps = await listOpportunities({});
-      const dbMapped = (activeDbOpps || []).map((opp: any) => ({
-        ...opp,
-        company: opp.business?.company_name || "Confidential",
-        industry: opp.industry || opp.business?.industry || opp.category,
-      }));
-      const allOpps = [...dbMapped, ...OPPORTUNITIES];
-      const pending = allOpps.filter((opp) => store[opp.id]?.status === "pending");
-      setPendingHandshakes(pending);
-    } catch (err) {
-      console.error("Failed to load pending handshakes:", err);
-    }
-  };
-
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      loadPendingHandshakes();
-    }
-  }, [store, isLoaded, isSignedIn]);
-
   useEffect(() => {
     const handleOutsideClick = () => {
       setActiveMenuId(null);
@@ -354,7 +333,6 @@ function MyOpportunitiesPage() {
         setIsValidating(false);
         await loadMyOpportunities();
         await loadSavedOpportunities();
-        await loadPendingHandshakes();
         try {
           const count = await countSavedOpportunities();
           setSavedCount(count);
@@ -789,18 +767,6 @@ function MyOpportunitiesPage() {
             }`}
           >
             Saved<span className="hidden sm:inline"> Memos</span> ({savedItems.length})
-          </button>
-          <button
-            onClick={() =>
-              navigate({ to: "/opportunities/my", search: { tab: "pending-handshakes" } })
-            }
-            className={`py-3 px-3 sm:px-6 border-b-2 transition-all cursor-pointer ${
-              activeTab === "pending-handshakes"
-                ? "border-slate-900 text-slate-900 font-extrabold"
-                : "border-transparent text-slate-400 hover:text-slate-700"
-            }`}
-          >
-            <span className="hidden sm:inline">Interest </span>Sent ({pendingHandshakes.length})
           </button>
         </div>
 
@@ -1302,177 +1268,7 @@ function MyOpportunitiesPage() {
                 </div>
               </>
             )
-          ) : pendingHandshakes.length === 0 ? (
-            <div className="py-20 text-center flex flex-col items-center justify-center space-y-4">
-              <Clock className="w-8 h-8 text-slate-300" />
-              <div className="space-y-1">
-                <h4 className="font-display font-extrabold text-sm text-slate-900 uppercase">
-                  No Pending Handshakes
-                </h4>
-                <p className="text-slate-500 text-xs max-w-sm">
-                  Express interest in other opportunities. When introduction contexts are sent, they
-                  await approval here.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table View */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left border-collapse font-sans text-xs">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold">
-                      <th className="py-4 px-6">Opportunity #</th>
-                      <th className="py-4 px-6">Title</th>
-                      <th className="py-4 px-6">Category</th>
-                      <th className="py-4 px-6">Target Company</th>
-                      <th className="py-4 px-6">Strategic Pitch Sent</th>
-                      <th className="py-4 px-6">Date Sent</th>
-                      <th className="py-4 px-6 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {pendingHandshakes.map((opp) => {
-                      const record = store[opp.id];
-                      const isConnected = record?.status === "accepted";
-                      const shouldHide = opp.hide_company_name && !isConnected && !isApproved;
-                      const displayName = shouldHide
-                        ? "Confidential"
-                        : opp.company || opp.business?.company_name || "Confidential";
-
-                      return (
-                        <tr
-                          key={opp.id}
-                          className="hover:bg-slate-50/50 transition-colors cursor-pointer"
-                          onClick={() => {
-                            setSelectedDetailOpp(opp);
-                            setDetailOpen(true);
-                          }}
-                        >
-                          <td className="py-4 px-6 font-mono text-slate-600 font-bold">
-                            #{opp.opportunity_number || opp.id.substring(0, 8)}
-                          </td>
-                          <td className="py-4 px-6 font-semibold text-slate-900 max-w-xs truncate">
-                            {opp.title}
-                          </td>
-                          <td className="py-4 px-6 font-mono text-[9px] uppercase tracking-wider font-bold">
-                            <span className="px-2 py-0.5 rounded-[2px] bg-slate-100 text-slate-600 border border-slate-200/40">
-                              {opp.category === "strategic_advice" ? "Strategic Advice" : (opp.category || opp.type)}
-                            </span>
-                          </td>
-                          <td className="py-4 px-6 font-bold text-slate-700">{displayName}</td>
-                          <td className="py-4 px-6 max-w-xs truncate text-slate-500 font-sans italic">
-                            &ldquo;{record?.pitch || ""}&rdquo;
-                          </td>
-                          <td className="py-4 px-6 font-mono text-slate-400">
-                            {record?.requestedAt
-                              ? new Date(record.requestedAt).toLocaleDateString()
-                              : "-"}
-                          </td>
-                          <td className="py-4 px-6 text-right">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedDetailOpp(opp);
-                                setDetailOpen(true);
-                              }}
-                              className="p-1.5 border border-slate-200 hover:border-slate-800 text-slate-600 hover:text-slate-900 rounded-[2px] transition-all cursor-pointer bg-white"
-                              title="View Opportunity"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Cards View */}
-              <div className="block md:hidden divide-y divide-slate-100 bg-white">
-                {pendingHandshakes.map((opp) => {
-                  const record = store[opp.id];
-                  const isConnected = record?.status === "accepted";
-                  const shouldHide = opp.hide_company_name && !isConnected && !isApproved;
-                  const displayName = shouldHide
-                    ? "Confidential"
-                    : opp.company || opp.business?.company_name || "Confidential";
-
-                  return (
-                    <div
-                      key={opp.id}
-                      className="p-4 space-y-3 cursor-pointer hover:bg-slate-50/50 transition-colors"
-                      onClick={() => {
-                        setSelectedDetailOpp(opp);
-                        setDetailOpen(true);
-                      }}
-                    >
-                      <div className="flex items-center justify-between text-[10px] font-mono">
-                        <span className="font-bold text-slate-600">
-                          #{opp.opportunity_number || opp.id.substring(0, 8)}
-                        </span>
-                        <span className="text-slate-400">
-                          {record?.requestedAt
-                            ? new Date(record.requestedAt).toLocaleDateString()
-                            : "-"}
-                        </span>
-                      </div>
-                      <div className="space-y-1">
-                        <h4 className="font-display font-bold text-slate-900 text-sm leading-snug">
-                          {opp.title}
-                        </h4>
-                        <p className="text-[11px] font-bold text-slate-700">To: {displayName}</p>
-                        <div className="flex flex-wrap gap-1.5 pt-1">
-                          <span className="px-2 py-0.5 border border-slate-200 bg-slate-100 text-[8px] font-mono font-bold uppercase tracking-wider text-slate-600 rounded-[2px]">
-                            {opp.category === "strategic_advice" ? "Strategic Advice" : (opp.category || opp.type)}
-                          </span>
-                        </div>
-                      </div>
-                      {record?.pitch && (
-                        <div className="text-[10px] text-slate-600 font-sans italic bg-slate-50 p-2 rounded-[2px] border border-slate-100">
-                          &ldquo;{record.pitch}&rdquo;
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between border-t border-slate-50 pt-2.5">
-                        <div />
-                        <div className="relative">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveMenuId(prev => prev === opp.id ? null : opp.id);
-                            }}
-                            className="p-1.5 border border-slate-200 hover:border-slate-800 text-slate-600 hover:text-slate-900 rounded-[2px] transition-all cursor-pointer bg-white"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                          {activeMenuId === opp.id && (
-                            <div
-                              onClick={(e) => e.stopPropagation()}
-                              className="absolute right-0 bottom-full mb-1 z-30 min-w-[125px] bg-white border border-slate-200 rounded-[3px] shadow-lg py-1 font-mono text-[9px] font-bold uppercase tracking-wider text-left"
-                            >
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveMenuId(null);
-                                  setSelectedDetailOpp(opp);
-                                  setDetailOpen(true);
-                                }}
-                                className="w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors text-slate-700"
-                              >
-                                <Eye className="w-3.5 h-3.5 text-slate-400" />
-                                View Brief
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
+          ) : null}
         </div>
       </main>
       )}

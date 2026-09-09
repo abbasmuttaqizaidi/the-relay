@@ -202,10 +202,18 @@ export class InterestService {
         include: {
           opportunity: {
             include: {
-              business: true,
+              business: {
+                include: {
+                  owner: true,
+                },
+              },
             },
           },
-          requesting_business: true,
+          requesting_business: {
+            include: {
+              owner: true,
+            },
+          },
         },
       });
 
@@ -222,15 +230,49 @@ export class InterestService {
         data: { status: "accepted" },
       });
 
-      // Notify the expressing business owner
+      // 1. Notify the expressing business owner (requester)
       try {
         await NotificationService.createNotification({
           user_id: existing.requesting_business.owner_user_id,
-          title: "Your Interest Was Accepted",
-          description: `Your interest in "${existing.opportunity.title}" was accepted by ${existing.opportunity.business.company_name}. Contact details unlocked!`,
+          title: "Handshake Complete",
+          description: `${existing.opportunity.business.company_name} accepted your interest in "${existing.opportunity.title}". You can now contact them directly by email.`,
         });
       } catch (notifyErr) {
-        console.error("[InterestService.acceptInterest] Notification failed:", notifyErr);
+        console.error("[InterestService.acceptInterest] Requester notification failed:", notifyErr);
+      }
+
+      // 2. Notify the opportunity owner for confirmation
+      try {
+        await NotificationService.createNotification({
+          user_id: existing.opportunity.business.owner_user_id,
+          title: "Handshake Complete",
+          description: `You accepted ${existing.requesting_business.company_name}'s interest in "${existing.opportunity.title}". You can now contact them directly by email.`,
+        });
+      } catch (notifyOwnerErr) {
+        console.error("[InterestService.acceptInterest] Owner notification failed:", notifyOwnerErr);
+      }
+
+      // 3. Send email to requester via Resend
+      try {
+        const requesterEmail =
+          existing.requesting_business.contact_email ||
+          existing.requesting_business.owner?.email;
+        const ownerEmail =
+          existing.opportunity.business.contact_email ||
+          existing.opportunity.business.owner?.email ||
+          "";
+
+        if (requesterEmail) {
+          await EmailService.sendHandshakeCompleteEmail({
+            toEmail: requesterEmail,
+            acceptingCompanyName: existing.opportunity.business.company_name,
+            acceptingBusinessEmail: ownerEmail,
+            opportunityTitle: existing.opportunity.title,
+            pitchMessage: existing.message,
+          });
+        }
+      } catch (emailErr) {
+        console.error("[InterestService.acceptInterest] Handshake complete email failed:", emailErr);
       }
 
       // Log activity
@@ -290,8 +332,8 @@ export class InterestService {
       try {
         await NotificationService.createNotification({
           user_id: existing.requesting_business.owner_user_id,
-          title: "Your Interest Was Declined",
-          description: `Your interest in "${existing.opportunity.title}" was declined by ${existing.opportunity.business.company_name}.`,
+          title: "Interest Request Declined",
+          description: `Your interest in "${existing.opportunity.title}" was not accepted at this time.`,
         });
       } catch (notifyErr) {
         console.error("[InterestService.declineInterest] Notification failed:", notifyErr);
@@ -322,10 +364,11 @@ export class InterestService {
 
   /**
    * Gets incoming interest requests for a business's opportunities.
+   * Strips private emails if request status is not accepted.
    */
   static async getIncoming(businessId: string) {
     try {
-      return await prisma.interest.findMany({
+      const results = await prisma.interest.findMany({
         where: {
           opportunity: {
             business_id: businessId,
@@ -343,6 +386,18 @@ export class InterestService {
           created_at: "desc",
         },
       });
+
+      // Server-side authorization check: Only reveal contact email if request is accepted
+      for (const item of results) {
+        if (item.status !== "accepted") {
+          item.requesting_business.contact_email = null;
+          if (item.requesting_business.owner) {
+            item.requesting_business.owner.email = null;
+          }
+        }
+      }
+
+      return results;
     } catch (error) {
       console.error("[InterestService.getIncoming] Error:", error);
       throw error;
@@ -351,10 +406,11 @@ export class InterestService {
 
   /**
    * Gets sent interest requests by a business.
+   * Strips private emails if request status is not accepted.
    */
   static async getSent(businessId: string) {
     try {
-      return await prisma.interest.findMany({
+      const results = await prisma.interest.findMany({
         where: {
           requesting_business_id: businessId,
         },
@@ -373,6 +429,18 @@ export class InterestService {
           created_at: "desc",
         },
       });
+
+      // Server-side authorization check: Only reveal target business email if request is accepted
+      for (const item of results) {
+        if (item.status !== "accepted") {
+          item.opportunity.business.contact_email = null;
+          if (item.opportunity.business.owner) {
+            item.opportunity.business.owner.email = null;
+          }
+        }
+      }
+
+      return results;
     } catch (error) {
       console.error("[InterestService.getSent] Error:", error);
       throw error;

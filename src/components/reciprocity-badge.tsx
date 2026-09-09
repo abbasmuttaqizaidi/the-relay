@@ -4,6 +4,10 @@ import { Activity } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 export function ReciprocityBadge({ className = "hidden sm:flex" }: { className?: string }) {
+  // Score / Reciprocity badge functionality temporarily disabled as requested
+  return null;
+
+  /*
   const { score, introductionsMade, mutualAcceptances, pending, declined } = useReciprocity();
   const prev = useRef(score);
   const [pulse, setPulse] = useState(false);
@@ -48,7 +52,6 @@ export function ReciprocityBadge({ className = "hidden sm:flex" }: { className?:
         sideOffset={8}
         className="w-[380px] p-0 overflow-hidden bg-white border border-slate-200 shadow-xl rounded-[4px] flex flex-col z-[100]"
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
             <Activity className="w-3.5 h-3.5 text-orange-500 animate-pulse" />
@@ -58,7 +61,6 @@ export function ReciprocityBadge({ className = "hidden sm:flex" }: { className?:
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-4 space-y-4 text-xs leading-relaxed font-sans text-slate-600 max-h-[380px] overflow-y-auto">
           <div className="bg-slate-50 border border-slate-100 p-3 rounded-[2px] space-y-1.5">
             <h4 className="font-bold text-slate-900 uppercase font-mono text-[9px] tracking-wider">
@@ -69,7 +71,6 @@ export function ReciprocityBadge({ className = "hidden sm:flex" }: { className?:
             </p>
           </div>
 
-          {/* Point Allocation */}
           <div className="space-y-2">
             <h4 className="font-bold text-slate-900 uppercase font-mono text-[9px] tracking-wider">
               Score Allocation Rules
@@ -96,7 +97,6 @@ export function ReciprocityBadge({ className = "hidden sm:flex" }: { className?:
             </div>
           </div>
 
-          {/* Current Breakdown */}
           <div className="space-y-2">
             <h4 className="font-bold text-slate-900 uppercase font-mono text-[9px] tracking-wider">
               Your Network Footprint
@@ -122,7 +122,6 @@ export function ReciprocityBadge({ className = "hidden sm:flex" }: { className?:
           </div>
         </div>
 
-        {/* Footer */}
         <div className="bg-slate-50 px-4 py-3 border-t border-slate-100 text-center">
           <p className="text-[9px] text-slate-450 font-mono">
             A higher score increases your trust rating across the network.
@@ -131,4 +130,5 @@ export function ReciprocityBadge({ className = "hidden sm:flex" }: { className?:
       </PopoverContent>
     </Popover>
   );
+  */
 }

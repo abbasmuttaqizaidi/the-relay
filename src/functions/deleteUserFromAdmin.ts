@@ -6,7 +6,7 @@ import { z } from "zod";
 import { serverCache } from "../lib/server-cache";
 
 const deleteUserSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   clerk_user_id: z.string(),
 });
 
@@ -50,7 +50,19 @@ export const deleteUserFromAdmin = createServerFn({ method: "POST" })
       console.error(`[Admin Delete] Failed to delete user from Clerk (may already be deleted):`, clerkErr);
     }
 
-    // 4. Delete from Supabase with manual transactional cascade cleanup to guarantee no leftover records or constraint failures
+    // 4. Delete from Supabase (if user has a record in DB)
+    const isDbUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.id);
+    if (!isDbUuid) {
+      serverCache.delete(`user:clerk:${data.clerk_user_id}`);
+      return { success: true, deletedUser: null };
+    }
+
+    const userInDb = await prisma.user.findUnique({ where: { id: data.id } });
+    if (!userInDb) {
+      serverCache.delete(`user:clerk:${data.clerk_user_id}`);
+      return { success: true, deletedUser: null };
+    }
+
     const { deletedUser, businessIds } = await prisma.$transaction(async (tx) => {
       // Find all businesses owned by this user
       const userBusinesses = await tx.business.findMany({

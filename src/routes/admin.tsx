@@ -304,23 +304,42 @@ function AdminDashboard() {
   };
 
   const handleStatusChange = async (
-    businessId: string,
+    userId: string,
+    businessId: string | undefined | null,
     newStatus: "pending" | "approved" | "rejected",
     ownerEmail: string,
     companyName: string,
   ) => {
-    setUpdatingStatusId(businessId);
+    const actionKey = businessId || userId;
+    setUpdatingStatusId(actionKey);
     try {
-      await updateBusinessStatus({
-        data: { business_id: businessId, status: newStatus, owner_email: ownerEmail },
+      const res = await updateBusinessStatus({
+        data: {
+          business_id: businessId || undefined,
+          user_id: userId,
+          status: newStatus,
+          owner_email: ownerEmail,
+          company_name: companyName,
+        },
       });
       toast.success(`${companyName} status changed to ${newStatus}.`);
       setUsers((prev) =>
-        prev.map((u) =>
-          u.business?.id === businessId
-            ? { ...u, business: { ...u.business!, status: newStatus } }
-            : u,
-        ),
+        prev.map((u) => {
+          if (u.id === userId || (businessId && u.business?.id === businessId)) {
+            return {
+              ...u,
+              business: {
+                id: res.business?.id || u.business?.id || "temp-biz-id",
+                company_name:
+                  res.business?.company_name || u.business?.company_name || companyName,
+                website: res.business?.website || u.business?.website || "",
+                industry: res.business?.industry || u.business?.industry || "SaaS",
+                status: newStatus,
+              },
+            };
+          }
+          return u;
+        }),
       );
     } catch (err: any) {
       toast.error(err.message || "Failed to update business status.");
@@ -723,7 +742,12 @@ function AdminDashboard() {
                               {user.business.status}
                             </Badge>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <Badge
+                              variant="outline"
+                              className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase rounded-[2px] px-2 py-0.5 text-slate-500 border-slate-300 bg-slate-50"
+                            >
+                              Not Onboarded
+                            </Badge>
                           )}
                         </TableCell>
                         <TableCell className="p-4 font-mono text-[10px] text-slate-500">
@@ -735,49 +759,50 @@ function AdminDashboard() {
                         </TableCell>
                         <TableCell className="p-4 pr-6 text-right">
                           <div className="flex items-center justify-end gap-3 flex-wrap">
-                            {/* Status Change Dropdown */}
-                            {user.business && (
-                              <Select
-                                value={user.business.status}
-                                onValueChange={(val) =>
-                                  handleStatusChange(
-                                    user.business!.id,
-                                    val as "pending" | "approved" | "rejected",
-                                    user.email,
-                                    user.business!.company_name,
-                                  )
-                                }
-                                disabled={updatingStatusId === user.business.id}
-                              >
-                                <SelectTrigger className="w-[120px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0">
-                                  {updatingStatusId === user.business.id ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
-                                  ) : (
-                                    <SelectValue />
-                                  )}
-                                </SelectTrigger>
-                                <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
-                                  <SelectItem
-                                    value="pending"
-                                    className="cursor-pointer text-amber-600 focus:text-amber-700"
-                                  >
-                                    Pending
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="approved"
-                                    className="cursor-pointer text-emerald-600 focus:text-emerald-700"
-                                  >
-                                    Approved
-                                  </SelectItem>
-                                  <SelectItem
-                                    value="rejected"
-                                    className="cursor-pointer text-red-600 focus:text-red-700"
-                                  >
-                                    Rejected
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            )}
+                            {/* Status Change Dropdown — Always Available & 100% Consistent UI */}
+                            <Select
+                              value={user.business?.status || ""}
+                              onValueChange={(val) => {
+                                handleStatusChange(
+                                  user.id,
+                                  user.business?.id,
+                                  val as "pending" | "approved" | "rejected",
+                                  user.email,
+                                  user.business?.company_name || user.name || "Operator",
+                                );
+                              }}
+                              disabled={updatingStatusId === (user.business?.id || user.id)}
+                            >
+                              <SelectTrigger className="w-[125px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0 text-slate-800">
+                                {updatingStatusId === (user.business?.id || user.id) ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
+                                ) : (
+                                  <span className="truncate">
+                                    {user.business ? user.business.status : "Not Onboarded"}
+                                  </span>
+                                )}
+                              </SelectTrigger>
+                              <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
+                                <SelectItem
+                                  value="pending"
+                                  className="cursor-pointer text-amber-600 focus:text-amber-700 font-bold"
+                                >
+                                  Pending
+                                </SelectItem>
+                                <SelectItem
+                                  value="approved"
+                                  className="cursor-pointer text-emerald-600 focus:text-emerald-700 font-bold"
+                                >
+                                  Approved
+                                </SelectItem>
+                                <SelectItem
+                                  value="rejected"
+                                  className="cursor-pointer text-red-600 focus:text-red-700 font-bold"
+                                >
+                                  Rejected
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
 
                             {/* Delete button — always shown */}
                             <Button
@@ -888,7 +913,12 @@ function AdminDashboard() {
                             {user.business.status}
                           </Badge>
                         ) : (
-                          <span className="text-slate-400">—</span>
+                          <Badge
+                            variant="outline"
+                            className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase rounded-[2px] px-2 py-0.5 text-slate-500 border-slate-300 bg-slate-50"
+                          >
+                            Not Onboarded
+                          </Badge>
                         )}
                       </div>
                       <div className="text-slate-500">
@@ -903,48 +933,50 @@ function AdminDashboard() {
 
                     {/* Actions */}
                     <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 flex-wrap">
-                      {user.business && (
-                        <Select
-                          value={user.business.status}
-                          onValueChange={(val) =>
-                            handleStatusChange(
-                              user.business!.id,
-                              val as "pending" | "approved" | "rejected",
-                              user.email,
-                              user.business!.company_name,
-                            )
-                          }
-                          disabled={updatingStatusId === user.business.id}
-                        >
-                          <SelectTrigger className="w-[120px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0">
-                            {updatingStatusId === user.business.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
-                            ) : (
-                              <SelectValue />
-                            )}
-                          </SelectTrigger>
-                          <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
-                            <SelectItem
-                              value="pending"
-                              className="cursor-pointer text-amber-600 focus:text-amber-700"
-                            >
-                              Pending
-                            </SelectItem>
-                            <SelectItem
-                              value="approved"
-                              className="cursor-pointer text-emerald-600 focus:text-emerald-700"
-                            >
-                              Approved
-                            </SelectItem>
-                            <SelectItem
-                              value="rejected"
-                              className="cursor-pointer text-red-600 focus:text-red-700"
-                            >
-                              Rejected
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
+                      {/* Status Change Dropdown — Always Available & 100% Consistent UI */}
+                      <Select
+                        value={user.business?.status || ""}
+                        onValueChange={(val) => {
+                          handleStatusChange(
+                            user.id,
+                            user.business?.id,
+                            val as "pending" | "approved" | "rejected",
+                            user.email,
+                            user.business?.company_name || user.name || "Operator",
+                          );
+                        }}
+                        disabled={updatingStatusId === (user.business?.id || user.id)}
+                      >
+                        <SelectTrigger className="w-[125px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0 text-slate-800">
+                          {updatingStatusId === (user.business?.id || user.id) ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
+                          ) : (
+                            <span className="truncate">
+                              {user.business ? user.business.status : "Not Onboarded"}
+                            </span>
+                          )}
+                        </SelectTrigger>
+                        <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
+                          <SelectItem
+                            value="pending"
+                            className="cursor-pointer text-amber-600 focus:text-amber-700 font-bold"
+                          >
+                            Pending
+                          </SelectItem>
+                          <SelectItem
+                            value="approved"
+                            className="cursor-pointer text-emerald-600 focus:text-emerald-700 font-bold"
+                          >
+                            Approved
+                          </SelectItem>
+                          <SelectItem
+                            value="rejected"
+                            className="cursor-pointer text-red-600 focus:text-red-700 font-bold"
+                          >
+                            Rejected
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
 
                       <Button
                         onClick={() => handleDeleteUser(user.id, user.clerk_user_id)}

@@ -5,94 +5,43 @@ import { toast } from "sonner";
 import {
   ExternalLink,
   Mail,
-  Linkedin,
   Globe,
   MapPin,
-  Building2,
-  ArrowRight,
   ShieldCheck,
-  CheckCircle2,
-  Lock,
   ArrowLeft,
+  Copy,
+  Check,
+  Send,
 } from "lucide-react";
 import { getRequestById } from "../functions/getRequestById";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
-import { NotificationsDropdown } from "@/components/notifications-dropdown";
-import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
-import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
-import { driver } from "driver.js";
-import "driver.js/dist/driver.css";
 
 export const Route = createFileRoute("/connections/$id")({
-  component: ConnectionEstablishedPage,
+  component: HandshakeDetailPage,
 });
 
-function ConnectionEstablishedPage() {
+function HandshakeDetailPage() {
   const { id } = Route.useParams();
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
   const [interest, setInterest] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [myBusinessId, setMyBusinessId] = useState<string | null>(null);
-
-  const startTour = () => {
-    const driverObj = driver({
-      showProgress: true,
-      popoverClass: "relay-tour-popover",
-      steps: [
-        {
-          element: "#connection-header",
-          popover: {
-            title: "Connection Unlocked",
-            description: "Dono businesses ne mutual interest accept kar liya hai, isliye direct contact details ab accessible hain.",
-            side: "bottom",
-            align: "center"
-          }
-        },
-        {
-          element: "#connection-cards-row",
-          popover: {
-            title: "Operator Profiles",
-            description: "Requester aur Listing Owner ke verification badge, LinkedIn profile, aur core domains check karein.",
-            side: "top",
-            align: "center"
-          }
-        },
-        {
-          element: "#connection-cta-box",
-          popover: {
-            title: "Initiate Communication",
-            description: "Yahan click karke direct email thread open karein aur platform se bahar collaborate karna shuru karein.",
-            side: "top",
-            align: "center"
-          }
-        }
-      ]
-    });
-    driverObj.drive();
-  };
-
-  useEffect(() => {
-    const handleTourEvent = () => startTour();
-    window.addEventListener("relay:start-tour:connection", handleTourEvent);
-    return () => {
-      window.removeEventListener("relay:start-tour:connection", handleTourEvent);
-    };
-  }, []);
+  const [copied, setCopied] = useState(false);
 
   const loadInterest = async () => {
     try {
       setLoading(true);
       const data = await getRequestById({ data: { interest_id: id } });
       if (data.status !== "accepted") {
-        toast.error("Contact details for this introduction are not unlocked yet.");
+        toast.error("Handshake details are only available once the interest request is accepted.");
         navigate({ to: "/opportunities", replace: true });
         return;
       }
       setInterest(data);
     } catch (err: any) {
-      console.error("Failed to load connection details:", err);
-      toast.error(err.message || "Failed to load connection details.");
+      console.error("Failed to load handshake details:", err);
+      toast.error(err.message || "Failed to load handshake details.");
       navigate({ to: "/opportunities", replace: true });
     } finally {
       setLoading(false);
@@ -129,13 +78,21 @@ function ConnectionEstablishedPage() {
     });
   }, [isLoaded, isSignedIn, id]);
 
+  const handleCopyEmail = (email: string) => {
+    if (!email) return;
+    navigator.clipboard.writeText(email);
+    setCopied(true);
+    toast.success("Email copied to clipboard");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center space-y-3">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-950 border-t-transparent mx-auto"></div>
           <span className="font-mono text-[10px] uppercase tracking-widest text-slate-400 font-bold block">
-            Establishing Connection Details...
+            Loading Handshake Details...
           </span>
         </div>
       </div>
@@ -144,205 +101,233 @@ function ConnectionEstablishedPage() {
 
   if (!interest) return null;
 
-  const requestingBusiness = interest.requesting_business;
-  const ownerBusiness = interest.opportunity.business;
+  const isOwner = myBusinessId === interest.opportunity.business_id;
+  const connectedBusiness = isOwner ? interest.requesting_business : interest.opportunity.business;
+  const myBusiness = isOwner ? interest.opportunity.business : interest.requesting_business;
+  const connectedEmail = connectedBusiness.contact_email || connectedBusiness.owner?.email || "";
+  const opp = interest.opportunity;
 
-  const requestingEmail = requestingBusiness.contact_email || requestingBusiness.owner?.email || "";
-  const ownerEmail = ownerBusiness.contact_email || ownerBusiness.owner?.email || "";
+  // Navigation back route based on user's role in this interest
+  const backRoute = isOwner ? "/requests/incoming" : "/requests/sent";
 
-  // Pre-formatted external mailto link combining both contact emails
-  const mailtoLink = `mailto:${requestingEmail},${ownerEmail}?subject=The Relay: Connection established between ${requestingBusiness.company_name} and ${ownerBusiness.company_name}&body=Hi team,%0D%0A%0D%0AWe established a mutual interest connection on The Relay regarding opportunity "${interest.opportunity.title}".%0D%0A%0D%0ALet's continue our conversation here.%0D%0A%0D%0ABest regards,`;
-
-  const backRoute = myBusinessId === requestingBusiness.id ? "/requests/sent" : "/requests/incoming";
+  // Pre-formatted external mailto link for direct communication
+  const mailtoSubject = encodeURIComponent(
+    `The Relay Handshake: ${connectedBusiness.company_name} & ${myBusiness?.company_name || "Partner"} — ${opp.title}`,
+  );
+  const mailtoBody = encodeURIComponent(
+    `Hi ${connectedBusiness.company_name} team,\n\nWe connected on The Relay regarding the opportunity "${opp.title}".\n\nLet's continue the conversation here.\n\nBest regards,\n${myBusiness?.company_name || ""}`,
+  );
+  const mailtoLink = `mailto:${connectedEmail}?subject=${mailtoSubject}&body=${mailtoBody}`;
 
   return (
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col">
-
-      {/* Main Body */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 md:px-6 py-8 md:py-16 flex flex-col items-center">
-        {/* Breadcrumb Back */}
-        <div className="w-full mb-4 md:mb-6">
+      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-6 sm:py-10 flex flex-col space-y-6">
+        {/* Navigation Bar & Status */}
+        <div className="flex items-center justify-between gap-3">
           <Link
             to={backRoute}
-            className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-800 transition-colors font-bold"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 transition-colors font-medium"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Requests
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to{" "}
+            {isOwner ? "Incoming Requests" : "Sent Requests"}
           </Link>
-        </div>
 
-        {/* Banner */}
-        <div id="connection-header" className="w-full text-center space-y-4 mb-8 md:mb-10">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 px-4 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-widest font-extrabold">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Connection Established
-          </div>
-          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-none">
-            Introduction Active
-          </h1>
-          <p className="text-slate-500 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed px-2">
-            Both operators have verified mutual interest. Direct channels are now unlocked for external communication.
-          </p>
-        </div>
-
-        {/* Two Columns: Business Profiles */}
-        <div id="connection-cards-row" className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 w-full mb-8 md:mb-12">
-          {/* Business A - Requesting */}
-          <div className="bg-white border border-slate-200/80 rounded-[4px] p-5 sm:p-8 space-y-5 shadow-sm relative">
-            <div className="flex justify-between items-start gap-4">
-              <div className="space-y-1">
-                <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold block">
-                  {requestingBusiness.industry} · {requestingBusiness.hq_location || "Global"}
-                </span>
-                <h2 className="font-display text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-1.5 flex-wrap">
-                  {requestingBusiness.company_name}
-                  <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-                </h2>
-              </div>
-              <div className="font-mono text-[8px] uppercase tracking-wider text-slate-400 font-bold border border-slate-100 px-2 py-0.5 rounded-[2px] shrink-0 mt-0.5">
-                Requester
-              </div>
-            </div>
-            
-            {requestingBusiness.description && (
-              <p className="text-xs text-slate-500 leading-relaxed font-sans border-t border-slate-100/60 pt-4">
-                {requestingBusiness.description}
-              </p>
+          <span
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${
+              isOwner
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80"
+                : "bg-blue-50 text-blue-700 border border-blue-200/80"
+            }`}
+          >
+            {isOwner ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-600" /> Accepted by you
+              </>
+            ) : (
+              <>
+                <Send className="w-3.5 h-3.5 text-blue-600" /> Sent by you · Accepted
+              </>
             )}
+          </span>
+        </div>
 
-            <div className="border-t border-slate-100 pt-4 space-y-3.5 text-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-slate-50 gap-1.5 sm:gap-4">
-                <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
-                  <Globe className="w-3.5 h-3.5" /> Website
+        {/* 1. Partner Profile & Direct Contact Card */}
+        <div className="bg-white border border-slate-200/90 rounded-lg p-5 sm:p-6 shadow-xs space-y-5">
+          {/* Header & Meta */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+                {connectedBusiness.company_name}
+              </h1>
+              {connectedBusiness.status === "approved" && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-mono font-semibold uppercase tracking-wider rounded border border-emerald-100">
+                  <ShieldCheck className="w-3 h-3 text-emerald-600" /> Verified
                 </span>
-                <a
-                  href={`https://${requestingBusiness.website}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold hover:text-primary hover:underline flex items-center gap-1 font-mono break-all text-left sm:text-right self-start sm:self-auto max-w-full"
-                >
-                  {requestingBusiness.website} <ExternalLink className="w-3 h-3 shrink-0" />
-                </a>
-              </div>
+              )}
+            </div>
 
-              {requestingBusiness.linkedin_url && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-slate-50 gap-1.5 sm:gap-4">
-                  <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
-                    <Linkedin className="w-3.5 h-3.5" /> LinkedIn
-                  </span>
-                  <a
-                    href={requestingBusiness.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-bold hover:text-primary hover:underline flex items-center gap-1 text-left sm:text-right self-start sm:self-auto break-all max-w-full"
-                  >
-                    View Profile <ExternalLink className="w-3 h-3 shrink-0" />
-                  </a>
+            {/* Quick Details Row */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-600">
+              {connectedBusiness.industry && (
+                <span className="font-medium text-slate-700">{connectedBusiness.industry}</span>
+              )}
+
+              {connectedBusiness.hq_location && (
+                <div className="flex items-center gap-1 text-slate-500">
+                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>{connectedBusiness.hq_location}</span>
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 gap-1.5 sm:gap-4">
-                <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
-                  <Mail className="w-3.5 h-3.5" /> Email
-                </span>
+              {connectedBusiness.website && (
                 <a
-                  href={`mailto:${requestingEmail}`}
-                  className="font-mono font-bold hover:text-primary hover:underline text-slate-900 break-all text-left sm:text-right self-start sm:self-auto max-w-full"
-                >
-                  {requestingEmail || "N/A"}
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* Business B - Owner */}
-          <div className="bg-white border border-slate-200/80 rounded-[4px] p-5 sm:p-8 space-y-5 shadow-sm relative">
-            <div className="flex justify-between items-start gap-4">
-              <div className="space-y-1">
-                <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold block">
-                  {ownerBusiness.industry} · {ownerBusiness.hq_location || "Global"}
-                </span>
-                <h2 className="font-display text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-1.5 flex-wrap">
-                  {ownerBusiness.company_name}
-                  <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-                </h2>
-              </div>
-              <div className="font-mono text-[8px] uppercase tracking-wider text-slate-400 font-bold border border-slate-100 px-2 py-0.5 rounded-[2px] shrink-0 mt-0.5">
-                Listing Owner
-              </div>
-            </div>
-
-            {ownerBusiness.description && (
-              <p className="text-xs text-slate-500 leading-relaxed font-sans border-t border-slate-100/60 pt-4">
-                {ownerBusiness.description}
-              </p>
-            )}
-
-            <div className="border-t border-slate-100 pt-4 space-y-3.5 text-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-slate-50 gap-1.5 sm:gap-4">
-                <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
-                  <Globe className="w-3.5 h-3.5" /> Website
-                </span>
-                <a
-                  href={`https://${ownerBusiness.website}`}
+                  href={`https://${connectedBusiness.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-bold hover:text-primary hover:underline flex items-center gap-1 font-mono break-all text-left sm:text-right self-start sm:self-auto max-w-full"
+                  className="font-medium text-slate-700 hover:text-primary hover:underline inline-flex items-center gap-1"
                 >
-                  {ownerBusiness.website} <ExternalLink className="w-3 h-3 shrink-0" />
+                  <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>{connectedBusiness.website}</span>
+                  <ExternalLink className="w-3 h-3 text-slate-400" />
                 </a>
-              </div>
-
-              {ownerBusiness.linkedin_url && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-slate-50 gap-1.5 sm:gap-4">
-                  <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
-                    <Linkedin className="w-3.5 h-3.5" /> LinkedIn
-                  </span>
-                  <a
-                    href={ownerBusiness.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-bold hover:text-primary hover:underline flex items-center gap-1 text-left sm:text-right self-start sm:self-auto break-all max-w-full"
-                  >
-                    View Profile <ExternalLink className="w-3 h-3 shrink-0" />
-                  </a>
-                </div>
               )}
+            </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 gap-1.5 sm:gap-4">
-                <span className="text-slate-400 font-medium flex items-center gap-1.5 shrink-0">
-                  <Mail className="w-3.5 h-3.5" /> Email
-                </span>
-                <a
-                  href={`mailto:${ownerEmail}`}
-                  className="font-mono font-bold hover:text-primary hover:underline text-slate-900 break-all text-left sm:text-right self-start sm:self-auto max-w-full"
-                >
-                  {ownerEmail || "N/A"}
-                </a>
+            {connectedBusiness.description && (
+              <p className="text-xs text-slate-600 leading-relaxed pt-2">
+                {connectedBusiness.description}
+              </p>
+            )}
+          </div>
+
+          {/* Unlocked Contact Box (Clean, light, integrated) */}
+          <div className="bg-slate-50/80 border border-slate-200/80 rounded-md p-3.5 sm:p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-slate-800">Direct Contact Unlocked</span>
+              <span className="text-[11px] text-slate-500 hidden sm:inline">
+                Reach out to continue the conversation
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+              <div className="flex-1 flex items-center justify-between px-3 py-2 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800">
+                <span className="truncate select-all">{connectedEmail || "Email unavailable"}</span>
+                {connectedEmail && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopyEmail(connectedEmail)}
+                    className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-900 font-sans font-medium pl-2 shrink-0 cursor-pointer"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" /> Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 text-slate-400" /> Copy
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
+
+              {connectedEmail ? (
+                <a
+                  href={mailtoLink}
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium rounded transition-colors shrink-0 cursor-pointer shadow-2xs"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  Email {connectedBusiness.company_name}
+                </a>
+              ) : (
+                <button
+                  disabled
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-200 text-slate-400 text-xs font-medium rounded cursor-not-allowed"
+                >
+                  Email Unavailable
+                </button>
+              )}
             </div>
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div id="connection-cta-box" className="w-full bg-slate-900 border border-slate-800 p-5 sm:p-8 rounded-[4px] text-center text-white space-y-6">
-          <div className="space-y-1.5 max-w-xl mx-auto">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-slate-500 font-bold">
-              [ DIRECT HANDOFF ACTIONS ]
-            </span>
-            <h3 className="font-display text-lg sm:text-xl font-bold">
-              Ready to collaborate?
-            </h3>
-            <p className="text-xs text-slate-400 leading-relaxed font-sans px-2">
-              Click the button below to draft an email thread with both company contact addresses. Continue your conversation and negotiate deals outside Relay.
+        {/* 2. Opportunity & Strategic Pitch Card */}
+        <div className="bg-white border border-slate-200/90 rounded-lg p-5 sm:p-6 shadow-xs space-y-5">
+          {/* Opportunity Header */}
+          <div className="space-y-2 border-b border-slate-100 pb-4">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                Opportunity Context
+              </span>
+              {opp.opportunity_number && (
+                <span className="font-mono text-[10px] text-slate-400 uppercase font-medium">
+                  #{opp.opportunity_number}
+                </span>
+              )}
+            </div>
+
+            <h2 className="font-display text-lg sm:text-xl font-bold text-slate-900">
+              {opp.title}
+            </h2>
+
+            {/* Badges */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-xs px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded font-medium">
+                {opp.category}
+              </span>
+              {opp.industry && (
+                <span className="text-xs px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded font-medium">
+                  {opp.industry}
+                </span>
+              )}
+              {opp.location && (
+                <span className="text-xs px-2.5 py-0.5 bg-slate-50 text-slate-600 rounded font-medium border border-slate-200/60 flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-slate-400" />
+                  {opp.location}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Opportunity Description */}
+          <div className="space-y-1 text-xs">
+            <span className="text-slate-400 font-medium block">Opportunity Brief</span>
+            <p className="text-slate-700 leading-relaxed font-sans whitespace-pre-wrap">
+              {opp.description}
             </p>
           </div>
 
-          <div className="flex justify-center w-full px-2">
-            <a
-              href={mailtoLink}
-              className="inline-flex w-full sm:w-auto bg-white text-slate-950 px-6 py-3 text-[10px] font-mono uppercase tracking-widest hover:bg-slate-200 transition-all rounded-[2px] shadow-sm hover:shadow font-bold items-center justify-center gap-2"
-            >
-              Continue Conversation Externally <ArrowRight className="w-3.5 h-3.5 shrink-0" />
-            </a>
+          {opp.offer_text && (
+            <div className="space-y-1 text-xs pt-3 border-t border-slate-100">
+              <span className="text-slate-400 font-medium block">Terms / Offer</span>
+              <p className="text-slate-600 leading-relaxed italic bg-slate-50 p-3 rounded border border-slate-100">
+                {opp.offer_text}
+              </p>
+            </div>
+          )}
+
+          {/* Pitch Submitted */}
+          <div className="space-y-2 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-slate-800">
+                {isOwner ? `Pitch from ${connectedBusiness.company_name}` : "Your Submitted Pitch"}
+              </span>
+              <span className="text-[11px] text-slate-400">
+                {isOwner ? "Accepted by you" : "Accepted by partner"}
+              </span>
+            </div>
+
+            <div className="bg-slate-50/80 border border-slate-200/70 p-3.5 rounded-md">
+              {interest.message && interest.message.trim() ? (
+                <p className="font-sans text-xs sm:text-sm text-slate-700 leading-relaxed italic whitespace-pre-wrap select-all">
+                  &ldquo;{interest.message}&rdquo;
+                </p>
+              ) : (
+                <p className="text-xs text-slate-400 italic font-sans">
+                  No additional pitch message was provided.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </main>

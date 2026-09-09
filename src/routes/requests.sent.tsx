@@ -5,7 +5,6 @@ import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { toast } from "sonner";
 import {
-  ExternalLink,
   X,
   Lock,
   Unlock,
@@ -18,6 +17,7 @@ import {
   Activity,
   Trash2,
   ArrowLeft,
+  CheckCircle2,
 } from "lucide-react";
 import { getSentRequests } from "../functions/getSentRequests";
 import { withdrawInterest } from "../functions/withdrawInterest";
@@ -319,8 +319,8 @@ function SentRequestsPage() {
                           </span>
                         )}
                         {isAccepted && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-500 text-white text-[9px] font-mono font-bold uppercase tracking-widest rounded-[2px]">
-                            <Unlock className="w-2.5 h-2.5" /> Accepted & Unlocked
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-600 text-white text-[9px] font-mono font-bold uppercase tracking-widest rounded-[2px] shadow-2xs">
+                            <CheckCircle2 className="w-2.5 h-2.5" /> Handshake Complete
                           </span>
                         )}
                         {isDeclined && (
@@ -356,97 +356,51 @@ function SentRequestsPage() {
 
                       {/* Pitch message info */}
                       {req.message && (
-                        <div className="space-y-1">
-                          <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold block">
-                            Your Pitch Message
+                        <div className="space-y-1.5">
+                          <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1">
+                            <MessageSquare className="w-3 h-3 text-slate-400" /> Your Pitch Message
                           </span>
-                          <p className="text-xs text-slate-600 bg-slate-50/80 border border-slate-100 p-3.5 rounded-[2px] italic leading-relaxed max-w-3xl">
-                            &ldquo;{req.message}&ldquo;
-                          </p>
+                          <div className="bg-slate-50 border border-slate-200/70 p-3.5 rounded-[3px] text-xs text-slate-700 font-sans italic leading-relaxed line-clamp-3">
+                            &ldquo;{req.message}&rdquo;
+                          </div>
                         </div>
                       )}
 
-                      {/* Contact Reveal Box */}
-                      {isConnected && (
-                        <div className="border border-emerald-500/20 bg-emerald-50/20 p-4 rounded-[2px] space-y-3.5 max-w-3xl animate-momentum">
-                          <span className="font-mono text-[9px] uppercase tracking-widest text-emerald-700 font-bold block border-b border-emerald-500/10 pb-1">
-                            [ Connection Contact Details Unlocked ]
-                          </span>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-sans">
-                            <div className="space-y-0.5">
-                              <span className="text-slate-400 text-[10px]">Website</span>
-                              <a
-                                href={`https://${targetBusiness.website}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-bold text-slate-900 hover:text-primary hover:underline flex items-center gap-1"
-                              >
-                                {targetBusiness.website} <ExternalLink className="w-3 h-3" />
-                              </a>
-                            </div>
-                            {targetBusiness.linkedin_url && (
-                              <div className="space-y-0.5">
-                                <span className="text-slate-400 text-[10px]">LinkedIn</span>
-                                <a
-                                  href={targetBusiness.linkedin_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="font-bold text-slate-900 hover:text-primary hover:underline flex items-center gap-1"
-                                >
-                                  Company Profile <ExternalLink className="w-3 h-3" />
-                                </a>
-                              </div>
-                            )}
-                            <div className="space-y-0.5">
-                              <span className="text-slate-400 text-[10px]">Email: </span>
-                              <a
-                                href={`mailto:${targetBusiness.contact_email || targetBusiness.owner?.email || ""}`}
-                                className="font-mono font-bold text-slate-900 hover:text-primary hover:underline"
-                              >
-                                {targetBusiness.contact_email || targetBusiness.owner?.email || "N/A"}
-                              </a>
-                            </div>
-                          </div>
-                          {targetBusiness.description && (
-                            <div className="space-y-1 pt-1.5 border-t border-emerald-500/10">
-                              <span className="text-slate-400 text-[10px] block">Company Description</span>
-                              <p className="text-xs text-slate-600 leading-relaxed">
-                                {targetBusiness.description}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
 
                     {/* Actions Panel */}
-                    <div className="flex flex-row lg:flex-col gap-2.5 w-full lg:w-44 shrink-0 lg:border-l lg:border-slate-100 lg:pl-6 justify-end lg:justify-center">
-                      {isPending && (
-                        <button
-                          onClick={() => handleWithdraw(req.id, req.opportunity.title)}
-                          className="flex-1 lg:flex-none py-2.5 px-4 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" /> Withdraw
-                        </button>
-                      )}
+                    {!isAccepted && (
+                      <div className="flex flex-row lg:flex-col gap-2.5 w-full lg:w-44 shrink-0 lg:border-l lg:border-slate-100 lg:pl-6 justify-end lg:justify-center">
+                        {isPending && (
+                          <button
+                            onClick={() => handleWithdraw(req.id, req.opportunity.title)}
+                            className="flex-1 lg:flex-none py-2.5 px-4 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Withdraw
+                          </button>
+                        )}
 
-                      {isAccepted && (
-                        <Link
-                          to="/connections/$id"
-                          params={{ id: req.id }}
-                          className="w-full text-center py-2.5 px-4 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          View Connection <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
-                      )}
-
-                      {!isPending && !isAccepted && (
-                        <div className="w-full text-center py-2.5 px-3 border border-slate-200/80 bg-slate-50/50 text-[9px] font-mono uppercase tracking-widest font-bold text-slate-400 rounded-[2px] cursor-default">
-                          {isDeclined ? "Declined" : "Withdrawn"}
-                        </div>
-                      )}
-                    </div>
+                        {!isPending && (
+                          <div className="w-full text-center py-2.5 px-3 border border-slate-200/80 bg-slate-50/50 text-[9px] font-mono uppercase tracking-widest font-bold text-slate-400 rounded-[2px] cursor-default">
+                            {isDeclined ? "Declined" : "Withdrawn"}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
+
+                  {/* Full-width View Handshake Button at bottom */}
+                  {isAccepted && (
+                    <div className="pt-4 mt-2 border-t border-slate-100">
+                      <Link
+                        to="/connections/$id"
+                        params={{ id: req.id }}
+                        className="w-full text-center py-3 px-4 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs hover:shadow"
+                      >
+                        View Handshake <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  )}
                 </div>
               );
             })}

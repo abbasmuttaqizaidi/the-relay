@@ -27,6 +27,19 @@ export const getRequestById = createServerFn({ method: "GET" })
       throw new Error("Forbidden: You do not have permission to view this request.");
     }
 
+    // Server-side authorization check:
+    // Only reveal contact emails if the interest request has been accepted (Handshake Complete)
+    if (interest.status !== "accepted") {
+      interest.requesting_business.contact_email = null;
+      if (interest.requesting_business.owner) {
+        interest.requesting_business.owner.email = null;
+      }
+      interest.opportunity.business.contact_email = null;
+      if (interest.opportunity.business.owner) {
+        interest.opportunity.business.owner.email = null;
+      }
+    }
+
     return interest;
   });
 export type GetRequestByIdFn = typeof getRequestById;

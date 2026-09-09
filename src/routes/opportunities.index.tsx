@@ -43,6 +43,7 @@ import {
   Clock,
   CheckCircle2,
   Info,
+  ArrowRight,
 } from "lucide-react";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
@@ -272,6 +273,7 @@ function OpportunitiesPage() {
           align: "end" as const,
         },
       },
+      /* Score functionality tour step commented out for now
       {
         element: "#reciprocity-badge-nav",
         popover: {
@@ -282,6 +284,7 @@ function OpportunitiesPage() {
           align: "end" as const,
         },
       },
+      */
       {
         element: "#notifications-nav-btn",
         popover: {
@@ -1703,9 +1706,7 @@ function ResultCard({
 
   const onAccept = () => {
     respond(opp.id, "accepted", mockContact(opp.company));
-    toast.success(
-      `${opp.company} accepted. Contact unlocked. +${RECIPROCITY_WEIGHTS.accepted} reciprocity.`,
-    );
+    toast.success(`${opp.company} accepted. Contact unlocked.`);
   };
 
   const onDecline = () => {
@@ -1893,15 +1894,19 @@ function ResultCard({
                   isPromoted ? "text-emerald-400" : "text-emerald-600"
                 }`}
               >
-                [ Contact unlocked · mutual acceptance ]
+                [ Handshake Complete · Qualified Introduction ]
               </div>
-              <div
-                className={`font-mono text-[9px] uppercase tracking-widest font-bold ${
-                  isPromoted ? "text-emerald-400" : "text-emerald-600"
-                }`}
-              >
-                + {RECIPROCITY_WEIGHTS.accepted} reciprocity
-              </div>
+              {record?.id && (
+                <Link
+                  to="/connections/$id"
+                  params={{ id: record.id }}
+                  className={`font-mono text-[9.5px] uppercase tracking-widest font-bold flex items-center gap-1 hover:underline ${
+                    isPromoted ? "text-emerald-400 hover:text-emerald-300" : "text-emerald-700 hover:text-emerald-900"
+                  }`}
+                >
+                  View Handshake <ArrowRight className="w-3 h-3" />
+                </Link>
+              )}
             </div>
             <div className="flex items-baseline gap-2 flex-wrap">
               <span

@@ -52,6 +52,8 @@ export const Route = createFileRoute("/saved-opportunities")({
 
 function SavedOpportunitiesPage() {
   const { isSignedIn, isLoaded, userId } = useAuth();
+  const isSignedInRef = useRef(isSignedIn);
+  isSignedInRef.current = isSignedIn;
   const navigate = useNavigate();
   const [isValidating, setIsValidating] = useState(true);
   const [business, setBusiness] = useState<any>(null);

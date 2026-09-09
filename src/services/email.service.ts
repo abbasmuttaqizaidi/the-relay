@@ -160,7 +160,7 @@ export class EmailService {
 
   static async sendWelcomeEmail(toEmail: string, userName?: string) {
     const subject = "Welcome to The Relay — Where growth finds momentum";
-    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const appUrl = process.env.APP_URL || "https://usetherelay.com";
 
     const bodyHtml = `
       <h2>Welcome to the Network, ${userName || "Operator"}!</h2>
@@ -191,7 +191,7 @@ export class EmailService {
 
   static async sendBusinessApproved(ownerEmail: string, companyName: string) {
     const subject = `Your business profile "${companyName}" has been approved!`;
-    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const appUrl = process.env.APP_URL || "https://usetherelay.com";
 
     const bodyHtml = `
       <h2 style="color: #de5609;">Profile Approved</h2>
@@ -243,7 +243,7 @@ export class EmailService {
     pitchingCompanyName: string,
   ) {
     const subject = `New Interest in your Opportunity: ${opportunityTitle}`;
-    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const appUrl = process.env.APP_URL || "https://usetherelay.com";
 
     const bodyHtml = `
       <h2 style="color: #de5609;">New Interest Received!</h2>
@@ -262,6 +262,47 @@ export class EmailService {
       html,
       templateName: "interest_received",
       variables: { opportunityTitle, pitchingCompanyName },
+    });
+  }
+
+  static async sendHandshakeCompleteEmail(params: {
+    toEmail: string;
+    acceptingCompanyName: string;
+    acceptingBusinessEmail: string;
+    opportunityTitle: string;
+    pitchMessage?: string | null;
+  }) {
+    const subject = `Handshake Complete — ${params.opportunityTitle}`;
+    const appUrl = process.env.APP_URL || "https://usetherelay.com";
+
+    const bodyHtml = `
+      <h2 style="color: #de5609;">Handshake Complete</h2>
+      <p><strong>${params.acceptingCompanyName}</strong> has accepted your interest in this opportunity.</p>
+      <p>You can now contact them directly at:</p>
+      <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 14px 18px; margin: 16px 0;">
+        <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Direct Contact Email</span>
+        <a href="mailto:${params.acceptingBusinessEmail}" style="font-size: 15px; font-weight: 700; color: #0f172a; font-family: monospace; text-decoration: none;">${params.acceptingBusinessEmail}</a>
+      </div>
+      <div style="margin: 20px 0; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+        <p style="font-size: 12px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; font-weight: 700;">Opportunity</p>
+        <p style="font-size: 15px; font-weight: 700; color: #1e293b; margin-top: 0;">${params.opportunityTitle}</p>
+        <p style="font-size: 12px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; font-weight: 700; margin-top: 14px;">Your Message</p>
+        <p style="font-size: 13.5px; font-style: italic; color: #334155; margin-top: 0; background: #f8fafc; padding: 10px 14px; border-left: 3px solid #cbd5e1;">&ldquo;${params.pitchMessage || "No additional message was provided."}&rdquo;</p>
+      </div>
+      <p style="font-size: 14px; color: #475569;">Log in to The Relay to view the full introduction.</p>
+      <div style="text-align: center; margin: 28px 0;">
+        <a href="${appUrl}/requests/sent" class="cta-button" style="color: #ffffff;">View Full Introduction</a>
+      </div>
+    `;
+
+    const html = this.wrapInBrandTemplate(subject, bodyHtml);
+
+    await this.sendEmail({
+      to: params.toEmail,
+      subject,
+      html,
+      templateName: "handshake_complete",
+      variables: params,
     });
   }
 }

@@ -1,40 +1,52 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef, ReactNode } from "react";
-import { Show, SignInButton } from "@clerk/tanstack-react-start";
-import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
-import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
+import { useState, useEffect, useRef } from "react";
+import { Show } from "@clerk/tanstack-react-start";
 import {
   ArrowRight,
   ShieldCheck,
-  Zap,
   Check,
   Lock,
-  Award,
   Users,
   Layers,
   Handshake,
-  Network,
   Repeat,
-  Workflow
+  Briefcase,
+  Calendar,
+  MapPin,
+  BadgeCheck,
+  Search,
+  Building2,
+  Clock,
+  Sparkles,
+  ArrowDown,
+  UserCheck,
 } from "lucide-react";
-import { toast } from "@/components/ui/sonner";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
     meta: [
-      { title: "The Relay — Business Opportunity Network for Verified Businesses" },
+      { title: "The Relay — Find Businesses Actively Looking For What You Offer" },
       {
         name: "description",
         content:
-          "Real businesses. Real opportunities. Real growth. An operator-grade network for verified businesses to exchange partnerships, referrals, vendors and hiring.",
+          "Discover real partnership, referral, distribution, vendor, and hiring opportunities from verified businesses — without the noise of social media",
       },
-      { property: "og:title", content: "The Relay — Where growth finds momentum" },
+      {
+        property: "og:title",
+        content: "The Relay — Find Businesses Actively Looking For What You Offer",
+      },
       {
         property: "og:description",
         content:
-          "A curated network of verified businesses exchanging partnerships, referrals, vendors and growth opportunities.",
+          "Discover real partnership, referral, distribution, vendor, and hiring opportunities from verified businesses — without the noise of social media",
       },
     ],
   }),
@@ -53,7 +65,7 @@ function useReveal() {
           observer.unobserve(entry.target);
         }
       },
-      { threshold: 0.05 }
+      { threshold: 0.05 },
     );
     if (ref.current) {
       observer.observe(ref.current);
@@ -62,31 +74,6 @@ function useReveal() {
   }, []);
 
   return { ref, isVisible };
-}
-
-function StatCounter({ value, duration = 1500, trigger = false }: { value: number; duration?: number; trigger?: boolean }) {
-  const [currentValue, setCurrentValue] = useState(0);
-  const hasAnimated = useRef(false);
-
-  useEffect(() => {
-    if (!trigger || hasAnimated.current) return;
-    
-    let startTimestamp: number | null = null;
-    const step = (timestamp: number) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      setCurrentValue(Math.floor(progress * value));
-      if (progress < 1) {
-        window.requestAnimationFrame(step);
-      } else {
-        setCurrentValue(value);
-        hasAnimated.current = true;
-      }
-    };
-    window.requestAnimationFrame(step);
-  }, [value, duration, trigger]);
-
-  return <span>{currentValue.toLocaleString()}</span>;
 }
 
 function Landing() {
@@ -100,30 +87,33 @@ function Landing() {
             element: "#home-hero-section",
             popover: {
               title: "Welcome to The Relay",
-              description: "Ye live B2B opportunity exchange hub hai verified operators aur founders ke liye. Yahan se partnerships, referrals, vendors, aur warm intros trade hote hain.",
+              description:
+                "Discover active business opportunities from verified companies looking for what you offer.",
               side: "bottom",
-              align: "center"
-            }
+              align: "center",
+            },
           },
           {
-            element: "#home-stats-section",
+            element: "#home-product-section",
             popover: {
-              title: "Active Network Statistics",
-              description: "Verified businesses, successful partnerships, aur active referrals key statistics yahan monitor karein.",
+              title: "Active Business Opportunities",
+              description:
+                "Explore real business demands across distribution, referrals, vendors, partnerships, and hiring.",
               side: "top",
-              align: "center"
-            }
+              align: "center",
+            },
           },
           {
             element: "#how-it-works",
             popover: {
               title: "Double Opt-In Mechanics",
-              description: "Platform kaise noise-free network maintain karta hai, and how introduction warm handshakes work.",
+              description:
+                "Learn how structured double-opt-in handshakes keep introductions high-quality and spam-free.",
               side: "top",
-              align: "center"
-            }
-          }
-        ]
+              align: "center",
+            },
+          },
+        ],
       });
       driverObj.drive();
     };
@@ -135,548 +125,1132 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-[#fafbfc] text-slate-900 selection:bg-orange-600 selection:text-white font-sans antialiased overflow-x-hidden relative">
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none opacity-[0.4]"
         style={{
           backgroundImage: `radial-gradient(hsl(215 25% 12% / 0.08) 1px, transparent 1px)`,
-          backgroundSize: "24px 24px"
+          backgroundSize: "24px 24px",
         }}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 space-y-16 md:space-y-24 relative pb-16 pt-4">
+        {/* Section 1: Hero */}
         <HeroSection />
-        <ProblemSection />
+
+        {/* Section 2: Show The Actual Product */}
+        <ProductShowcaseSection />
+
+        {/* Section 3: The Core Value (Comparison) */}
+        <CoreValueSection />
+
+        {/* Section 4: What Can You Find on Relay? */}
+        <CategoriesSection />
+
+        {/* Section 5: How Relay Works */}
         <HowItWorksSection />
-        <ExchangeProtocolsSection />
-        <TrustSystemSection />
-        <TestimonialsSection />
-        <WhoIsItForSection />
+
+        {/* Section 6: Trust & Verification */}
+        <TrustVerificationSection />
+
+        {/* Section 7: Why Double Opt-In? */}
+        <DoubleOptInSection />
+
+        {/* Section 8: Two Sides of the Market */}
+        <TwoSidesSection />
+
+        {/* Section 9: Why Businesses Return */}
+        <ReturnDemandSection />
+
+        {/* Section 10: Outcome-Focused Section */}
+        <OutcomesSection />
+
+        {/* Section 11: Final CTA */}
+        <FinalCtaSection />
+
+        {/* Section 12: FAQ */}
+        <FaqSection />
+
+        {/* Section 13: Footer */}
         <Footer />
       </main>
     </div>
   );
 }
 
+/* ==================================================
+   SECTION 1 — HERO
+   ================================================== */
 function HeroSection() {
   const { ref, isVisible } = useReveal();
-  
+
   return (
-    <div id="home-hero-section" ref={ref} className="space-y-12 py-12 md:py-20 max-w-7xl mx-auto text-center">
-      <div className="space-y-6 max-w-4xl mx-auto">
-        <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tighter leading-[0.95] text-slate-950 uppercase">
-          The opportunity network <br />
-          for verified businesses
+    <section
+      id="home-hero-section"
+      ref={ref}
+      className={`py-12 md:py-20 max-w-4xl mx-auto text-center space-y-8 transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <div className="space-y-3.5 sm:space-y-5">
+        <h1 className="font-display text-[30px] xs:text-[34px] sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.1] text-slate-950">
+          Find businesses that are actively looking for what you offer.
         </h1>
-        <p className="text-slate-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-sans">
-          A double-opt-in transaction board where verified B2B founders, operators, and agencies exchange high-value commercial relationships <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-[2px] font-medium">without social media noise</span>.
+
+        <p className="text-slate-600 text-xs sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-sans">
+          Discover real partnership, referral, distribution, vendor, and hiring opportunities from
+          verified businesses —{" "}
+          <span className="bg-orange-500/10 text-orange-600 py-0.5 rounded-[2px] font-medium">
+            without the noise of social media.
+          </span>
         </p>
-        <div className="text-slate-500 text-xs md:text-sm font-mono space-y-1 uppercase tracking-wider">
-          <div>Built for exchanging referral partnerships, distribution deals, and vendor discovery.</div>
-          <div>Facilitating warm introductions, channel agreements, and strategic alliances.</div>
-        </div>
+
+        <p className="text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-wider font-medium">
+          See what businesses need · Respond with what you can offer · Connect when both sides agree
+        </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <Show when="signed-in">
+      <div className="space-y-4 pt-2">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
           <Link
             to="/opportunities"
-            className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center bg-slate-900 text-white font-mono text-xs uppercase tracking-widest hover:bg-orange-600 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-all duration-300 rounded-[2px] font-bold shadow-sm"
+            className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center bg-slate-900 text-white font-mono text-xs uppercase tracking-widest hover:bg-orange-600 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 rounded-[3px] font-bold shadow-xs cursor-pointer"
           >
-            Go to Dashboard <ArrowRight className="ml-2 w-4 h-4" />
+            Explore Opportunities <ArrowRight className="ml-2 w-4 h-4" />
           </Link>
-        </Show>
-        <Show when="signed-out">
-          <Link
-            to="/signup"
-            className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center bg-slate-900 text-white font-mono text-xs uppercase tracking-widest hover:bg-orange-600 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(234,88,12,0.15)] transition-all duration-300 rounded-[2px] font-bold shadow-sm"
-          >
-            Create Vetted Account <ArrowRight className="ml-2 w-4 h-4" />
-          </Link>
-        </Show>
-        <button
-          onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
-          className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center border border-slate-300 bg-white hover:border-slate-800 text-slate-700 font-mono text-xs uppercase tracking-widest hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-all duration-300 rounded-[2px] font-bold cursor-pointer"
-        >
-          See how it works
-        </button>
-      </div>
 
-      <div id="home-stats-section" className="pt-8 border-t border-slate-200">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          <div className="space-y-1">
-            <div className="text-3xl md:text-4xl font-display font-extrabold text-slate-950 tracking-tight">
-              <StatCounter value={86} trigger={isVisible} />
-            </div>
-            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">Verified Businesses</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-3xl md:text-4xl font-display font-extrabold text-slate-950 tracking-tight">
-              <StatCounter value={62} trigger={isVisible} />
-            </div>
-            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">Partnerships Formed</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-3xl md:text-4xl font-display font-extrabold text-slate-950 tracking-tight">
-              <StatCounter value={95} trigger={isVisible} />
-            </div>
-            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">Referral Deals Exchanged</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-3xl md:text-4xl font-display font-extrabold text-orange-600 tracking-tight">
-              <StatCounter value={12} trigger={isVisible} />
-            </div>
-            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">Spots Remaining</div>
-          </div>
+          <Show when="signed-out">
+            <Link
+              to="/signup"
+              className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center border border-slate-300 bg-white hover:border-slate-800 text-slate-800 font-mono text-xs uppercase tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer"
+            >
+              Apply for Access
+            </Link>
+          </Show>
+
+          <Show when="signed-in">
+            <Link
+              to="/onboarding"
+              className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center border border-slate-300 bg-white hover:border-slate-800 text-slate-800 font-mono text-xs uppercase tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer"
+            >
+              Manage Business Profile
+            </Link>
+          </Show>
+        </div>
+
+        <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] text-slate-400 font-sans">
+          <ShieldCheck className="w-3 h-3 text-emerald-600/90 shrink-0" />
+          <span>Businesses are manually reviewed before gaining full access.</span>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
-function ProblemSection() {
+/* ==================================================
+   SECTION 2 — SHOW THE ACTUAL PRODUCT
+   ================================================== */
+function ProductShowcaseSection() {
   const { ref, isVisible } = useReveal();
 
-  const platforms = [
+  const mockOpportunities = [
     {
-      name: "LinkedIn",
-      hope: "Targeted partnerships and qualified B2B leads.",
-      fail: "Inboxes are overrun by automated sales bots, recruiters, and low-relevance pitches."
+      category: "Distribution",
+      number: "OPP-302",
+      title: "Looking for SaaS Resellers in UAE",
+      description:
+        "Expanding our B2B document automation suite into the GCC region. Seeking regional software resellers and IT consultants with active relationships with financial institutions.",
+      industry: "Enterprise Software",
+      location: "Dubai, UAE",
+      company: "CloudFlow Systems",
+      initials: "CF",
+      time: "2d ago",
     },
     {
-      name: "WhatsApp Groups",
-      hope: "Immediate operator advice and real-time deal flow.",
-      fail: "Critical opportunities are buried under continuous casual chatter and general conversation."
+      category: "Referral",
+      number: "OPP-218",
+      title: "Looking for Referral Partners Serving D2C Brands",
+      description:
+        "We provide retention marketing and lifecycle email optimization for 7-figure Shopify brands. Offering 15% ongoing referral fees to web agencies and branding studios.",
+      industry: "E-Commerce",
+      location: "Remote / Global",
+      company: "Kinetik Studio",
+      initials: "KS",
+      time: "1d ago",
     },
     {
-      name: "Facebook Groups",
-      hope: "Peer-vetted vendor recommendations and niche industry insights.",
-      fail: "Low barrier to entry leads to self-promotional spam and unregulated posting quality."
+      category: "Vendor",
+      number: "OPP-149",
+      title: "Looking for a Packaging Supplier",
+      description:
+        "Direct-to-consumer wellness brand sourcing sustainable, FSC-certified cardboard packaging for a new product rollout. Monthly volume: 15,000 units.",
+      industry: "Manufacturing",
+      location: "Mumbai, India",
+      company: "Verdant Organics",
+      initials: "VO",
+      time: "3d ago",
     },
     {
-      name: "Founder Communities",
-      hope: "Reseller agreements, referral swaps, and distribution partners.",
-      fail: "Lack of transaction-focused structure keeps interactions conversational and low-outcome."
-    }
+      category: "Partnership",
+      number: "OPP-412",
+      title: "Looking for an HR Technology Partner",
+      description:
+        "Established payroll compliance platform seeking HRIS or employee benefits platforms for API integration, co-marketing, and joint bundle offerings.",
+      industry: "Human Resources",
+      location: "London, UK",
+      company: "TalentSync Group",
+      initials: "TS",
+      time: "4d ago",
+    },
+    {
+      category: "Hiring",
+      number: "OPP-507",
+      title: "Looking for a Senior React Developer",
+      description:
+        "High-volume payments infrastructure provider seeking senior contract frontend engineering capacity for a 6-month design system rebuild.",
+      industry: "FinTech",
+      location: "Remote",
+      company: "Horizon Payments",
+      initials: "HP",
+      time: "5d ago",
+    },
   ];
 
   return (
-    <div className="w-full bg-slate-950 text-white py-16 md:py-24 px-4 sm:px-6 rounded-lg relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full blur-[80px] pointer-events-none" />
-      
-      <div ref={ref} className={`max-w-7xl mx-auto space-y-12 transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-        <div className="space-y-4 text-center max-w-2xl mx-auto">
-          <span className="font-mono text-[10px] text-orange-500 font-bold uppercase tracking-[0.2em]">The Broken Channels</span>
-          <h2 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight">
-            Where B2B Networking Fails
-          </h2>
-          <p className="text-slate-400 text-sm md:text-base leading-relaxed font-sans">
-            Founders and operators search for high-value business cooperation in spaces built for social noise.
-          </p>
-        </div>
+    <section
+      id="home-product-section"
+      ref={ref}
+      className={`space-y-10 py-10 transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <div className="space-y-3 text-center max-w-3xl mx-auto">
+        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+          Live Opportunity Feed
+        </span>
+        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+          Real businesses. Real opportunities.
+        </h2>
+        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
+          Instead of searching thousands of businesses and sending cold messages, discover
+          businesses that are already looking for a partner, vendor, referral source, distributor,
+          or talent.
+        </p>
+      </div>
 
-        <div className="flex md:grid md:grid-cols-4 gap-6 overflow-x-auto md:overflow-x-visible pb-6 md:pb-0 snap-x snap-mandatory scrollbar-none -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0">
-          {platforms.map((p, idx) => (
-            <div
-              key={idx}
-              className="w-[280px] sm:w-[320px] md:w-auto shrink-0 snap-center bg-slate-900/60 border border-white/10 p-6 rounded-[4px] space-y-4 flex flex-col justify-between"
-            >
-              <div className="space-y-2">
-                <div className="font-mono text-xs text-orange-500 uppercase tracking-widest font-bold">// {p.name}</div>
-                <div>
-                  <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block font-bold">Intent:</span>
-                  <p className="text-slate-300 text-xs leading-relaxed font-sans">{p.hope}</p>
-                </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {mockOpportunities.map((opp, idx) => (
+          <div
+            key={idx}
+            className="bg-white border border-slate-200/90 hover:border-slate-800 rounded-[4px] p-5 shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between space-y-4 group"
+          >
+            <div className="space-y-3">
+              {/* Header Meta */}
+              <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 bg-slate-100 text-slate-700 rounded-[2px] font-bold">
+                  {opp.category}
+                </span>
+                <span className="font-mono text-[9px] text-slate-400 font-medium">
+                  #{opp.number} · {opp.time}
+                </span>
               </div>
-              <div className="border-t border-white/5 pt-3">
-                <span className="text-[10px] font-mono text-red-400 uppercase tracking-wider block font-bold">Why it fails:</span>
-                <p className="text-slate-400 text-xs leading-relaxed font-sans">{p.fail}</p>
+
+              {/* Title & Description */}
+              <div className="space-y-1.5">
+                <h3 className="font-display text-base font-bold text-slate-950 group-hover:text-primary transition-colors leading-snug">
+                  {opp.title}
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-sans line-clamp-3">
+                  {opp.description}
+                </p>
               </div>
             </div>
-          ))}
+
+            {/* Footer Row: Company & Location */}
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-sans">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <div className="w-5 h-5 rounded-[2px] bg-slate-100 text-slate-700 font-mono text-[9px] font-bold flex items-center justify-center shrink-0">
+                  {opp.initials}
+                </div>
+                <span className="font-semibold text-slate-800 truncate text-[11px]">
+                  {opp.company}
+                </span>
+                <BadgeCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              </div>
+
+              <span className="font-mono text-[10px] text-slate-400 shrink-0">{opp.location}</span>
+            </div>
+          </div>
+        ))}
+
+        {/* Explore All Card */}
+        <div className="bg-slate-900 text-white rounded-[4px] p-6 flex flex-col justify-between space-y-4 border border-slate-800">
+          <div className="space-y-2">
+            <span className="font-mono text-[9px] uppercase tracking-widest text-orange-400 font-bold block">
+              Active Opportunities
+            </span>
+            <h3 className="font-display text-lg font-bold text-white leading-snug">
+              Looking for something specific?
+            </h3>
+            <p className="text-xs text-slate-300 leading-relaxed font-sans">
+              Browse the live opportunity feed filtered by category, location, and industry type.
+            </p>
+          </div>
+
+          <Link
+            to="/opportunities"
+            className="w-full py-2.5 px-4 bg-white text-slate-950 hover:bg-slate-100 font-mono text-[11px] uppercase tracking-widest font-bold rounded-[2px] inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+          >
+            Explore Opportunities <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </div>
-    </div>
+
+      <div className="text-center pt-2">
+        <Link
+          to="/opportunities"
+          className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-widest font-bold text-slate-700 hover:text-slate-950 transition-colors"
+        >
+          Explore Opportunities <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+    </section>
   );
 }
 
+/* ==================================================
+   SECTION 3 — THE CORE VALUE (Comparison)
+   ================================================== */
+function CoreValueSection() {
+  const { ref, isVisible } = useReveal();
+
+  const traditionalSteps = [
+    "Search businesses",
+    "Find someone relevant",
+    "Send cold message",
+    "Wait",
+    "Follow up",
+    "Maybe get a response",
+  ];
+
+  const relaySteps = [
+    "Find an active opportunity",
+    "See what the business needs",
+    "Show what you can offer",
+    "Business reviews your interest",
+    "Both sides agree",
+    "Introduction",
+  ];
+
+  return (
+    <section
+      ref={ref}
+      className={`space-y-10 py-10 transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <div className="space-y-3 text-center max-w-3xl mx-auto">
+        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+          The Fundamental Shift
+        </span>
+        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+          Stop searching for businesses. Find business demand.
+        </h2>
+        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
+          Traditional networking starts with people. Relay starts with what a business actually
+          needs.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        {/* Traditional Outreach */}
+        <div className="bg-slate-100/70 border border-slate-200 p-6 rounded-[4px] space-y-5 flex flex-col justify-between">
+          <div className="space-y-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500 font-bold block">
+              Traditional Outreach
+            </span>
+            <h3 className="font-display text-base font-bold text-slate-800">
+              Starts with: “Who should I contact?”
+            </h3>
+            <p className="text-xs text-slate-500 font-sans leading-relaxed">
+              Blind searching, unverified interest, and cold inboxes that rarely convert.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            {traditionalSteps.map((step, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-2.5 text-xs text-slate-600 bg-white/80 border border-slate-200/60 px-3 py-2 rounded-[2px]"
+              >
+                <span className="font-mono text-[10px] text-slate-400 font-bold w-4">
+                  0{idx + 1}
+                </span>
+                <span>{step}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-200">
+            Result: Low outcome, high friction
+          </div>
+        </div>
+
+        {/* The Relay */}
+        <div className="bg-white border-2 border-slate-900 p-6 rounded-[4px] space-y-5 flex flex-col justify-between shadow-xs">
+          <div className="space-y-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-orange-600 font-bold block">
+              The Relay
+            </span>
+            <h3 className="font-display text-base font-bold text-slate-950">
+              Starts with: “What business is already looking for what I offer?”
+            </h3>
+            <p className="text-xs text-slate-600 font-sans leading-relaxed">
+              Intent-driven discovery where active commercial briefs are already waiting for you.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            {relaySteps.map((step, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-2.5 text-xs text-slate-900 bg-slate-50 border border-slate-200/90 px-3 py-2 rounded-[2px] font-medium"
+              >
+                <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>{step}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-[11px] font-mono text-emerald-700 uppercase tracking-wider font-bold pt-2 border-t border-slate-100 flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            Result: Warm introductions based on mutual agreement
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ==================================================
+   SECTION 4 — WHAT CAN YOU FIND ON RELAY?
+   ================================================== */
+function CategoriesSection() {
+  const { ref, isVisible } = useReveal();
+
+  const categories = [
+    {
+      icon: <Handshake className="w-5 h-5 text-orange-600" />,
+      title: "Partnerships",
+      example: "Find complementary businesses to build a joint offering.",
+      subtext: "Strategic alliances, product integrations, and joint co-marketing bundles.",
+    },
+    {
+      icon: <Users className="w-5 h-5 text-orange-600" />,
+      title: "Referral Partners",
+      example: "Exchange qualified customer referrals with businesses serving the same market.",
+      subtext: "Structured finder fees, reciprocal lead sharing, and agency partnerships.",
+    },
+    {
+      icon: <Layers className="w-5 h-5 text-orange-600" />,
+      title: "Distribution",
+      example: "Find resellers, distributors, or channel partners.",
+      subtext: "Regional expansion, software resellers, and established enterprise sales channels.",
+    },
+    {
+      icon: <Building2 className="w-5 h-5 text-orange-600" />,
+      title: "Vendors",
+      example: "Discover businesses actively looking for your product or service.",
+      subtext: "Real procurement briefs from operators who have defined budgets and scopes.",
+    },
+    {
+      icon: <Briefcase className="w-5 h-5 text-orange-600" />,
+      title: "Hiring",
+      example: "Find businesses looking for specific expertise or talent.",
+      subtext: "Key contractor roles, specialized advisory, and fractional operator capacity.",
+    },
+  ];
+
+  return (
+    <section
+      ref={ref}
+      className={`space-y-10 py-10 transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <div className="space-y-3 text-center max-w-3xl mx-auto">
+        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+          Commercial Categories
+        </span>
+        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+          Opportunities worth acting on.
+        </h2>
+        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
+          Built around the ways businesses actually work with other businesses.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
+        {categories.map((cat, idx) => (
+          <div
+            key={idx}
+            className="bg-white border border-slate-200/90 rounded-[4px] p-6 space-y-3 shadow-xs hover:border-slate-800 transition-colors flex flex-col justify-between"
+          >
+            <div className="space-y-2.5">
+              <div className="w-9 h-9 bg-orange-50 border border-orange-100 rounded-[2px] flex items-center justify-center">
+                {cat.icon}
+              </div>
+              <h3 className="font-display text-lg font-bold text-slate-950">{cat.title}</h3>
+              <p className="text-xs sm:text-sm font-semibold text-slate-800 font-sans leading-snug">
+                “{cat.example}”
+              </p>
+            </div>
+            <p className="text-xs text-slate-500 font-sans pt-2 border-t border-slate-100 leading-relaxed">
+              {cat.subtext}
+            </p>
+          </div>
+        ))}
+
+        <div className="bg-slate-50 border border-dashed border-slate-300 rounded-[4px] p-6 flex flex-col justify-center text-center space-y-2">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-slate-400 font-bold">
+            Focused on Outcomes
+          </span>
+          <p className="text-xs text-slate-600 leading-relaxed font-sans">
+            Every category is designed to create verifiable commercial outcomes rather than vanity
+            engagement.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ==================================================
+   SECTION 5 — HOW RELAY WORKS
+   ================================================== */
 function HowItWorksSection() {
   const { ref, isVisible } = useReveal();
 
   const steps = [
     {
       num: "01",
-      title: "Apply and get verified",
-      desc: "Every applicant goes through human validation. We verify corporate registration, company domain, and operator credentials to maintain absolute trust."
+      title: "Discover",
+      desc: "Find an opportunity that matches what your business can offer.",
     },
     {
       num: "02",
-      title: "Post your opportunity",
-      desc: "Create a structured post outlining a referral partnership, reseller deal, or vendor search. No personal status updates, only clear business requests."
+      title: "Express Interest",
+      desc: "Tell the opportunity owner why your business is a good fit.",
     },
     {
       num: "03",
-      title: "Get matched",
-      desc: "Vetted members browse the dashboard and submit response pitches. Your direct contact details are kept strictly locked and hidden from view."
+      title: "Review",
+      desc: "The business evaluates your interest and decides whether to connect.",
     },
     {
       num: "04",
-      title: "Connect and close",
-      desc: "Unlock contact credentials only when both parties manually accept the handshake. Proceed directly to external email with pre-filled context."
-    }
+      title: "Handshake",
+      desc: "Both sides agree to the introduction.",
+    },
+    {
+      num: "05",
+      title: "Connect",
+      desc: "Contact information is shared and the businesses continue the conversation directly.",
+    },
   ];
 
   return (
-    <div id="how-it-works" ref={ref} className={`space-y-12 py-12 md:py-16 max-w-7xl mx-auto transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-      <div className="space-y-4 text-center max-w-2xl mx-auto">
-        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em] font-bold">The Process</span>
-        <h2 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight text-slate-950">
-          The Verification and Matching Protocol
+    <section
+      id="how-it-works"
+      ref={ref}
+      className={`space-y-10 py-10 transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <div className="space-y-3 text-center max-w-3xl mx-auto">
+        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+          Structured Workflow
+        </span>
+        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+          From opportunity to introduction.
         </h2>
-        <p className="text-slate-600 text-sm leading-relaxed font-sans">
-          Relay is built on a structured double-opt-in progression, ensuring you only receive highly qualified responses.
+        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
+          Relay keeps the process structured so businesses can explore opportunities without opening
+          themselves up to unwanted outreach.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {steps.map((s, idx) => (
-          <div key={idx} className="relative space-y-4 flex flex-col items-start text-left group">
-            {/* Step Number */}
-            <div className="text-4xl font-display font-black text-slate-200 group-hover:text-orange-500 transition-colors duration-300">
-              {s.num}
-            </div>
-            
-            {/* Title */}
-            <h3 className="font-display text-sm font-extrabold uppercase tracking-tight text-slate-950 pt-1">
-              {s.title}
-            </h3>
-
-            {/* Description */}
-            <p className="text-slate-600 text-xs leading-relaxed font-sans">
-              {s.desc}
-            </p>
-
-            {/* Connecting line */}
-            {idx < 3 && (
-              <div className="hidden md:block absolute top-5 left-[85%] w-[45%] h-[1px] bg-slate-200 pointer-events-none" />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ExchangeProtocolsSection() {
-  const { ref, isVisible } = useReveal();
-
-  const protocols = [
-    {
-      code: "PROTOCOL #01",
-      icon: <Users className="w-5 h-5 text-primary" />,
-      title: "Referral Exchange & Finder Fees",
-      desc: "Partner with B2B agencies and consultancies to exchange client introductions for transparent finder fees or commission shares.",
-      specs: ["Typical Fee: 10% - 20% contract value", "Target: Agencies & Consultancies", "Validation: Signed agreement required"]
-    },
-    {
-      code: "PROTOCOL #02",
-      icon: <Layers className="w-5 h-5 text-primary" />,
-      title: "Distribution & Reselling Channels",
-      desc: "Connect SaaS founders with regional resellers, IT consultants, and distributors with established enterprise relationships.",
-      specs: ["Typical Margin: 20% - 30% recurring margin", "Target: SaaS & Tech Platforms", "Validation: Vetted reseller network"]
-    },
-    {
-      code: "PROTOCOL #03",
-      icon: <Handshake className="w-5 h-5 text-primary" />,
-      title: "Co-Marketing & Strategic Alliances",
-      desc: "Exchange co-selling initiatives, newsletter sponsorships, webinar swaps, or integrated product offerings to mutual audiences.",
-      specs: ["Goal: Audience & Lead Generation", "Target: High-growth B2B Brands", "Validation: Non-compete alignment"]
-    },
-    {
-      code: "PROTOCOL #04",
-      icon: <Network className="w-5 h-5 text-primary" />,
-      title: "Structured Vendor Discovery",
-      desc: "Post a structured brief to source high-fidelity service providers, custom manufacturers, or specialized software engineering groups.",
-      specs: ["Goal: Verified Service Procurement", "Target: Operational buyers", "Validation: Verified case studies"]
-    },
-    {
-      code: "PROTOCOL #05",
-      icon: <Repeat className="w-5 h-5 text-primary" />,
-      title: "Warm Operator Introductions",
-      desc: "Request or offer warm introductions for strategic advice, industry insights, localized market expansion, or board advisory roles.",
-      specs: ["Goal: Knowledge & Network Share", "Target: Verified Founders & GP/LPs", "Validation: Direct operator identity check"]
-    },
-    {
-      code: "PROTOCOL #06",
-      icon: <Workflow className="w-5 h-5 text-primary" />,
-      title: "Joint Venture & Co-Development",
-      desc: "Partner for shared technology integrations, co-development of B2B products, or strategic API licensing agreements.",
-      specs: ["Goal: Technical & Commercial Integration", "Target: Product & Engineering Directors", "Validation: Joint sandbox testing"]
-    }
-  ];
-
-  return (
-    <div id="exchange-protocols" ref={ref} className={`space-y-12 py-12 md:py-16 max-w-7xl mx-auto transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-      <div className="space-y-4 text-center max-w-2xl mx-auto">
-        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em] font-bold">[ SYSTEM CAPABILITIES ]</span>
-        <h2 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight text-slate-950">
-          Supported Exchange Protocols
-        </h2>
-        <p className="text-slate-600 text-sm leading-relaxed font-sans">
-          The Relay supports structured B2B exchange frameworks. Operators post opportunities adhering to these strict transaction categories.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {protocols.map((proto, idx) => (
           <div
             key={idx}
-            className="bg-white border border-slate-200 hover:border-slate-800 p-6 rounded-[4px] shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-4 hover:-translate-y-1 group"
+            className="bg-white border border-slate-200/90 rounded-[4px] p-5 space-y-2.5 flex flex-col justify-between shadow-xs hover:border-slate-800 transition-colors"
           >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[9px] text-slate-400 uppercase tracking-widest block font-bold">
-                  {proto.code}
-                </span>
-                <div className="w-8 h-8 bg-slate-50 border border-slate-200/60 rounded-[2px] flex items-center justify-center shrink-0">
-                  {proto.icon}
-                </div>
-              </div>
-
-              <h3 className="font-display text-base font-extrabold text-slate-950 group-hover:text-primary transition-colors leading-tight">
-                {proto.title}
-              </h3>
-
-              <p className="text-slate-600 text-xs leading-relaxed font-sans">
-                {proto.desc}
-              </p>
+            <div className="space-y-2">
+              <span className="font-mono text-xs text-orange-600 font-extrabold block">
+                {s.num}
+              </span>
+              <h3 className="font-display text-base font-bold text-slate-950">{s.title}</h3>
             </div>
-
-            <div className="pt-3 border-t border-slate-100">
-              <ul className="font-mono text-[9px] text-slate-500 uppercase tracking-wider space-y-1">
-                {proto.specs.map((spec, sIdx) => (
-                  <li key={sIdx} className="flex items-center gap-1.5">
-                    <span className="text-primary font-bold">▪</span>
-                    <span>{spec}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <p className="text-xs text-slate-600 leading-relaxed font-sans pt-2 border-t border-slate-100">
+              {s.desc}
+            </p>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
-function TrustSystemSection() {
+/* ==================================================
+   SECTION 6 — TRUST / VERIFICATION
+   ================================================== */
+function TrustVerificationSection() {
   const { ref, isVisible } = useReveal();
 
-  const pillars = [
+  const trustPillars = [
     {
-      icon: <ShieldCheck className="w-6 h-6 text-orange-600" />,
-      title: "Manual identity verification",
-      desc: "Every operating node on the platform is validated by a human team member. We do not support automated signup scripts, unverified domain references, or ghost accounts."
+      title: "Businesses apply to join",
+      desc: "Every company submits operating details and domain identity during onboarding. Anonymous accounts are never permitted.",
     },
     {
-      icon: <Award className="w-6 h-6 text-orange-600" />,
-      title: "Outcome-based reputation",
-      desc: "Platform status scales based on confirmed partnerships, not artificial likes or public reactions. Members earn trust score points purely through active reciprocity."
+      title: "Applications are manually reviewed",
+      desc: "Our operations team validates domain authenticity and operational credentials to prevent spam profiles.",
     },
     {
-      icon: <Lock className="w-6 h-6 text-orange-600" />,
-      title: "Mutual double-opt-in check",
-      desc: "Your company contact details and introduction details remain completely locked. Warm handshakes are only facilitated when both business profiles manually accept."
+      title: "Opportunity-based interactions",
+      desc: "Approved businesses post structured commercial opportunities and submit targeted response pitches based on actual fit.",
     },
     {
-      icon: <Zap className="w-6 h-6 text-orange-600" />,
-      title: "Opportunity-first structure",
-      desc: "There are no general media feeds, follower lists, or likes. Every interaction revolves around a structured opportunity brief designed to produce commercial results."
-    }
+      title: "Contact information stays private",
+      desc: "Direct contact addresses remain locked until both businesses manually approve the handshake.",
+    },
   ];
 
   return (
-    <div ref={ref} className={`space-y-12 py-12 md:py-16 max-w-7xl mx-auto transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-      <div className="space-y-4 text-center max-w-2xl mx-auto">
-        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em] font-bold">[ TRUST PROTOCOL ]</span>
-        <h2 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight text-slate-950">
-          The Trust System
+    <section
+      ref={ref}
+      className={`space-y-10 py-10 transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <div className="space-y-3 text-center max-w-3xl mx-auto">
+        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+          Trust Mechanism
+        </span>
+        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+          Know who you’re dealing with.
         </h2>
-        <p className="text-slate-600 text-sm leading-relaxed font-sans">
-          How we eliminate business networking spam and guarantee high-fidelity relationships.
+        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
+          Relay is built for operating businesses, not anonymous profiles and random outreach.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {pillars.map((p, idx) => (
-          <div key={idx} className="bg-white border border-slate-200/80 p-6 rounded-[4px] flex gap-5 items-start">
-            <div className="w-12 h-12 bg-slate-50 border border-slate-200/60 rounded-[2px] flex items-center justify-center shrink-0">
-              {p.icon}
-            </div>
-            <div className="space-y-2 text-left">
-              <h3 className="font-display text-sm font-extrabold uppercase tracking-tight text-slate-950">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-5xl mx-auto">
+        {trustPillars.map((p, idx) => (
+          <div
+            key={idx}
+            className="bg-white border border-slate-200/90 p-5 sm:p-6 rounded-[4px] space-y-2 shadow-xs"
+          >
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <h3 className="font-display text-sm sm:text-base font-bold text-slate-950">
                 {p.title}
               </h3>
-              <p className="text-slate-500 text-xs leading-relaxed font-sans max-w-sm">
-                {p.desc}
-              </p>
             </div>
+            <p className="text-xs text-slate-600 leading-relaxed font-sans pl-6">{p.desc}</p>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
-function TestimonialsSection() {
+/* ==================================================
+   SECTION 7 — WHY DOUBLE OPT-IN?
+   ================================================== */
+function DoubleOptInSection() {
   const { ref, isVisible } = useReveal();
 
-  const items = [
+  const flowSteps = [
+    "You discover an opportunity",
+    "You express interest",
+    "The business reviews your pitch",
+    "They accept",
+    "Handshake Complete",
+    "Contact details become available",
+  ];
+
+  return (
+    <section
+      ref={ref}
+      className={`space-y-8 py-10 max-w-4xl mx-auto text-center transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <div className="space-y-3">
+        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+          Mutual Consent Protocol
+        </span>
+        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+          Connect when both sides want to.
+        </h2>
+        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed font-sans">
+          Your contact information stays private until an opportunity owner accepts your interest.
+        </p>
+      </div>
+
+      {/* Visual Flow */}
+      <div className="bg-white border border-slate-200 p-5 sm:p-7 rounded-[4px] space-y-6 shadow-xs">
+        <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-mono font-bold text-slate-800">
+          {flowSteps.map((step, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <span className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-[2px]">
+                {step}
+              </span>
+              {idx < flowSteps.length - 1 && (
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0 hidden sm:inline" />
+              )}
+            </div>
+          ))}
+        </div>
+
+        <p className="text-xs text-slate-600 max-w-xl mx-auto font-sans leading-relaxed pt-2 border-t border-slate-100">
+          No cold contact exchange. No unsolicited outreach. The introduction happens only when
+          there is mutual interest.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ==================================================
+   SECTION 8 — TWO SIDES OF THE MARKET
+   ================================================== */
+function TwoSidesSection() {
+  const { ref, isVisible } = useReveal();
+
+  const needItems = [
+    "Need a distribution partner",
+    "Looking for a vendor",
+    "Need referral partners",
+    "Hiring for a specific role",
+    "Looking for a strategic business partner",
+  ];
+
+  const offerItems = [
+    "We provide development services",
+    "We have distribution capability",
+    "We serve a specific customer segment",
+    "We can provide referrals",
+    "We have specialist expertise",
+  ];
+
+  return (
+    <section
+      ref={ref}
+      className={`space-y-10 py-10 transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <div className="space-y-3 text-center max-w-3xl mx-auto">
+        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+          Two-Way Participation
+        </span>
+        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+          Whether you need something or have something to offer, Relay works both ways.
+        </h2>
+        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
+          Businesses create opportunities and businesses discover them.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        {/* Panel 1 */}
+        <div className="bg-white border border-slate-200/90 p-6 sm:p-8 rounded-[4px] space-y-6 flex flex-col justify-between shadow-xs">
+          <div className="space-y-4">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-orange-600 font-bold block">
+              Demand Creator
+            </span>
+            <h3 className="font-display text-xl font-extrabold text-slate-950">
+              “I need something.”
+            </h3>
+            <ul className="space-y-2.5">
+              {needItems.map((item, idx) => (
+                <li key={idx} className="flex items-center gap-2 text-xs text-slate-700 font-sans">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-900 shrink-0" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <Link
+            to="/opportunities"
+            className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-mono text-xs uppercase tracking-widest font-bold rounded-[2px] inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+          >
+            Post an Opportunity <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {/* Panel 2 */}
+        <div className="bg-white border border-slate-200/90 p-6 sm:p-8 rounded-[4px] space-y-6 flex flex-col justify-between shadow-xs">
+          <div className="space-y-4">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-blue-600 font-bold block">
+              Opportunity Discoverer
+            </span>
+            <h3 className="font-display text-xl font-extrabold text-slate-950">
+              “I can offer something.”
+            </h3>
+            <ul className="space-y-2.5">
+              {offerItems.map((item, idx) => (
+                <li key={idx} className="flex items-center gap-2 text-xs text-slate-700 font-sans">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <Link
+            to="/opportunities"
+            className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 font-mono text-xs uppercase tracking-widest font-bold rounded-[2px] inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+          >
+            Find Opportunities <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ==================================================
+   SECTION 9 — WHY BUSINESSES RETURN
+   ================================================== */
+function ReturnDemandSection() {
+  const { ref, isVisible } = useReveal();
+
+  const timelineItems = [
     {
-      quote: "Within 14 days of platform approval, we matched with an enterprise software reseller in Germany. That single introduction led to a contract worth €45,000 in under three months.",
-      author: "Arnav S.",
-      role: "Founder & CEO",
-      company: "B2B SaaS Automation",
-      location: "Bengaluru, India",
-      initials: "AS"
+      time: "Today",
+      title: "Looking for a distribution partner.",
+      category: "Distribution",
+      meta: "GCC / Regional Resellers",
     },
     {
-      quote: "Finding an ISO-certified packaging vendor used to cost us weeks of cold outreach. On Relay, we posted our biodegradable mailer brief and received three validated bids within 48 hours.",
-      author: "Sarah K.",
-      role: "Head of Operations",
-      company: "Vibe Wellness D2C",
-      location: "London, UK",
-      initials: "SK"
-    }
+      time: "Tomorrow",
+      title: "Looking for a referral agency.",
+      category: "Referral",
+      meta: "E-Commerce / B2B SaaS",
+    },
+    {
+      time: "Next week",
+      title: "Looking for a technology vendor.",
+      category: "Vendor",
+      meta: "API Engineering & Architecture",
+    },
   ];
 
   return (
-    <div ref={ref} className={`space-y-12 py-12 md:py-16 max-w-7xl mx-auto transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-      <div className="space-y-4 text-center max-w-2xl mx-auto">
-        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em] font-bold">[ TESTIMONIALS ]</span>
-        <h2 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight text-slate-950">
-          Verified Outcomes
+    <section
+      ref={ref}
+      className={`space-y-10 py-10 transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <div className="space-y-3 text-center max-w-3xl mx-auto">
+        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+          Dynamic Deal Flow
+        </span>
+        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+          Your next opportunity may already be waiting.
         </h2>
-        <p className="text-slate-600 text-sm leading-relaxed font-sans">
-          Read how verified operators are executing commercial partnerships on the network.
+        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
+          Relay is built around active business demand. New opportunities create new reasons to come
+          back.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {items.map((t, idx) => (
-          <div key={idx} className="bg-white border border-slate-200 p-8 rounded-[4px] text-left space-y-6 flex flex-col justify-between shadow-sm relative">
-            <p className="text-slate-700 text-xs md:text-sm italic leading-relaxed font-sans">
-              "{t.quote}"
-            </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+        {timelineItems.map((item, idx) => (
+          <div
+            key={idx}
+            className="bg-white border border-slate-200/90 rounded-[4px] p-5 space-y-3 shadow-xs flex flex-col justify-between"
+          >
+            <div className="space-y-1.5">
+              <span className="font-mono text-[10px] text-orange-600 uppercase font-bold tracking-widest block">
+                {item.time}
+              </span>
+              <h3 className="font-display text-base font-bold text-slate-900 leading-snug">
+                “{item.title}”
+              </h3>
+            </div>
 
-            <div className="flex items-center gap-4 pt-4 border-t border-slate-100">
-              <div className="w-10 h-10 rounded-full bg-slate-900 text-white font-mono text-xs font-bold uppercase flex items-center justify-center">
-                {t.initials}
-              </div>
-              <div>
-                <div className="text-xs font-bold text-slate-950">{t.author}</div>
-                <div className="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-bold">
-                  {t.role} · {t.company}
-                </div>
-                <div className="text-[9px] text-slate-400 font-sans">{t.location}</div>
-              </div>
+            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 border-t border-slate-100 pt-2.5">
+              <span className="uppercase font-semibold">{item.category}</span>
+              <span>{item.meta}</span>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
-function WhoIsItForSection() {
+/* ==================================================
+   SECTION 10 — OUTCOME-FOCUSED SECTION
+   ================================================== */
+function OutcomesSection() {
   const { ref, isVisible } = useReveal();
 
-  const forYou = [
-    "You are a B2B founder, general partner, marketing agency owner, or corporate development operator.",
-    "You possess an active, verifiable business domain and a registered business registration number.",
-    "You have a specific, actionable commercial brief to post — such as distribution, hiring, or vendor search.",
-    "You value low-noise, transactional communication and expect to verify your identity before communicating.",
-    "You are willing to actively participate and confirm business introduction handshakes when appropriate."
+  const progressionBlocks = [
+    { step: "01", label: "Discover an opportunity", subtext: "Browse verified active briefs" },
+    { step: "02", label: "Express interest", subtext: "Explain your commercial fit" },
+    { step: "03", label: "Make an introduction", subtext: "Both sides review and accept" },
+    {
+      step: "04",
+      label: "Create a business relationship",
+      subtext: "Direct email contact unlocked",
+    },
   ];
 
-  const notForYou = [
-    "You intend to scrape email directories, harvest corporate leads, or conduct mass outbound cold sales outreach.",
-    "You do not possess a registered business corporation, active email server domain, or verifiable profile.",
-    "You are looking to publish self-promotional content, generic marketing updates, or spammy recruitment posts.",
-    "You expect to passively browse directories without publishing your own commercial briefs or verifying.",
-    "You prefer social feed algorithms, scrolling timelines, and chase likes over structured outcome networks."
+  const outcomePills = [
+    "Partnerships",
+    "Referrals",
+    "Distribution",
+    "Vendor relationships",
+    "Hiring",
   ];
 
   return (
-    <div ref={ref} className={`space-y-12 py-12 md:py-16 max-w-7xl mx-auto transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-      <div className="space-y-4 text-center max-w-2xl mx-auto">
-        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em] font-bold">[ SELF SELECTION ]</span>
-        <h2 className="font-display text-3xl sm:text-4xl font-extrabold uppercase tracking-tight text-slate-950">
-          Onboarding Parameters
+    <section
+      ref={ref}
+      className={`space-y-10 py-10 transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <div className="space-y-3 text-center max-w-3xl mx-auto">
+        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+          Clear Progression
+        </span>
+        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+          Built for business outcomes, not engagement.
         </h2>
-        <p className="text-slate-600 text-sm leading-relaxed font-sans">
-          We protect platform data quality. Please review our compliance requirements before beginning your application.
+        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
+          Relay is designed to move businesses from discovery to meaningful commercial
+          conversations.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-        {/* For You */}
-        <div className="bg-emerald-500/5 border border-emerald-500/20 p-8 rounded-[4px] space-y-6">
-          <h3 className="font-display text-base font-extrabold uppercase text-emerald-950 tracking-tight flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-600" />
-            This is for you if:
-          </h3>
-          <ul className="space-y-4">
-            {forYou.map((item, idx) => (
-              <li key={idx} className="flex gap-3 items-start text-xs font-sans text-emerald-900 leading-relaxed">
-                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Not For You */}
-        <div className="bg-red-500/5 border border-red-500/20 p-8 rounded-[4px] space-y-6">
-          <h3 className="font-display text-base font-extrabold uppercase text-red-950 tracking-tight flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-600" />
-            This is not for you if:
-          </h3>
-          <ul className="space-y-4">
-            {notForYou.map((item, idx) => (
-              <li key={idx} className="flex gap-3 items-start text-xs font-sans text-red-900 leading-relaxed">
-                <span className="text-red-600 font-bold text-xs shrink-0 mt-0.5">✕</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+        {progressionBlocks.map((b, idx) => (
+          <div
+            key={idx}
+            className="bg-white border border-slate-200/90 rounded-[4px] p-5 space-y-2 shadow-xs flex flex-col justify-between"
+          >
+            <span className="font-mono text-xs text-orange-600 font-bold">{b.step}</span>
+            <div className="space-y-1">
+              <h3 className="font-display text-sm font-bold text-slate-950">{b.label}</h3>
+              <p className="text-xs text-slate-500 font-sans">{b.subtext}</p>
+            </div>
+          </div>
+        ))}
       </div>
-    </div>
+
+      {/* Outcome labels */}
+      <div className="flex flex-wrap items-center justify-center gap-2 max-w-3xl mx-auto pt-2">
+        <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold mr-1">
+          Outcome Areas:
+        </span>
+        {outcomePills.map((pill, idx) => (
+          <span
+            key={idx}
+            className="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-medium rounded-full border border-slate-200/80"
+          >
+            {pill}
+          </span>
+        ))}
+      </div>
+    </section>
   );
 }
 
+/* ==================================================
+   SECTION 11 — FINAL CTA
+   ================================================== */
+function FinalCtaSection() {
+  const { ref, isVisible } = useReveal();
 
+  return (
+    <section
+      ref={ref}
+      className={`py-12 md:py-16 bg-slate-900 text-white rounded-[4px] p-6 sm:p-12 text-center space-y-6 max-w-5xl mx-auto border border-slate-800 transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <div className="space-y-3 max-w-2xl mx-auto">
+        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">
+          What is your business looking for?
+        </h2>
+        <p className="text-slate-300 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
+          Find opportunities from verified businesses — or post what you need and let the right
+          businesses discover you.
+        </p>
+      </div>
 
+      <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-2">
+        <Link
+          to="/opportunities"
+          className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center bg-white text-slate-950 font-mono text-xs uppercase tracking-widest hover:bg-slate-100 transition-colors rounded-[3px] font-bold shadow-xs cursor-pointer"
+        >
+          Explore Opportunities <ArrowRight className="ml-2 w-4 h-4" />
+        </Link>
+
+        <Show when="signed-out">
+          <Link
+            to="/signup"
+            className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center border border-slate-700 bg-slate-800/80 hover:bg-slate-800 text-white font-mono text-xs uppercase tracking-widest transition-colors rounded-[3px] font-bold cursor-pointer"
+          >
+            Apply for Access
+          </Link>
+        </Show>
+      </div>
+
+      <p className="text-xs text-slate-400 font-sans">
+        Relay is for operating businesses looking for real commercial opportunities.
+      </p>
+    </section>
+  );
+}
+
+/* ==================================================
+   SECTION 12 — FAQ
+   ================================================== */
+function FaqSection() {
+  const { ref, isVisible } = useReveal();
+
+  const faqs = [
+    {
+      q: "What is The Relay?",
+      a: "The Relay is a verified B2B opportunity network where operating businesses discover and post active commercial needs, including partnerships, customer referrals, distribution channels, vendors, and hiring.",
+    },
+    {
+      q: "Who can join?",
+      a: "Operating businesses, founders, agencies, consultancies, and operators with an active, verifiable business domain and corporate registration.",
+    },
+    {
+      q: "Are businesses verified?",
+      a: "Yes. Every applicant is manually reviewed by our operations team to confirm business identity, company website, and operating status before gaining full access.",
+    },
+    {
+      q: "What kinds of opportunities can I find?",
+      a: "The platform supports structured opportunities across five core categories: Partnerships, Referral Partners, Distribution, Vendors, and Hiring.",
+    },
+    {
+      q: "Can I post my own opportunity?",
+      a: "Yes. Once your business profile is approved, you can create structured opportunity briefs specifying your exact requirements, terms, and location preferences.",
+    },
+    {
+      q: "How does Express Interest work?",
+      a: "When you find an opportunity matching what you offer, you submit a brief pitch explaining your fit. The opportunity owner reviews your submission confidentially.",
+    },
+    {
+      q: "When is contact information shared?",
+      a: "Contact information stays private until both sides agree to connect. Once the opportunity owner accepts your pitch, the handshake unlocks direct email addresses for both companies.",
+    },
+    {
+      q: "Does Relay have messaging?",
+      a: "No. Once both parties agree to the introduction, Relay provides unlocked verified business emails and pre-drafted context so you can continue the conversation directly in your own email client.",
+    },
+    {
+      q: "Is Relay a social network?",
+      a: "No. There are no social feeds, public follower counts, likes, or vanity metrics. Every interaction revolves around a concrete commercial brief.",
+    },
+    {
+      q: "Is Relay free?",
+      a: "Browsing active opportunities and applying for membership access is free for verified operating businesses.",
+    },
+  ];
+
+  return (
+    <section
+      id="faq"
+      ref={ref}
+      className={`space-y-8 py-10 max-w-3xl mx-auto transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <div className="space-y-3 text-center">
+        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+          Got Questions?
+        </span>
+        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+          Questions, answered.
+        </h2>
+      </div>
+
+      <Accordion type="single" collapsible className="w-full space-y-2">
+        {faqs.map((faq, idx) => (
+          <AccordionItem
+            key={idx}
+            value={`item-${idx}`}
+            className="border border-slate-200 rounded-[4px] bg-white px-4 shadow-2xs"
+          >
+            <AccordionTrigger className="text-left font-display font-bold text-sm sm:text-base text-slate-900 py-3.5 hover:no-underline">
+              {faq.q}
+            </AccordionTrigger>
+            <AccordionContent className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed pt-1 pb-3.5">
+              {faq.a}
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    </section>
+  );
+}
+
+/* ==================================================
+   SECTION 13 — FOOTER
+   ================================================== */
 function Footer() {
   return (
     <footer className="pt-12 pb-16 border-t border-slate-200/80 max-w-7xl mx-auto flex flex-col md:flex-row gap-6 justify-between items-center text-center md:text-left">
-      <div className="space-y-2">
-        <Link to="/home" className="font-display font-extrabold text-base uppercase tracking-tight text-slate-950 flex items-center justify-center md:justify-start gap-2">
+      <div className="space-y-1.5">
+        <Link
+          to="/home"
+          className="font-display font-extrabold text-base uppercase tracking-tight text-slate-950 flex items-center justify-center md:justify-start gap-2"
+        >
           <span className="w-5 h-5 bg-slate-900 flex items-center justify-center text-white text-[10px] font-mono rounded-[2px]">
             R
           </span>
-          <span>Relay</span>
+          <span>The Relay</span>
         </Link>
         <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
           Real Businesses. Real Opportunities. Real Growth.
         </div>
       </div>
-      
-      <div className="flex gap-6 text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
-        <a href="#" className="hover:text-orange-600 transition-colors">About</a>
-        <a href="#" className="hover:text-orange-600 transition-colors">Privacy</a>
-        <a href="#" className="hover:text-orange-600 transition-colors">Terms</a>
-        <a href="#" className="hover:text-orange-600 transition-colors">Contact</a>
+
+      <div className="flex flex-wrap gap-5 justify-center text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
+        <Link to="/opportunities" className="hover:text-slate-950 transition-colors">
+          Opportunities
+        </Link>
+        <a href="#how-it-works" className="hover:text-slate-950 transition-colors">
+          How It Works
+        </a>
+        <Link to="/signup" className="hover:text-slate-950 transition-colors">
+          Apply for Access
+        </Link>
+        <Link to="/home" className="hover:text-slate-950 transition-colors">
+          About
+        </Link>
+        <a href="#faq" className="hover:text-slate-950 transition-colors">
+          FAQ
+        </a>
+        <Link to="/home" className="hover:text-slate-950 transition-colors">
+          Privacy
+        </Link>
+        <Link to="/home" className="hover:text-slate-950 transition-colors">
+          Terms
+        </Link>
       </div>
     </footer>
   );

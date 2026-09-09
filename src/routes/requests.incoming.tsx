@@ -5,7 +5,6 @@ import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { toast } from "sonner";
 import {
-  ExternalLink,
   Check,
   X,
   Lock,
@@ -18,6 +17,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Shield,
+  CheckCircle2,
 } from "lucide-react";
 import { getIncomingRequests } from "../functions/getIncomingRequests";
 import { acceptInterest } from "../functions/acceptInterest";
@@ -179,8 +179,8 @@ function IncomingRequestsPage() {
   const handleAccept = async (interestId: string, companyName: string) => {
     try {
       await acceptInterest({ data: { interest_id: interestId } });
-      toast.success("Interest accepted successfully", {
-        description: `You are now connected with ${companyName}. Contact details unlocked!`,
+      toast.success("Handshake Complete", {
+        description: `You’ve been introduced to ${companyName} regarding this opportunity.`,
       });
       loadRequests();
       // Sync localStorage store
@@ -268,9 +268,6 @@ function IncomingRequestsPage() {
         {/* Title Section */}
         <div className="mb-8 border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div id="requests-header-info" className="space-y-1.5">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold block">
-              [ OUTBOUND HANDSHAKES REVIEW ]
-            </span>
             <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
               Interest Requests
             </h1>
@@ -363,8 +360,8 @@ function IncomingRequestsPage() {
 
                         {/* Status Badges */}
                         {isAccepted && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-500 text-white text-[9px] font-mono font-bold uppercase tracking-widest rounded-[2px]">
-                            <Unlock className="w-2.5 h-2.5" /> Accepted & Unlocked
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-600 text-white text-[9px] font-mono font-bold uppercase tracking-widest rounded-[2px] shadow-2xs">
+                            <CheckCircle2 className="w-2.5 h-2.5" /> Handshake Complete
                           </span>
                         )}
                         {isDeclined && (
@@ -400,109 +397,57 @@ function IncomingRequestsPage() {
 
                       {/* Request Message/Pitch Context */}
                       <div className="space-y-1.5">
-                        <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold block flex items-center gap-1">
-                          <MessageSquare className="w-3 h-3 text-slate-350" /> Pitch Context
+                        <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1">
+                          <MessageSquare className="w-3 h-3 text-slate-400" /> Pitch Context
                         </span>
-                        <div className="bg-slate-950 text-slate-100 p-4 rounded-[2px] border border-slate-800/80 font-mono text-xs leading-relaxed max-w-3xl whitespace-pre-wrap select-all">
+                        <div className="bg-slate-50 border border-slate-200/70 p-3.5 rounded-[3px] text-xs text-slate-700 font-sans italic leading-relaxed line-clamp-3">
                           &ldquo;{req.message || "No pitch message provided."}&rdquo;
                         </div>
                       </div>
 
-                      {/* Contact Revelations (Accepted State Only) */}
-                      {isAccepted && (
-                        <div className="border border-emerald-500/20 bg-emerald-50/20 p-4 rounded-[2px] space-y-3.5 max-w-3xl animate-momentum">
-                          <span className="font-mono text-[9px] uppercase tracking-widest text-emerald-700 font-bold block border-b border-emerald-500/10 pb-1">
-                            [ Connection Contact Details Unlocked ]
-                          </span>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-sans">
-                            <div className="space-y-0.5">
-                              <span className="text-slate-400 text-[10px]">Website</span>
-                              <a
-                                href={`https://${req.requesting_business.website}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-bold text-slate-900 hover:text-primary hover:underline flex items-center gap-1"
-                              >
-                                {req.requesting_business.website} <ExternalLink className="w-3 h-3" />
-                              </a>
-                            </div>
-                            {req.requesting_business.linkedin_url && (
-                              <div className="space-y-0.5">
-                                <span className="text-slate-400 text-[10px]">LinkedIn</span>
-                                <a
-                                  href={req.requesting_business.linkedin_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="font-bold text-slate-900 hover:text-primary hover:underline flex items-center gap-1"
-                                >
-                                  Company Profile <ExternalLink className="w-3 h-3" />
-                                </a>
-                              </div>
-                            )}
-                            <div className="space-y-0.5">
-                              <span className="text-slate-400 text-[10px]">
-                                Public Contact Email
-                              </span>
-                              <a
-                                href={`mailto:${req.requesting_business.contact_email || req.requesting_business.owner?.email || ""}`}
-                                className="font-mono font-bold text-slate-900 hover:text-primary hover:underline"
-                              >
-                                {req.requesting_business.contact_email ||
-                                  req.requesting_business.owner?.email ||
-                                  "N/A"}
-                              </a>
-                            </div>
-                          </div>
-                          {req.requesting_business.description && (
-                            <div className="space-y-1 pt-1.5 border-t border-emerald-500/10">
-                              <span className="text-slate-400 text-[10px] block">
-                                Company Description
-                              </span>
-                              <p className="text-xs text-slate-600 leading-relaxed">
-                                {req.requesting_business.description}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
 
                     {/* Actions Panel */}
-                    <div className="flex flex-row lg:flex-col gap-2.5 w-full lg:w-44 shrink-0 lg:border-l lg:border-slate-100 lg:pl-6 justify-end lg:justify-center">
-                      {isPending && (
-                        <>
-                          <button
-                            onClick={() => handleAccept(req.id, req.requesting_business.company_name)}
-                            className="flex-1 lg:flex-none py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm shadow-emerald-950/20"
-                          >
-                            <Check className="w-3.5 h-3.5" /> Accept
-                          </button>
-                          <button
-                            onClick={() => handleDecline(req.id, req.requesting_business.company_name)}
-                            className="flex-1 lg:flex-none py-2.5 px-4 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                          >
-                            <X className="w-3.5 h-3.5" /> Decline
-                          </button>
-                        </>
-                      )}
+                    {!isAccepted && (
+                      <div className="flex flex-row lg:flex-col gap-2.5 w-full lg:w-44 shrink-0 lg:border-l lg:border-slate-100 lg:pl-6 justify-end lg:justify-center">
+                        {isPending && (
+                          <>
+                            <button
+                              onClick={() => handleAccept(req.id, req.requesting_business.company_name)}
+                              className="flex-1 lg:flex-none py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm shadow-emerald-950/20"
+                            >
+                              <Check className="w-3.5 h-3.5" /> Accept
+                            </button>
+                            <button
+                              onClick={() => handleDecline(req.id, req.requesting_business.company_name)}
+                              className="flex-1 lg:flex-none py-2.5 px-4 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              <X className="w-3.5 h-3.5" /> Decline
+                            </button>
+                          </>
+                        )}
 
-                      {isAccepted && (
-                        <Link
-                          to="/connections/$id"
-                          params={{ id: req.id }}
-                          className="w-full text-center py-2.5 px-4 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          View Connection <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
-                      )}
-
-                      {!isPending && !isAccepted && (
-                        <div className="w-full text-center py-2.5 px-3 border border-slate-200/80 bg-slate-50/50 text-[9px] font-mono uppercase tracking-widest font-bold text-slate-400 rounded-[2px] cursor-default">
-                          {isDeclined ? "Declined" : "Withdrawn"}
-                        </div>
-                      )}
-                    </div>
+                        {!isPending && (
+                          <div className="w-full text-center py-2.5 px-3 border border-slate-200/80 bg-slate-50/50 text-[9px] font-mono uppercase tracking-widest font-bold text-slate-400 rounded-[2px] cursor-default">
+                            {isDeclined ? "Declined" : "Withdrawn"}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
+
+                  {/* Full-width View Handshake Button at bottom */}
+                  {isAccepted && (
+                    <div className="pt-4 mt-2 border-t border-slate-100">
+                      <Link
+                        to="/connections/$id"
+                        params={{ id: req.id }}
+                        className="w-full text-center py-3 px-4 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs hover:shadow"
+                      >
+                        View Handshake <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  )}
                 </div>
               );
             })}

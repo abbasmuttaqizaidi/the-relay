@@ -157,9 +157,11 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-4">
+            {/* Reciprocity Score Badge - disabled for now
             <div id="reciprocity-badge-nav">
               <ReciprocityBadge className="flex" />
             </div>
+            */}
             {(!isSignedIn || !profile) && (
               <div className="flex items-center gap-3">
                 {!isSignedIn && (
@@ -365,7 +367,9 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
                 <div className="border-t border-slate-100 px-5 py-5">
                   {isSignedIn ? (
                     <div className="space-y-3">
+                      {/* Reciprocity Score Badge - disabled for now
                       <ReciprocityBadge className="flex w-full justify-between" />
+                      */}
                       <div className="space-y-2">
                         <span className="text-[9.5px] font-mono uppercase text-slate-400 tracking-widest font-extrabold block px-1">
                           Account

@@ -592,7 +592,7 @@ function BusinessProfilePage() {
           <Tabs defaultValue="basic" className="w-full">
             <TabsList id="profile-tabs-list" className="mb-6">
               <TabsTrigger value="basic">Basic Details</TabsTrigger>
-              <TabsTrigger value="verification">Website Verification</TabsTrigger>
+              {/* <TabsTrigger value="verification">Website Verification</TabsTrigger> */}
             </TabsList>
 
             {/* Tab 1: Basic Details Form */}
@@ -850,7 +850,8 @@ function BusinessProfilePage() {
               </form>
             </TabsContent>
 
-            {/* Tab 2: Website Verification Checklist */}
+            {/* Tab 2: Website Verification Checklist (Temporarily commented out) */}
+            {/*
             <TabsContent value="verification">
               <div className="border border-[#1f25301f] bg-white p-5 sm:p-8 rounded-[2px] space-y-6">
                 <div className="flex items-center justify-between border-b border-[#1f25300d] pb-3">
@@ -884,7 +885,6 @@ function BusinessProfilePage() {
                     )}
                   </div>
 
-                  {/* Individual checks */}
                   {verificationResult && (
                     <div className="space-y-2 pl-6.5">
                       {["dns", "reachable", "ssl"].map((checkKey) => {
@@ -910,7 +910,6 @@ function BusinessProfilePage() {
                     </div>
                   )}
 
-                  {/* Resolved via different URL note */}
                   {verificationResult && verificationResult.valid && verificationResult.resolvedUrl && (
                     <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 p-3 rounded-[2px]">
                       <Globe className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
@@ -920,7 +919,6 @@ function BusinessProfilePage() {
                     </div>
                   )}
 
-                  {/* Error message */}
                   {verificationResult && !verificationResult.valid && verificationResult.error && (
                     <div className="flex items-start gap-2 bg-red-50 border border-red-100 p-3 rounded-[2px]">
                       <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
@@ -930,7 +928,6 @@ function BusinessProfilePage() {
                     </div>
                   )}
 
-                  {/* Verify button */}
                   <button
                     type="button"
                     disabled={verifying}
@@ -975,7 +972,6 @@ function BusinessProfilePage() {
                   </button>
                 </div>
 
-                {/* Future steps placeholder */}
                 <div className="flex items-center gap-2 px-1">
                   <CircleDot className="w-3.5 h-3.5 text-slate-300" />
                   <span className="text-[10px] font-mono text-slate-300 uppercase tracking-widest">
@@ -984,6 +980,7 @@ function BusinessProfilePage() {
                 </div>
               </div>
             </TabsContent>
+            */}
           </Tabs>
         </section>
         </div>
