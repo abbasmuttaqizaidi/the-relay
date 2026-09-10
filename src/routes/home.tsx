@@ -294,11 +294,14 @@ function ManifestoBanner() {
       <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-black tracking-tight text-slate-950 leading-[1.18]">
         “Built for business outcomes, not engagement.”
       </h2>
-      <p className="text-slate-600 text-xs sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-sans">
-        No vanity metrics. No algorithm games. No unsolicited pitch spam. Just verified commercial
-        demand and direct, high-intent introductions.
+      <p className="text-slate-600 text-[11px] xs:text-xs sm:text-base md:text-lg max-w-2xl mx-auto font-sans whitespace-nowrap sm:whitespace-normal">
+        <span className="sm:hidden">No vanity metrics. Just verified commercial demand.</span>
+        <span className="hidden sm:inline">
+          No vanity metrics. No algorithm games. No unsolicited pitch spam. Just verified commercial
+          demand and direct, high-intent introductions.
+        </span>
       </p>
-      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-1 text-[11px] sm:text-xs font-mono text-slate-500 font-semibold tracking-wide">
+      <div className="flex items-center justify-center gap-x-2 xs:gap-x-3 sm:gap-x-6 text-[9.5px] xs:text-[10.5px] sm:text-xs font-mono text-slate-500 font-semibold tracking-wide whitespace-nowrap pt-1">
         <span>• No Public Feed</span>
         <span>• 100% Human Audited</span>
         <span>• Mutual Opt-In Only</span>

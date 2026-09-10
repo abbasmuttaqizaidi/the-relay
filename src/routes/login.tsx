@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { SignIn, useAuth } from "@clerk/tanstack-react-start";
 import { useEffect, useMemo } from "react";
-import { ShieldCheck, ArrowLeft, ArrowRight, Star, Users, Briefcase, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 
@@ -94,8 +94,8 @@ function SignInPage() {
       borderRadius: "2px", // Sharp Swiss edges
     },
     elements: {
-      rootBox: "w-full shadow-none",
-      card: "shadow-none border border-[#1f25301f] bg-white p-8 w-full rounded-[2px]",
+      rootBox: "w-full shadow-none flex justify-center",
+      card: "shadow-none border border-[#1f25301f] bg-white p-5 sm:p-8 w-full rounded-[2px]",
       headerTitle: "text-2xl font-display font-extrabold tracking-tight text-[#111827]",
       headerSubtitle: "text-slate-500 font-sans mt-1 text-sm leading-relaxed",
       socialButtonsBlockButton:
@@ -151,27 +151,16 @@ function SignInPage() {
         </div>
       </div>
 
-      {/* 2. Main Content (Split Layout - Hidden during OAuth resolution) */}
+      {/* 2. Main Content (Centered Form on Mobile, Split Layout on Desktop) */}
       <main
-        className={`clerk-auth-layout flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-1.5 pb-12 md:py-20 ${
+        className={`clerk-auth-layout flex-1 flex flex-col justify-center items-center max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 md:py-16 lg:py-20 ${
           showLoader ? "opacity-0 pointer-events-none absolute -top-[9999px] -left-[9999px]" : ""
         }`}
       >
-        <div className="mb-1.5 md:mb-6">
-          <Link
-            to="/home"
-            className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors font-bold"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
-          </Link>
-        </div>
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
-          {/* Left Side: Modern Editorial Brand Banner */}
-          <section className="lg:col-span-6 space-y-8 animate-momentum order-2 lg:order-1">
+        <div className="w-full lg:grid lg:grid-cols-12 lg:gap-16 items-center">
+          {/* Left Side: Modern Editorial Brand Banner (Desktop only) */}
+          <section className="hidden lg:block lg:col-span-6 space-y-8 animate-momentum">
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 border border-primary/20 bg-primary/5 rounded-[1px] text-[10px] font-mono text-primary uppercase tracking-widest font-bold">
-                <ShieldCheck className="w-3.5 h-3.5" /> Hand-Vetted B2B Network
-              </div>
               <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-none text-slate-900">
                 Where growth <br />
                 finds <span className="italic text-primary">momentum</span>.
@@ -184,49 +173,37 @@ function SignInPage() {
 
             {/* Key Value Propositions */}
             <div className="grid sm:grid-cols-2 gap-6 pt-6 border-t border-[#1f253012]">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-[#111827]">
-                  <Users className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-mono uppercase tracking-wider font-bold">
-                    Double Opt-In
-                  </span>
-                </div>
+              <div className="space-y-1.5">
+                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#111827]">
+                  Double Opt-In
+                </h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Connect only when both businesses accept. Zero cold calls, zero unwanted messaging.
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-[#111827]">
-                  <Star className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-mono uppercase tracking-wider font-bold">
-                    Reciprocity Engine
-                  </span>
-                </div>
+              <div className="space-y-1.5">
+                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#111827]">
+                  Reciprocity Engine
+                </h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Express interest, establish connections, and boost your trust scores automatically.
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-[#111827]">
-                  <Briefcase className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-mono uppercase tracking-wider font-bold">
-                    Operator Vetting
-                  </span>
-                </div>
+              <div className="space-y-1.5">
+                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#111827]">
+                  Operator Vetting
+                </h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Manual domain verification checks preserve a high-trust network ecosystem.
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-[#111827]">
-                  <ShieldCheck className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-mono uppercase tracking-wider font-bold">
-                    Secure RLS
-                  </span>
-                </div>
+              <div className="space-y-1.5">
+                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#111827]">
+                  Secure RLS
+                </h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Your data is protected by secondary Row Level Security policies at all layers.
                 </p>
@@ -245,8 +222,8 @@ function SignInPage() {
           </section>
 
           {/* Right Side: Centered Clerk SignIn Container */}
-          <section className="lg:col-span-6 flex justify-center items-center order-1 lg:order-2">
-            <div className="max-w-md w-full">
+          <section className="w-full flex flex-col justify-center items-center lg:col-span-6">
+            <div className="w-full max-w-[420px] mx-auto">
               <SignIn
                 routing="path"
                 path="/login"
@@ -254,6 +231,15 @@ function SignInPage() {
                 forceRedirectUrl="/opportunities"
                 appearance={clerkAppearance}
               />
+              <div className="lg:hidden text-center pt-4 text-xs font-mono text-muted-foreground">
+                <span>Don't have an account yet? </span>
+                <Link
+                  to="/signup"
+                  className="text-primary hover:text-orange-700 font-bold uppercase tracking-wider inline-flex items-center gap-1"
+                >
+                  Apply for Vetting <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
             </div>
           </section>
         </div>
