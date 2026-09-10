@@ -94,16 +94,6 @@ function Landing() {
             },
           },
           {
-            element: "#home-product-section",
-            popover: {
-              title: "Active Business Opportunities",
-              description:
-                "Explore real business demands across distribution, referrals, vendors, partnerships, and hiring.",
-              side: "top",
-              align: "center",
-            },
-          },
-          {
             element: "#how-it-works",
             popover: {
               title: "Double Opt-In Mechanics",
@@ -133,44 +123,41 @@ function Landing() {
         }}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 space-y-16 md:space-y-24 relative pb-16 pt-4">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8 sm:space-y-10 md:space-y-14 relative pb-16 pt-1 sm:pt-2 md:pt-3">
         {/* Section 1: Hero */}
         <HeroSection />
 
-        {/* Section 2: Show The Actual Product */}
-        <ProductShowcaseSection />
-
-        {/* Section 3: The Core Value (Comparison) */}
+        {/* Section 2: The Core Value (Comparison) */}
         <CoreValueSection />
 
-        {/* Section 4: What Can You Find on Relay? */}
+        {/* Section 3: What Can You Find on Relay? */}
         <CategoriesSection />
 
-        {/* Section 5: How Relay Works */}
+        {/* Section 4: How Relay Works */}
         <HowItWorksSection />
 
-        {/* Section 6: Trust & Verification */}
+        {/* Section 5: Trust & Verification */}
         <TrustVerificationSection />
 
-        {/* Section 7: Why Double Opt-In? */}
+        {/* Section 6: Why Double Opt-In? */}
         <DoubleOptInSection />
 
-        {/* Section 8: Two Sides of the Market */}
+        {/* Section 7: Two Sides of the Market */}
         <TwoSidesSection />
 
-        {/* Section 9: Why Businesses Return */}
+        {/* Section 8: Why Businesses Return */}
         <ReturnDemandSection />
 
-        {/* Section 10: Outcome-Focused Section */}
+        {/* Section 9: Outcome-Focused Section */}
         <OutcomesSection />
 
-        {/* Section 11: Final CTA */}
+        {/* Section 10: Final CTA */}
         <FinalCtaSection />
 
-        {/* Section 12: FAQ */}
+        {/* Section 11: FAQ */}
         <FaqSection />
 
-        {/* Section 13: Footer */}
+        {/* Section 12: Footer */}
         <Footer />
       </main>
     </div>
@@ -187,33 +174,38 @@ function HeroSection() {
     <section
       id="home-hero-section"
       ref={ref}
-      className={`py-12 md:py-20 max-w-4xl mx-auto text-center space-y-8 transition-all duration-700 transform ${
+      className={`pt-2 sm:pt-5 md:pt-8 pb-2 sm:pb-4 max-w-4xl mx-auto text-center space-y-5 sm:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
-      <div className="space-y-3.5 sm:space-y-5">
-        <h1 className="font-display text-[30px] xs:text-[34px] sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.1] text-slate-950">
+      <div className="space-y-3 sm:space-y-5">
+        <h1 className="font-display text-[27px] xs:text-[32px] sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.12] text-slate-950">
           Find businesses that are actively looking for what you offer.
         </h1>
 
         <p className="text-slate-600 text-xs sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-sans">
-          Discover real partnership, referral, distribution, vendor, and hiring opportunities from
-          verified businesses —{" "}
-          <span className="bg-orange-500/10 text-orange-600 py-0.5 rounded-[2px] font-medium">
-            without the noise of social media.
+          Discover real partnership, vendor, and growth opportunities from verified businesses —
+          with{" "}
+          <span className="bg-orange-500/10 text-orange-600 py-0.5 px-1.5 rounded-[2px] font-medium">
+            100% manual human approval (no AI)
+          </span>{" "}
+          and{" "}
+          <span className="bg-orange-500/10 text-orange-600 py-0.5 px-1.5 rounded-[2px] font-medium">
+            no unnecessary noise
           </span>
+          .
         </p>
 
-        <p className="text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-wider font-medium">
+        <p className="text-[9.5px] xs:text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-wider font-medium">
           See what businesses need · Respond with what you can offer · Connect when both sides agree
         </p>
       </div>
 
-      <div className="space-y-4 pt-2">
-        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+      <div className="space-y-4 sm:space-y-6 pt-1 sm:pt-2">
+        <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center items-center">
           <Link
             to="/opportunities"
-            className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center bg-slate-900 text-white font-mono text-xs uppercase tracking-widest hover:bg-orange-600 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 rounded-[3px] font-bold shadow-xs cursor-pointer"
+            className="h-11 sm:h-12 w-full sm:w-auto px-6 sm:px-8 inline-flex items-center justify-center bg-slate-900 text-white font-mono text-xs uppercase tracking-widest hover:bg-orange-600 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 rounded-[3px] font-bold shadow-xs cursor-pointer"
           >
             Explore Opportunities <ArrowRight className="ml-2 w-4 h-4" />
           </Link>
@@ -221,7 +213,7 @@ function HeroSection() {
           <Show when="signed-out">
             <Link
               to="/signup"
-              className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center border border-slate-300 bg-white hover:border-slate-800 text-slate-800 font-mono text-xs uppercase tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer"
+              className="h-11 sm:h-12 w-full sm:w-auto px-6 sm:px-8 inline-flex items-center justify-center border border-slate-300 bg-white hover:border-slate-800 text-slate-800 font-mono text-xs uppercase tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer"
             >
               Apply for Access
             </Link>
@@ -230,188 +222,57 @@ function HeroSection() {
           <Show when="signed-in">
             <Link
               to="/onboarding"
-              className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center border border-slate-300 bg-white hover:border-slate-800 text-slate-800 font-mono text-xs uppercase tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer"
+              className="h-11 sm:h-12 w-full sm:w-auto px-6 sm:px-8 inline-flex items-center justify-center border border-slate-300 bg-white hover:border-slate-800 text-slate-800 font-mono text-xs uppercase tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer"
             >
               Manage Business Profile
             </Link>
           </Show>
         </div>
 
-        <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] text-slate-400 font-sans">
-          <ShieldCheck className="w-3 h-3 text-emerald-600/90 shrink-0" />
-          <span>Businesses are manually reviewed before gaining full access.</span>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ==================================================
-   SECTION 2 — SHOW THE ACTUAL PRODUCT
-   ================================================== */
-function ProductShowcaseSection() {
-  const { ref, isVisible } = useReveal();
-
-  const mockOpportunities = [
-    {
-      category: "Distribution",
-      number: "OPP-302",
-      title: "Looking for SaaS Resellers in UAE",
-      description:
-        "Expanding our B2B document automation suite into the GCC region. Seeking regional software resellers and IT consultants with active relationships with financial institutions.",
-      industry: "Enterprise Software",
-      location: "Dubai, UAE",
-      company: "CloudFlow Systems",
-      initials: "CF",
-      time: "2d ago",
-    },
-    {
-      category: "Referral",
-      number: "OPP-218",
-      title: "Looking for Referral Partners Serving D2C Brands",
-      description:
-        "We provide retention marketing and lifecycle email optimization for 7-figure Shopify brands. Offering 15% ongoing referral fees to web agencies and branding studios.",
-      industry: "E-Commerce",
-      location: "Remote / Global",
-      company: "Kinetik Studio",
-      initials: "KS",
-      time: "1d ago",
-    },
-    {
-      category: "Vendor",
-      number: "OPP-149",
-      title: "Looking for a Packaging Supplier",
-      description:
-        "Direct-to-consumer wellness brand sourcing sustainable, FSC-certified cardboard packaging for a new product rollout. Monthly volume: 15,000 units.",
-      industry: "Manufacturing",
-      location: "Mumbai, India",
-      company: "Verdant Organics",
-      initials: "VO",
-      time: "3d ago",
-    },
-    {
-      category: "Partnership",
-      number: "OPP-412",
-      title: "Looking for an HR Technology Partner",
-      description:
-        "Established payroll compliance platform seeking HRIS or employee benefits platforms for API integration, co-marketing, and joint bundle offerings.",
-      industry: "Human Resources",
-      location: "London, UK",
-      company: "TalentSync Group",
-      initials: "TS",
-      time: "4d ago",
-    },
-    {
-      category: "Hiring",
-      number: "OPP-507",
-      title: "Looking for a Senior React Developer",
-      description:
-        "High-volume payments infrastructure provider seeking senior contract frontend engineering capacity for a 6-month design system rebuild.",
-      industry: "FinTech",
-      location: "Remote",
-      company: "Horizon Payments",
-      initials: "HP",
-      time: "5d ago",
-    },
-  ];
-
-  return (
-    <section
-      id="home-product-section"
-      ref={ref}
-      className={`space-y-10 py-10 transition-all duration-700 transform ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-      }`}
-    >
-      <div className="space-y-3 text-center max-w-3xl mx-auto">
-        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
-          Live Opportunity Feed
-        </span>
-        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
-          Real businesses. Real opportunities.
-        </h2>
-        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
-          Instead of searching thousands of businesses and sending cold messages, discover
-          businesses that are already looking for a partner, vendor, referral source, distributor,
-          or talent.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {mockOpportunities.map((opp, idx) => (
-          <div
-            key={idx}
-            className="bg-white border border-slate-200/90 hover:border-slate-800 rounded-[4px] p-5 shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between space-y-4 group"
-          >
-            <div className="space-y-3">
-              {/* Header Meta */}
-              <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 bg-slate-100 text-slate-700 rounded-[2px] font-bold">
-                  {opp.category}
-                </span>
-                <span className="font-mono text-[9px] text-slate-400 font-medium">
-                  #{opp.number} · {opp.time}
-                </span>
-              </div>
-
-              {/* Title & Description */}
-              <div className="space-y-1.5">
-                <h3 className="font-display text-base font-bold text-slate-950 group-hover:text-primary transition-colors leading-snug">
-                  {opp.title}
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed font-sans line-clamp-3">
-                  {opp.description}
-                </p>
-              </div>
+        {/* Main Screen Highlight Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-left pt-1 sm:pt-2 max-w-3xl mx-auto w-full">
+          {/* Card 1: No Unnecessary Noise */}
+          <div className="bg-orange-50/70 border border-orange-200/90 rounded-[4px] p-3.5 sm:p-5 shadow-xs transition-all hover:border-orange-300">
+            <div className="flex items-center justify-between gap-2 mb-1.5 sm:mb-2">
+              <span className="inline-flex items-center gap-1.5 font-mono text-[9.5px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-orange-600 text-white rounded-[2px]">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                No Unnecessary Noise
+              </span>
+              <span className="text-[9.5px] sm:text-[10px] font-mono text-orange-800 font-bold uppercase tracking-wider bg-orange-100 px-1.5 py-0.5 rounded-[2px]">
+                Zero Spam
+              </span>
             </div>
-
-            {/* Footer Row: Company & Location */}
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-sans">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <div className="w-5 h-5 rounded-[2px] bg-slate-100 text-slate-700 font-mono text-[9px] font-bold flex items-center justify-center shrink-0">
-                  {opp.initials}
-                </div>
-                <span className="font-semibold text-slate-800 truncate text-[11px]">
-                  {opp.company}
-                </span>
-                <BadgeCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              </div>
-
-              <span className="font-mono text-[10px] text-slate-400 shrink-0">{opp.location}</span>
-            </div>
-          </div>
-        ))}
-
-        {/* Explore All Card */}
-        <div className="bg-slate-900 text-white rounded-[4px] p-6 flex flex-col justify-between space-y-4 border border-slate-800">
-          <div className="space-y-2">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-orange-400 font-bold block">
-              Active Opportunities
-            </span>
-            <h3 className="font-display text-lg font-bold text-white leading-snug">
-              Looking for something specific?
+            <h3 className="font-display font-bold text-sm sm:text-base text-slate-950">
+              Zero Junk Posts &amp; No Cold DMs
             </h3>
-            <p className="text-xs text-slate-300 leading-relaxed font-sans">
-              Browse the live opportunity feed filtered by category, location, and industry type.
+            <p className="text-[11.5px] sm:text-xs text-slate-700 font-sans leading-relaxed mt-1">
+              Generic referral links, low-effort job posts, and bulk sales pitches are banned.
+              Direct contact info stays locked until mutual handshake—keeping your inbox 100%
+              spam-free.
             </p>
           </div>
 
-          <Link
-            to="/opportunities"
-            className="w-full py-2.5 px-4 bg-white text-slate-950 hover:bg-slate-100 font-mono text-[11px] uppercase tracking-widest font-bold rounded-[2px] inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-          >
-            Explore Opportunities <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+          {/* Card 2: No AI Human Approval */}
+          <div className="bg-orange-50/70 border border-orange-200/90 rounded-[4px] p-3.5 sm:p-5 shadow-xs transition-all hover:border-orange-300">
+            <div className="flex items-center justify-between gap-2 mb-1.5 sm:mb-2">
+              <span className="inline-flex items-center gap-1.5 font-mono text-[9.5px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-orange-600 text-white rounded-[2px]">
+                <UserCheck className="w-3.5 h-3.5" />
+                Manual Human Approval
+              </span>
+              <span className="text-[9.5px] sm:text-[10px] font-mono text-orange-800 font-bold uppercase tracking-wider bg-orange-100 px-1.5 py-0.5 rounded-[2px]">
+                No AI Bots
+              </span>
+            </div>
+            <h3 className="font-display font-bold text-sm sm:text-base text-slate-950">
+              100% Human Vetting — No AI
+            </h3>
+            <p className="text-[11.5px] sm:text-xs text-slate-700 font-sans leading-relaxed mt-1">
+              We never outsource verification to automated AI algorithms or bot scripts. Every
+              company domain, active website, and operating business identity is audited by human
+              operators.
+            </p>
+          </div>
         </div>
-      </div>
-
-      <div className="text-center pt-2">
-        <Link
-          to="/opportunities"
-          className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-widest font-bold text-slate-700 hover:text-slate-950 transition-colors"
-        >
-          Explore Opportunities <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
       </div>
     </section>
   );
@@ -444,7 +305,7 @@ function CoreValueSection() {
   return (
     <section
       ref={ref}
-      className={`space-y-10 py-10 transition-all duration-700 transform ${
+      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
@@ -573,7 +434,7 @@ function CategoriesSection() {
   return (
     <section
       ref={ref}
-      className={`space-y-10 py-10 transition-all duration-700 transform ${
+      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
@@ -662,7 +523,7 @@ function HowItWorksSection() {
     <section
       id="how-it-works"
       ref={ref}
-      className={`space-y-10 py-10 transition-all duration-700 transform ${
+      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
@@ -702,64 +563,163 @@ function HowItWorksSection() {
 }
 
 /* ==================================================
-   SECTION 6 — TRUST / VERIFICATION
+   SECTION 5 — TRUST & VERIFICATION (Strict Standards)
    ================================================== */
 function TrustVerificationSection() {
   const { ref, isVisible } = useReveal();
 
-  const trustPillars = [
-    {
-      title: "Businesses apply to join",
-      desc: "Every company submits operating details and domain identity during onboarding. Anonymous accounts are never permitted.",
-    },
-    {
-      title: "Applications are manually reviewed",
-      desc: "Our operations team validates domain authenticity and operational credentials to prevent spam profiles.",
-    },
-    {
-      title: "Opportunity-based interactions",
-      desc: "Approved businesses post structured commercial opportunities and submit targeted response pitches based on actual fit.",
-    },
-    {
-      title: "Contact information stays private",
-      desc: "Direct contact addresses remain locked until both businesses manually approve the handshake.",
-    },
-  ];
-
   return (
     <section
       ref={ref}
-      className={`space-y-10 py-10 transition-all duration-700 transform ${
+      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
       <div className="space-y-3 text-center max-w-3xl mx-auto">
         <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
-          Trust Mechanism
+          Strict Standards
         </span>
         <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
-          Know who you’re dealing with.
+          Zero Unnecessary Noise. 100% Human Approval.
         </h2>
         <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
-          Relay is built for operating businesses, not anonymous profiles and random outreach.
+          We protect platform quality at the gate and in the feed. No AI shortcuts, no junk posts,
+          and no unsolicited DMs.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-5xl mx-auto">
-        {trustPillars.map((p, idx) => (
-          <div
-            key={idx}
-            className="bg-white border border-slate-200/90 p-5 sm:p-6 rounded-[4px] space-y-2 shadow-xs"
-          >
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <h3 className="font-display text-sm sm:text-base font-bold text-slate-950">
-                {p.title}
-              </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        {/* Pillar 1: No Unnecessary Noise */}
+        <div className="bg-white border border-slate-200/90 rounded-[4px] p-6 sm:p-8 space-y-5 shadow-xs flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-0.5 bg-orange-50 text-orange-700 border border-orange-200/60 rounded-[2px] font-bold">
+                Quality Filter
+              </span>
+              <ShieldCheck className="w-5 h-5 text-orange-600" />
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed font-sans pl-6">{p.desc}</p>
+
+            <div className="space-y-1.5">
+              <h3 className="font-display text-lg sm:text-xl font-extrabold text-slate-950">
+                No Unnecessary Noise
+              </h3>
+              <p className="text-xs text-slate-500 font-sans leading-relaxed">
+                Open business platforms deteriorate when inboxes are flooded and feeds become
+                dumping grounds for spam. Relay enforces strict boundaries:
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <div className="flex items-start gap-2.5">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="text-xs font-sans leading-relaxed">
+                  <strong className="font-semibold text-slate-900 block">No Junk Postings:</strong>
+                  <span className="text-slate-600">
+                    Vague job requests, generic referral links, and low-quality ads are prohibited.
+                    Every listing must be a structured commercial brief with clear scope and terms.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="text-xs font-sans leading-relaxed">
+                  <strong className="font-semibold text-slate-900 block">
+                    No Flooded or Cold DMs:
+                  </strong>
+                  <span className="text-slate-600">
+                    Contact details stay locked until both sides agree to a handshake. Cold sales
+                    bots, scrapers, and uninvited messages cannot access your inbox.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="text-xs font-sans leading-relaxed">
+                  <strong className="font-semibold text-slate-900 block">
+                    No Social Media Distractions:
+                  </strong>
+                  <span className="text-slate-600">
+                    Zero algorithmic feeds, follower counts, likes, or personal updates. You only
+                    see active business demand that you can genuinely fulfill.
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-        ))}
+
+          <div className="pt-4 border-t border-slate-100 text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+            Protected from noise · 100% Intent-Driven
+          </div>
+        </div>
+
+        {/* Pillar 2: 100% Human Approval (No AI) */}
+        <div className="bg-white border border-slate-200/90 rounded-[4px] p-6 sm:p-8 space-y-5 shadow-xs flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded-[2px] font-bold">
+                Human Verification
+              </span>
+              <UserCheck className="w-5 h-5 text-emerald-600" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="font-display text-lg sm:text-xl font-extrabold text-slate-950">
+                100% Manual Human Approval
+              </h3>
+              <p className="text-xs text-slate-500 font-sans leading-relaxed">
+                Automated signups and AI verification scripts fail to catch shell companies,
+                throwaway domains, and low-quality bots. We review every applicant manually:
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <div className="flex items-start gap-2.5">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="text-xs font-sans leading-relaxed">
+                  <strong className="font-semibold text-slate-900 block">No AI Approvals:</strong>
+                  <span className="text-slate-600">
+                    We never outsource platform gatekeeping to automated AI bots or black-box
+                    algorithms. A real human operations team member audits every business
+                    application.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="text-xs font-sans leading-relaxed">
+                  <strong className="font-semibold text-slate-900 block">
+                    Authentic Domain &amp; Operator Vetting:
+                  </strong>
+                  <span className="text-slate-600">
+                    Corporate email domains, active corporate websites, and operating credentials
+                    are manually inspected before granting access.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="text-xs font-sans leading-relaxed">
+                  <strong className="font-semibold text-slate-900 block">
+                    Verified Counterparties Only:
+                  </strong>
+                  <span className="text-slate-600">
+                    When you review an opportunity or receive a pitch, you have complete certainty
+                    that you are interacting with a legitimate, operating business.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-100 text-[11px] font-mono text-emerald-700 uppercase tracking-wider font-semibold flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            Human-Audited at Onboarding
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -783,7 +743,7 @@ function DoubleOptInSection() {
   return (
     <section
       ref={ref}
-      className={`space-y-8 py-10 max-w-4xl mx-auto text-center transition-all duration-700 transform ${
+      className={`space-y-6 sm:space-y-8 max-w-4xl mx-auto text-center transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
@@ -848,7 +808,7 @@ function TwoSidesSection() {
   return (
     <section
       ref={ref}
-      className={`space-y-10 py-10 transition-all duration-700 transform ${
+      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
@@ -953,7 +913,7 @@ function ReturnDemandSection() {
   return (
     <section
       ref={ref}
-      className={`space-y-10 py-10 transition-all duration-700 transform ${
+      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
@@ -1024,7 +984,7 @@ function OutcomesSection() {
   return (
     <section
       ref={ref}
-      className={`space-y-10 py-10 transition-all duration-700 transform ${
+      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
@@ -1083,7 +1043,7 @@ function FinalCtaSection() {
   return (
     <section
       ref={ref}
-      className={`py-12 md:py-16 bg-slate-900 text-white rounded-[4px] p-6 sm:p-12 text-center space-y-6 max-w-5xl mx-auto border border-slate-800 transition-all duration-700 transform ${
+      className={`py-8 sm:py-10 md:py-12 bg-slate-900 text-white rounded-[4px] p-6 sm:p-10 text-center space-y-5 max-w-5xl mx-auto border border-slate-800 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
@@ -1138,8 +1098,8 @@ function FaqSection() {
       a: "Operating businesses, founders, agencies, consultancies, and operators with an active, verifiable business domain and corporate registration.",
     },
     {
-      q: "Are businesses verified?",
-      a: "Yes. Every applicant is manually reviewed by our operations team to confirm business identity, company website, and operating status before gaining full access.",
+      q: "Are businesses approved by AI or humans?",
+      a: "100% manually by human operators — never by AI. We do not use automated AI scripts or bot approvals. Every single business application is reviewed by our operations team to confirm authentic company domains, active websites, and operating legitimacy before access is granted.",
     },
     {
       q: "What kinds of opportunities can I find?",
@@ -1162,6 +1122,10 @@ function FaqSection() {
       a: "No. Once both parties agree to the introduction, Relay provides unlocked verified business emails and pre-drafted context so you can continue the conversation directly in your own email client.",
     },
     {
+      q: "What do you mean by 'No Unnecessary Noise'?",
+      a: "It means zero junk postings, zero unsolicited DMs, and zero social media clutter. Opportunities cannot be vague promotional spam or low-quality job/referral ads—they must follow a structured commercial brief. Furthermore, direct messaging is disabled until both businesses explicitly agree to connect, protecting you from cold sales DMs.",
+    },
+    {
       q: "Is Relay a social network?",
       a: "No. There are no social feeds, public follower counts, likes, or vanity metrics. Every interaction revolves around a concrete commercial brief.",
     },
@@ -1175,7 +1139,7 @@ function FaqSection() {
     <section
       id="faq"
       ref={ref}
-      className={`space-y-8 py-10 max-w-3xl mx-auto transition-all duration-700 transform ${
+      className={`space-y-6 sm:space-y-8 max-w-3xl mx-auto transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
@@ -1213,7 +1177,7 @@ function FaqSection() {
    ================================================== */
 function Footer() {
   return (
-    <footer className="pt-12 pb-16 border-t border-slate-200/80 max-w-7xl mx-auto flex flex-col md:flex-row gap-6 justify-between items-center text-center md:text-left">
+    <footer className="pt-6 sm:pt-8 pb-10 sm:pb-12 border-t border-slate-200/80 max-w-7xl mx-auto flex flex-col md:flex-row gap-6 justify-between items-center text-center md:text-left">
       <div className="space-y-1.5">
         <Link
           to="/home"
