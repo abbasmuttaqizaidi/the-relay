@@ -1007,6 +1007,7 @@ function OpportunitiesPage() {
                   Post Opportunity
                 </button>
               )}
+              {/* Listings Curated badge commented out for now
               <div className="flex items-center justify-between sm:justify-end gap-3 border border-slate-200/80 bg-white p-3 md:p-2.5 rounded-[2px] shrink-0">
                 <span className="text-slate-400 font-mono text-[9px] uppercase tracking-widest font-bold">
                   Listings Curated
@@ -1015,6 +1016,7 @@ function OpportunitiesPage() {
                   {totalCount}
                 </span>
               </div>
+              */}
             </div>
           </header>
 
