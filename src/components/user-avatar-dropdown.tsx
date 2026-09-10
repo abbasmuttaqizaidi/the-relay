@@ -83,9 +83,23 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
       console.error("Clerk signOut error:", err);
     }
 
-    // Clear localStorage
+    // Clear localStorage while preserving tour completion flags so returning users don't see the tour again
     try {
+      const tourCompleted = localStorage.getItem("relay.tour_completed");
+      const tourKeys: [string, string][] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("relay.tour_completed")) {
+          tourKeys.push([key, localStorage.getItem(key) || "true"]);
+        }
+      }
       localStorage.clear();
+      if (tourCompleted) {
+        localStorage.setItem("relay.tour_completed", tourCompleted);
+      }
+      for (const [k, v] of tourKeys) {
+        localStorage.setItem(k, v);
+      }
     } catch (e) {
       console.error("Failed to clear localStorage:", e);
     }

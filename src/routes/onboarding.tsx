@@ -184,6 +184,10 @@ function OnboardingPage() {
       localStorage.setItem("relay.profile.v1", JSON.stringify(mappedProfile));
       window.dispatchEvent(new Event("relay:profile"));
 
+      try {
+        sessionStorage.setItem("relay.just_signed_up", "true");
+      } catch (e) {}
+
       toast.success("Business profile registered successfully! Vetting pending.");
 
       // Redirect to opportunities feed

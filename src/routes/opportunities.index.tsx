@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/components/ui/sonner";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
-import { useAuth } from "@clerk/tanstack-react-start";
+import { useAuth, useUser } from "@clerk/tanstack-react-start";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { listOpportunities } from "../functions/listOpportunities";
 import { createOpportunity } from "../functions/createOpportunity";
@@ -221,6 +221,7 @@ function OpportunitiesPage() {
   const { industry, geo, type, q, minInterested, maxInterested } = Route.useSearch();
   const navigate = Route.useNavigate();
   const { isSignedIn, isLoaded, userId } = useAuth();
+  const { user } = useUser();
   const isSignedInRef = useRef(isSignedIn);
   isSignedInRef.current = isSignedIn;
   const [isValidating, setIsValidating] = useState(true);
@@ -365,15 +366,58 @@ function OpportunitiesPage() {
     };
     window.addEventListener("relay:start-tour:opportunities", handleStartTourEvent);
 
-    // 2. Auto-run tour for first-time logged-in operators
+    // 2. Auto-run tour ONLY for brand-new first-time signups (NEVER on routine sign-ins)
     let timer: any = null;
-    if (isLoaded && isSignedIn) {
-      const hasCompletedTour = localStorage.getItem("relay.tour_completed");
-      if (!hasCompletedTour) {
+    if (isLoaded && isSignedIn && user) {
+      const userTourKey = `relay.tour_completed_${user.id}`;
+      const isTourCompleted =
+        Boolean(user.unsafeMetadata?.tour_completed) ||
+        localStorage.getItem(userTourKey) === "true" ||
+        localStorage.getItem("relay.tour_completed") === "true";
+
+      // Check if user has just completed onboarding/signup
+      let justSignedUp = false;
+      try {
+        justSignedUp = sessionStorage.getItem("relay.just_signed_up") === "true";
+      } catch (e) {}
+
+      // Consider it brand new only if account was created in last 10 minutes
+      const isBrandNewAccount =
+        user.createdAt ? Date.now() - new Date(user.createdAt).getTime() < 10 * 60 * 1000 : false;
+
+      // Only run if specifically a fresh signup and never completed
+      if (justSignedUp && isBrandNewAccount && !isTourCompleted) {
+        try {
+          sessionStorage.removeItem("relay.just_signed_up");
+        } catch (e) {}
+
+        localStorage.setItem(userTourKey, "true");
+        localStorage.setItem("relay.tour_completed", "true");
+
+        try {
+          user.update({
+            unsafeMetadata: {
+              ...user.unsafeMetadata,
+              tour_completed: true,
+            },
+          }).catch(() => {});
+        } catch (e) {}
+
         timer = setTimeout(() => {
           startTour();
-          localStorage.setItem("relay.tour_completed", "true");
         }, 1200);
+      } else if (!isTourCompleted && !isBrandNewAccount) {
+        // Returning user logging in: mark tour completed so it never fires
+        localStorage.setItem(userTourKey, "true");
+        localStorage.setItem("relay.tour_completed", "true");
+        try {
+          user.update({
+            unsafeMetadata: {
+              ...user.unsafeMetadata,
+              tour_completed: true,
+            },
+          }).catch(() => {});
+        } catch (e) {}
       }
     }
 
@@ -381,7 +425,7 @@ function OpportunitiesPage() {
       if (timer) clearTimeout(timer);
       window.removeEventListener("relay:start-tour:opportunities", handleStartTourEvent);
     };
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, user]);
 
   const [searchInputVal, setSearchInputVal] = useState(q);
 
