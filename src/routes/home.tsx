@@ -8,12 +8,9 @@ import {
   Lock,
   Calendar,
   MapPin,
-  BadgeCheck,
   Search,
   Clock,
-  Sparkles,
   ArrowDown,
-  UserCheck,
   Play,
 } from "lucide-react";
 import {
@@ -22,6 +19,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { HowItWorksModal } from "@/components/how-it-works-modal";
@@ -125,19 +129,19 @@ function Landing() {
         {/* Section 1: Hero */}
         <HeroSection onWatchHowItWorks={() => setIsVideoModalOpen(true)} />
 
-        {/* Section 2: The Core Value (Comparison) */}
+        {/* Section 2: Editorial Manifesto Banner */}
+        <ManifestoBanner />
+
+        {/* Section 3: The Core Value (Comparison) */}
         <CoreValueSection />
 
         {/* Section 3: What Can You Find on Relay? */}
         <CategoriesSection />
 
         {/* Section 4: How Relay Works */}
-        <HowItWorksSection onWatchHowItWorks={() => setIsVideoModalOpen(true)} />
+        <HowItWorksSection />
 
-        {/* Section 5: Trust & Verification */}
-        <TrustVerificationSection />
-
-        {/* Section 6: Why Double Opt-In? */}
+        {/* Section 5: Why Double Opt-In? */}
         <DoubleOptInSection />
 
         {/* Section 7: Two Sides of the Market */}
@@ -146,10 +150,7 @@ function Landing() {
         {/* Section 8: Why Businesses Return */}
         <ReturnDemandSection />
 
-        {/* Section 9: Outcome-Focused Section */}
-        <OutcomesSection />
-
-        {/* Section 10: Final CTA */}
+        {/* Section 9: Final CTA */}
         <FinalCtaSection />
 
         {/* Section 11: FAQ */}
@@ -243,12 +244,11 @@ function HeroSection({ onWatchHowItWorks }: { onWatchHowItWorks: () => void }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3.5 text-left pt-1 max-w-3xl mx-auto w-full">
           {/* Card 1: No Unnecessary Noise */}
           <div className="bg-orange-50/70 border border-orange-200/90 rounded-[4px] p-2.5 sm:p-3.5 shadow-2xs transition-all hover:border-orange-300">
-            <div className="flex items-center gap-1.5 mb-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+            <div className="flex items-center justify-between mb-1">
               <h3 className="font-display font-bold text-xs sm:text-sm text-slate-950">
                 No Unnecessary Noise
               </h3>
-              <span className="ml-auto font-mono text-[9px] text-orange-800 font-bold uppercase tracking-wider bg-orange-100 px-1.5 py-0.5 rounded-[2px]">
+              <span className="font-mono text-[9px] text-orange-800 font-bold uppercase tracking-wider bg-orange-100 px-1.5 py-0.5 rounded-[2px]">
                 Zero Spam
               </span>
             </div>
@@ -259,12 +259,11 @@ function HeroSection({ onWatchHowItWorks }: { onWatchHowItWorks: () => void }) {
 
           {/* Card 2: No AI Human Approval */}
           <div className="bg-orange-50/70 border border-orange-200/90 rounded-[4px] p-2.5 sm:p-3.5 shadow-2xs transition-all hover:border-orange-300">
-            <div className="flex items-center gap-1.5 mb-1">
-              <UserCheck className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+            <div className="flex items-center justify-between mb-1">
               <h3 className="font-display font-bold text-xs sm:text-sm text-slate-950">
                 100% Human Approval
               </h3>
-              <span className="ml-auto font-mono text-[9px] text-orange-800 font-bold uppercase tracking-wider bg-orange-100 px-1.5 py-0.5 rounded-[2px]">
+              <span className="font-mono text-[9px] text-orange-800 font-bold uppercase tracking-wider bg-orange-100 px-1.5 py-0.5 rounded-[2px]">
                 No AI
               </span>
             </div>
@@ -273,6 +272,36 @@ function HeroSection({ onWatchHowItWorks }: { onWatchHowItWorks: () => void }) {
             </p>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ==================================================
+   SECTION 2 — EDITORIAL MANIFESTO BANNER
+   ================================================== */
+function ManifestoBanner() {
+  const { ref, isVisible } = useReveal();
+
+  return (
+    <section
+      ref={ref}
+      aria-label="Platform Philosophy"
+      className={`border-y border-slate-200/90 py-8 sm:py-12 md:py-14 text-center max-w-4xl mx-auto px-4 space-y-3 sm:space-y-4 transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+    >
+      <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-black tracking-tight text-slate-950 leading-[1.18]">
+        “Built for business outcomes, not engagement.”
+      </h2>
+      <p className="text-slate-600 text-xs sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-sans">
+        No vanity metrics. No algorithm games. No unsolicited pitch spam. Just verified commercial
+        demand and direct, high-intent introductions.
+      </p>
+      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-1 text-[11px] sm:text-xs font-mono text-slate-500 font-semibold tracking-wide">
+        <span>• No Public Feed</span>
+        <span>• 100% Human Audited</span>
+        <span>• Mutual Opt-In Only</span>
       </div>
     </section>
   );
@@ -650,24 +679,6 @@ function CategoriesSection() {
           />
         ))}
       </div>
-
-      {/* Bottom Modern Trust Bar */}
-      <div className="text-center pt-1 sm:pt-2">
-        <div className="inline-flex flex-col sm:flex-row items-center gap-2 sm:gap-4 p-2.5 sm:px-4 sm:py-2 rounded-[4px] bg-slate-50 border border-slate-200/80 text-xs font-sans text-slate-600">
-          <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900">
-            <Sparkles className="w-3.5 h-3.5 text-orange-600 shrink-0" />
-            Every commercial opportunity is manually vetted before publication.
-          </span>
-          <span className="hidden sm:inline text-slate-300">•</span>
-          <Link
-            to="/opportunities"
-            className="font-mono text-orange-600 hover:text-orange-700 font-bold uppercase tracking-wider inline-flex items-center gap-1 group"
-          >
-            <span>Explore Active Briefs</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        </div>
-      </div>
     </section>
   );
 }
@@ -675,7 +686,7 @@ function CategoriesSection() {
 /* ==================================================
    SECTION 5 — HOW RELAY WORKS
    ================================================== */
-function HowItWorksSection({ onWatchHowItWorks }: { onWatchHowItWorks?: () => void }) {
+function HowItWorksSection() {
   const { ref, isVisible } = useReveal();
 
   const steps = [
@@ -710,36 +721,58 @@ function HowItWorksSection({ onWatchHowItWorks }: { onWatchHowItWorks?: () => vo
     <section
       id="how-it-works"
       ref={ref}
-      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
+      aria-label="Structured Workflow"
+      className={`space-y-5 sm:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
-      <div className="space-y-3 text-center max-w-3xl mx-auto">
-        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+      <div className="space-y-1.5 sm:space-y-2 text-center max-w-3xl mx-auto px-2">
+        <span className="font-mono text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest text-orange-600 bg-orange-50 px-2 py-0.5 rounded-[2px]">
           Structured Workflow
         </span>
-        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+        <h2 className="font-display text-lg sm:text-2xl md:text-4xl font-black tracking-tight text-slate-950 leading-snug sm:leading-tight">
           From opportunity to introduction.
         </h2>
-        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
+        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans max-w-xl mx-auto">
           Relay keeps the process structured so businesses can explore opportunities without opening
           themselves up to unwanted outreach.
         </p>
-        {onWatchHowItWorks && (
-          <div className="pt-1">
-            <button
-              type="button"
-              onClick={onWatchHowItWorks}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 hover:border-orange-500 hover:text-orange-600 rounded-full text-xs font-mono font-bold text-slate-700 shadow-2xs transition-all cursor-pointer"
-            >
-              <Play className="w-3 h-3 fill-orange-600 text-orange-600" />
-              <span>Watch animated walkthrough</span>
-            </button>
-          </div>
-        )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Mobile & Tablet: Connected Vertical Timeline Stepper */}
+      <div className="lg:hidden bg-white border border-slate-200/90 rounded-[6px] p-4.5 sm:p-6 shadow-xs max-w-lg mx-auto">
+        <div className="space-y-1 relative">
+          {steps.map((s, idx) => {
+            const isLast = idx === steps.length - 1;
+            return (
+              <div key={idx} className="relative flex items-start gap-3.5">
+                {/* Left Number Badge & Continuous Connector Line */}
+                <div className="flex flex-col items-center shrink-0 self-stretch">
+                  <span className="w-6 h-6 rounded-full bg-orange-50 border border-orange-200 text-orange-600 font-mono text-[10px] font-black flex items-center justify-center shrink-0 z-10 shadow-2xs">
+                    {s.num}
+                  </span>
+                  {!isLast && (
+                    <div className="w-[1.5px] bg-slate-200 flex-1 my-1 rounded-full" />
+                  )}
+                </div>
+
+                {/* Right Step Content */}
+                <div className={isLast ? "pt-0.5" : "pt-0.5 pb-4"}>
+                  <h3 className="font-display text-sm font-bold text-slate-950">
+                    {s.title}
+                  </h3>
+                  <p className="text-xs text-slate-600 font-sans leading-relaxed mt-0.5">
+                    {s.desc}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Desktop: 5-Column Progression Grid */}
+      <div className="hidden lg:grid lg:grid-cols-5 gap-4 max-w-7xl mx-auto">
         {steps.map((s, idx) => (
           <div
             key={idx}
@@ -761,168 +794,7 @@ function HowItWorksSection({ onWatchHowItWorks }: { onWatchHowItWorks?: () => vo
   );
 }
 
-/* ==================================================
-   SECTION 5 — TRUST & VERIFICATION (Strict Standards)
-   ================================================== */
-function TrustVerificationSection() {
-  const { ref, isVisible } = useReveal();
 
-  return (
-    <section
-      ref={ref}
-      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-      }`}
-    >
-      <div className="space-y-3 text-center max-w-3xl mx-auto">
-        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
-          Strict Standards
-        </span>
-        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
-          Zero Unnecessary Noise. 100% Human Approval.
-        </h2>
-        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
-          We protect platform quality at the gate and in the feed. No AI shortcuts, no junk posts,
-          and no unsolicited DMs.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-        {/* Pillar 1: No Unnecessary Noise */}
-        <div className="bg-white border border-slate-200/90 rounded-[4px] p-6 sm:p-8 space-y-5 shadow-xs flex flex-col justify-between">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-0.5 bg-orange-50 text-orange-700 border border-orange-200/60 rounded-[2px] font-bold">
-                Quality Filter
-              </span>
-              <ShieldCheck className="w-5 h-5 text-orange-600" />
-            </div>
-
-            <div className="space-y-1.5">
-              <h3 className="font-display text-lg sm:text-xl font-extrabold text-slate-950">
-                No Unnecessary Noise
-              </h3>
-              <p className="text-xs text-slate-500 font-sans leading-relaxed">
-                Open business platforms deteriorate when inboxes are flooded and feeds become
-                dumping grounds for spam. Relay enforces strict boundaries:
-              </p>
-            </div>
-
-            <div className="space-y-3 pt-2">
-              <div className="flex items-start gap-2.5">
-                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <div className="text-xs font-sans leading-relaxed">
-                  <strong className="font-semibold text-slate-900 block">No Junk Postings:</strong>
-                  <span className="text-slate-600">
-                    Vague job requests, generic referral links, and low-quality ads are prohibited.
-                    Every listing must be a structured commercial brief with clear scope and terms.
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <div className="text-xs font-sans leading-relaxed">
-                  <strong className="font-semibold text-slate-900 block">
-                    No Flooded or Cold DMs:
-                  </strong>
-                  <span className="text-slate-600">
-                    Contact details stay locked until both sides agree to a handshake. Cold sales
-                    bots, scrapers, and uninvited messages cannot access your inbox.
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <div className="text-xs font-sans leading-relaxed">
-                  <strong className="font-semibold text-slate-900 block">
-                    No Social Media Distractions:
-                  </strong>
-                  <span className="text-slate-600">
-                    Zero algorithmic feeds, follower counts, likes, or personal updates. You only
-                    see active business demand that you can genuinely fulfill.
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-slate-100 text-[11px] font-mono text-slate-400 uppercase tracking-wider">
-            Protected from noise · 100% Intent-Driven
-          </div>
-        </div>
-
-        {/* Pillar 2: 100% Human Approval (No AI) */}
-        <div className="bg-white border border-slate-200/90 rounded-[4px] p-6 sm:p-8 space-y-5 shadow-xs flex flex-col justify-between">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[9.5px] uppercase tracking-wider px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded-[2px] font-bold">
-                Human Verification
-              </span>
-              <UserCheck className="w-5 h-5 text-emerald-600" />
-            </div>
-
-            <div className="space-y-1.5">
-              <h3 className="font-display text-lg sm:text-xl font-extrabold text-slate-950">
-                100% Manual Human Approval
-              </h3>
-              <p className="text-xs text-slate-500 font-sans leading-relaxed">
-                Automated signups and AI verification scripts fail to catch shell companies,
-                throwaway domains, and low-quality bots. We review every applicant manually:
-              </p>
-            </div>
-
-            <div className="space-y-3 pt-2">
-              <div className="flex items-start gap-2.5">
-                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <div className="text-xs font-sans leading-relaxed">
-                  <strong className="font-semibold text-slate-900 block">No AI Approvals:</strong>
-                  <span className="text-slate-600">
-                    We never outsource platform gatekeeping to automated AI bots or black-box
-                    algorithms. A real human operations team member audits every business
-                    application.
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <div className="text-xs font-sans leading-relaxed">
-                  <strong className="font-semibold text-slate-900 block">
-                    Authentic Domain &amp; Operator Vetting:
-                  </strong>
-                  <span className="text-slate-600">
-                    Corporate email domains, active corporate websites, and operating credentials
-                    are manually inspected before granting access.
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <div className="text-xs font-sans leading-relaxed">
-                  <strong className="font-semibold text-slate-900 block">
-                    Verified Counterparties Only:
-                  </strong>
-                  <span className="text-slate-600">
-                    When you review an opportunity or receive a pitch, you have complete certainty
-                    that you are interacting with a legitimate, operating business.
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-slate-100 text-[11px] font-mono text-emerald-700 uppercase tracking-wider font-semibold flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            Human-Audited at Onboarding
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ==================================================
    SECTION 7 — WHY DOUBLE OPT-IN?
@@ -987,6 +859,7 @@ function DoubleOptInSection() {
    ================================================== */
 function TwoSidesSection() {
   const { ref, isVisible } = useReveal();
+  const [openDrawer, setOpenDrawer] = useState<"need" | "offer" | null>(null);
 
   const needItems = [
     "Need a distribution partner",
@@ -1023,7 +896,148 @@ function TwoSidesSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+      {/* Mobile Trigger Buttons (md:hidden) */}
+      <div className="md:hidden space-y-3">
+        {/* Button 1: I need something */}
+        <button
+          type="button"
+          onClick={() => setOpenDrawer("need")}
+          className="w-full text-left bg-slate-950 text-white border border-slate-800 hover:border-orange-500/50 p-4 sm:p-5 rounded-xl shadow-sm transition-all active:scale-[0.99] cursor-pointer flex items-center justify-between group"
+        >
+          <div className="space-y-1">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-orange-400 font-bold block">
+              Demand Creator
+            </span>
+            <h3 className="font-display text-base font-extrabold text-white">
+              “I need something.”
+            </h3>
+            <p className="text-xs text-slate-400 font-sans">
+              Need distribution, vendors, referrals, or hiring
+            </p>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-orange-400 shrink-0 group-hover:bg-orange-500 group-hover:text-slate-950 group-hover:border-orange-500 transition-all">
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          </div>
+        </button>
+
+        {/* Button 2: I can offer something */}
+        <button
+          type="button"
+          onClick={() => setOpenDrawer("offer")}
+          className="w-full text-left bg-slate-950 text-white border border-slate-800 hover:border-blue-500/50 p-4 sm:p-5 rounded-xl shadow-sm transition-all active:scale-[0.99] cursor-pointer flex items-center justify-between group"
+        >
+          <div className="space-y-1">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-blue-400 font-bold block">
+              Opportunity Discoverer
+            </span>
+            <h3 className="font-display text-base font-extrabold text-white">
+              “I can offer something.”
+            </h3>
+            <p className="text-xs text-slate-400 font-sans">
+              Offer services, distribution, capability, or expertise
+            </p>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-blue-400 shrink-0 group-hover:bg-blue-500 group-hover:text-slate-950 group-hover:border-blue-500 transition-all">
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+          </div>
+        </button>
+      </div>
+
+      {/* Mobile Bottom Slider / Sheet */}
+      <Sheet open={openDrawer !== null} onOpenChange={(open) => !open && setOpenDrawer(null)}>
+        <SheetContent
+          side="bottom"
+          className="bg-white text-slate-900 border-t border-slate-200 rounded-t-2xl max-h-[85dvh] overflow-y-auto p-5 sm:p-6 shadow-2xl max-w-lg mx-auto"
+        >
+          {/* Grab Handle */}
+          <div className="w-12 h-1 bg-slate-300 rounded-full mx-auto mb-4" />
+
+          {/* Quick Tab Switcher */}
+          <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-lg mb-5 text-xs font-mono font-bold">
+            <button
+              type="button"
+              onClick={() => setOpenDrawer("need")}
+              className={`py-2 px-3 rounded-md transition-all cursor-pointer ${
+                openDrawer === "need"
+                  ? "bg-white text-slate-950 shadow-xs"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              I Need Something
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpenDrawer("offer")}
+              className={`py-2 px-3 rounded-md transition-all cursor-pointer ${
+                openDrawer === "offer"
+                  ? "bg-white text-slate-950 shadow-xs"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              I Can Offer...
+            </button>
+          </div>
+
+          <SheetHeader className="text-left space-y-1">
+            <span
+              className={`font-mono text-[10px] uppercase tracking-wider font-bold ${
+                openDrawer === "need" ? "text-orange-600" : "text-blue-600"
+              }`}
+            >
+              {openDrawer === "need" ? "Demand Creator" : "Opportunity Discoverer"}
+            </span>
+            <SheetTitle className="font-display text-xl font-extrabold text-slate-950">
+              {openDrawer === "need" ? "“I need something.”" : "“I can offer something.”"}
+            </SheetTitle>
+            <SheetDescription className="text-xs text-slate-600 font-sans">
+              {openDrawer === "need"
+                ? "Post your requirement to connect directly with verified partners without public noise."
+                : "Discover commercial briefs matching your business capabilities and express interest directly."}
+            </SheetDescription>
+          </SheetHeader>
+
+          {/* List of Items */}
+          <div className="my-5 bg-slate-50 border border-slate-200/80 p-4 rounded-lg space-y-2.5">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold block">
+              {openDrawer === "need" ? "Typical Demand Scenarios:" : "What You Can Offer:"}
+            </span>
+            <ul className="space-y-2">
+              {(openDrawer === "need" ? needItems : offerItems).map((item, idx) => (
+                <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-700 font-sans">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
+                      openDrawer === "need" ? "bg-orange-600" : "bg-blue-600"
+                    }`}
+                  />
+                  <span className="font-medium leading-tight">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Action CTAs */}
+          <div className="space-y-2 pt-1 pb-2">
+            <Link
+              to="/opportunities"
+              onClick={() => setOpenDrawer(null)}
+              className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-mono text-xs uppercase tracking-widest font-bold rounded-[4px] inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            >
+              Post an Opportunity <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+
+            <Link
+              to="/opportunities"
+              onClick={() => setOpenDrawer(null)}
+              className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 font-mono text-xs uppercase tracking-widest font-bold rounded-[4px] inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            >
+              {openDrawer === "need" ? "Explore Active Briefs" : "Find Opportunities"}
+            </Link>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop Side-by-Side Cards (hidden md:grid) */}
+      <div className="hidden md:grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
         {/* Panel 1 */}
         <div className="bg-white border border-slate-200/90 p-6 sm:p-8 rounded-[4px] space-y-6 flex flex-col justify-between shadow-xs">
           <div className="space-y-4">
@@ -1155,83 +1169,6 @@ function ReturnDemandSection() {
   );
 }
 
-/* ==================================================
-   SECTION 10 — OUTCOME-FOCUSED SECTION
-   ================================================== */
-function OutcomesSection() {
-  const { ref, isVisible } = useReveal();
-
-  const progressionBlocks = [
-    { step: "01", label: "Discover an opportunity", subtext: "Browse verified active briefs" },
-    { step: "02", label: "Express interest", subtext: "Explain your commercial fit" },
-    { step: "03", label: "Make an introduction", subtext: "Both sides review and accept" },
-    {
-      step: "04",
-      label: "Create a business relationship",
-      subtext: "Direct email contact unlocked",
-    },
-  ];
-
-  const outcomePills = [
-    "Partnerships",
-    "Referrals",
-    "Distribution",
-    "Vendor relationships",
-    "Hiring",
-  ];
-
-  return (
-    <section
-      ref={ref}
-      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-      }`}
-    >
-      <div className="space-y-3 text-center max-w-3xl mx-auto">
-        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
-          Clear Progression
-        </span>
-        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
-          Built for business outcomes, not engagement.
-        </h2>
-        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
-          Relay is designed to move businesses from discovery to meaningful commercial
-          conversations.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
-        {progressionBlocks.map((b, idx) => (
-          <div
-            key={idx}
-            className="bg-white border border-slate-200/90 rounded-[4px] p-5 space-y-2 shadow-xs flex flex-col justify-between"
-          >
-            <span className="font-mono text-xs text-orange-600 font-bold">{b.step}</span>
-            <div className="space-y-1">
-              <h3 className="font-display text-sm font-bold text-slate-950">{b.label}</h3>
-              <p className="text-xs text-slate-500 font-sans">{b.subtext}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Outcome labels */}
-      <div className="flex flex-wrap items-center justify-center gap-2 max-w-3xl mx-auto pt-2">
-        <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold mr-1">
-          Outcome Areas:
-        </span>
-        {outcomePills.map((pill, idx) => (
-          <span
-            key={idx}
-            className="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-medium rounded-full border border-slate-200/80"
-          >
-            {pill}
-          </span>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 /* ==================================================
    SECTION 11 — FINAL CTA
