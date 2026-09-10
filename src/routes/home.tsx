@@ -123,7 +123,7 @@ function Landing() {
         }}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8 sm:space-y-10 md:space-y-14 relative pb-16 pt-1 sm:pt-2 md:pt-3">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8 sm:space-y-10 md:space-y-14 relative pb-16 pt-2 sm:pt-3 md:pt-4">
         {/* Section 1: Hero */}
         <HeroSection />
 
@@ -174,12 +174,12 @@ function HeroSection() {
     <section
       id="home-hero-section"
       ref={ref}
-      className={`pt-2 sm:pt-5 md:pt-8 pb-2 sm:pb-4 max-w-4xl mx-auto text-center space-y-5 sm:space-y-8 transition-all duration-700 transform ${
+      className={`pt-7 sm:pt-8 md:pt-10 pb-2 sm:pb-4 max-w-4xl mx-auto text-center space-y-5 sm:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
-      <div className="space-y-3 sm:space-y-5">
-        <h1 className="font-display text-[27px] xs:text-[32px] sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.12] text-slate-950">
+      <div className="space-y-3.5 sm:space-y-5">
+        <h1 className="font-display text-[40px] xs:text-[45px] sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.08] text-slate-950">
           Find businesses that are actively looking for what you offer.
         </h1>
 
@@ -229,47 +229,37 @@ function HeroSection() {
           </Show>
         </div>
 
-        {/* Main Screen Highlight Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-left pt-1 sm:pt-2 max-w-3xl mx-auto w-full">
+        {/* Main Screen Highlight Cards (Compact) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3.5 text-left pt-1 max-w-3xl mx-auto w-full">
           {/* Card 1: No Unnecessary Noise */}
-          <div className="bg-orange-50/70 border border-orange-200/90 rounded-[4px] p-3.5 sm:p-5 shadow-xs transition-all hover:border-orange-300">
-            <div className="flex items-center justify-between gap-2 mb-1.5 sm:mb-2">
-              <span className="inline-flex items-center gap-1.5 font-mono text-[9.5px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-orange-600 text-white rounded-[2px]">
-                <ShieldCheck className="w-3.5 h-3.5" />
+          <div className="bg-orange-50/70 border border-orange-200/90 rounded-[4px] p-2.5 sm:p-3.5 shadow-2xs transition-all hover:border-orange-300">
+            <div className="flex items-center gap-1.5 mb-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+              <h3 className="font-display font-bold text-xs sm:text-sm text-slate-950">
                 No Unnecessary Noise
-              </span>
-              <span className="text-[9.5px] sm:text-[10px] font-mono text-orange-800 font-bold uppercase tracking-wider bg-orange-100 px-1.5 py-0.5 rounded-[2px]">
+              </h3>
+              <span className="ml-auto font-mono text-[9px] text-orange-800 font-bold uppercase tracking-wider bg-orange-100 px-1.5 py-0.5 rounded-[2px]">
                 Zero Spam
               </span>
             </div>
-            <h3 className="font-display font-bold text-sm sm:text-base text-slate-950">
-              Zero Junk Posts &amp; No Cold DMs
-            </h3>
-            <p className="text-[11.5px] sm:text-xs text-slate-700 font-sans leading-relaxed mt-1">
-              Generic referral links, low-effort job posts, and bulk sales pitches are banned.
-              Direct contact info stays locked until mutual handshake—keeping your inbox 100%
-              spam-free.
+            <p className="text-[11px] sm:text-xs text-slate-600 font-sans leading-snug">
+              No junk job/referral posts &amp; no cold DMs. Contacts stay locked until handshake.
             </p>
           </div>
 
           {/* Card 2: No AI Human Approval */}
-          <div className="bg-orange-50/70 border border-orange-200/90 rounded-[4px] p-3.5 sm:p-5 shadow-xs transition-all hover:border-orange-300">
-            <div className="flex items-center justify-between gap-2 mb-1.5 sm:mb-2">
-              <span className="inline-flex items-center gap-1.5 font-mono text-[9.5px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-orange-600 text-white rounded-[2px]">
-                <UserCheck className="w-3.5 h-3.5" />
-                Manual Human Approval
-              </span>
-              <span className="text-[9.5px] sm:text-[10px] font-mono text-orange-800 font-bold uppercase tracking-wider bg-orange-100 px-1.5 py-0.5 rounded-[2px]">
-                No AI Bots
+          <div className="bg-orange-50/70 border border-orange-200/90 rounded-[4px] p-2.5 sm:p-3.5 shadow-2xs transition-all hover:border-orange-300">
+            <div className="flex items-center gap-1.5 mb-1">
+              <UserCheck className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+              <h3 className="font-display font-bold text-xs sm:text-sm text-slate-950">
+                100% Human Approval
+              </h3>
+              <span className="ml-auto font-mono text-[9px] text-orange-800 font-bold uppercase tracking-wider bg-orange-100 px-1.5 py-0.5 rounded-[2px]">
+                No AI
               </span>
             </div>
-            <h3 className="font-display font-bold text-sm sm:text-base text-slate-950">
-              100% Human Vetting — No AI
-            </h3>
-            <p className="text-[11.5px] sm:text-xs text-slate-700 font-sans leading-relaxed mt-1">
-              We never outsource verification to automated AI algorithms or bot scripts. Every
-              company domain, active website, and operating business identity is audited by human
-              operators.
+            <p className="text-[11px] sm:text-xs text-slate-600 font-sans leading-snug">
+              Audited by real operators, never AI bots. Every company domain is manually verified.
             </p>
           </div>
         </div>
