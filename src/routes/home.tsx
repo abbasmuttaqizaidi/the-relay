@@ -6,20 +6,15 @@ import {
   ShieldCheck,
   Check,
   Lock,
-  Users,
-  Layers,
-  Handshake,
-  Repeat,
-  Briefcase,
   Calendar,
   MapPin,
   BadgeCheck,
   Search,
-  Building2,
   Clock,
   Sparkles,
   ArrowDown,
   UserCheck,
+  Play,
 } from "lucide-react";
 import {
   Accordion,
@@ -29,6 +24,7 @@ import {
 } from "@/components/ui/accordion";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
+import { HowItWorksModal } from "@/components/how-it-works-modal";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
@@ -77,6 +73,8 @@ function useReveal() {
 }
 
 function Landing() {
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
   useEffect(() => {
     const handleTourEvent = () => {
       const driverObj = driver({
@@ -125,7 +123,7 @@ function Landing() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8 sm:space-y-10 md:space-y-14 relative pb-16 pt-2 sm:pt-3 md:pt-4">
         {/* Section 1: Hero */}
-        <HeroSection />
+        <HeroSection onWatchHowItWorks={() => setIsVideoModalOpen(true)} />
 
         {/* Section 2: The Core Value (Comparison) */}
         <CoreValueSection />
@@ -134,7 +132,7 @@ function Landing() {
         <CategoriesSection />
 
         {/* Section 4: How Relay Works */}
-        <HowItWorksSection />
+        <HowItWorksSection onWatchHowItWorks={() => setIsVideoModalOpen(true)} />
 
         {/* Section 5: Trust & Verification */}
         <TrustVerificationSection />
@@ -160,6 +158,9 @@ function Landing() {
         {/* Section 12: Footer */}
         <Footer />
       </main>
+
+      {/* Interactive Video Walkthrough Modal */}
+      <HowItWorksModal isOpen={isVideoModalOpen} onClose={() => setIsVideoModalOpen(false)} />
     </div>
   );
 }
@@ -167,7 +168,7 @@ function Landing() {
 /* ==================================================
    SECTION 1 — HERO
    ================================================== */
-function HeroSection() {
+function HeroSection({ onWatchHowItWorks }: { onWatchHowItWorks: () => void }) {
   const { ref, isVisible } = useReveal();
 
   return (
@@ -209,6 +210,15 @@ function HeroSection() {
           >
             Explore Opportunities <ArrowRight className="ml-2 w-4 h-4" />
           </Link>
+
+          <button
+            type="button"
+            onClick={onWatchHowItWorks}
+            className="h-11 sm:h-12 w-full sm:w-auto px-5 sm:px-6 inline-flex items-center justify-center gap-2 border border-slate-300 bg-white hover:border-orange-500 hover:text-orange-600 text-slate-800 font-mono text-xs uppercase tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer"
+          >
+            <Play className="w-3.5 h-3.5 fill-orange-600 text-orange-600 shrink-0" />
+            <span>How It Works</span>
+          </button>
 
           <Show when="signed-out">
             <Link
@@ -273,6 +283,8 @@ function HeroSection() {
    ================================================== */
 function CoreValueSection() {
   const { ref, isVisible } = useReveal();
+  const [activeSlide, setActiveSlide] = useState(0);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   const traditionalSteps = [
     "Search businesses",
@@ -292,18 +304,43 @@ function CoreValueSection() {
     "Introduction",
   ];
 
+  const scrollToSlide = (index: number) => {
+    if (!sliderRef.current) return;
+    const container = sliderRef.current;
+    const targetCard = container.children[index] as HTMLElement | undefined;
+    if (targetCard) {
+      container.scrollTo({
+        left: targetCard.offsetLeft - container.offsetLeft,
+        behavior: "smooth",
+      });
+    }
+    setActiveSlide(index);
+  };
+
+  const handleScroll = () => {
+    if (!sliderRef.current) return;
+    const container = sliderRef.current;
+    const scrollPosition = container.scrollLeft;
+    const halfWidth = container.offsetWidth / 2;
+    const newIndex = scrollPosition > halfWidth ? 1 : 0;
+    if (newIndex !== activeSlide) {
+      setActiveSlide(newIndex);
+    }
+  };
+
   return (
     <section
       ref={ref}
-      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      aria-label="Core Value Proposition"
+      className={`transition-all duration-700 space-y-4 sm:space-y-8 ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       }`}
     >
-      <div className="space-y-3 text-center max-w-3xl mx-auto">
-        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+      <div className="text-center space-y-1.5 sm:space-y-2 max-w-2xl mx-auto px-2">
+        <span className="font-mono text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest text-orange-600 bg-orange-50 px-2 py-0.5 rounded-[2px]">
           The Fundamental Shift
         </span>
-        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+        <h2 className="font-display text-lg sm:text-2xl md:text-4xl font-black tracking-tight text-slate-950 leading-snug sm:leading-tight">
           Stop searching for businesses. Find business demand.
         </h2>
         <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
@@ -312,71 +349,121 @@ function CoreValueSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+      {/* Mobile Slider Header Tabs */}
+      <div className="md:hidden flex items-center justify-center gap-1.5 pt-0.5">
+        <button
+          type="button"
+          onClick={() => scrollToSlide(0)}
+          className={`px-3 py-1 text-xs font-mono font-bold rounded-full transition-all cursor-pointer ${
+            activeSlide === 0
+              ? "bg-slate-900 text-white shadow-xs"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          Traditional
+        </button>
+        <button
+          type="button"
+          onClick={() => scrollToSlide(1)}
+          className={`px-3 py-1 text-xs font-mono font-bold rounded-full transition-all cursor-pointer ${
+            activeSlide === 1
+              ? "bg-orange-600 text-white shadow-xs"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          The Relay
+        </button>
+      </div>
+
+      <div
+        ref={sliderRef}
+        onScroll={handleScroll}
+        className="flex md:grid md:grid-cols-2 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none gap-3 sm:gap-4 md:gap-6 w-full max-w-5xl mx-auto py-2 md:py-0 pb-4 md:pb-0 scrollbar-none -mx-4 px-4 sm:mx-auto sm:px-0 md:mx-auto md:px-0"
+      >
         {/* Traditional Outreach */}
-        <div className="bg-slate-100/70 border border-slate-200 p-6 rounded-[4px] space-y-5 flex flex-col justify-between">
-          <div className="space-y-1.5">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500 font-bold block">
+        <div className="w-[86vw] sm:w-[360px] md:w-full shrink-0 md:shrink snap-center md:snap-align-none bg-slate-100/90 border border-slate-200/90 p-4 sm:p-6 rounded-[4px] space-y-3.5 sm:space-y-5 flex flex-col justify-between shadow-md shadow-slate-200/70 md:shadow-none">
+          <div className="space-y-1 sm:space-y-1.5">
+            <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-500 font-bold block">
               Traditional Outreach
             </span>
-            <h3 className="font-display text-base font-bold text-slate-800">
+            <h3 className="font-display text-sm sm:text-base font-bold text-slate-800">
               Starts with: “Who should I contact?”
             </h3>
-            <p className="text-xs text-slate-500 font-sans leading-relaxed">
+            <p className="text-[11px] sm:text-xs text-slate-500 font-sans leading-relaxed">
               Blind searching, unverified interest, and cold inboxes that rarely convert.
             </p>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             {traditionalSteps.map((step, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-2.5 text-xs text-slate-600 bg-white/80 border border-slate-200/60 px-3 py-2 rounded-[2px]"
+                className="flex items-center gap-2 text-xs text-slate-600 bg-white/80 border border-slate-200/60 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-[2px]"
               >
-                <span className="font-mono text-[10px] text-slate-400 font-bold w-4">
+                <span className="font-mono text-[10px] text-slate-400 font-bold w-4 shrink-0">
                   0{idx + 1}
                 </span>
-                <span>{step}</span>
+                <span className="leading-tight">{step}</span>
               </div>
             ))}
           </div>
 
-          <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-200">
+          <div className="text-[10px] sm:text-[11px] font-mono text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-200">
             Result: Low outcome, high friction
           </div>
         </div>
 
         {/* The Relay */}
-        <div className="bg-white border-2 border-slate-900 p-6 rounded-[4px] space-y-5 flex flex-col justify-between shadow-xs">
-          <div className="space-y-1.5">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-orange-600 font-bold block">
+        <div className="w-[86vw] sm:w-[360px] md:w-full shrink-0 md:shrink snap-center md:snap-align-none bg-white border-2 border-slate-900 p-4 sm:p-6 rounded-[4px] space-y-3.5 sm:space-y-5 flex flex-col justify-between shadow-md shadow-slate-300/80 md:shadow-xs">
+          <div className="space-y-1 sm:space-y-1.5">
+            <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-orange-600 font-bold block">
               The Relay
             </span>
-            <h3 className="font-display text-base font-bold text-slate-950">
+            <h3 className="font-display text-sm sm:text-base font-bold text-slate-950">
               Starts with: “What business is already looking for what I offer?”
             </h3>
-            <p className="text-xs text-slate-600 font-sans leading-relaxed">
+            <p className="text-[11px] sm:text-xs text-slate-600 font-sans leading-relaxed">
               Intent-driven discovery where active commercial briefs are already waiting for you.
             </p>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             {relaySteps.map((step, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-2.5 text-xs text-slate-900 bg-slate-50 border border-slate-200/90 px-3 py-2 rounded-[2px] font-medium"
+                className="flex items-center gap-2 text-xs text-slate-900 bg-slate-50 border border-slate-200/90 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-[2px] font-medium"
               >
                 <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span>{step}</span>
+                <span className="leading-tight">{step}</span>
               </div>
             ))}
           </div>
 
-          <div className="text-[11px] font-mono text-emerald-700 uppercase tracking-wider font-bold pt-2 border-t border-slate-100 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <div className="text-[10px] sm:text-[11px] font-mono text-emerald-700 uppercase tracking-wider font-bold pt-2 border-t border-slate-100 flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
             Result: Warm introductions based on mutual agreement
           </div>
         </div>
+      </div>
+
+      {/* Mobile Slide Dot Indicators */}
+      <div className="md:hidden flex items-center justify-center gap-1.5 pt-0.5">
+        <button
+          type="button"
+          onClick={() => scrollToSlide(0)}
+          className={`h-1.5 rounded-full transition-all cursor-pointer ${
+            activeSlide === 0 ? "w-6 bg-slate-900" : "w-1.5 bg-slate-300"
+          }`}
+          aria-label="Slide 1: Traditional Outreach"
+        />
+        <button
+          type="button"
+          onClick={() => scrollToSlide(1)}
+          className={`h-1.5 rounded-full transition-all cursor-pointer ${
+            activeSlide === 1 ? "w-6 bg-orange-600" : "w-1.5 bg-slate-300"
+          }`}
+          aria-label="Slide 2: The Relay"
+        />
       </div>
     </section>
   );
@@ -387,88 +474,198 @@ function CoreValueSection() {
    ================================================== */
 function CategoriesSection() {
   const { ref, isVisible } = useReveal();
+  const [activeCategory, setActiveCategory] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const categories = [
     {
-      icon: <Handshake className="w-5 h-5 text-orange-600" />,
-      title: "Partnerships",
-      example: "Find complementary businesses to build a joint offering.",
-      subtext: "Strategic alliances, product integrations, and joint co-marketing bundles.",
+      badge: "Co-Marketing & Tech",
+      title: "Strategic Partnerships",
+      desc: "Form complementary alliances to build joint product integrations or shared go-to-market bundles.",
+      demand: "B2B SaaS seeking CRM integration & reciprocal co-selling partner",
+      signal: "Active Demand",
+      tags: ["Joint GTM", "Integration", "Co-Selling"],
     },
     {
-      icon: <Users className="w-5 h-5 text-orange-600" />,
-      title: "Referral Partners",
-      example: "Exchange qualified customer referrals with businesses serving the same market.",
-      subtext: "Structured finder fees, reciprocal lead sharing, and agency partnerships.",
+      badge: "Revenue Share",
+      title: "Referral Networks",
+      desc: "Exchange pre-vetted customer leads and deal flow with non-competing firms targeting your ideal buyers.",
+      demand: "Product design studio exchanging enterprise clients with Shopify developers",
+      signal: "Verified Partners",
+      tags: ["15-20% Rev Share", "Reciprocal Flow", "Warm Intros"],
     },
     {
-      icon: <Layers className="w-5 h-5 text-orange-600" />,
-      title: "Distribution",
-      example: "Find resellers, distributors, or channel partners.",
-      subtext: "Regional expansion, software resellers, and established enterprise sales channels.",
+      badge: "Channel Sales",
+      title: "Distribution & Channel",
+      desc: "Connect with software resellers, localized distributors, or trusted channel sales partners.",
+      demand: "Cybersecurity vendor seeking certified enterprise reseller across UK & EU",
+      signal: "Regional Reach",
+      tags: ["Resellers", "VARs & MSPs", "Global Scale"],
     },
     {
-      icon: <Building2 className="w-5 h-5 text-orange-600" />,
-      title: "Vendors",
-      example: "Discover businesses actively looking for your product or service.",
-      subtext: "Real procurement briefs from operators who have defined budgets and scopes.",
+      badge: "Active RFPs",
+      title: "Vendor Procurement",
+      desc: "Discover verified companies with allocated budgets who are actively seeking products and services.",
+      demand: "Series B logistics operator evaluating SOC2 compliance & audit firms",
+      signal: "Defined Budget",
+      tags: ["Direct Buyer", "Verified Budget", "Immediate Need"],
     },
     {
-      icon: <Briefcase className="w-5 h-5 text-orange-600" />,
-      title: "Hiring",
-      example: "Find businesses looking for specific expertise or talent.",
-      subtext: "Key contractor roles, specialized advisory, and fractional operator capacity.",
+      badge: "Fractional & Board",
+      title: "Specialized Advisory",
+      desc: "Access specialized fractional leadership, strategic advisors, or critical operator capacity.",
+      demand: "AI robotics scale-up looking for fractional Chief Revenue Officer (CRO)",
+      signal: "High Impact",
+      tags: ["Fractional C-Suite", "Advisory Equity", "Key Operators"],
+    },
+    {
+      badge: "Strategic Growth",
+      title: "Joint Ventures & Expansion",
+      desc: "Explore shared business entities, new market entry agreements, or strategic alliances.",
+      demand: "E-commerce logistics firm seeking local joint venture partner for LATAM entry",
+      signal: "Strategic Alliance",
+      tags: ["Joint Venture", "Shared Entity", "Long-Term"],
     },
   ];
+
+  const scrollToCategory = (idx: number) => {
+    if (!scrollRef.current) return;
+    const container = scrollRef.current;
+    const target = container.children[idx] as HTMLElement | undefined;
+    if (target) {
+      container.scrollTo({
+        left: target.offsetLeft - container.offsetLeft,
+        behavior: "smooth",
+      });
+    }
+    setActiveCategory(idx);
+  };
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const container = scrollRef.current;
+    const scrollPos = container.scrollLeft;
+    const itemWidth = container.offsetWidth * 0.75;
+    const newIdx = Math.round(scrollPos / itemWidth);
+    if (newIdx !== activeCategory && newIdx >= 0 && newIdx < categories.length) {
+      setActiveCategory(newIdx);
+    }
+  };
 
   return (
     <section
       ref={ref}
-      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
+      aria-label="Commercial Categories"
+      className={`space-y-5 sm:space-y-7 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
-      <div className="space-y-3 text-center max-w-3xl mx-auto">
-        <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
+      {/* Section Header */}
+      <div className="space-y-1.5 sm:space-y-2 text-center max-w-2xl mx-auto px-2">
+        <span className="font-mono text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest text-orange-600 bg-orange-50 px-2 py-0.5 rounded-[2px]">
           Commercial Categories
         </span>
-        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+        <h2 className="font-display text-lg sm:text-2xl md:text-4xl font-black tracking-tight text-slate-950 leading-snug sm:leading-tight">
           Opportunities worth acting on.
         </h2>
-        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
-          Built around the ways businesses actually work with other businesses.
+        <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans max-w-xl mx-auto">
+          Built around how modern businesses actually collaborate, partner, and trade demand.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
+      {/* Grid on Desktop, Horizontal Snap Slider on Mobile */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex md:grid md:grid-cols-2 lg:grid-cols-3 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none gap-3.5 sm:gap-4 md:gap-5 w-full max-w-6xl mx-auto py-2 md:py-0 pb-4 md:pb-0 scrollbar-none -mx-4 px-4 sm:mx-auto sm:px-0 md:mx-auto md:px-0"
+      >
         {categories.map((cat, idx) => (
           <div
             key={idx}
-            className="bg-white border border-slate-200/90 rounded-[4px] p-6 space-y-3 shadow-xs hover:border-slate-800 transition-colors flex flex-col justify-between"
+            className="w-[84vw] sm:w-[340px] md:w-full shrink-0 md:shrink snap-center md:snap-align-none group bg-white border border-slate-200/90 hover:border-slate-900 rounded-[6px] p-4 sm:p-5.5 space-y-3 shadow-md shadow-slate-200/80 md:shadow-xs hover:shadow-lg hover:shadow-slate-300/60 transition-all duration-200 flex flex-col justify-between"
           >
-            <div className="space-y-2.5">
-              <div className="w-9 h-9 bg-orange-50 border border-orange-100 rounded-[2px] flex items-center justify-center">
-                {cat.icon}
+            {/* Top Row: Index + Badge */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-[11px] font-bold text-slate-400">
+                  0{idx + 1}
+                </span>
+                <span className="font-mono text-[9.5px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100/90 px-2 py-0.5 rounded-[2px]">
+                  {cat.badge}
+                </span>
               </div>
-              <h3 className="font-display text-lg font-bold text-slate-950">{cat.title}</h3>
-              <p className="text-xs sm:text-sm font-semibold text-slate-800 font-sans leading-snug">
-                “{cat.example}”
+
+              <div>
+                <h3 className="font-display text-sm sm:text-base font-bold text-slate-950 group-hover:text-orange-600 transition-colors">
+                  {cat.title}
+                </h3>
+                <p className="text-xs text-slate-500 font-sans leading-relaxed mt-1">
+                  {cat.desc}
+                </p>
+              </div>
+            </div>
+
+            {/* Live Demand Preview Card */}
+            <div className="bg-slate-50/90 border border-slate-200/70 rounded-[4px] p-2.5 sm:p-3 space-y-1.5 group-hover:bg-orange-50/30 group-hover:border-orange-200/60 transition-colors">
+              <div className="flex items-center justify-between text-[9.5px] font-mono">
+                <span className="text-slate-400 font-bold uppercase tracking-wider">
+                  Live Opportunity Brief
+                </span>
+                <span className="inline-flex items-center gap-1 font-bold text-emerald-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  {cat.signal}
+                </span>
+              </div>
+              <p className="text-[11.5px] sm:text-xs font-semibold text-slate-900 font-sans leading-snug">
+                “{cat.demand}”
               </p>
             </div>
-            <p className="text-xs text-slate-500 font-sans pt-2 border-t border-slate-100 leading-relaxed">
-              {cat.subtext}
-            </p>
+
+            {/* Bottom Metadata Tags */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100">
+              {cat.tags.map((tag, tIdx) => (
+                <span
+                  key={tIdx}
+                  className="font-mono text-[9px] sm:text-[9.5px] px-1.5 py-0.5 rounded-[2px] bg-slate-100 text-slate-600 font-medium group-hover:bg-slate-200/80 transition-colors"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
         ))}
+      </div>
 
-        <div className="bg-slate-50 border border-dashed border-slate-300 rounded-[4px] p-6 flex flex-col justify-center text-center space-y-2">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-slate-400 font-bold">
-            Focused on Outcomes
+      {/* Mobile Slide Dot Indicators */}
+      <div className="md:hidden flex items-center justify-center gap-1.5 pt-0.5">
+        {categories.map((_, idx) => (
+          <button
+            key={idx}
+            type="button"
+            onClick={() => scrollToCategory(idx)}
+            className={`h-1.5 rounded-full transition-all cursor-pointer ${
+              activeCategory === idx ? "w-5 bg-orange-600" : "w-1.5 bg-slate-300"
+            }`}
+            aria-label={`Slide ${idx + 1}`}
+          />
+        ))}
+      </div>
+
+      {/* Bottom Modern Trust Bar */}
+      <div className="text-center pt-1 sm:pt-2">
+        <div className="inline-flex flex-col sm:flex-row items-center gap-2 sm:gap-4 p-2.5 sm:px-4 sm:py-2 rounded-[4px] bg-slate-50 border border-slate-200/80 text-xs font-sans text-slate-600">
+          <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900">
+            <Sparkles className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+            Every commercial opportunity is manually vetted before publication.
           </span>
-          <p className="text-xs text-slate-600 leading-relaxed font-sans">
-            Every category is designed to create verifiable commercial outcomes rather than vanity
-            engagement.
-          </p>
+          <span className="hidden sm:inline text-slate-300">•</span>
+          <Link
+            to="/opportunities"
+            className="font-mono text-orange-600 hover:text-orange-700 font-bold uppercase tracking-wider inline-flex items-center gap-1 group"
+          >
+            <span>Explore Active Briefs</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
         </div>
       </div>
     </section>
@@ -478,7 +675,7 @@ function CategoriesSection() {
 /* ==================================================
    SECTION 5 — HOW RELAY WORKS
    ================================================== */
-function HowItWorksSection() {
+function HowItWorksSection({ onWatchHowItWorks }: { onWatchHowItWorks?: () => void }) {
   const { ref, isVisible } = useReveal();
 
   const steps = [
@@ -528,6 +725,18 @@ function HowItWorksSection() {
           Relay keeps the process structured so businesses can explore opportunities without opening
           themselves up to unwanted outreach.
         </p>
+        {onWatchHowItWorks && (
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={onWatchHowItWorks}
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 hover:border-orange-500 hover:text-orange-600 rounded-full text-xs font-mono font-bold text-slate-700 shadow-2xs transition-all cursor-pointer"
+            >
+              <Play className="w-3 h-3 fill-orange-600 text-orange-600" />
+              <span>Watch animated walkthrough</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
