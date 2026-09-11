@@ -6,6 +6,7 @@ import { toast } from "@/components/ui/sonner";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { listNetworkBusinesses } from "../functions/listNetworkBusinesses";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
+import { CompanyLogo } from "../components/company-logo";
 import {
   Search,
   Building2,
@@ -345,14 +346,6 @@ function NetworkDirectoryPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             {businesses.map((biz) => {
               const isApproved = biz.status === "approved";
-              const initials =
-                biz.company_name
-                  ?.split(" ")
-                  .map((w: string) => w[0])
-                  .join("")
-                  .substring(0, 2)
-                  .toUpperCase() || "OP";
-
               return (
                 <div
                   key={biz.id}
@@ -362,26 +355,17 @@ function NetworkDirectoryPage() {
                     {/* Top Row: Logo/Initials + Badges */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div
-                          className={`w-11 h-11 rounded-[6px] flex items-center justify-center font-mono font-extrabold text-xs shrink-0 border overflow-hidden ${
+                        <CompanyLogo
+                          src={biz.logo_url}
+                          name={biz.company_name}
+                          className="w-11 h-11 rounded-[6px] object-cover border border-slate-200 shrink-0"
+                          fallbackClassName={`w-11 h-11 rounded-[6px] flex items-center justify-center font-mono font-extrabold text-xs shrink-0 border select-none ${
                             isApproved
                               ? "bg-amber-500/10 text-amber-800 border-amber-400/60"
                               : "bg-indigo-500/10 text-indigo-800 border-indigo-300/60"
                           }`}
-                        >
-                          {biz.logo_url ? (
-                            <img
-                              src={biz.logo_url}
-                              alt={biz.company_name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = "none";
-                              }}
-                            />
-                          ) : (
-                            <span>{initials}</span>
-                          )}
-                        </div>
+                          textClassName="text-xs font-mono font-extrabold"
+                        />
 
                         <div className="min-w-0">
                           <h3 className="font-sans text-sm font-bold text-slate-900 truncate leading-tight group-hover:text-slate-950 transition-colors">
@@ -507,30 +491,17 @@ function NetworkDirectoryPage() {
               {/* Header */}
               <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
                 <div className="flex items-center gap-3.5">
-                  <div
-                    className={`w-12 h-12 rounded-[6px] flex items-center justify-center font-mono font-extrabold text-sm shrink-0 border overflow-hidden ${
+                  <CompanyLogo
+                    src={selectedBiz.logo_url}
+                    name={selectedBiz.company_name}
+                    className="w-12 h-12 rounded-[6px] object-cover border border-slate-200 shrink-0"
+                    fallbackClassName={`w-12 h-12 rounded-[6px] flex items-center justify-center font-mono font-extrabold text-sm shrink-0 border select-none ${
                       selectedBiz.status === "approved"
                         ? "bg-amber-500/10 text-amber-800 border-amber-400/60"
                         : "bg-indigo-500/10 text-indigo-800 border-indigo-300/60"
                     }`}
-                  >
-                    {selectedBiz.logo_url ? (
-                      <img
-                        src={selectedBiz.logo_url}
-                        alt={selectedBiz.company_name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span>
-                        {selectedBiz.company_name
-                          ?.split(" ")
-                          .map((w: string) => w[0])
-                          .join("")
-                          .substring(0, 2)
-                          .toUpperCase()}
-                      </span>
-                    )}
-                  </div>
+                    textClassName="text-sm font-mono font-extrabold"
+                  />
                   <div>
                     <h2 className="text-lg font-bold text-slate-900 leading-tight">
                       {selectedBiz.company_name}

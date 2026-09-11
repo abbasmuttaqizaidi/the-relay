@@ -93,3 +93,182 @@ export const updatePromotionStatusSchema = z.object({
   opportunity_id: uuidSchema,
   promotion_status: promotionStatusSchema,
 });
+
+// ---------------------------------------------------------
+// INSIGHTS VALIDATORS (Questions & Perspectives)
+// ---------------------------------------------------------
+
+export const questionTopicSchema = z.enum([
+  "Sales",
+  "Marketing",
+  "Operations",
+  "Hiring",
+  "Finance",
+  "Product",
+  "Partnerships",
+  "Distribution",
+  "Technology",
+  "Building a System / Business",
+  "Other",
+]);
+
+export const desiredPerspectiveSchema = z.enum([
+  "any_business",
+  "same_industry",
+  "similar_customers",
+  "relevant_experience",
+]);
+
+export const questionStatusSchema = z.enum(["open", "closed"]);
+
+export const basedOnSchema = z.enum([
+  "Our business experience",
+  "A project we worked on",
+  "An experiment or test",
+  "Industry experience",
+  "Personal experience",
+  "General perspective",
+]);
+
+export const createQuestionSchema = z.object({
+  title: z
+    .string()
+    .min(10, "Title must be at least 10 characters")
+    .max(200, "Title cannot exceed 200 characters"),
+  description: z
+    .string()
+    .min(30, "Description must be at least 30 characters")
+    .max(3000, "Description cannot exceed 3000 characters"),
+  topic: questionTopicSchema,
+  desired_perspective: desiredPerspectiveSchema.optional().nullable(),
+});
+
+export const updateQuestionSchema = z.object({
+  question_id: uuidSchema,
+  title: z
+    .string()
+    .min(10, "Title must be at least 10 characters")
+    .max(200, "Title cannot exceed 200 characters")
+    .optional(),
+  description: z
+    .string()
+    .min(30, "Description must be at least 30 characters")
+    .max(3000, "Description cannot exceed 3000 characters")
+    .optional(),
+  topic: questionTopicSchema.optional(),
+  desired_perspective: desiredPerspectiveSchema.optional().nullable(),
+});
+
+export const closeQuestionSchema = z.object({
+  question_id: uuidSchema,
+});
+
+export const createPerspectiveSchema = z.object({
+  question_id: uuidSchema,
+  content: z
+    .string()
+    .min(20, "Perspective content must be at least 20 characters")
+    .max(1500, "Perspective content cannot exceed 1500 characters"),
+  qualification: z
+    .string()
+    .min(10, "Qualification must be at least 10 characters")
+    .max(300, "Qualification cannot exceed 300 characters"),
+  based_on: basedOnSchema,
+  relevant_experience: z
+    .string()
+    .max(200, "Relevant experience cannot exceed 200 characters")
+    .optional()
+    .nullable(),
+});
+
+export const updatePerspectiveSchema = z.object({
+  perspective_id: uuidSchema,
+  content: z
+    .string()
+    .min(20, "Perspective content must be at least 20 characters")
+    .max(1500, "Perspective content cannot exceed 1500 characters")
+    .optional(),
+  qualification: z
+    .string()
+    .min(10, "Qualification must be at least 10 characters")
+    .max(300, "Qualification cannot exceed 300 characters")
+    .optional(),
+  based_on: basedOnSchema.optional(),
+  relevant_experience: z
+    .string()
+    .max(200, "Relevant experience cannot exceed 200 characters")
+    .optional()
+    .nullable(),
+});
+
+export const deletePerspectiveSchema = z.object({
+  perspective_id: uuidSchema,
+});
+
+export const knowledgeInsightBasedOnSchema = z.enum([
+  "business_experience",
+  "project",
+  "experiment",
+  "industry_experience",
+  "lesson_learned",
+  "general_perspective",
+]);
+
+export const knowledgeInsightStatusSchema = z.enum([
+  "published",
+  "draft",
+  "archived",
+]);
+
+export const createKnowledgeInsightSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(10, "Title must be at least 10 characters")
+    .max(200, "Title cannot exceed 200 characters"),
+  content: z
+    .string()
+    .trim()
+    .min(50, "Content must be at least 50 characters")
+    .max(5000, "Content cannot exceed 5000 characters"),
+  topic: questionTopicSchema,
+  based_on: knowledgeInsightBasedOnSchema.optional().nullable(),
+});
+
+export const updateKnowledgeInsightSchema = z.object({
+  knowledge_insight_id: uuidSchema,
+  title: z
+    .string()
+    .trim()
+    .min(10, "Title must be at least 10 characters")
+    .max(200, "Title cannot exceed 200 characters")
+    .optional(),
+  content: z
+    .string()
+    .trim()
+    .min(50, "Content must be at least 50 characters")
+    .max(5000, "Content cannot exceed 5000 characters")
+    .optional(),
+  topic: questionTopicSchema.optional(),
+  based_on: knowledgeInsightBasedOnSchema.optional().nullable(),
+  status: knowledgeInsightStatusSchema.optional(),
+});
+
+export const archiveKnowledgeInsightSchema = z.object({
+  knowledge_insight_id: uuidSchema,
+});
+
+export const deleteKnowledgeInsightSchema = z.object({
+  knowledge_insight_id: uuidSchema,
+});
+
+export const listKnowledgeInsightsSchema = z.object({
+  topic: z.string().optional(),
+  search: z.string().optional(),
+  status: z.enum(["published", "draft", "archived", "all"]).optional(),
+  business_id: uuidSchema.optional(),
+  limit: z.number().min(1).max(50).optional(),
+  offset: z.number().min(0).optional(),
+});
+
+

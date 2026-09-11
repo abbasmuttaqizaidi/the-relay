@@ -14,6 +14,7 @@ import {
   LogIn,
   HelpCircle,
   Building2,
+  Lightbulb,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
@@ -98,6 +99,7 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
     !!matchRoute({ to: "/requests/incoming", fuzzy: true }) ||
     !!matchRoute({ to: "/requests/sent", fuzzy: true });
   const isSaved = !!matchRoute({ to: "/saved-opportunities", fuzzy: true });
+  const isInsights = !!matchRoute({ to: "/insights", fuzzy: true });
 
   // Check if the Opportunities feed (not my) is active
   const isOpportunitiesFeed = isOpportunities && !isMyOpportunities;
@@ -126,6 +128,14 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
                 }`}
               >
                 Opportunities
+              </Link>
+              <Link
+                to="/insights"
+                className={`hover:text-slate-800 pb-1 transition-colors ${
+                  isInsights ? "text-slate-900 border-b-2 border-slate-900" : ""
+                }`}
+              >
+                Insights
               </Link>
               {isSignedIn && (
                 <>
@@ -289,6 +299,25 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
                           </span>
                         </span>
                         <ChevronRight className={`w-3.5 h-3.5 ${isOpportunitiesFeed ? "text-white/50" : "text-slate-300"}`} />
+                      </Link>
+                    </SheetClose>
+
+                    <SheetClose asChild>
+                      <Link
+                        to="/insights"
+                        className={`flex items-center justify-between px-3 py-3 rounded-lg transition-all ${
+                          isInsights
+                            ? "bg-slate-900 text-white"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <Lightbulb className="w-4 h-4" />
+                          <span className="text-[12px] font-mono uppercase tracking-wider font-bold">
+                            Insights
+                          </span>
+                        </span>
+                        <ChevronRight className={`w-3.5 h-3.5 ${isInsights ? "text-white/50" : "text-slate-300"}`} />
                       </Link>
                     </SheetClose>
 

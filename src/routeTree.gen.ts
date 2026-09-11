@@ -16,15 +16,19 @@ import { Route as OpportunitiesRouteImport } from './routes/opportunities'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NetworkRouteImport } from './routes/network'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as BusinessProfileRouteImport } from './routes/business-profile'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OpportunitiesIndexRouteImport } from './routes/opportunities.index'
+import { Route as InsightsIndexRouteImport } from './routes/insights.index'
 import { Route as RequestsSentRouteImport } from './routes/requests.sent'
 import { Route as RequestsIncomingRouteImport } from './routes/requests.incoming'
 import { Route as OpportunitiesMyRouteImport } from './routes/opportunities.my'
+import { Route as InsightsIdRouteImport } from './routes/insights.$id'
 import { Route as ConnectionsIdRouteImport } from './routes/connections.$id'
+import { Route as InsightsKnowledgeIdRouteImport } from './routes/insights.knowledge.$id'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -61,6 +65,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HomeRoute = HomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -86,6 +95,11 @@ const OpportunitiesIndexRoute = OpportunitiesIndexRouteImport.update({
   path: '/',
   getParentRoute: () => OpportunitiesRoute,
 } as any)
+const InsightsIndexRoute = InsightsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => InsightsRoute,
+} as any)
 const RequestsSentRoute = RequestsSentRouteImport.update({
   id: '/requests/sent',
   path: '/requests/sent',
@@ -101,10 +115,20 @@ const OpportunitiesMyRoute = OpportunitiesMyRouteImport.update({
   path: '/my',
   getParentRoute: () => OpportunitiesRoute,
 } as any)
+const InsightsIdRoute = InsightsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => InsightsRoute,
+} as any)
 const ConnectionsIdRoute = ConnectionsIdRouteImport.update({
   id: '/connections/$id',
   path: '/connections/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsKnowledgeIdRoute = InsightsKnowledgeIdRouteImport.update({
+  id: '/knowledge/$id',
+  path: '/knowledge/$id',
+  getParentRoute: () => InsightsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -112,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/business-profile': typeof BusinessProfileRoute
   '/home': typeof HomeRoute
+  '/insights': typeof InsightsRouteWithChildren
   '/login': typeof LoginRoute
   '/network': typeof NetworkRoute
   '/onboarding': typeof OnboardingRoute
@@ -120,10 +145,13 @@ export interface FileRoutesByFullPath {
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
   '/connections/$id': typeof ConnectionsIdRoute
+  '/insights/$id': typeof InsightsIdRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/requests/incoming': typeof RequestsIncomingRoute
   '/requests/sent': typeof RequestsSentRoute
+  '/insights/': typeof InsightsIndexRoute
   '/opportunities/': typeof OpportunitiesIndexRoute
+  '/insights/knowledge/$id': typeof InsightsKnowledgeIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -137,10 +165,13 @@ export interface FileRoutesByTo {
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
   '/connections/$id': typeof ConnectionsIdRoute
+  '/insights/$id': typeof InsightsIdRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/requests/incoming': typeof RequestsIncomingRoute
   '/requests/sent': typeof RequestsSentRoute
+  '/insights': typeof InsightsIndexRoute
   '/opportunities': typeof OpportunitiesIndexRoute
+  '/insights/knowledge/$id': typeof InsightsKnowledgeIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -148,6 +179,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/business-profile': typeof BusinessProfileRoute
   '/home': typeof HomeRoute
+  '/insights': typeof InsightsRouteWithChildren
   '/login': typeof LoginRoute
   '/network': typeof NetworkRoute
   '/onboarding': typeof OnboardingRoute
@@ -156,10 +188,13 @@ export interface FileRoutesById {
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
   '/connections/$id': typeof ConnectionsIdRoute
+  '/insights/$id': typeof InsightsIdRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/requests/incoming': typeof RequestsIncomingRoute
   '/requests/sent': typeof RequestsSentRoute
+  '/insights/': typeof InsightsIndexRoute
   '/opportunities/': typeof OpportunitiesIndexRoute
+  '/insights/knowledge/$id': typeof InsightsKnowledgeIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -168,6 +203,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/business-profile'
     | '/home'
+    | '/insights'
     | '/login'
     | '/network'
     | '/onboarding'
@@ -176,10 +212,13 @@ export interface FileRouteTypes {
     | '/saved-opportunities'
     | '/signup'
     | '/connections/$id'
+    | '/insights/$id'
     | '/opportunities/my'
     | '/requests/incoming'
     | '/requests/sent'
+    | '/insights/'
     | '/opportunities/'
+    | '/insights/knowledge/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -193,16 +232,20 @@ export interface FileRouteTypes {
     | '/saved-opportunities'
     | '/signup'
     | '/connections/$id'
+    | '/insights/$id'
     | '/opportunities/my'
     | '/requests/incoming'
     | '/requests/sent'
+    | '/insights'
     | '/opportunities'
+    | '/insights/knowledge/$id'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/business-profile'
     | '/home'
+    | '/insights'
     | '/login'
     | '/network'
     | '/onboarding'
@@ -211,10 +254,13 @@ export interface FileRouteTypes {
     | '/saved-opportunities'
     | '/signup'
     | '/connections/$id'
+    | '/insights/$id'
     | '/opportunities/my'
     | '/requests/incoming'
     | '/requests/sent'
+    | '/insights/'
     | '/opportunities/'
+    | '/insights/knowledge/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -222,6 +268,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   BusinessProfileRoute: typeof BusinessProfileRoute
   HomeRoute: typeof HomeRoute
+  InsightsRoute: typeof InsightsRouteWithChildren
   LoginRoute: typeof LoginRoute
   NetworkRoute: typeof NetworkRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -285,6 +332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/home': {
       id: '/home'
       path: '/home'
@@ -320,6 +374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OpportunitiesIndexRouteImport
       parentRoute: typeof OpportunitiesRoute
     }
+    '/insights/': {
+      id: '/insights/'
+      path: '/'
+      fullPath: '/insights/'
+      preLoaderRoute: typeof InsightsIndexRouteImport
+      parentRoute: typeof InsightsRoute
+    }
     '/requests/sent': {
       id: '/requests/sent'
       path: '/requests/sent'
@@ -341,6 +402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OpportunitiesMyRouteImport
       parentRoute: typeof OpportunitiesRoute
     }
+    '/insights/$id': {
+      id: '/insights/$id'
+      path: '/$id'
+      fullPath: '/insights/$id'
+      preLoaderRoute: typeof InsightsIdRouteImport
+      parentRoute: typeof InsightsRoute
+    }
     '/connections/$id': {
       id: '/connections/$id'
       path: '/connections/$id'
@@ -348,8 +416,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConnectionsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/insights/knowledge/$id': {
+      id: '/insights/knowledge/$id'
+      path: '/knowledge/$id'
+      fullPath: '/insights/knowledge/$id'
+      preLoaderRoute: typeof InsightsKnowledgeIdRouteImport
+      parentRoute: typeof InsightsRoute
+    }
   }
 }
+
+interface InsightsRouteChildren {
+  InsightsIdRoute: typeof InsightsIdRoute
+  InsightsIndexRoute: typeof InsightsIndexRoute
+  InsightsKnowledgeIdRoute: typeof InsightsKnowledgeIdRoute
+}
+
+const InsightsRouteChildren: InsightsRouteChildren = {
+  InsightsIdRoute: InsightsIdRoute,
+  InsightsIndexRoute: InsightsIndexRoute,
+  InsightsKnowledgeIdRoute: InsightsKnowledgeIdRoute,
+}
+
+const InsightsRouteWithChildren = InsightsRoute._addFileChildren(
+  InsightsRouteChildren,
+)
 
 interface OpportunitiesRouteChildren {
   OpportunitiesMyRoute: typeof OpportunitiesMyRoute
@@ -370,6 +461,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   BusinessProfileRoute: BusinessProfileRoute,
   HomeRoute: HomeRoute,
+  InsightsRoute: InsightsRouteWithChildren,
   LoginRoute: LoginRoute,
   NetworkRoute: NetworkRoute,
   OnboardingRoute: OnboardingRoute,

@@ -31,7 +31,11 @@ const getPrismaClient = () => {
   });
 };
 
-export const prisma = globalThis.prisma || getPrismaClient();
+const isStalePrisma =
+  globalThis.prisma && !(globalThis.prisma as any).knowledgeInsight;
+
+export const prisma =
+  (!isStalePrisma && globalThis.prisma) || getPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalThis.prisma = prisma;

@@ -7,6 +7,7 @@ import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { updateBusiness } from "../functions/updateBusiness";
 import { verifyWebsite } from "../functions/verifyWebsite";
 import { uploadBusinessLogo } from "../functions/uploadBusinessLogo";
+import { getCompanyInitials } from "@/lib/utils";
 import { toast } from "@/components/ui/sonner";
 import {
   Building2,
@@ -121,8 +122,13 @@ function BusinessProfilePage() {
 
   // Logo upload state
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoFailed, setLogoFailed] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setLogoFailed(false);
+  }, [logoPreview]);
 
   // Website verification state
   const [verifying, setVerifying] = useState(false);
@@ -490,14 +496,17 @@ function BusinessProfilePage() {
                 onClick={() => logoInputRef.current?.click()}
                 title="Click to update logo"
               >
-                {logoPreview ? (
+                {logoPreview && !logoFailed ? (
                   <img
                     src={logoPreview}
                     alt={business.company_name}
                     className="w-full h-full object-contain p-1"
+                    onError={() => setLogoFailed(true)}
                   />
                 ) : (
-                  <Building2 className="w-8 h-8 text-slate-300" />
+                  <span className="font-mono font-bold text-base text-slate-700 uppercase select-none">
+                    {getCompanyInitials(business.company_name)}
+                  </span>
                 )}
                 {/* Overlay on hover */}
                 <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -799,15 +808,16 @@ function BusinessProfilePage() {
                       if (file) handleLogoUpload(file);
                     }}
                   >
-                    {logoPreview ? (
+                    {logoPreview && !logoFailed ? (
                       <img
                         src={logoPreview}
                         alt="Logo preview"
                         className="w-20 h-20 object-contain rounded-[2px] border border-border bg-slate-50 p-2"
+                        onError={() => setLogoFailed(true)}
                       />
                     ) : (
-                      <div className="w-20 h-20 border border-border rounded-[2px] bg-slate-50 flex items-center justify-center">
-                        <Building2 className="w-8 h-8 text-slate-300" />
+                      <div className="w-20 h-20 border border-border rounded-[2px] bg-slate-50 flex items-center justify-center font-mono font-bold text-lg text-slate-700 uppercase select-none">
+                        {business ? getCompanyInitials(business.company_name) : <Building2 className="w-8 h-8 text-slate-300" />}
                       </div>
                     )}
                     <div className="text-center space-y-1">

@@ -54,6 +54,9 @@ model Business {
   members          BusinessMember[]
   opportunities    Opportunity[]
   interests        Interest[]
+  questions        Question[]
+  perspectives     Perspective[]
+  knowledge_insights KnowledgeInsight[]
 
   @@map("businesses")
 }
@@ -158,3 +161,63 @@ model Notification {
 
   @@map("notifications")
 }
+
+model Question {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id         String   @db.Uuid
+  title               String
+  description         String
+  topic               String
+  desired_perspective String?
+  status              String   @default("open")
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  business     Business      @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  perspectives Perspective[]
+
+  @@index([status, created_at(sort: Desc)])
+  @@index([topic, created_at(sort: Desc)])
+  @@index([business_id])
+  @@map("questions")
+}
+
+model Perspective {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  question_id         String   @db.Uuid
+  business_id         String   @db.Uuid
+  content             String
+  qualification       String
+  based_on            String
+  relevant_experience String?
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  question Question @relation(fields: [question_id], references: [id], onDelete: Cascade)
+  business Business @relation(fields: [business_id], references: [id], onDelete: Cascade)
+
+  @@unique([question_id, business_id])
+  @@index([question_id, created_at(sort: Desc)])
+  @@index([business_id])
+  @@map("perspectives")
+}
+
+model KnowledgeInsight {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id String   @db.Uuid
+  title       String
+  content     String
+  topic       String
+  based_on    String?
+  status      String   @default("published")
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  business Business @relation(fields: [business_id], references: [id], onDelete: Cascade)
+
+  @@index([status, created_at(sort: Desc)])
+  @@index([topic, created_at(sort: Desc)])
+  @@index([business_id, created_at(sort: Desc)])
+  @@map("knowledge_insights")
+}
+

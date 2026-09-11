@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getCompanyInitials } from "@/lib/utils";
 
 interface ProfileData {
   companyName: string;
@@ -60,12 +61,7 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
   const displayName = profile?.companyName || user.fullName || "Operator";
 
   // Compute initials based on display name
-  const initials = displayName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .substring(0, 2)
-    .toUpperCase() || "OP";
+  const initials = getCompanyInitials(displayName);
 
   // Use company logo url if available, otherwise Clerk user profile image
   const avatarSrc = profile?.logoUrl && !logoFailed ? profile.logoUrl : user.imageUrl;

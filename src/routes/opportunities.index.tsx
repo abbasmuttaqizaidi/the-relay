@@ -16,6 +16,8 @@ import { getSavedOpportunities } from "../functions/getSavedOpportunities";
 import { withdrawInterest } from "../functions/withdrawInterest";
 import { getSentRequests } from "../functions/getSentRequests";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
+import { getCompanyInitials } from "../lib/utils";
+import { CompanyLogo } from "../components/company-logo";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import {
   Loader2,
@@ -192,6 +194,7 @@ type Opportunity = {
   status?: string;
   expires_at?: string;
   promotion_status?: string;
+  logo_url?: string | null;
 };
 
 const TYPE_ACCENT: Record<string, string> = {
@@ -592,6 +595,7 @@ function OpportunitiesPage() {
           status: opp.status,
           expires_at: opp.expires_at,
           promotion_status: opp.promotion_status || "none",
+          logo_url: opp.business?.logo_url || null,
         }));
       } catch (dbErr) {
         console.error("Failed to query opportunities from database, falling back to mock data:", dbErr);
@@ -1765,14 +1769,7 @@ function ResultCard({
   const displayName = shouldHide ? "Confidential" : opp.company;
 
   // Compute initials for building avatar logo placeholder
-  const initials = shouldHide
-    ? "🔒"
-    : displayName
-        .split(/\s+/)
-        .map((w) => w[0])
-        .join("")
-        .substring(0, 2)
-        .toUpperCase();
+  const initials = shouldHide ? "🔒" : getCompanyInitials(displayName);
 
   const isPromoted = opp.promotion_status === "promoted";
 
@@ -1887,15 +1884,29 @@ function ResultCard({
         >
           <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Minimal company logo placeholder */}
-            <div
-              className={`w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] flex items-center justify-center font-sans text-[7.5px] sm:text-[8px] font-bold uppercase ${
-                isPromoted
-                  ? "bg-slate-900 border border-slate-800 text-orange-400"
-                  : "bg-slate-100 border border-slate-200 text-slate-600"
-              }`}
-            >
-              {initials}
-            </div>
+            {shouldHide ? (
+              <div
+                className={`w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] flex items-center justify-center font-sans text-[7.5px] sm:text-[8px] font-bold uppercase shrink-0 select-none ${
+                  isPromoted
+                    ? "bg-slate-900 border border-slate-800 text-orange-400"
+                    : "bg-slate-100 border border-slate-200 text-slate-600"
+                }`}
+              >
+                🔒
+              </div>
+            ) : (
+              <CompanyLogo
+                src={opp.logo_url}
+                name={displayName}
+                className="w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] object-cover border border-slate-200 shrink-0"
+                fallbackClassName={`w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] flex items-center justify-center font-sans text-[7.5px] sm:text-[8px] font-bold uppercase shrink-0 select-none ${
+                  isPromoted
+                    ? "bg-slate-900 border border-slate-800 text-orange-400"
+                    : "bg-slate-100 border border-slate-200 text-slate-600"
+                }`}
+                textClassName="text-[7.5px] sm:text-[8px] font-bold"
+              />
+            )}
             <span
               className={`font-bold flex items-center gap-1 sm:gap-1.5 ${isPromoted ? "text-white" : "text-slate-900"}`}
             >

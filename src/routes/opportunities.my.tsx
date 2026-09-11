@@ -19,6 +19,7 @@ import { listOpportunities } from "../functions/listOpportunities";
 import { expressInterest } from "../functions/expressInterest";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
 import { useInterestStore } from "@/lib/interest-store";
+import { getCompanyInitials } from "@/lib/utils";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
@@ -1823,12 +1824,7 @@ function MyOpportunitiesPage() {
                   "Confidential";
               const initials = shouldHide
                 ? "🔒"
-                : displayName
-                    .split(/\s+/)
-                    .map((w: string) => w[0])
-                    .join("")
-                    .substring(0, 2)
-                    .toUpperCase();
+                : getCompanyInitials(displayName);
 
               const interestStatus = store[selectedDetailOpp.id]?.status ?? "idle";
 

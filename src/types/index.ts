@@ -178,3 +178,164 @@ export interface ListOpportunitiesFilters {
   limit?: number;
   offset?: number;
 }
+
+// ---------------------------------------------------------
+// INSIGHTS TYPES (Questions & Perspectives)
+// ---------------------------------------------------------
+
+export type QuestionTopic =
+  | "Sales"
+  | "Marketing"
+  | "Operations"
+  | "Hiring"
+  | "Finance"
+  | "Product"
+  | "Partnerships"
+  | "Distribution"
+  | "Technology"
+  | "Building a System / Business"
+  | "Other";
+
+export type DesiredPerspective =
+  | "any_business"
+  | "same_industry"
+  | "similar_customers"
+  | "relevant_experience";
+
+export type QuestionStatus = "open" | "closed";
+
+export type BasedOn =
+  | "Our business experience"
+  | "A project we worked on"
+  | "An experiment or test"
+  | "Industry experience"
+  | "Personal experience"
+  | "General perspective";
+
+export interface Question {
+  id: string;
+  business_id: string;
+  title: string;
+  description: string;
+  topic: QuestionTopic;
+  desired_perspective: DesiredPerspective | null;
+  status: QuestionStatus;
+  created_at: string;
+  updated_at: string;
+  business?: Business;
+  _count?: {
+    perspectives: number;
+  };
+  perspectives?: Perspective[];
+}
+
+export interface Perspective {
+  id: string;
+  question_id: string;
+  business_id: string;
+  content: string;
+  qualification: string;
+  based_on: BasedOn;
+  relevant_experience: string | null;
+  created_at: string;
+  updated_at: string;
+  business?: Business;
+  question?: Question;
+}
+
+export interface CreateQuestionDTO {
+  business_id: string;
+  title: string;
+  description: string;
+  topic: QuestionTopic;
+  desired_perspective?: DesiredPerspective | null;
+}
+
+export interface UpdateQuestionDTO {
+  title?: string;
+  description?: string;
+  topic?: QuestionTopic;
+  desired_perspective?: DesiredPerspective | null;
+  status?: QuestionStatus;
+}
+
+export interface ListQuestionsFilters {
+  topic?: string;
+  industry?: string;
+  search?: string;
+  status?: QuestionStatus;
+  limit?: number;
+  offset?: number;
+}
+
+export interface CreatePerspectiveDTO {
+  question_id: string;
+  business_id: string;
+  content: string;
+  qualification: string;
+  based_on: BasedOn;
+  relevant_experience?: string | null;
+}
+
+export interface UpdatePerspectiveDTO {
+  content?: string;
+  qualification?: string;
+  based_on?: BasedOn;
+  relevant_experience?: string | null;
+}
+
+export type KnowledgeInsightTopic = QuestionTopic;
+
+export type KnowledgeInsightBasedOn =
+  | "business_experience"
+  | "project"
+  | "experiment"
+  | "industry_experience"
+  | "lesson_learned"
+  | "general_perspective";
+
+export type KnowledgeInsightStatus = "published" | "draft" | "archived";
+
+export interface KnowledgeInsight {
+  id: string;
+  business_id: string;
+  title: string;
+  content: string;
+  topic: KnowledgeInsightTopic;
+  based_on?: KnowledgeInsightBasedOn | null;
+  status: KnowledgeInsightStatus;
+  created_at: string;
+  updated_at: string;
+  business?: Business | null;
+}
+
+export interface CreateKnowledgeInsightDTO {
+  business_id: string;
+  title: string;
+  content: string;
+  topic: KnowledgeInsightTopic;
+  based_on?: KnowledgeInsightBasedOn | null;
+  status?: KnowledgeInsightStatus;
+}
+
+export interface UpdateKnowledgeInsightDTO {
+  knowledge_insight_id: string;
+  business_id: string;
+  title?: string;
+  content?: string;
+  topic?: KnowledgeInsightTopic;
+  based_on?: KnowledgeInsightBasedOn | null;
+  status?: KnowledgeInsightStatus;
+}
+
+export interface ListKnowledgeInsightsFilters {
+  topic?: string;
+  search?: string;
+  status?: KnowledgeInsightStatus | "all";
+  business_id?: string;
+  limit?: number;
+  offset?: number;
+  cursor?: string;
+}
+
+

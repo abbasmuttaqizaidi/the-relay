@@ -11,6 +11,7 @@ import { removeSavedOpportunity } from "../functions/removeSavedOpportunity";
 import { expressInterest } from "../functions/expressInterest";
 import { Navbar } from "@/components/navbar";
 import { useInterestStore, RECIPROCITY_WEIGHTS } from "@/lib/interest-store";
+import { getCompanyInitials } from "@/lib/utils";
 import {
   ArrowLeft,
   Trash2,
@@ -549,7 +550,7 @@ function SavedOpportunitiesPage() {
             const isConnected = store[selectedOpp.id]?.status === "accepted";
             const shouldHide = selectedOpp.hide_company_name && !isConnected && !isApproved;
             const displayName = shouldHide ? "Confidential" : selectedOpp.company;
-            const initials = shouldHide ? "🔒" : displayName.split(/\s+/).map((w: string) => w[0]).join("").substring(0, 2).toUpperCase();
+            const initials = shouldHide ? "🔒" : getCompanyInitials(displayName);
 
             const interestStatus = store[selectedOpp.id]?.status ?? "idle";
 
