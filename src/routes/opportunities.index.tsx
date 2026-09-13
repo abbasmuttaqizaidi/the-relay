@@ -52,7 +52,13 @@ import {
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { ReciprocityBadge } from "@/components/reciprocity-badge";
-import { TooltipSimple } from "@/components/ui/tooltip";
+import {
+  TooltipSimple,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -2075,6 +2081,7 @@ function ResultCard({
   const [open, setOpen] = useState(false);
   const [verificationOpen, setVerificationOpen] = useState(false);
   const [pitch, setPitch] = useState("");
+  const [ownerTooltipOpen, setOwnerTooltipOpen] = useState(false);
 
   const submit = async () => {
     const trimmed = pitch.trim();
@@ -2112,6 +2119,7 @@ function ResultCard({
   };
 
   const isConnected = opp.business_id === myBusinessId || status === "accepted";
+  const isOwner = Boolean(myBusinessId && opp.business_id === myBusinessId);
   const shouldHide = opp.hide_company_name && !isConnected;
   const displayName = shouldHide ? "Confidential" : opp.company;
 
@@ -2123,10 +2131,14 @@ function ResultCard({
   const isMultiPromoted = isPromoted && promotedCount > 1;
 
   const cardClasses = isPromoted
-    ? "bg-slate-950 border-orange-500/40 hover:border-orange-400 text-slate-100 shadow-lg hover:shadow-orange-950/20 hover:shadow-xl border-l-[4.5px] border-l-orange-500 bg-gradient-to-br from-slate-900 to-slate-950"
-    : opp.trustLevel === "Approved"
-      ? "bg-white border-slate-300/80 hover:border-primary border-l-[3.5px] border-l-slate-900 bg-gradient-to-br from-slate-50/20 via-white to-white hover:shadow-md"
-      : "bg-white border-slate-200 hover:border-primary hover:shadow-md";
+    ? isOwner
+      ? "bg-slate-950 border-orange-500/60 hover:border-orange-400 text-slate-100 shadow-lg hover:shadow-orange-950/20 hover:shadow-xl border-l-[4.5px] border-l-orange-500 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-950 ring-1 ring-orange-500/30"
+      : "bg-slate-950 border-orange-500/40 hover:border-orange-400 text-slate-100 shadow-lg hover:shadow-orange-950/20 hover:shadow-xl border-l-[4.5px] border-l-orange-500 bg-gradient-to-br from-slate-900 to-slate-950"
+    : isOwner
+      ? "bg-white border-orange-300 hover:border-orange-500 border-l-[4px] border-l-orange-600 bg-gradient-to-r from-orange-500/[0.04] via-white to-white shadow-xs hover:shadow-md ring-1 ring-orange-500/20"
+      : opp.trustLevel === "Approved"
+        ? "bg-white border-slate-300/80 hover:border-primary border-l-[3.5px] border-l-slate-900 bg-gradient-to-br from-slate-50/20 via-white to-white hover:shadow-md"
+        : "bg-white border-slate-200 hover:border-primary hover:shadow-md";
 
   const typeTagClass = isPromoted
     ? "bg-orange-500/15 text-orange-400 border border-orange-500/30"
@@ -2138,10 +2150,10 @@ function ResultCard({
 
   const rightColClass = isMultiPromoted
     ? `xl:w-40 flex flex-row xl:flex-col items-center xl:items-stretch justify-between xl:justify-center gap-2.5 sm:gap-4 border-t xl:border-t-0 xl:border-l pt-2.5 sm:pt-4 xl:pt-0 xl:pl-6 ${
-        isPromoted ? "border-slate-900" : "border-slate-100"
+        isPromoted ? "border-slate-900" : isOwner ? "border-orange-100" : "border-slate-100"
       }`
     : `md:w-40 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-center gap-2.5 sm:gap-4 border-t md:border-t-0 md:border-l pt-2.5 sm:pt-4 md:pt-0 md:pl-6 ${
-        isPromoted ? "border-slate-900" : "border-slate-100"
+        isPromoted ? "border-slate-900" : isOwner ? "border-orange-100" : "border-slate-100"
       }`;
 
   return (
@@ -2150,21 +2162,22 @@ function ResultCard({
       style={{ animationDelay: `${delay}ms` }}
     >
       {/* Top-Right Bookmark / Edit Button */}
-      {opp.business_id === myBusinessId ? (
+      {isOwner ? (
         onEdit && (
           <button
             onClick={(e) => {
               e.preventDefault();
               onEdit(opp);
             }}
-            className={`absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 rounded-full transition-colors focus:outline-none cursor-pointer z-10 ${
+            className={`absolute top-3 right-3 sm:top-4 sm:right-4 px-2 sm:px-2.5 py-1 rounded-[2px] text-[9px] sm:text-[9.5px] font-mono uppercase tracking-wider font-bold transition-all focus:outline-none cursor-pointer z-10 flex items-center gap-1.5 ${
               isPromoted
-                ? "hover:bg-slate-900 text-slate-400 hover:text-slate-200"
-                : "hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                ? "bg-slate-900 border border-slate-800 text-orange-400 hover:bg-slate-800 hover:text-orange-300 shadow-2xs"
+                : "bg-orange-50 border border-orange-200 text-orange-700 hover:bg-orange-100 hover:border-orange-300 shadow-2xs"
             }`}
             title="Edit opportunity brief"
           >
-            <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Pencil className="w-3 h-3 text-orange-600 shrink-0" />
+            <span>Edit</span>
           </button>
         )
       ) : (
@@ -2249,34 +2262,76 @@ function ResultCard({
           }`}
         >
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Minimal company logo placeholder */}
-            {shouldHide ? (
-              <div
-                className={`w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] flex items-center justify-center font-sans text-[7.5px] sm:text-[8px] font-bold uppercase shrink-0 select-none ${
-                  isPromoted
-                    ? "bg-slate-900 border border-slate-800 text-orange-400"
-                    : "bg-slate-100 border border-slate-200 text-slate-600"
-                }`}
-              >
-                🔒
-              </div>
-            ) : (
-              <CompanyLogo
-                src={opp.logo_url}
-                name={displayName}
-                className="w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] object-cover border border-slate-200 shrink-0"
-                fallbackClassName={`w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] flex items-center justify-center font-sans text-[7.5px] sm:text-[8px] font-bold uppercase shrink-0 select-none ${
-                  isPromoted
-                    ? "bg-slate-900 border border-slate-800 text-orange-400"
-                    : "bg-slate-100 border border-slate-200 text-slate-600"
-                }`}
-                textClassName="text-[7.5px] sm:text-[8px] font-bold"
-              />
+            {/* Minimal company logo placeholder: only for other businesses, removed for owner */}
+            {!isOwner && (
+              shouldHide ? (
+                <div
+                  className={`w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] flex items-center justify-center font-sans text-[7.5px] sm:text-[8px] font-bold uppercase shrink-0 select-none ${
+                    isPromoted
+                      ? "bg-slate-900 border border-slate-800 text-orange-400"
+                      : "bg-slate-100 border border-slate-200 text-slate-600"
+                  }`}
+                >
+                  🔒
+                </div>
+              ) : (
+                <CompanyLogo
+                  src={opp.logo_url}
+                  name={displayName}
+                  className="w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] object-cover border border-slate-200 shrink-0"
+                  fallbackClassName={`w-4 h-4 sm:w-5 sm:h-5 rounded-[2px] flex items-center justify-center font-sans text-[7.5px] sm:text-[8px] font-bold uppercase shrink-0 select-none ${
+                    isPromoted
+                      ? "bg-slate-900 border border-slate-800 text-orange-400"
+                      : "bg-slate-100 border border-slate-200 text-slate-600"
+                  }`}
+                  textClassName="text-[7.5px] sm:text-[8px] font-bold"
+                />
+              )
             )}
             <span
-              className={`font-bold flex items-center gap-1 sm:gap-1.5 ${isPromoted ? "text-white" : "text-slate-900"}`}
+              className={`font-bold flex items-center gap-1 sm:gap-1.5 ${
+                isPromoted ? "text-white" : "text-slate-900"
+              }`}
             >
-              {displayName}
+              {isOwner ? (
+                <span className="flex items-center gap-1.5">
+                  <TooltipProvider>
+                    <Tooltip
+                      open={ownerTooltipOpen}
+                      onOpenChange={setOwnerTooltipOpen}
+                      delayDuration={100}
+                    >
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setOwnerTooltipOpen((prev) => !prev);
+                          }}
+                          className="bg-orange-600 text-white text-[8.5px] sm:text-[9.5px] font-mono font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-[2px] shadow-2xs cursor-pointer hover:bg-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-400 inline-flex items-center"
+                        >
+                          You
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        align="center"
+                        className="font-sans font-semibold text-xs py-1 px-2.5 bg-slate-950 text-white border border-slate-800 shadow-md"
+                      >
+                        {opp.company}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  {opp.hide_company_name && (
+                    <span className="text-[8.5px] font-mono text-slate-400 font-normal">
+                      (Confidential)
+                    </span>
+                  )}
+                </span>
+              ) : (
+                displayName
+              )}
               {opp.trustLevel === "Approved" && !shouldHide && (
                 <TooltipSimple content="Approved with Relay">
                   <BadgeCheck className="w-3.5 h-3.5 text-white fill-[#1877f2] shrink-0 cursor-default animate-badge-shine" />
@@ -2413,26 +2468,15 @@ function ResultCard({
 
       {/* Right Column: Actions */}
       <div className={rightColClass}>
-        {opp.business_id === myBusinessId ? (
+        {isOwner ? (
           <div className="flex-1 md:flex-none md:w-full flex flex-col gap-2">
-            <div
-              className={`text-center py-1.5 sm:py-2 px-2.5 border text-[8.5px] sm:text-[9px] font-mono uppercase tracking-wider sm:tracking-widest font-bold rounded-[2px] cursor-default flex items-center justify-center gap-1.5 ${
-                isPromoted
-                  ? "border-slate-800 text-slate-500 bg-slate-900/50"
-                  : "border-slate-200 text-slate-400 bg-slate-50/50"
-              }`}
-            >
-              {opp.hide_company_name && <Lock className="w-3 h-3 text-amber-500" />}
-              <span>Your Listing {opp.hide_company_name && "(Private)"}</span>
-            </div>
-
             {onEdit && (
               <button
                 onClick={() => onEdit(opp)}
                 className={`w-full py-2 sm:py-2.5 px-3 text-[9px] sm:text-[10px] font-mono uppercase tracking-wider sm:tracking-widest transition-all rounded-[2px] shadow-xs hover:shadow cursor-pointer font-bold flex items-center justify-center gap-1.5 ${
                   isPromoted
                     ? "bg-orange-600 hover:bg-orange-500 text-white border border-orange-500/30"
-                    : "bg-slate-900 hover:bg-primary text-white border border-slate-900"
+                    : "bg-slate-900 hover:bg-orange-600 text-white border border-slate-900"
                 }`}
               >
                 <Pencil className="w-3 h-3" />
