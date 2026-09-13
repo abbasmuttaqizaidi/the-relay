@@ -12,6 +12,7 @@ import {
   Clock,
   ArrowDown,
   Play,
+  UserCheck,
 } from "lucide-react";
 import {
   Accordion,
@@ -19,13 +20,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { HowItWorksModal } from "@/components/how-it-works-modal";
@@ -125,7 +119,7 @@ function Landing() {
         }}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8 sm:space-y-10 md:space-y-14 relative pb-16 pt-2 sm:pt-3 md:pt-4">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10 sm:space-y-12 md:space-y-16 relative pb-16 pt-3 sm:pt-4 md:pt-6">
         {/* Section 1: Hero */}
         <HeroSection onWatchHowItWorks={() => setIsVideoModalOpen(true)} />
 
@@ -135,13 +129,13 @@ function Landing() {
         {/* Section 3: The Core Value (Comparison) */}
         <CoreValueSection />
 
-        {/* Section 3: What Can You Find on Relay? */}
+        {/* Section 4: What Can You Find on Relay? */}
         <CategoriesSection />
 
-        {/* Section 4: How Relay Works */}
+        {/* Section 5: How Relay Works */}
         <HowItWorksSection />
 
-        {/* Section 5: Why Double Opt-In? */}
+        {/* Section 6: Why Double Opt-In? */}
         <DoubleOptInSection />
 
         {/* Section 7: Two Sides of the Market */}
@@ -153,10 +147,10 @@ function Landing() {
         {/* Section 9: Final CTA */}
         <FinalCtaSection />
 
-        {/* Section 11: FAQ */}
+        {/* Section 10: FAQ */}
         <FaqSection />
 
-        {/* Section 12: Footer */}
+        {/* Section 11: Footer */}
         <Footer />
       </main>
 
@@ -176,35 +170,36 @@ function HeroSection({ onWatchHowItWorks }: { onWatchHowItWorks: () => void }) {
     <section
       id="home-hero-section"
       ref={ref}
-      className={`pt-7 sm:pt-8 md:pt-10 pb-2 sm:pb-4 max-w-4xl mx-auto text-center space-y-5 sm:space-y-8 transition-all duration-700 transform ${
+      className={`pt-4 sm:pt-8 md:pt-10 pb-2 sm:pb-4 max-w-4xl mx-auto text-center space-y-4 sm:space-y-6 md:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
-      <div className="space-y-3.5 sm:space-y-5">
-        <h1 className="font-display text-[40px] xs:text-[45px] sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.08] text-slate-950">
+      <div className="space-y-3 sm:space-y-5">
+        <h1 className="font-display text-[35px] xs:text-[42px] sm:text-5xl md:text-6xl lg:text-[64px] font-black tracking-tight leading-[1.08] text-slate-950">
           Find businesses that are actively looking for what you offer.
         </h1>
 
         <p className="text-slate-600 text-xs sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-sans">
           Discover real partnership, vendor, and growth opportunities from verified businesses —
           with{" "}
-          <span className="bg-orange-500/10 text-orange-600 py-0.5 px-1.5 rounded-[2px] font-medium">
+          <span className="bg-orange-500/10 text-orange-600 py-0.5 px-1.5 rounded-[2px] font-medium inline-block">
             100% manual human approval (no AI)
           </span>{" "}
           and{" "}
-          <span className="bg-orange-500/10 text-orange-600 py-0.5 px-1.5 rounded-[2px] font-medium">
+          <span className="bg-orange-500/10 text-orange-600 py-0.5 px-1.5 rounded-[2px] font-medium inline-block">
             no unnecessary noise
           </span>
           .
         </p>
 
-        <p className="text-[9.5px] xs:text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-wider font-medium">
+        <p className="text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-wider font-medium leading-normal max-w-xl mx-auto">
           See what businesses need · Respond with what you can offer · Connect when both sides agree
         </p>
       </div>
 
       <div className="space-y-4 sm:space-y-6 pt-1 sm:pt-2">
-        <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center items-center">
+        {/* Buttons on mobile: Primary on top, Secondary side-by-side */}
+        <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center items-center w-full max-w-md sm:max-w-none mx-auto">
           <Link
             to="/opportunities"
             className="h-11 sm:h-12 w-full sm:w-auto px-6 sm:px-8 inline-flex items-center justify-center bg-slate-900 text-white font-mono text-xs uppercase tracking-widest hover:bg-orange-600 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 rounded-[3px] font-bold shadow-xs cursor-pointer"
@@ -212,64 +207,33 @@ function HeroSection({ onWatchHowItWorks }: { onWatchHowItWorks: () => void }) {
             Explore Opportunities <ArrowRight className="ml-2 w-4 h-4" />
           </Link>
 
-          <button
-            type="button"
-            onClick={onWatchHowItWorks}
-            className="h-11 sm:h-12 w-full sm:w-auto px-5 sm:px-6 inline-flex items-center justify-center gap-2 border border-slate-300 bg-white hover:border-orange-500 hover:text-orange-600 text-slate-800 font-mono text-xs uppercase tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer"
-          >
-            <Play className="w-3.5 h-3.5 fill-orange-600 text-orange-600 shrink-0" />
-            <span>How It Works</span>
-          </button>
-
-          <Show when="signed-out">
-            <Link
-              to="/signup"
-              className="h-11 sm:h-12 w-full sm:w-auto px-6 sm:px-8 inline-flex items-center justify-center border border-slate-300 bg-white hover:border-slate-800 text-slate-800 font-mono text-xs uppercase tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer"
+          <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center sm:gap-3">
+            <button
+              type="button"
+              onClick={onWatchHowItWorks}
+              className="h-11 sm:h-12 w-full sm:w-auto px-3 sm:px-6 inline-flex items-center justify-center gap-1.5 sm:gap-2 border border-slate-300 bg-white hover:border-orange-500 hover:text-orange-600 text-slate-800 font-mono text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer text-center whitespace-nowrap"
             >
-              Apply for Access
-            </Link>
-          </Show>
+              <Play className="w-3.5 h-3.5 fill-orange-600 text-orange-600 shrink-0" />
+              <span>How It Works</span>
+            </button>
 
-          <Show when="signed-in">
-            <Link
-              to="/onboarding"
-              className="h-11 sm:h-12 w-full sm:w-auto px-6 sm:px-8 inline-flex items-center justify-center border border-slate-300 bg-white hover:border-slate-800 text-slate-800 font-mono text-xs uppercase tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer"
-            >
-              Manage Business Profile
-            </Link>
-          </Show>
-        </div>
+            <Show when="signed-out">
+              <Link
+                to="/signup"
+                className="h-11 sm:h-12 w-full sm:w-auto px-3 sm:px-8 inline-flex items-center justify-center border border-slate-300 bg-white hover:border-slate-800 text-slate-800 font-mono text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer text-center whitespace-nowrap"
+              >
+                Apply for Access
+              </Link>
+            </Show>
 
-        {/* Main Screen Highlight Cards (Compact) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3.5 text-left pt-1 max-w-3xl mx-auto w-full">
-          {/* Card 1: No Unnecessary Noise */}
-          <div className="bg-orange-50/70 border border-orange-200/90 rounded-[4px] p-2.5 sm:p-3.5 shadow-2xs transition-all hover:border-orange-300">
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="font-display font-bold text-xs sm:text-sm text-slate-950">
-                No Unnecessary Noise
-              </h3>
-              <span className="font-mono text-[9px] text-orange-800 font-bold uppercase tracking-wider bg-orange-100 px-1.5 py-0.5 rounded-[2px]">
-                Zero Spam
-              </span>
-            </div>
-            <p className="text-[11px] sm:text-xs text-slate-600 font-sans leading-snug">
-              No junk job/referral posts &amp; no cold DMs. Contacts stay locked until handshake.
-            </p>
-          </div>
-
-          {/* Card 2: No AI Human Approval */}
-          <div className="bg-orange-50/70 border border-orange-200/90 rounded-[4px] p-2.5 sm:p-3.5 shadow-2xs transition-all hover:border-orange-300">
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="font-display font-bold text-xs sm:text-sm text-slate-950">
-                100% Human Approval
-              </h3>
-              <span className="font-mono text-[9px] text-orange-800 font-bold uppercase tracking-wider bg-orange-100 px-1.5 py-0.5 rounded-[2px]">
-                No AI
-              </span>
-            </div>
-            <p className="text-[11px] sm:text-xs text-slate-600 font-sans leading-snug">
-              Audited by real operators, never AI bots. Every company domain is manually verified.
-            </p>
+            <Show when="signed-in">
+              <Link
+                to="/onboarding"
+                className="h-11 sm:h-12 w-full sm:w-auto px-3 sm:px-8 inline-flex items-center justify-center border border-slate-300 bg-white hover:border-slate-800 text-slate-800 font-mono text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-widest hover:-translate-y-0.5 hover:shadow-xs transition-all duration-200 rounded-[3px] font-bold cursor-pointer text-center whitespace-nowrap"
+              >
+                Manage Profile
+              </Link>
+            </Show>
           </div>
         </div>
       </div>
@@ -287,21 +251,21 @@ function ManifestoBanner() {
     <section
       ref={ref}
       aria-label="Platform Philosophy"
-      className={`border-y border-slate-200/90 py-8 sm:py-12 md:py-14 text-center max-w-4xl mx-auto px-4 space-y-3 sm:space-y-4 transition-all duration-700 transform ${
+      className={`border-y border-slate-200/90 py-7 sm:py-12 md:py-14 text-center max-w-4xl mx-auto px-4 space-y-2.5 sm:space-y-4 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
-      <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-black tracking-tight text-slate-950 leading-[1.18]">
+      <h2 className="font-display text-xl sm:text-3xl md:text-4xl lg:text-[40px] font-black tracking-tight text-slate-950 leading-[1.18]">
         “Built for business outcomes, not engagement.”
       </h2>
-      <p className="text-slate-600 text-[11px] xs:text-xs sm:text-base md:text-lg max-w-2xl mx-auto font-sans whitespace-nowrap sm:whitespace-normal">
+      <p className="text-slate-600 text-xs sm:text-base md:text-lg max-w-2xl mx-auto font-sans leading-relaxed">
         <span className="sm:hidden">No vanity metrics. Just verified commercial demand.</span>
         <span className="hidden sm:inline">
           No vanity metrics. No algorithm games. No unsolicited pitch spam. Just verified commercial
           demand and direct, high-intent introductions.
         </span>
       </p>
-      <div className="flex items-center justify-center gap-x-2 xs:gap-x-3 sm:gap-x-6 text-[9.5px] xs:text-[10.5px] sm:text-xs font-mono text-slate-500 font-semibold tracking-wide whitespace-nowrap pt-1">
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:gap-x-6 text-[10px] sm:text-xs font-mono text-slate-500 font-semibold tracking-wide pt-1">
         <span>• No Public Feed</span>
         <span>• 100% Human Audited</span>
         <span>• Mutual Opt-In Only</span>
@@ -316,7 +280,6 @@ function ManifestoBanner() {
 function CoreValueSection() {
   const { ref, isVisible } = useReveal();
   const [activeSlide, setActiveSlide] = useState(0);
-  const sliderRef = useRef<HTMLDivElement>(null);
 
   const traditionalSteps = [
     "Search businesses",
@@ -335,30 +298,6 @@ function CoreValueSection() {
     "Both sides agree",
     "Introduction",
   ];
-
-  const scrollToSlide = (index: number) => {
-    if (!sliderRef.current) return;
-    const container = sliderRef.current;
-    const targetCard = container.children[index] as HTMLElement | undefined;
-    if (targetCard) {
-      container.scrollTo({
-        left: targetCard.offsetLeft - container.offsetLeft,
-        behavior: "smooth",
-      });
-    }
-    setActiveSlide(index);
-  };
-
-  const handleScroll = () => {
-    if (!sliderRef.current) return;
-    const container = sliderRef.current;
-    const scrollPosition = container.scrollLeft;
-    const halfWidth = container.offsetWidth / 2;
-    const newIndex = scrollPosition > halfWidth ? 1 : 0;
-    if (newIndex !== activeSlide) {
-      setActiveSlide(newIndex);
-    }
-  };
 
   return (
     <section
@@ -381,121 +320,173 @@ function CoreValueSection() {
         </p>
       </div>
 
-      {/* Mobile Slider Header Tabs */}
-      <div className="md:hidden flex items-center justify-center gap-1.5 pt-0.5">
-        <button
-          type="button"
-          onClick={() => scrollToSlide(0)}
-          className={`px-3 py-1 text-xs font-mono font-bold rounded-full transition-all cursor-pointer ${
-            activeSlide === 0
-              ? "bg-slate-900 text-white shadow-xs"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-          }`}
-        >
-          Traditional
-        </button>
-        <button
-          type="button"
-          onClick={() => scrollToSlide(1)}
-          className={`px-3 py-1 text-xs font-mono font-bold rounded-full transition-all cursor-pointer ${
-            activeSlide === 1
-              ? "bg-orange-600 text-white shadow-xs"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-          }`}
-        >
-          The Relay
-        </button>
+      {/* Mobile Segmented Switcher Tab */}
+      <div className="md:hidden flex justify-center pt-0.5">
+        <div className="inline-flex p-1 bg-slate-100 rounded-full border border-slate-200/80 shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setActiveSlide(0)}
+            className={`px-3.5 py-1 text-xs font-mono font-bold rounded-full transition-all cursor-pointer ${
+              activeSlide === 0
+                ? "bg-slate-900 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            Traditional
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSlide(1)}
+            className={`px-3.5 py-1 text-xs font-mono font-bold rounded-full transition-all cursor-pointer ${
+              activeSlide === 1
+                ? "bg-orange-600 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            The Relay
+          </button>
+        </div>
       </div>
 
-      <div
-        ref={sliderRef}
-        onScroll={handleScroll}
-        className="flex md:grid md:grid-cols-2 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none gap-3 sm:gap-4 md:gap-6 w-full max-w-5xl mx-auto py-2 md:py-0 pb-4 md:pb-0 scrollbar-none -mx-4 px-4 sm:mx-auto sm:px-0 md:mx-auto md:px-0"
-      >
-        {/* Traditional Outreach */}
-        <div className="w-[86vw] sm:w-[360px] md:w-full shrink-0 md:shrink snap-center md:snap-align-none bg-slate-100/90 border border-slate-200/90 p-4 sm:p-6 rounded-[4px] space-y-3.5 sm:space-y-5 flex flex-col justify-between shadow-md shadow-slate-200/70 md:shadow-none">
-          <div className="space-y-1 sm:space-y-1.5">
-            <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-slate-500 font-bold block">
-              Traditional Outreach
-            </span>
-            <h3 className="font-display text-sm sm:text-base font-bold text-slate-800">
-              Starts with: “Who should I contact?”
-            </h3>
-            <p className="text-[11px] sm:text-xs text-slate-500 font-sans leading-relaxed">
-              Blind searching, unverified interest, and cold inboxes that rarely convert.
-            </p>
-          </div>
-
-          <div className="space-y-1.5 sm:space-y-2">
-            {traditionalSteps.map((step, idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-2 text-xs text-slate-600 bg-white/80 border border-slate-200/60 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-[2px]"
-              >
-                <span className="font-mono text-[10px] text-slate-400 font-bold w-4 shrink-0">
-                  0{idx + 1}
+      {/* Desktop side-by-side grid, Mobile clean tab switch */}
+      <div className="w-full max-w-5xl mx-auto">
+        {/* Mobile View: Shows active tab smoothly */}
+        <div className="md:hidden">
+          {activeSlide === 0 ? (
+            /* Traditional Card */
+            <div className="w-full bg-slate-100/90 border border-slate-200/90 p-4.5 rounded-[4px] space-y-4 shadow-xs flex flex-col justify-between">
+              <div className="space-y-1">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500 font-bold block">
+                  Traditional Outreach
                 </span>
-                <span className="leading-tight">{step}</span>
+                <h3 className="font-display text-sm font-bold text-slate-800">
+                  Starts with: “Who should I contact?”
+                </h3>
+                <p className="text-xs text-slate-500 font-sans leading-relaxed">
+                  Blind searching, unverified interest, and cold inboxes that rarely convert.
+                </p>
               </div>
-            ))}
-          </div>
 
-          <div className="text-[10px] sm:text-[11px] font-mono text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-200">
-            Result: Low outcome, high friction
-          </div>
+              <div className="space-y-1.5">
+                {traditionalSteps.map((step, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2 text-xs text-slate-600 bg-white/80 border border-slate-200/60 px-3 py-1.5 rounded-[2px]"
+                  >
+                    <span className="font-mono text-[10px] text-slate-400 font-bold w-4 shrink-0">
+                      0{idx + 1}
+                    </span>
+                    <span className="leading-tight">{step}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-200">
+                Result: Low outcome, high friction
+              </div>
+            </div>
+          ) : (
+            /* The Relay Card */
+            <div className="w-full bg-white border-2 border-slate-900 p-4.5 rounded-[4px] space-y-4 shadow-sm flex flex-col justify-between">
+              <div className="space-y-1">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-orange-600 font-bold block">
+                  The Relay
+                </span>
+                <h3 className="font-display text-sm font-bold text-slate-950">
+                  Starts with: “What business is already looking for what I offer?”
+                </h3>
+                <p className="text-xs text-slate-600 font-sans leading-relaxed">
+                  Intent-driven discovery where active commercial briefs are already waiting for you.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                {relaySteps.map((step, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2 text-xs text-slate-900 bg-slate-50 border border-slate-200/90 px-3 py-1.5 rounded-[2px] font-medium"
+                  >
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span className="leading-tight">{step}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-[10px] font-mono text-emerald-700 uppercase tracking-wider font-bold pt-2 border-t border-slate-100 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                Result: Warm introductions based on mutual agreement
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* The Relay */}
-        <div className="w-[86vw] sm:w-[360px] md:w-full shrink-0 md:shrink snap-center md:snap-align-none bg-white border-2 border-slate-900 p-4 sm:p-6 rounded-[4px] space-y-3.5 sm:space-y-5 flex flex-col justify-between shadow-md shadow-slate-300/80 md:shadow-xs">
-          <div className="space-y-1 sm:space-y-1.5">
-            <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-orange-600 font-bold block">
-              The Relay
-            </span>
-            <h3 className="font-display text-sm sm:text-base font-bold text-slate-950">
-              Starts with: “What business is already looking for what I offer?”
-            </h3>
-            <p className="text-[11px] sm:text-xs text-slate-600 font-sans leading-relaxed">
-              Intent-driven discovery where active commercial briefs are already waiting for you.
-            </p>
+        {/* Desktop View: Side-by-Side Grid */}
+        <div className="hidden md:grid md:grid-cols-2 gap-6">
+          {/* Traditional Outreach */}
+          <div className="bg-slate-100/90 border border-slate-200/90 p-6 rounded-[4px] space-y-5 flex flex-col justify-between">
+            <div className="space-y-1.5">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500 font-bold block">
+                Traditional Outreach
+              </span>
+              <h3 className="font-display text-base font-bold text-slate-800">
+                Starts with: “Who should I contact?”
+              </h3>
+              <p className="text-xs text-slate-500 font-sans leading-relaxed">
+                Blind searching, unverified interest, and cold inboxes that rarely convert.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {traditionalSteps.map((step, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-2 text-xs text-slate-600 bg-white/80 border border-slate-200/60 px-3 py-2 rounded-[2px]"
+                >
+                  <span className="font-mono text-[10px] text-slate-400 font-bold w-4 shrink-0">
+                    0{idx + 1}
+                  </span>
+                  <span className="leading-tight">{step}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-200">
+              Result: Low outcome, high friction
+            </div>
           </div>
 
-          <div className="space-y-1.5 sm:space-y-2">
-            {relaySteps.map((step, idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-2 text-xs text-slate-900 bg-slate-50 border border-slate-200/90 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-[2px] font-medium"
-              >
-                <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span className="leading-tight">{step}</span>
-              </div>
-            ))}
-          </div>
+          {/* The Relay */}
+          <div className="bg-white border-2 border-slate-900 p-6 rounded-[4px] space-y-5 flex flex-col justify-between shadow-xs">
+            <div className="space-y-1.5">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-orange-600 font-bold block">
+                The Relay
+              </span>
+              <h3 className="font-display text-base font-bold text-slate-950">
+                Starts with: “What business is already looking for what I offer?”
+              </h3>
+              <p className="text-xs text-slate-600 font-sans leading-relaxed">
+                Intent-driven discovery where active commercial briefs are already waiting for you.
+              </p>
+            </div>
 
-          <div className="text-[10px] sm:text-[11px] font-mono text-emerald-700 uppercase tracking-wider font-bold pt-2 border-t border-slate-100 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            Result: Warm introductions based on mutual agreement
+            <div className="space-y-2">
+              {relaySteps.map((step, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-2 text-xs text-slate-900 bg-slate-50 border border-slate-200/90 px-3 py-2 rounded-[2px] font-medium"
+                >
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="leading-tight">{step}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-[11px] font-mono text-emerald-700 uppercase tracking-wider font-bold pt-2 border-t border-slate-100 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              Result: Warm introductions based on mutual agreement
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Mobile Slide Dot Indicators */}
-      <div className="md:hidden flex items-center justify-center gap-1.5 pt-0.5">
-        <button
-          type="button"
-          onClick={() => scrollToSlide(0)}
-          className={`h-1.5 rounded-full transition-all cursor-pointer ${
-            activeSlide === 0 ? "w-6 bg-slate-900" : "w-1.5 bg-slate-300"
-          }`}
-          aria-label="Slide 1: Traditional Outreach"
-        />
-        <button
-          type="button"
-          onClick={() => scrollToSlide(1)}
-          className={`h-1.5 rounded-full transition-all cursor-pointer ${
-            activeSlide === 1 ? "w-6 bg-orange-600" : "w-1.5 bg-slate-300"
-          }`}
-          aria-label="Slide 2: The Relay"
-        />
       </div>
     </section>
   );
@@ -609,12 +600,12 @@ function CategoriesSection() {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex md:grid md:grid-cols-2 lg:grid-cols-3 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none gap-3.5 sm:gap-4 md:gap-5 w-full max-w-6xl mx-auto py-2 md:py-0 pb-4 md:pb-0 scrollbar-none -mx-4 px-4 sm:mx-auto sm:px-0 md:mx-auto md:px-0"
+        className="flex md:grid md:grid-cols-2 lg:grid-cols-3 overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none gap-3.5 sm:gap-4 md:gap-5 w-full max-w-6xl mx-auto py-1 md:py-0 pb-3 md:pb-0 scrollbar-none -mx-4 px-4 sm:mx-auto sm:px-0 md:mx-auto md:px-0"
       >
         {categories.map((cat, idx) => (
           <div
             key={idx}
-            className="w-[84vw] sm:w-[340px] md:w-full shrink-0 md:shrink snap-center md:snap-align-none group bg-white border border-slate-200/90 hover:border-slate-900 rounded-[6px] p-4 sm:p-5.5 space-y-3 shadow-md shadow-slate-200/80 md:shadow-xs hover:shadow-lg hover:shadow-slate-300/60 transition-all duration-200 flex flex-col justify-between"
+            className="w-[84vw] sm:w-[340px] md:w-full shrink-0 md:shrink snap-center md:snap-align-none group bg-white border border-slate-200/90 hover:border-slate-900 rounded-[4px] p-4 sm:p-5.5 space-y-3 shadow-md shadow-slate-200/80 md:shadow-xs hover:shadow-lg hover:shadow-slate-300/60 transition-all duration-200 flex flex-col justify-between"
           >
             {/* Top Row: Index + Badge */}
             <div className="space-y-2">
@@ -743,7 +734,7 @@ function HowItWorksSection() {
       </div>
 
       {/* Mobile & Tablet: Connected Vertical Timeline Stepper */}
-      <div className="lg:hidden bg-white border border-slate-200/90 rounded-[6px] p-4.5 sm:p-6 shadow-xs max-w-lg mx-auto">
+      <div className="lg:hidden bg-white border border-slate-200/90 rounded-[4px] p-4 sm:p-6 shadow-xs max-w-lg mx-auto">
         <div className="space-y-1 relative">
           {steps.map((s, idx) => {
             const isLast = idx === steps.length - 1;
@@ -797,10 +788,8 @@ function HowItWorksSection() {
   );
 }
 
-
-
 /* ==================================================
-   SECTION 7 — WHY DOUBLE OPT-IN?
+   SECTION 6 — WHY DOUBLE OPT-IN?
    ================================================== */
 function DoubleOptInSection() {
   const { ref, isVisible } = useReveal();
@@ -817,15 +806,15 @@ function DoubleOptInSection() {
   return (
     <section
       ref={ref}
-      className={`space-y-6 sm:space-y-8 max-w-4xl mx-auto text-center transition-all duration-700 transform ${
+      className={`space-y-5 sm:space-y-8 max-w-4xl mx-auto text-center transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
           Mutual Consent Protocol
         </span>
-        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+        <h2 className="font-display text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
           Connect when both sides want to.
         </h2>
         <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed font-sans">
@@ -833,19 +822,57 @@ function DoubleOptInSection() {
         </p>
       </div>
 
-      {/* Visual Flow */}
-      <div className="bg-white border border-slate-200 p-5 sm:p-7 rounded-[4px] space-y-6 shadow-xs">
-        <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-mono font-bold text-slate-800">
+      {/* Visual Flow Container */}
+      <div className="bg-white border border-slate-200 p-4 sm:p-7 rounded-[4px] space-y-4 sm:space-y-6 shadow-xs">
+        {/* Desktop: Horizontal steps with ArrowRight */}
+        <div className="hidden sm:flex flex-wrap items-center justify-center gap-2 text-xs font-mono font-bold text-slate-800">
           {flowSteps.map((step, idx) => (
             <div key={idx} className="flex items-center gap-2">
               <span className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-[2px]">
                 {step}
               </span>
               {idx < flowSteps.length - 1 && (
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0 hidden sm:inline" />
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               )}
             </div>
           ))}
+        </div>
+
+        {/* Mobile: Numbered structured cards showing clear progression */}
+        <div className="sm:hidden space-y-2 text-left max-w-sm mx-auto">
+          {flowSteps.map((step, idx) => {
+            const isLast = idx === flowSteps.length - 1;
+            const isHandshake = idx === 4;
+            return (
+              <div
+                key={idx}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-[3px] border ${
+                  isHandshake
+                    ? "bg-emerald-50/80 border-emerald-300/80 text-emerald-950"
+                    : "bg-slate-50 border-slate-200/80 text-slate-800"
+                }`}
+              >
+                <span
+                  className={`w-5 h-5 rounded-full border text-[10px] font-mono font-bold flex items-center justify-center shrink-0 ${
+                    isHandshake
+                      ? "bg-emerald-600 text-white border-emerald-600"
+                      : "bg-white text-slate-700 border-slate-200"
+                  }`}
+                >
+                  {idx + 1}
+                </span>
+                <span className="text-xs font-mono font-semibold leading-tight flex-1">
+                  {step}
+                </span>
+                {isHandshake && (
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                )}
+                {!isLast && !isHandshake && (
+                  <ArrowDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <p className="text-xs text-slate-600 max-w-xl mx-auto font-sans leading-relaxed pt-2 border-t border-slate-100">
@@ -858,11 +885,11 @@ function DoubleOptInSection() {
 }
 
 /* ==================================================
-   SECTION 8 — TWO SIDES OF THE MARKET
+   SECTION 7 — TWO SIDES OF THE MARKET
    ================================================== */
 function TwoSidesSection() {
   const { ref, isVisible } = useReveal();
-  const [openDrawer, setOpenDrawer] = useState<"need" | "offer" | null>(null);
+  const [activeSide, setActiveSide] = useState<"need" | "offer">("need");
 
   const needItems = [
     "Need a distribution partner",
@@ -883,15 +910,15 @@ function TwoSidesSection() {
   return (
     <section
       ref={ref}
-      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
+      className={`space-y-5 sm:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
-      <div className="space-y-3 text-center max-w-3xl mx-auto">
+      <div className="space-y-2 sm:space-y-3 text-center max-w-3xl mx-auto">
         <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
           Two-Way Participation
         </span>
-        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+        <h2 className="font-display text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
           Whether you need something or have something to offer, Relay works both ways.
         </h2>
         <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
@@ -899,145 +926,97 @@ function TwoSidesSection() {
         </p>
       </div>
 
-      {/* Mobile Trigger Buttons (md:hidden) */}
-      <div className="md:hidden space-y-3">
-        {/* Button 1: I need something */}
-        <button
-          type="button"
-          onClick={() => setOpenDrawer("need")}
-          className="w-full text-left bg-slate-950 text-white border border-slate-800 hover:border-orange-500/50 p-4 sm:p-5 rounded-xl shadow-sm transition-all active:scale-[0.99] cursor-pointer flex items-center justify-between group"
-        >
-          <div className="space-y-1">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-orange-400 font-bold block">
-              Demand Creator
-            </span>
-            <h3 className="font-display text-base font-extrabold text-white">
-              “I need something.”
-            </h3>
-            <p className="text-xs text-slate-400 font-sans">
-              Need distribution, vendors, referrals, or hiring
-            </p>
-          </div>
-          <div className="w-9 h-9 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-orange-400 shrink-0 group-hover:bg-orange-500 group-hover:text-slate-950 group-hover:border-orange-500 transition-all">
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-          </div>
-        </button>
+      {/* Mobile Interactive Segmented Switcher & Inline Card */}
+      <div className="md:hidden space-y-3.5 max-w-lg mx-auto">
+        {/* Toggle Pills */}
+        <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-[4px] border border-slate-200/80 text-xs font-mono font-bold shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setActiveSide("need")}
+            className={`py-2 px-3 rounded-[3px] transition-all cursor-pointer text-center ${
+              activeSide === "need"
+                ? "bg-slate-950 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-950"
+            }`}
+          >
+            I Need Something
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSide("offer")}
+            className={`py-2 px-3 rounded-[3px] transition-all cursor-pointer text-center ${
+              activeSide === "offer"
+                ? "bg-blue-600 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-950"
+            }`}
+          >
+            I Can Offer...
+          </button>
+        </div>
 
-        {/* Button 2: I can offer something */}
-        <button
-          type="button"
-          onClick={() => setOpenDrawer("offer")}
-          className="w-full text-left bg-slate-950 text-white border border-slate-800 hover:border-blue-500/50 p-4 sm:p-5 rounded-xl shadow-sm transition-all active:scale-[0.99] cursor-pointer flex items-center justify-between group"
-        >
-          <div className="space-y-1">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-blue-400 font-bold block">
-              Opportunity Discoverer
-            </span>
-            <h3 className="font-display text-base font-extrabold text-white">
-              “I can offer something.”
-            </h3>
-            <p className="text-xs text-slate-400 font-sans">
-              Offer services, distribution, capability, or expertise
-            </p>
-          </div>
-          <div className="w-9 h-9 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-blue-400 shrink-0 group-hover:bg-blue-500 group-hover:text-slate-950 group-hover:border-blue-500 transition-all">
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-          </div>
-        </button>
-      </div>
+        {/* Inline Card Content on Mobile */}
+        {activeSide === "need" ? (
+          <div className="bg-white border border-slate-200/90 p-5 rounded-[4px] space-y-4 shadow-xs">
+            <div className="space-y-1">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-orange-600 font-bold block">
+                Demand Creator
+              </span>
+              <h3 className="font-display text-lg font-extrabold text-slate-950">
+                “I need something.”
+              </h3>
+              <p className="text-xs text-slate-500 font-sans">
+                Post requirements to connect with verified partners.
+              </p>
+            </div>
 
-      {/* Mobile Bottom Slider / Sheet */}
-      <Sheet open={openDrawer !== null} onOpenChange={(open) => !open && setOpenDrawer(null)}>
-        <SheetContent
-          side="bottom"
-          className="bg-white text-slate-900 border-t border-slate-200 rounded-t-2xl max-h-[85dvh] overflow-y-auto p-5 sm:p-6 shadow-2xl max-w-lg mx-auto"
-        >
-          {/* Grab Handle */}
-          <div className="w-12 h-1 bg-slate-300 rounded-full mx-auto mb-4" />
-
-          {/* Quick Tab Switcher */}
-          <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-lg mb-5 text-xs font-mono font-bold">
-            <button
-              type="button"
-              onClick={() => setOpenDrawer("need")}
-              className={`py-2 px-3 rounded-md transition-all cursor-pointer ${
-                openDrawer === "need"
-                  ? "bg-white text-slate-950 shadow-xs"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              I Need Something
-            </button>
-            <button
-              type="button"
-              onClick={() => setOpenDrawer("offer")}
-              className={`py-2 px-3 rounded-md transition-all cursor-pointer ${
-                openDrawer === "offer"
-                  ? "bg-white text-slate-950 shadow-xs"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              I Can Offer...
-            </button>
-          </div>
-
-          <SheetHeader className="text-left space-y-1">
-            <span
-              className={`font-mono text-[10px] uppercase tracking-wider font-bold ${
-                openDrawer === "need" ? "text-orange-600" : "text-blue-600"
-              }`}
-            >
-              {openDrawer === "need" ? "Demand Creator" : "Opportunity Discoverer"}
-            </span>
-            <SheetTitle className="font-display text-xl font-extrabold text-slate-950">
-              {openDrawer === "need" ? "“I need something.”" : "“I can offer something.”"}
-            </SheetTitle>
-            <SheetDescription className="text-xs text-slate-600 font-sans">
-              {openDrawer === "need"
-                ? "Post your requirement to connect directly with verified partners without public noise."
-                : "Discover commercial briefs matching your business capabilities and express interest directly."}
-            </SheetDescription>
-          </SheetHeader>
-
-          {/* List of Items */}
-          <div className="my-5 bg-slate-50 border border-slate-200/80 p-4 rounded-lg space-y-2.5">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold block">
-              {openDrawer === "need" ? "Typical Demand Scenarios:" : "What You Can Offer:"}
-            </span>
-            <ul className="space-y-2">
-              {(openDrawer === "need" ? needItems : offerItems).map((item, idx) => (
-                <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-700 font-sans">
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
-                      openDrawer === "need" ? "bg-orange-600" : "bg-blue-600"
-                    }`}
-                  />
-                  <span className="font-medium leading-tight">{item}</span>
+            <ul className="space-y-2 pt-1 border-t border-slate-100">
+              {needItems.map((item, idx) => (
+                <li key={idx} className="flex items-center gap-2 text-xs text-slate-700 font-sans">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-900 shrink-0" />
+                  <span>{item}</span>
                 </li>
               ))}
             </ul>
-          </div>
 
-          {/* Action CTAs */}
-          <div className="space-y-2 pt-1 pb-2">
             <Link
               to="/opportunities"
-              onClick={() => setOpenDrawer(null)}
-              className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-mono text-xs uppercase tracking-widest font-bold rounded-[4px] inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-mono text-xs uppercase tracking-widest font-bold rounded-[3px] inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               Post an Opportunity <ArrowRight className="w-3.5 h-3.5" />
             </Link>
+          </div>
+        ) : (
+          <div className="bg-white border border-slate-200/90 p-5 rounded-[4px] space-y-4 shadow-xs">
+            <div className="space-y-1">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-blue-600 font-bold block">
+                Opportunity Discoverer
+              </span>
+              <h3 className="font-display text-lg font-extrabold text-slate-950">
+                “I can offer something.”
+              </h3>
+              <p className="text-xs text-slate-500 font-sans">
+                Discover commercial briefs matching your business capabilities.
+              </p>
+            </div>
+
+            <ul className="space-y-2 pt-1 border-t border-slate-100">
+              {offerItems.map((item, idx) => (
+                <li key={idx} className="flex items-center gap-2 text-xs text-slate-700 font-sans">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
 
             <Link
               to="/opportunities"
-              onClick={() => setOpenDrawer(null)}
-              className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 font-mono text-xs uppercase tracking-widest font-bold rounded-[4px] inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-mono text-xs uppercase tracking-widest font-bold rounded-[3px] inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              {openDrawer === "need" ? "Explore Active Briefs" : "Find Opportunities"}
+              Find Opportunities <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-        </SheetContent>
-      </Sheet>
+        )}
+      </div>
 
       {/* Desktop Side-by-Side Cards (hidden md:grid) */}
       <div className="hidden md:grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
@@ -1100,7 +1079,7 @@ function TwoSidesSection() {
 }
 
 /* ==================================================
-   SECTION 9 — WHY BUSINESSES RETURN
+   SECTION 8 — WHY BUSINESSES RETURN
    ================================================== */
 function ReturnDemandSection() {
   const { ref, isVisible } = useReveal();
@@ -1129,15 +1108,15 @@ function ReturnDemandSection() {
   return (
     <section
       ref={ref}
-      className={`space-y-6 sm:space-y-8 transition-all duration-700 transform ${
+      className={`space-y-5 sm:space-y-8 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
-      <div className="space-y-3 text-center max-w-3xl mx-auto">
+      <div className="space-y-2 sm:space-y-3 text-center max-w-3xl mx-auto">
         <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
           Dynamic Deal Flow
         </span>
-        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+        <h2 className="font-display text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
           Your next opportunity may already be waiting.
         </h2>
         <p className="text-slate-500 sm:text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
@@ -1146,22 +1125,22 @@ function ReturnDemandSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-5 max-w-5xl mx-auto">
         {timelineItems.map((item, idx) => (
           <div
             key={idx}
-            className="bg-white border border-slate-200/90 rounded-[4px] p-5 space-y-3 shadow-xs flex flex-col justify-between"
+            className="bg-white border border-slate-200/90 rounded-[4px] p-4 sm:p-5 space-y-2.5 sm:space-y-3 shadow-xs flex flex-col justify-between"
           >
             <div className="space-y-1.5">
               <span className="font-mono text-[10px] text-orange-600 uppercase font-bold tracking-widest block">
                 {item.time}
               </span>
-              <h3 className="font-display text-base font-bold text-slate-900 leading-snug">
+              <h3 className="font-display text-sm sm:text-base font-bold text-slate-900 leading-snug">
                 “{item.title}”
               </h3>
             </div>
 
-            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 border-t border-slate-100 pt-2.5">
+            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 border-t border-slate-100 pt-2">
               <span className="uppercase font-semibold">{item.category}</span>
               <span>{item.meta}</span>
             </div>
@@ -1172,9 +1151,8 @@ function ReturnDemandSection() {
   );
 }
 
-
 /* ==================================================
-   SECTION 11 — FINAL CTA
+   SECTION 9 — FINAL CTA
    ================================================== */
 function FinalCtaSection() {
   const { ref, isVisible } = useReveal();
@@ -1182,12 +1160,12 @@ function FinalCtaSection() {
   return (
     <section
       ref={ref}
-      className={`py-8 sm:py-10 md:py-12 bg-slate-900 text-white rounded-[4px] p-6 sm:p-10 text-center space-y-5 max-w-5xl mx-auto border border-slate-800 transition-all duration-700 transform ${
+      className={`py-8 sm:py-10 md:py-12 bg-slate-900 text-white rounded-[4px] p-5 sm:p-10 text-center space-y-4 sm:space-y-5 max-w-5xl mx-auto border border-slate-800 transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
-      <div className="space-y-3 max-w-2xl mx-auto">
-        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">
+      <div className="space-y-2 sm:space-y-3 max-w-2xl mx-auto">
+        <h2 className="font-display text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">
           What is your business looking for?
         </h2>
         <p className="text-slate-300 text-xs sm:text-sm md:text-base leading-relaxed font-sans">
@@ -1196,10 +1174,10 @@ function FinalCtaSection() {
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-2">
+      <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center items-center pt-2">
         <Link
           to="/opportunities"
-          className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center bg-white text-slate-950 font-mono text-xs uppercase tracking-widest hover:bg-slate-100 transition-colors rounded-[3px] font-bold shadow-xs cursor-pointer"
+          className="h-11 sm:h-12 w-full sm:w-auto px-7 sm:px-8 inline-flex items-center justify-center bg-white text-slate-950 font-mono text-xs uppercase tracking-widest hover:bg-slate-100 transition-colors rounded-[3px] font-bold shadow-xs cursor-pointer"
         >
           Explore Opportunities <ArrowRight className="ml-2 w-4 h-4" />
         </Link>
@@ -1207,14 +1185,14 @@ function FinalCtaSection() {
         <Show when="signed-out">
           <Link
             to="/signup"
-            className="h-12 w-full sm:w-auto px-8 inline-flex items-center justify-center border border-slate-700 bg-slate-800/80 hover:bg-slate-800 text-white font-mono text-xs uppercase tracking-widest transition-colors rounded-[3px] font-bold cursor-pointer"
+            className="h-11 sm:h-12 w-full sm:w-auto px-7 sm:px-8 inline-flex items-center justify-center border border-slate-700 bg-slate-800/80 hover:bg-slate-800 text-white font-mono text-xs uppercase tracking-widest transition-colors rounded-[3px] font-bold cursor-pointer"
           >
             Apply for Access
           </Link>
         </Show>
       </div>
 
-      <p className="text-xs text-slate-400 font-sans">
+      <p className="text-[11px] sm:text-xs text-slate-400 font-sans">
         Relay is for operating businesses looking for real commercial opportunities.
       </p>
     </section>
@@ -1222,7 +1200,7 @@ function FinalCtaSection() {
 }
 
 /* ==================================================
-   SECTION 12 — FAQ
+   SECTION 10 — FAQ
    ================================================== */
 function FaqSection() {
   const { ref, isVisible } = useReveal();
@@ -1278,15 +1256,15 @@ function FaqSection() {
     <section
       id="faq"
       ref={ref}
-      className={`space-y-6 sm:space-y-8 max-w-3xl mx-auto transition-all duration-700 transform ${
+      className={`space-y-5 sm:space-y-8 max-w-3xl mx-auto transition-all duration-700 transform ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
-      <div className="space-y-3 text-center">
+      <div className="space-y-2 sm:space-y-3 text-center">
         <span className="font-mono text-[10px] text-orange-600 font-bold uppercase tracking-[0.2em]">
           Got Questions?
         </span>
-        <h2 className="font-display text-[22px] sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
+        <h2 className="font-display text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-950 leading-tight">
           Questions, answered.
         </h2>
       </div>
@@ -1296,12 +1274,12 @@ function FaqSection() {
           <AccordionItem
             key={idx}
             value={`item-${idx}`}
-            className="border border-slate-200 rounded-[4px] bg-white px-4 shadow-2xs"
+            className="border border-slate-200 rounded-[4px] bg-white px-3.5 sm:px-4 shadow-2xs"
           >
-            <AccordionTrigger className="text-left font-display font-bold text-sm sm:text-base text-slate-900 py-3.5 hover:no-underline">
+            <AccordionTrigger className="text-left font-display font-bold text-xs sm:text-base text-slate-900 py-3 sm:py-3.5 hover:no-underline">
               {faq.q}
             </AccordionTrigger>
-            <AccordionContent className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed pt-1 pb-3.5">
+            <AccordionContent className="text-xs sm:text-sm text-slate-600 font-sans leading-relaxed pt-1 pb-3 sm:pb-3.5">
               {faq.a}
             </AccordionContent>
           </AccordionItem>
@@ -1312,12 +1290,12 @@ function FaqSection() {
 }
 
 /* ==================================================
-   SECTION 13 — FOOTER
+   SECTION 11 — FOOTER
    ================================================== */
 function Footer() {
   return (
-    <footer className="pt-6 sm:pt-8 pb-10 sm:pb-12 border-t border-slate-200/80 max-w-7xl mx-auto flex flex-col md:flex-row gap-6 justify-between items-center text-center md:text-left">
-      <div className="space-y-1.5">
+    <footer className="pt-6 sm:pt-8 pb-10 sm:pb-12 border-t border-slate-200/80 max-w-7xl mx-auto flex flex-col md:flex-row gap-5 sm:gap-6 justify-between items-center text-center md:text-left">
+      <div className="space-y-1">
         <Link
           to="/home"
           className="font-display font-extrabold text-base uppercase tracking-tight text-slate-950 flex items-center justify-center md:justify-start gap-2"
@@ -1332,26 +1310,26 @@ function Footer() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-5 justify-center text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
-        <Link to="/opportunities" className="hover:text-slate-950 transition-colors">
+      <div className="flex flex-wrap gap-3.5 sm:gap-5 justify-center text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
+        <Link to="/opportunities" className="hover:text-slate-950 transition-colors py-1">
           Opportunities
         </Link>
-        <a href="#how-it-works" className="hover:text-slate-950 transition-colors">
+        <a href="#how-it-works" className="hover:text-slate-950 transition-colors py-1">
           How It Works
         </a>
-        <Link to="/signup" className="hover:text-slate-950 transition-colors">
+        <Link to="/signup" className="hover:text-slate-950 transition-colors py-1">
           Apply for Access
         </Link>
-        <Link to="/home" className="hover:text-slate-950 transition-colors">
+        <Link to="/home" className="hover:text-slate-950 transition-colors py-1">
           About
         </Link>
-        <a href="#faq" className="hover:text-slate-950 transition-colors">
+        <a href="#faq" className="hover:text-slate-950 transition-colors py-1">
           FAQ
         </a>
-        <Link to="/home" className="hover:text-slate-950 transition-colors">
+        <Link to="/home" className="hover:text-slate-950 transition-colors py-1">
           Privacy
         </Link>
-        <Link to="/home" className="hover:text-slate-950 transition-colors">
+        <Link to="/home" className="hover:text-slate-950 transition-colors py-1">
           Terms
         </Link>
       </div>
