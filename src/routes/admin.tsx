@@ -6,6 +6,13 @@ import { deleteUserFromAdmin } from "../functions/deleteUserFromAdmin";
 import { updateBusinessStatus } from "../functions/updateBusinessStatus";
 import { getAdminOpportunities } from "../functions/getAdminOpportunities";
 import { updatePromotionStatus } from "../functions/updatePromotionStatus";
+import { getAdminInsights } from "../functions/getAdminInsights";
+import { deleteAdminInsightItem } from "../functions/deleteAdminInsightItem";
+import { adminLogin } from "../functions/adminLogin";
+import { checkAdminSession } from "../functions/checkAdminSession";
+import { AdminCreateQuestionDialog } from "@/components/admin/AdminCreateQuestionDialog";
+import { AdminCreateKnowledgeDialog } from "@/components/admin/AdminCreateKnowledgeDialog";
+import { CompanyLogo } from "@/components/company-logo";
 import { toast } from "@/components/ui/sonner";
 import {
   ShieldAlert,
@@ -25,6 +32,9 @@ import {
   XCircle,
   Megaphone,
   Sparkles,
+  HelpCircle,
+  Lightbulb,
+  Plus,
 } from "lucide-react";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import { Button } from "@/components/ui/button";
@@ -125,13 +135,60 @@ type AdminOpportunity = {
   };
 };
 
+type AdminQuestion = {
+  id: string;
+  business_id: string;
+  title: string;
+  description: string;
+  topic: string;
+  desired_perspective: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  business: {
+    id: string;
+    company_name: string;
+    logo_url: string | null;
+    status: string;
+    industry: string;
+  };
+  perspectives_count: number;
+};
+
+type AdminKnowledgeInsight = {
+  id: string;
+  business_id: string;
+  title: string;
+  content: string;
+  topic: string;
+  based_on: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  business: {
+    id: string;
+    company_name: string;
+    logo_url: string | null;
+    status: string;
+    industry: string;
+  };
+};
+
+type AdminBusinessOption = {
+  id: string;
+  company_name: string;
+  status: string;
+  industry?: string | null;
+  logo_url?: string | null;
+};
+
 const getAdminToken = () => {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(/relay_admin_token=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : null;
 };
 
-function AdminLoginForm() {
+function AdminLoginForm({ onSuccess }: { onSuccess?: () => void }) {
   const [emailInput, setEmailInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
@@ -142,19 +199,23 @@ function AdminLoginForm() {
     setLoginLoading(true);
     setFormError(null);
     try {
-      // Simulate small delay for premium feels
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const res = await adminLogin({
+        data: {
+          email: emailInput.trim(),
+          password: passwordInput,
+        },
+      });
 
-      if (
-        emailInput.toLowerCase().trim() === "nexorembws@gmail.com" &&
-        passwordInput === "PP@password110"
-      ) {
-        document.cookie =
-          "relay_admin_token=PP@password110; path=/; max-age=86400; SameSite=Strict";
+      if (res?.success && res.token) {
+        document.cookie = `relay_admin_token=${encodeURIComponent(res.token)}; path=/; max-age=86400; SameSite=Strict`;
         toast.success("Authenticated as Super Admin successfully!");
-        window.location.reload();
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          window.location.reload();
+        }
       } else {
-        throw new Error("Invalid admin credentials.");
+        throw new Error("Authentication failed.");
       }
     } catch (err: any) {
       console.error(err);
@@ -221,9 +282,18 @@ function AdminDashboard() {
 
   const [isClient, setIsClient] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState<"users" | "promotions">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "promotions" | "insights">("users");
+  const [insightsSubTab, setInsightsSubTab] = useState<"questions" | "knowledge">("questions");
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [opportunities, setOpportunities] = useState<AdminOpportunity[]>([]);
+  const [adminQuestions, setAdminQuestions] = useState<AdminQuestion[]>([]);
+  const [adminKnowledge, setAdminKnowledge] = useState<AdminKnowledgeInsight[]>([]);
+  const [adminBusinesses, setAdminBusinesses] = useState<AdminBusinessOption[]>([]);
+  const [isCreateQuestionOpen, setIsCreateQuestionOpen] = useState(false);
+  const [isCreateKnowledgeOpen, setIsCreateKnowledgeOpen] = useState(false);
+  const [deletingInsightId, setDeletingInsightId] = useState<string | null>(null);
+  const [insightsSearchQuery, setInsightsSearchQuery] = useState("");
+  const [insightsTopicFilter, setInsightsTopicFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -236,9 +306,16 @@ function AdminDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const [usersRes, oppsRes] = await Promise.all([getAdminUsers(), getAdminOpportunities()]);
+      const [usersRes, oppsRes, insightsRes] = await Promise.all([
+        getAdminUsers(),
+        getAdminOpportunities(),
+        getAdminInsights(),
+      ]);
       setUsers(usersRes.users);
       setOpportunities(oppsRes.opportunities);
+      setAdminQuestions(insightsRes.questions);
+      setAdminKnowledge(insightsRes.knowledgeInsights);
+      setAdminBusinesses(insightsRes.businesses);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to load admin panel data.");
@@ -247,27 +324,69 @@ function AdminDashboard() {
     }
   };
 
+  const fetchInsightsData = async () => {
+    try {
+      const res = await getAdminInsights();
+      setAdminQuestions(res.questions);
+      setAdminKnowledge(res.knowledgeInsights);
+      setAdminBusinesses(res.businesses);
+    } catch (err: any) {
+      console.error("[Admin] Failed to reload insights:", err);
+    }
+  };
+
+  const handleDeleteInsight = async (type: "question" | "knowledge", id: string, title: string) => {
+    if (
+      !confirm(
+        `Are you sure you want to permanently delete this ${
+          type === "question" ? "question" : "knowledge insight"
+        } ("${title}")?`,
+      )
+    ) {
+      return;
+    }
+
+    setDeletingInsightId(id);
+    try {
+      await deleteAdminInsightItem({ data: { type, id } });
+      toast.success(
+        `${type === "question" ? "Question" : "Knowledge insight"} deleted successfully.`,
+      );
+      await fetchInsightsData();
+    } catch (err: any) {
+      console.error("[Admin] Delete insight error:", err);
+      toast.error(err?.message || "Failed to delete item.");
+    } finally {
+      setDeletingInsightId(null);
+    }
+  };
+
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   useEffect(() => {
-    if (isLoaded) {
-      if (isSignedIn && user) {
-        toast.error("Access restricted: Redirected to home.", { id: "admin-access-restricted" });
-        navigate({ to: "/home" });
-      } else {
-        const token = getAdminToken();
-        if (token === "PP@password110") {
-          setIsAdminAuthenticated(true);
-          fetchAdminData();
-        } else {
+    const token = getAdminToken();
+    if (token) {
+      checkAdminSession()
+        .then((res) => {
+          if (res?.isAdmin) {
+            setIsAdminAuthenticated(true);
+            fetchAdminData();
+          } else {
+            setIsAdminAuthenticated(false);
+            setLoading(false);
+          }
+        })
+        .catch(() => {
           setIsAdminAuthenticated(false);
           setLoading(false);
-        }
-      }
+        });
+    } else {
+      setIsAdminAuthenticated(false);
+      setLoading(false);
     }
-  }, [isLoaded, isSignedIn, user, navigate]);
+  }, []);
 
   const handleAdminLogout = () => {
     document.cookie =
@@ -398,6 +517,30 @@ function AdminDashboard() {
     );
   });
 
+  // Filtered Questions based on search query
+  const filteredQuestions = adminQuestions.filter((q) => {
+    const s = insightsSearchQuery.toLowerCase().trim();
+    if (!s) return true;
+    return (
+      q.title.toLowerCase().includes(s) ||
+      q.description.toLowerCase().includes(s) ||
+      q.topic.toLowerCase().includes(s) ||
+      q.business.company_name.toLowerCase().includes(s)
+    );
+  });
+
+  // Filtered Knowledge Insights based on search query
+  const filteredKnowledge = adminKnowledge.filter((k) => {
+    const s = insightsSearchQuery.toLowerCase().trim();
+    if (!s) return true;
+    return (
+      k.title.toLowerCase().includes(s) ||
+      k.content.toLowerCase().includes(s) ||
+      k.topic.toLowerCase().includes(s) ||
+      k.business.company_name.toLowerCase().includes(s)
+    );
+  });
+
   const totalUsersCount = users.length;
   const onboardedCount = users.filter((u) => u.business !== null).length;
   const pendingVettingCount = users.filter(
@@ -413,17 +556,6 @@ function AdminDashboard() {
         <Loader2 className="w-10 h-10 animate-spin text-[hsl(24_95%_45%)]" />
         <span className="font-mono text-xs uppercase tracking-widest mt-4 text-slate-500">
           Loading Control Center...
-        </span>
-      </div>
-    );
-  }
-
-  if (isSignedIn && user) {
-    return (
-      <div className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-6 text-slate-800">
-        <Loader2 className="w-10 h-10 animate-spin text-[hsl(24_95%_45%)]" />
-        <span className="font-mono text-xs uppercase tracking-widest mt-4 text-slate-500">
-          Redirecting to Home...
         </span>
       </div>
     );
@@ -448,7 +580,12 @@ function AdminDashboard() {
           </div>
 
           {isClient ? (
-            <AdminLoginForm />
+            <AdminLoginForm
+              onSuccess={() => {
+                setIsAdminAuthenticated(true);
+                fetchAdminData();
+              }}
+            />
           ) : (
             <div className="flex justify-center p-4">
               <Loader2 className="w-6 h-6 animate-spin text-[hsl(24_95%_45%)]" />
@@ -633,9 +770,24 @@ function AdminDashboard() {
               </span>
             )}
           </button>
+          <button
+            onClick={() => setActiveTab("insights")}
+            className={`pb-3 border-b-2 font-bold transition-all -mb-px cursor-pointer flex items-center gap-1.5 ${
+              activeTab === "insights"
+                ? "border-primary text-primary"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            Insights & Knowledge
+            {adminQuestions.length + adminKnowledge.length > 0 && (
+              <span className="px-1.5 py-0.5 bg-slate-900 text-white text-[9px] font-bold rounded-full font-sans tracking-normal leading-none flex items-center justify-center">
+                {adminQuestions.length + adminKnowledge.length}
+              </span>
+            )}
+          </button>
         </div>
 
-        {activeTab === "users" ? (
+        {activeTab === "users" && (
           /* Directory Controls */
           <section className="border border-[#1f25301f] bg-white rounded-[2px] overflow-hidden">
             <div className="p-5 border-b border-[#1f25300d] flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-50/50">
@@ -997,7 +1149,9 @@ function AdminDashboard() {
               )}
             </div>
           </section>
-        ) : (
+        )}
+
+        {activeTab === "promotions" && (
           /* Promotion Requests Controls */
           <section className="border border-[#1f25301f] bg-white rounded-[2px] overflow-hidden">
             <div className="p-5 border-b border-[#1f25300d] flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-50/50">
@@ -1333,6 +1487,308 @@ function AdminDashboard() {
             </div>
           </section>
         )}
+
+        {activeTab === "insights" && (
+          <section className="space-y-6">
+            {/* Insights Overview Card with Action CTAs */}
+            <div className="border border-[#1f25301f] bg-white p-6 rounded-[2px] flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-display font-black text-slate-900 uppercase tracking-tight">
+                    Insights & Practical Knowledge
+                  </h3>
+                  <Badge className="bg-slate-100 text-slate-700 text-[10px] font-mono uppercase tracking-wider border-slate-200">
+                    Operator Queries
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-500 max-w-2xl leading-relaxed font-sans">
+                  Manually create and publish business questions (Use Case 1) and practical lessons (Use Case 2) on behalf of any verified company.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+                <Button
+                  onClick={() => setIsCreateQuestionOpen(true)}
+                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono uppercase tracking-wider h-10 px-4 rounded-[2px] shadow-sm flex items-center gap-2 cursor-pointer font-bold transition-all hover:-translate-y-0.5"
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                  + Create Question
+                </Button>
+                <Button
+                  onClick={() => setIsCreateKnowledgeOpen(true)}
+                  className="bg-[hsl(24_95%_45%)] hover:bg-orange-700 text-white text-xs font-mono uppercase tracking-wider h-10 px-4 rounded-[2px] shadow-sm flex items-center gap-2 cursor-pointer font-bold transition-all hover:-translate-y-0.5"
+                >
+                  <Lightbulb className="w-3.5 h-3.5" />
+                  + Publish Knowledge
+                </Button>
+              </div>
+            </div>
+
+            {/* Content Table Container */}
+            <div className="border border-[#1f25301f] bg-white rounded-[2px] overflow-hidden">
+              {/* Inner Tabs + Search & Filters */}
+              <div className="p-4 border-b border-[#1f25300d] bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                {/* Sub-Tabs: Questions vs Knowledge */}
+                <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-wider">
+                  <button
+                    onClick={() => setInsightsSubTab("questions")}
+                    className={`pb-2 border-b-2 font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                      insightsSubTab === "questions"
+                        ? "border-slate-900 text-slate-900"
+                        : "border-transparent text-slate-400 hover:text-slate-700"
+                    }`}
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    <span>Questions ({adminQuestions.length})</span>
+                  </button>
+
+                  <button
+                    onClick={() => setInsightsSubTab("knowledge")}
+                    className={`pb-2 border-b-2 font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                      insightsSubTab === "knowledge"
+                        ? "border-slate-900 text-slate-900"
+                        : "border-transparent text-slate-400 hover:text-slate-700"
+                    }`}
+                  >
+                    <Lightbulb className="w-3.5 h-3.5" />
+                    <span>Knowledge ({adminKnowledge.length})</span>
+                  </button>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative w-full md:w-80">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder={`Search ${insightsSubTab === "questions" ? "questions..." : "knowledge..."}`}
+                    value={insightsSearchQuery}
+                    onChange={(e) => setInsightsSearchQuery(e.target.value)}
+                    className="h-9 pl-9 text-xs bg-white border border-[#1f25301f] rounded-[2px] focus:border-slate-900"
+                  />
+                </div>
+              </div>
+
+              {/* Questions Table */}
+              {insightsSubTab === "questions" ? (
+                filteredQuestions.length === 0 ? (
+                  <div className="py-16 text-center text-slate-400 font-mono text-xs">
+                    No questions found. Click "+ Create Question" to manually post one.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table className="w-full border-collapse text-left text-xs">
+                      <TableHeader className="bg-[#fafbfc] border-b border-[#1f253012] font-mono font-bold uppercase text-[9px] tracking-wider text-slate-500">
+                        <TableRow>
+                          <TableHead className="p-4 pl-6">Question & Topic</TableHead>
+                          <TableHead className="p-4">Author Business</TableHead>
+                          <TableHead className="p-4">Status</TableHead>
+                          <TableHead className="p-4">Perspectives</TableHead>
+                          <TableHead className="p-4">Created</TableHead>
+                          <TableHead className="p-4 pr-6 text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="divide-y divide-[#1f25300a]">
+                        {filteredQuestions.map((q) => (
+                          <TableRow key={q.id} className="hover:bg-slate-50/60 transition-colors">
+                            <TableCell className="p-4 pl-6 max-w-sm">
+                              <div className="font-semibold text-slate-900 line-clamp-1">{q.title}</div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="inline-block font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold">
+                                  {q.topic}
+                                </span>
+                                <span className="text-slate-400 text-[11px] line-clamp-1">
+                                  {q.description}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="p-4">
+                              <div className="flex items-center gap-2">
+                                <CompanyLogo
+                                  src={q.business.logo_url}
+                                  name={q.business.company_name}
+                                  className="w-5 h-5 rounded object-contain border border-slate-200"
+                                />
+                                <div>
+                                  <div className="font-medium text-slate-800">{q.business.company_name}</div>
+                                  <div className="text-[10px] text-slate-400 font-mono">
+                                    {q.business.industry || "B2B"}
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="p-4">
+                              <span
+                                className={`font-mono text-[9.5px] uppercase font-bold px-2 py-0.5 rounded ${
+                                  q.status === "open"
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    : "bg-slate-100 text-slate-500"
+                                }`}
+                              >
+                                {q.status}
+                              </span>
+                            </TableCell>
+                            <TableCell className="p-4">
+                              <span className="font-mono text-xs font-bold text-slate-700">
+                                {q.perspectives_count}
+                              </span>
+                            </TableCell>
+                            <TableCell className="p-4 text-slate-500 font-mono text-[11px]">
+                              {new Date(q.created_at).toLocaleDateString(undefined, {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </TableCell>
+                            <TableCell className="p-4 pr-6 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <a
+                                  href={`/insights/${q.id}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="p-1.5 text-slate-400 hover:text-slate-900 transition-colors"
+                                  title="View on site"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={deletingInsightId === q.id}
+                                  onClick={() => handleDeleteInsight("question", q.id, q.title)}
+                                  className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                                  title="Delete question"
+                                >
+                                  {deletingInsightId === q.id ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  )}
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )
+              ) : (
+                /* Knowledge Table */
+                filteredKnowledge.length === 0 ? (
+                  <div className="py-16 text-center text-slate-400 font-mono text-xs">
+                    No knowledge insights found. Click "+ Publish Knowledge" to manually post one.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table className="w-full border-collapse text-left text-xs">
+                      <TableHeader className="bg-[#fafbfc] border-b border-[#1f253012] font-mono font-bold uppercase text-[9px] tracking-wider text-slate-500">
+                        <TableRow>
+                          <TableHead className="p-4 pl-6">Insight Title & Content</TableHead>
+                          <TableHead className="p-4">Author Business</TableHead>
+                          <TableHead className="p-4">Basis / Transparency</TableHead>
+                          <TableHead className="p-4">Status</TableHead>
+                          <TableHead className="p-4">Published</TableHead>
+                          <TableHead className="p-4 pr-6 text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="divide-y divide-[#1f25300a]">
+                        {filteredKnowledge.map((k) => (
+                          <TableRow key={k.id} className="hover:bg-slate-50/60 transition-colors">
+                            <TableCell className="p-4 pl-6 max-w-sm">
+                              <div className="font-semibold text-slate-900 line-clamp-1">{k.title}</div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="inline-block font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold">
+                                  {k.topic}
+                                </span>
+                                <span className="text-slate-400 text-[11px] line-clamp-1">
+                                  {k.content}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="p-4">
+                              <div className="flex items-center gap-2">
+                                <CompanyLogo
+                                  src={k.business.logo_url}
+                                  name={k.business.company_name}
+                                  className="w-5 h-5 rounded object-contain border border-slate-200"
+                                />
+                                <div>
+                                  <div className="font-medium text-slate-800">{k.business.company_name}</div>
+                                  <div className="text-[10px] text-slate-400 font-mono">
+                                    {k.business.industry || "B2B"}
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="p-4">
+                              <span className="font-mono text-[10px] text-slate-600 capitalize">
+                                {k.based_on ? k.based_on.replace(/_/g, " ") : "—"}
+                              </span>
+                            </TableCell>
+                            <TableCell className="p-4">
+                              <span className="font-mono text-[9.5px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                {k.status}
+                              </span>
+                            </TableCell>
+                            <TableCell className="p-4 text-slate-500 font-mono text-[11px]">
+                              {new Date(k.created_at).toLocaleDateString(undefined, {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </TableCell>
+                            <TableCell className="p-4 pr-6 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <a
+                                  href={`/insights/knowledge/${k.id}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="p-1.5 text-slate-400 hover:text-slate-900 transition-colors"
+                                  title="View on site"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={deletingInsightId === k.id}
+                                  onClick={() => handleDeleteInsight("knowledge", k.id, k.title)}
+                                  className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                                  title="Delete insight"
+                                >
+                                  {deletingInsightId === k.id ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  )}
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Dialogs for Admin creation of Questions & Knowledge Insights */}
+        <AdminCreateQuestionDialog
+          open={isCreateQuestionOpen}
+          onOpenChange={setIsCreateQuestionOpen}
+          onSuccess={fetchInsightsData}
+          businesses={adminBusinesses}
+        />
+        <AdminCreateKnowledgeDialog
+          open={isCreateKnowledgeOpen}
+          onOpenChange={setIsCreateKnowledgeOpen}
+          onSuccess={fetchInsightsData}
+          businesses={adminBusinesses}
+        />
       </main>
 
       {/* Admin Footer */}

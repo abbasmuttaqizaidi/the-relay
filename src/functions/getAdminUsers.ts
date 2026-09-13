@@ -2,16 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { clerkClient } from "@clerk/tanstack-react-start/server";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { prisma } from "../db/prisma.server";
+import { verifyAdminSession } from "../lib/admin-auth.server";
 
 export const getAdminUsers = createServerFn({ method: "GET" })
   .handler(async () => {
-    // 1. Authenticate caller using local admin token cookie
+    // 1. Authenticate caller using secure HMAC session token
     const headers = getRequestHeaders();
     const cookieHeader = headers.get("cookie") || "";
-    const match = cookieHeader.match(/relay_admin_token=([^;]+)/);
-    const token = match ? decodeURIComponent(match[1]) : null;
 
-    if (token !== "PP@password110") {
+    if (!verifyAdminSession(cookieHeader)) {
       throw new Error("Forbidden: Only the super admin can access this page.");
     }
 

@@ -35,9 +35,12 @@ import {
 import { toast } from "sonner";
 import { getQuestions } from "../functions/getQuestions";
 import { getKnowledgeInsights } from "../functions/getKnowledgeInsights";
+import { getAdminInsights } from "../functions/getAdminInsights";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { AskQuestionDialog } from "../components/insights/AskQuestionDialog";
 import { ShareInsightDialog } from "../components/insights/ShareInsightDialog";
+import { AdminCreateQuestionDialog } from "../components/admin/AdminCreateQuestionDialog";
+import { AdminCreateKnowledgeDialog } from "../components/admin/AdminCreateKnowledgeDialog";
 import { CompanyLogo } from "../components/company-logo";
 import {
   Question,
@@ -99,10 +102,22 @@ function formatTimeAgo(dateStr: string): string {
   }
 }
 
+const getAdminToken = () => {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/relay_admin_token=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
 export function InsightsIndexPage() {
   const { isSignedIn } = useAuth();
   const navigate = useNavigate();
   const searchParams = Route.useSearch();
+
+  // Admin session state
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminBusinesses, setAdminBusinesses] = useState<any[]>([]);
+  const [adminCreateQuestionOpen, setAdminCreateQuestionOpen] = useState(false);
+  const [adminCreateKnowledgeOpen, setAdminCreateKnowledgeOpen] = useState(false);
 
   // Tab state: "questions" (Use Case 1) or "knowledge" (Use Case 2)
   const [activeTab, setActiveTab] = useState<"questions" | "knowledge">(
@@ -123,6 +138,23 @@ export function InsightsIndexPage() {
   // Dialog states
   const [askModalOpen, setAskModalOpen] = useState(false);
   const [shareInsightModalOpen, setShareInsightModalOpen] = useState(false);
+
+  // Check admin session on mount
+  useEffect(() => {
+    const token = getAdminToken();
+    if (token) {
+      getAdminInsights()
+        .then((res) => {
+          setIsAdmin(true);
+          if (res?.businesses) {
+            setAdminBusinesses(res.businesses);
+          }
+        })
+        .catch(() => {
+          setIsAdmin(false);
+        });
+    }
+  }, []);
 
   // Sync activeTab from URL search params
   useEffect(() => {
@@ -225,6 +257,11 @@ export function InsightsIndexPage() {
 
   // Handle "+ Ask a Question" click (Use Case 1)
   const handleAskClick = () => {
+    if (isAdmin) {
+      setAdminCreateQuestionOpen(true);
+      return;
+    }
+
     if (!isSignedIn) {
       toast.info("Please sign in to ask a question.");
       navigate({ to: "/login" });
@@ -249,6 +286,11 @@ export function InsightsIndexPage() {
 
   // Handle "+ Share an Insight" click (Use Case 2)
   const handleShareInsightClick = () => {
+    if (isAdmin) {
+      setAdminCreateKnowledgeOpen(true);
+      return;
+    }
+
     if (!isSignedIn) {
       toast.info("Please sign in to share an insight.");
       navigate({ to: "/login" });
@@ -288,6 +330,11 @@ export function InsightsIndexPage() {
               <span className="inline-flex items-center text-[9.5px] font-mono uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200/80">
                 Verified B2B
               </span>
+              {isAdmin && (
+                <span className="inline-flex items-center text-[9.5px] font-mono uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-amber-500/10 text-orange-700 border border-orange-300/60">
+                  Admin Mode Active
+                </span>
+              )}
             </div>
             <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
               {activeTab === "questions"
@@ -734,6 +781,40 @@ export function InsightsIndexPage() {
           loadKnowledge();
         }}
       />
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          ADMIN CREATE MODALS (SUPER ADMIN)
+          ═══════════════════════════════════════════════════════════════════ */}
+      {isAdmin && (
+        <>
+          <AdminCreateQuestionDialog
+            open={adminCreateQuestionOpen}
+            onOpenChange={setAdminCreateQuestionOpen}
+            onSuccess={() => {
+              loadQuestions();
+              getAdminInsights()
+                .then((res) => {
+                  if (res?.businesses) setAdminBusinesses(res.businesses);
+                })
+                .catch(() => {});
+            }}
+            businesses={adminBusinesses}
+          />
+          <AdminCreateKnowledgeDialog
+            open={adminCreateKnowledgeOpen}
+            onOpenChange={setAdminCreateKnowledgeOpen}
+            onSuccess={() => {
+              loadKnowledge();
+              getAdminInsights()
+                .then((res) => {
+                  if (res?.businesses) setAdminBusinesses(res.businesses);
+                })
+                .catch(() => {});
+            }}
+            businesses={adminBusinesses}
+          />
+        </>
+      )}
     </div>
   );
 }

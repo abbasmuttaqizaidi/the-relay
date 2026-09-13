@@ -3,6 +3,7 @@ import { z } from "zod";
 import { BusinessService } from "../services/business.service";
 import { prisma } from "../db/prisma.server";
 import { getRequestHeaders } from "@tanstack/react-start/server";
+import { verifyAdminSession } from "../lib/admin-auth.server";
 
 const updateBusinessStatusSchema = z.object({
   business_id: z.string().optional(),
@@ -19,13 +20,11 @@ const updateBusinessStatusSchema = z.object({
 export const updateBusinessStatus = createServerFn({ method: "POST" })
   .inputValidator(updateBusinessStatusSchema)
   .handler(async ({ data }) => {
-    // 1. Authenticate caller using local admin token cookie
+    // 1. Authenticate caller using secure HMAC session token
     const headers = getRequestHeaders();
     const cookieHeader = headers.get("cookie") || "";
-    const match = cookieHeader.match(/relay_admin_token=([^;]+)/);
-    const token = match ? decodeURIComponent(match[1]) : null;
 
-    if (token !== "PP@password110") {
+    if (!verifyAdminSession(cookieHeader)) {
       throw new Error("Forbidden: Only the super admin can perform this action.");
     }
 
