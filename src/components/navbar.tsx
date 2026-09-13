@@ -15,6 +15,7 @@ import {
   HelpCircle,
   Building2,
   Lightbulb,
+  Plus,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
@@ -100,6 +101,7 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
     !!matchRoute({ to: "/requests/sent", fuzzy: true });
   const isSaved = !!matchRoute({ to: "/saved-opportunities", fuzzy: true });
   const isInsights = !!matchRoute({ to: "/insights", fuzzy: true });
+  const isPost = !!matchRoute({ to: "/post", fuzzy: true });
 
   // Check if the Opportunities feed (not my) is active
   const isOpportunitiesFeed = isOpportunities && !isMyOpportunities;
@@ -192,6 +194,14 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
             )}
             {isSignedIn && (
               <div className="flex items-center gap-4">
+                <Link
+                  to="/post"
+                  id="nav-post-btn"
+                  className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-3.5 py-2 transition-all rounded-[2px] font-bold shadow-xs hover:shadow"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Post
+                </Link>
                 <button
                   onClick={handleNavbarTourClick}
                   className="h-9 w-9 flex items-center justify-center border border-slate-200/60 rounded-full bg-white hover:bg-slate-50/50 hover:border-slate-300 transition-colors cursor-pointer active:scale-95"
@@ -299,6 +309,25 @@ export function Navbar({ incomingCount = 0 }: NavbarProps) {
                           </span>
                         </span>
                         <ChevronRight className={`w-3.5 h-3.5 ${isOpportunitiesFeed ? "text-white/50" : "text-slate-300"}`} />
+                      </Link>
+                    </SheetClose>
+
+                    <SheetClose asChild>
+                      <Link
+                        to="/post"
+                        className={`flex items-center justify-between px-3 py-3 rounded-lg transition-all ${
+                          isPost
+                            ? "bg-slate-900 text-white"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <Plus className="w-4 h-4" />
+                          <span className="text-[12px] font-mono uppercase tracking-wider font-bold">
+                            Post
+                          </span>
+                        </span>
+                        <ChevronRight className={`w-3.5 h-3.5 ${isPost ? "text-white/50" : "text-slate-300"}`} />
                       </Link>
                     </SheetClose>
 

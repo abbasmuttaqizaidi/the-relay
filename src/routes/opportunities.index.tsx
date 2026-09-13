@@ -9,6 +9,7 @@ import { useAuth, useUser } from "@clerk/tanstack-react-start";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { listOpportunities } from "../functions/listOpportunities";
 import { createOpportunity } from "../functions/createOpportunity";
+import { updateOpportunity } from "../functions/updateOpportunity";
 import { expressInterest } from "../functions/expressInterest";
 import { saveOpportunity } from "../functions/saveOpportunity";
 import { removeSavedOpportunity } from "../functions/removeSavedOpportunity";
@@ -46,6 +47,7 @@ import {
   CheckCircle2,
   Info,
   ArrowRight,
+  Pencil,
 } from "lucide-react";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
@@ -86,18 +88,7 @@ import {
   useInterestStore,
   useReciprocity,
   RECIPROCITY_WEIGHTS,
-  type InterestRecord,
 } from "@/lib/interest-store";
-
-function mockContact(company: string): NonNullable<InterestRecord["contact"]> {
-  const first = company.split(/\s+/)[0] ?? "Ops";
-  const slug = company.toLowerCase().replace(/[^a-z0-9]+/g, "");
-  return {
-    name: `${first} Partnerships`,
-    role: "BD Lead",
-    email: `partnerships@${slug}.com`,
-  };
-}
 
 const INDUSTRIES = [
   "All",
@@ -181,8 +172,11 @@ type Opportunity = {
   id: string;
   opportunity_number?: string;
   type: (typeof TYPES)[number];
+  category?: string;
   industry: (typeof INDUSTRIES)[number];
   geo: (typeof GEOGRAPHIES)[number];
+  location?: string | null;
+  offer_text?: string | null;
   company: string;
   title: string;
   description: string;
@@ -432,9 +426,11 @@ function OpportunitiesPage() {
 
   const [searchInputVal, setSearchInputVal] = useState(q);
 
-  // Form Dialog States for Create Opportunity (in-place modal)
+  // Form Dialog States for Create & Edit Opportunity
   const [business, setBusiness] = useState<any>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<
     | "partnership"
@@ -565,6 +561,84 @@ function OpportunitiesPage() {
     }
   };
 
+  // Open Edit Dialog
+  const handleOpenEdit = (opp: Opportunity) => {
+    setSelectedOpp(opp);
+    setTitle(opp.title);
+    setCategory(
+      (opp.category ||
+        opp.type.toLowerCase().replace(/\s+/g, "_")) as any,
+    );
+    setFormIndustry(opp.industry || "SaaS");
+    setDescription(opp.description);
+    setLocation(opp.location || opp.geo || "");
+    setOfferText(opp.offer_text || "");
+    setHideCompanyName(!!opp.hide_company_name);
+    setPromote(opp.promotion_status === "promoted");
+    setExpiryDays("keep");
+    setEditOpen(true);
+  };
+
+  // Submit Edit Opportunity
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedOpp) return;
+
+    if (title.trim().length === 0) {
+      toast.error("Title is required");
+      return;
+    }
+    if (description.trim().length < 50 || description.trim().length > 3000) {
+      toast.error(
+        `Description must be between 50 and 3000 characters. Currently: ${description.length}`,
+      );
+      return;
+    }
+
+    if (promote && hideCompanyName) {
+      toast.error(
+        "Promoted opportunities cannot be confidential. Please uncheck 'Hide company name' or 'Promote this listing'.",
+      );
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      let expires_at: string | null = selectedOpp.expires_at || null;
+      if (expiryDays !== "keep" && expiryDays !== "never") {
+        const days = parseInt(expiryDays, 10);
+        expires_at = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      } else if (expiryDays === "never") {
+        expires_at = null;
+      }
+
+      await updateOpportunity({
+        data: {
+          opportunity_id: selectedOpp.id,
+          title,
+          category,
+          industry: formIndustry,
+          description,
+          location: location.trim() || null,
+          offer_text: offerText.trim() || null,
+          expires_at,
+          hide_company_name: hideCompanyName,
+          promote,
+        },
+      });
+
+      toast.success("Opportunity Updated Successfully");
+      setEditOpen(false);
+      setSelectedOpp(null);
+      await loadData();
+    } catch (err: any) {
+      console.error("Update opportunity error:", err);
+      toast.error(err.message || "Failed to update opportunity");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const loadData = async () => {
     try {
       setLoadingOpps(true);
@@ -577,8 +651,11 @@ function OpportunitiesPage() {
           type: (opp.category === "strategic_advice"
             ? "Strategic Advice"
             : opp.category.charAt(0).toUpperCase() + opp.category.slice(1)) as any,
+          category: opp.category,
           industry: opp.industry || opp.business?.industry || "SaaS",
           geo: opp.location || "Remote",
+          location: opp.location,
+          offer_text: opp.offer_text,
           company: opp.business?.company_name || "Demo",
           title: opp.title,
           description: opp.description,
@@ -1003,13 +1080,14 @@ function OpportunitiesPage() {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0">
               {isSignedIn && (
-                <button
+                <Link
+                  to="/post"
                   id="post-opportunity-btn"
-                  onClick={handleOpenCreate}
-                  className="bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-5 py-3 md:py-2.5 border border-slate-900 transition-all rounded-[2px] font-bold shadow-sm hover:shadow text-center cursor-pointer"
+                  className="bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-5 py-3 md:py-2.5 border border-slate-900 transition-all rounded-[2px] font-bold shadow-sm hover:shadow text-center cursor-pointer inline-flex items-center justify-center gap-1.5"
                 >
-                  Post Opportunity
-                </button>
+                  <Plus className="w-3.5 h-3.5" />
+                  Post
+                </Link>
               )}
               {/* Listings Curated badge commented out for now
               <div className="flex items-center justify-between sm:justify-end gap-3 border border-slate-200/80 bg-white p-3 md:p-2.5 rounded-[2px] shrink-0">
@@ -1273,6 +1351,7 @@ function OpportunitiesPage() {
                         myBusinessStatus={myBusinessStatus}
                         isSaved={savedOpportunityIds.has(opp.id)}
                         onSaveToggle={handleSaveToggle}
+                        onEdit={handleOpenEdit}
                         promotedCount={promotedOpps.length}
                       />
                     ))}
@@ -1300,6 +1379,7 @@ function OpportunitiesPage() {
                         myBusinessStatus={myBusinessStatus}
                         isSaved={savedOpportunityIds.has(opp.id)}
                         onSaveToggle={handleSaveToggle}
+                        onEdit={handleOpenEdit}
                       />
                     ))}
                   </div>
@@ -1582,6 +1662,281 @@ function OpportunitiesPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* EDIT DIALOG */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="flex w-[calc(100vw-1rem)] max-w-[680px] h-[85dvh] sm:h-auto max-h-[88dvh] flex-col gap-0 overflow-hidden bg-white p-0 sm:p-0 text-left font-sans shadow-xl rounded-[4px] border border-slate-200">
+          <DialogHeader className="border-b border-slate-100 px-4 pb-3 pt-5 pr-12 sm:px-4 sm:pt-4 sm:pr-10">
+            <DialogTitle className="font-display text-base sm:text-lg font-black uppercase tracking-tight text-slate-950 flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-4 leading-tight">
+              <span className="min-w-0">Edit Opportunity Brief</span>
+              {selectedOpp && (
+                <span className="font-mono text-[10px] text-slate-400 font-bold tracking-wider sm:tracking-widest uppercase block mt-1 sm:mt-0 sm:pr-4 shrink-0">
+                  #{selectedOpp.opportunity_number || selectedOpp.id.slice(0, 8)}
+                </span>
+              )}
+            </DialogTitle>
+            <DialogDescription className="text-slate-500 text-xs leading-relaxed">
+              Modify details for this listing.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={handleEditSubmit}
+            className="min-h-0 flex-1 flex flex-col gap-0 overflow-hidden"
+          >
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-4 sm:py-3 space-y-4">
+              {/* Title */}
+              <div className="space-y-1">
+                <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                  <span className="flex flex-wrap items-center gap-1">
+                    <Tag className="w-3 h-3" /> Opportunity Title *
+                  </span>
+                  <TooltipSimple content="Write a short, clear summary of what you are looking for (e.g. 'Looking for SEO Agency').">
+                    <HelpCircle className="w-3 h-3 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                  </TooltipSimple>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Looking for SEO Agency / Shopify Dev Shop"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none"
+                />
+              </div>
+
+              {/* Category selection */}
+              <div className="space-y-1">
+                <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                  <span className="flex flex-wrap items-center gap-1">
+                    <Briefcase className="w-3.5 h-3.5" /> Exchange Category *
+                  </span>
+                  <TooltipSimple content="Select the type of partnership layout (e.g. client referral exchange, distribution partner, or vendor).">
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                  </TooltipSimple>
+                </label>
+                <Select value={category} onValueChange={(val) => setCategory(val as any)}>
+                  <SelectTrigger className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none cursor-pointer [&>span]:truncate">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="partnership">
+                      Partnership (Integrations, API merges)
+                    </SelectItem>
+                    <SelectItem value="referral">
+                      Referral (Client exchanges, Mutual handoffs)
+                    </SelectItem>
+                    <SelectItem value="distribution">
+                      Distribution (IT Consultancies, Resellers)
+                    </SelectItem>
+                    <SelectItem value="vendor">Vendor (Scaling pipeline requirements)</SelectItem>
+                    <SelectItem value="hiring">
+                      Hiring (Recruitment, Talent pipeline requests)
+                    </SelectItem>
+                    <SelectItem value="strategic_advice">
+                      Strategic Advice (Advisory, Board positions, Mentorship)
+                    </SelectItem>
+                    <SelectItem value="investment">
+                      Investment (Funding requests, Capital raises)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Industry selection */}
+              <div className="space-y-1">
+                <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                  <span className="flex flex-wrap items-center gap-1">
+                    <Tag className="w-3 h-3" /> Industry Type *
+                  </span>
+                  <TooltipSimple content="Select the industry that fits this opportunity best.">
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                  </TooltipSimple>
+                </label>
+                <Select value={formIndustry} onValueChange={setFormIndustry}>
+                  <SelectTrigger className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none cursor-pointer [&>span]:truncate">
+                    <SelectValue placeholder="Select Industry" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white max-h-60 overflow-y-auto">
+                    {INDUSTRIES.filter((ind) => ind !== "All").map((ind) => (
+                      <SelectItem key={ind} value={ind}>
+                        {ind}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1">
+                <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5 justify-between">
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    <span className="flex flex-wrap items-center gap-1">
+                      <Info className="w-3 h-3" /> Brief Description *
+                    </span>
+                    <TooltipSimple content="Provide detailed context, scope, requirements, and target timeline for this growth request (50 to 3000 chars).">
+                      <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                    </TooltipSimple>
+                  </span>
+                  <span className="text-[8px] text-slate-400 font-normal lowercase">
+                    {description.length} / 50 min chars
+                  </span>
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  maxLength={3000}
+                  placeholder="Outline context, requirements, scope of work, and expected timelines in detail."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full min-w-0 p-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs rounded-[2px] font-mono resize-y outline-none"
+                />
+              </div>
+
+              {/* Geography / Location */}
+              <div className="space-y-1">
+                <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                  <span className="flex flex-wrap items-center gap-1">
+                    <MapPin className="w-3 h-3" /> Geography / Location (Optional)
+                  </span>
+                  <TooltipSimple content="Provide geographic limits or specify Remote / Global.">
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                  </TooltipSimple>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Remote, US Only, Western Europe"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none"
+                />
+              </div>
+
+              {/* Value Proposition / Offer text */}
+              <div className="space-y-1">
+                <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                  <span className="flex flex-wrap items-center gap-1">
+                    <Sparkles className="w-3 h-3" /> What You Offer in Return (Optional)
+                  </span>
+                  <TooltipSimple content="Detail what reciprocation, fee structure, revenue share, or referral you provide.">
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
+                  </TooltipSimple>
+                </label>
+                <textarea
+                  rows={2}
+                  maxLength={1000}
+                  placeholder="e.g. 15% ongoing rev share on closed deals or mutual exchange"
+                  value={offerText}
+                  onChange={(e) => setOfferText(e.target.value)}
+                  className="w-full min-w-0 p-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs rounded-[2px] font-mono resize-y outline-none"
+                />
+              </div>
+
+              {/* Expiry Duration */}
+              <div className="space-y-1">
+                <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
+                  <span className="flex flex-wrap items-center gap-1">
+                    <Clock className="w-3 h-3" /> Listing Expiration
+                  </span>
+                </label>
+                <Select value={expiryDays} onValueChange={setExpiryDays}>
+                  <SelectTrigger className="w-full min-w-0 h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm rounded-[2px] font-mono outline-none cursor-pointer [&>span]:truncate">
+                    <SelectValue placeholder="Keep current expiry" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="keep">Keep current expiry</SelectItem>
+                    <SelectItem value="14">14 Days from now</SelectItem>
+                    <SelectItem value="30">30 Days from now</SelectItem>
+                    <SelectItem value="60">60 Days from now</SelectItem>
+                    <SelectItem value="never">Never (Indefinite)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Confidential Listing Checkbox */}
+              <div className="flex items-start gap-2.5 pt-2">
+                <Checkbox
+                  id="edit-hide-company"
+                  checked={hideCompanyName}
+                  onCheckedChange={(checked) => {
+                    const val = !!checked;
+                    setHideCompanyName(val);
+                    if (val && promote) {
+                      setPromote(false);
+                    }
+                  }}
+                  className="mt-0.5"
+                />
+                <div className="space-y-0.5">
+                  <label
+                    htmlFor="edit-hide-company"
+                    className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 cursor-pointer"
+                  >
+                    Confidential Listing
+                  </label>
+                  <p className="text-[11px] text-slate-500 font-sans leading-relaxed">
+                    Hide your business identity. Company details are only unlocked after an introduction is mutually accepted.
+                  </p>
+                </div>
+              </div>
+
+              {/* Promote Listing Checkbox */}
+              <div className="flex items-start gap-2.5 pt-1">
+                <Checkbox
+                  id="edit-promote"
+                  checked={promote}
+                  disabled={hideCompanyName}
+                  onCheckedChange={(checked) => {
+                    if (hideCompanyName) return;
+                    setPromote(!!checked);
+                  }}
+                  className="mt-0.5"
+                />
+                <div className="space-y-0.5">
+                  <label
+                    htmlFor="edit-promote"
+                    className={`text-xs font-mono font-bold uppercase tracking-wider cursor-pointer ${
+                      hideCompanyName ? "text-slate-400 cursor-not-allowed" : "text-slate-700"
+                    }`}
+                  >
+                    Promote listing for 10x visibility
+                  </label>
+                  <p
+                    className={`text-[11px] font-sans leading-relaxed ${
+                      hideCompanyName ? "text-slate-400" : "text-slate-500"
+                    }`}
+                  >
+                    {hideCompanyName
+                      ? "Featured listings must show your company name and cannot be posted anonymously."
+                      : "Requests superadmin verification. Once approved, this listing is pinned to the Featured section in dark-theme with orange highlight."}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="border-t border-slate-100 bg-white px-4 py-3 sm:px-4 flex flex-row items-center justify-end gap-2 sm:gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditOpen(false);
+                  setSelectedOpp(null);
+                }}
+                className="h-10 flex-1 px-4 py-2 border border-slate-200 hover:border-slate-800 text-[10px] font-mono font-bold uppercase tracking-widest rounded-[2px] transition-colors cursor-pointer bg-white sm:flex-none"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="h-10 flex-1 px-5 py-2 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest rounded-[2px] font-bold shadow-xs hover:shadow transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 sm:flex-none"
+              >
+                {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                Save Changes
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -1701,6 +2056,7 @@ function ResultCard({
   myBusinessStatus,
   isSaved,
   onSaveToggle,
+  onEdit,
   promotedCount = 0,
 }: {
   opp: Opportunity;
@@ -1709,9 +2065,10 @@ function ResultCard({
   myBusinessStatus: "applied" | "approved" | "rejected" | null;
   isSaved: boolean;
   onSaveToggle: (oppId: string, shouldSave: boolean) => void;
+  onEdit?: (opp: Opportunity) => void;
   promotedCount?: number;
 }) {
-  const { store, request, respond, withdraw } = useInterestStore();
+  const { store, request, withdraw } = useInterestStore();
   const record = store[opp.id];
   const status = record?.status ?? "idle";
 
@@ -1754,16 +2111,6 @@ function ResultCard({
     }
   };
 
-  const onAccept = () => {
-    respond(opp.id, "accepted", mockContact(opp.company));
-    toast.success(`${opp.company} accepted. Contact unlocked.`);
-  };
-
-  const onDecline = () => {
-    respond(opp.id, "declined");
-    toast(`${opp.company} declined this introduction.`);
-  };
-
   const isConnected = opp.business_id === myBusinessId || status === "accepted";
   const shouldHide = opp.hide_company_name && !isConnected;
   const displayName = shouldHide ? "Confidential" : opp.company;
@@ -1802,17 +2149,36 @@ function ResultCard({
       className={`border p-3.5 sm:p-5 md:p-6 rounded-[4px] transition-all duration-300 animate-momentum relative overflow-hidden ${articleLayoutClass} ${cardClasses}`}
       style={{ animationDelay: `${delay}ms` }}
     >
-      {/* Top-Right Bookmark Button */}
-      {opp.business_id !== myBusinessId && (
+      {/* Top-Right Bookmark / Edit Button */}
+      {opp.business_id === myBusinessId ? (
+        onEdit && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onEdit(opp);
+            }}
+            className={`absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 rounded-full transition-colors focus:outline-none cursor-pointer z-10 ${
+              isPromoted
+                ? "hover:bg-slate-900 text-slate-400 hover:text-slate-200"
+                : "hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+            }`}
+            title="Edit opportunity brief"
+          >
+            <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          </button>
+        )
+      ) : (
         <button
           onClick={(e) => {
             e.preventDefault();
             onSaveToggle(opp.id, !isSaved);
           }}
           className={`absolute top-3 right-3 sm:top-4 sm:right-4 p-1 sm:p-1.5 rounded-full transition-colors focus:outline-none cursor-pointer z-10 ${
-            isPromoted
-              ? "hover:bg-slate-900 text-slate-400 hover:text-slate-200"
-              : "hover:bg-slate-50 text-slate-400 hover:text-slate-600"
+            isSaved
+              ? "fill-orange-500 text-orange-500 scale-110"
+              : isPromoted
+                ? "text-slate-600 hover:text-slate-400"
+                : "text-slate-300 hover:text-slate-500"
           }`}
           title={isSaved ? "Remove from saved" : "Save opportunity"}
         >
@@ -1987,10 +2353,10 @@ function ResultCard({
           </div>
         )}
 
-        {/* Demo Pitch and Simulators */}
+        {/* Pitch sent notice */}
         {status === "pending" && (
           <div
-            className={`mt-4 border border-dashed p-4 space-y-3 rounded-[2px] ${
+            className={`mt-4 border border-dashed p-4 space-y-2.5 rounded-[2px] ${
               isPromoted ? "border-slate-800 bg-slate-900/30" : "border-slate-200 bg-slate-50/50"
             }`}
           >
@@ -2001,39 +2367,17 @@ function ResultCard({
             >
               [ Pitch sent · awaiting {opp.company} ]
             </div>
-            <p
-              className={`text-xs italic font-mono border px-3 py-2 rounded-[2px] ${
-                isPromoted
-                  ? "bg-slate-950 border-slate-900 text-slate-350"
-                  : "bg-white border-slate-100 text-slate-600"
-              }`}
-            >
-              &ldquo;{record?.pitch}&rdquo;
-            </p>
-            <div className="flex items-center gap-3 pt-1 font-mono text-[9px]">
-              <span className={isPromoted ? "text-slate-500" : "text-slate-400"}>
-                Demo actions:
-              </span>
-              <button
-                onClick={onAccept}
-                className={`font-bold hover:underline ${
-                  isPromoted ? "text-emerald-400 hover:text-emerald-300" : "text-emerald-600"
-                }`}
-              >
-                Accept introduction
-              </button>
-              <span className={isPromoted ? "text-slate-700" : "text-slate-300"}>·</span>
-              <button
-                onClick={onDecline}
-                className={`transition-colors ${
+            {record?.pitch && (
+              <p
+                className={`text-xs italic font-mono border px-3 py-2 rounded-[2px] ${
                   isPromoted
-                    ? "text-slate-400 hover:text-red-400"
-                    : "text-slate-50 hover:text-red-600"
+                    ? "bg-slate-950 border-slate-900 text-slate-350"
+                    : "bg-white border-slate-100 text-slate-600"
                 }`}
               >
-                Decline introduction
-              </button>
-            </div>
+                &ldquo;{record.pitch}&rdquo;
+              </p>
+            )}
           </div>
         )}
 
@@ -2070,15 +2414,31 @@ function ResultCard({
       {/* Right Column: Actions */}
       <div className={rightColClass}>
         {opp.business_id === myBusinessId ? (
-          <div
-            className={`flex-1 md:flex-none md:w-full text-center py-2 sm:py-2.5 px-3 border text-[8.5px] sm:text-[9px] font-mono uppercase tracking-wider sm:tracking-widest font-bold rounded-[2px] cursor-default flex items-center justify-center gap-1.5 ${
-              isPromoted
-                ? "border-slate-800 text-slate-500 bg-slate-900/50"
-                : "border-slate-200 text-slate-400 bg-slate-50/50"
-            }`}
-          >
-            {opp.hide_company_name && <Lock className="w-3 h-3 text-amber-500" />}
-            <span>Your Listing {opp.hide_company_name && "(Private)"}</span>
+          <div className="flex-1 md:flex-none md:w-full flex flex-col gap-2">
+            <div
+              className={`text-center py-1.5 sm:py-2 px-2.5 border text-[8.5px] sm:text-[9px] font-mono uppercase tracking-wider sm:tracking-widest font-bold rounded-[2px] cursor-default flex items-center justify-center gap-1.5 ${
+                isPromoted
+                  ? "border-slate-800 text-slate-500 bg-slate-900/50"
+                  : "border-slate-200 text-slate-400 bg-slate-50/50"
+              }`}
+            >
+              {opp.hide_company_name && <Lock className="w-3 h-3 text-amber-500" />}
+              <span>Your Listing {opp.hide_company_name && "(Private)"}</span>
+            </div>
+
+            {onEdit && (
+              <button
+                onClick={() => onEdit(opp)}
+                className={`w-full py-2 sm:py-2.5 px-3 text-[9px] sm:text-[10px] font-mono uppercase tracking-wider sm:tracking-widest transition-all rounded-[2px] shadow-xs hover:shadow cursor-pointer font-bold flex items-center justify-center gap-1.5 ${
+                  isPromoted
+                    ? "bg-orange-600 hover:bg-orange-500 text-white border border-orange-500/30"
+                    : "bg-slate-900 hover:bg-primary text-white border border-slate-900"
+                }`}
+              >
+                <Pencil className="w-3 h-3" />
+                Edit Brief
+              </button>
+            )}
           </div>
         ) : opp.status === "closed" ||
           (opp.expires_at ? new Date(opp.expires_at) < new Date() : false) ? (

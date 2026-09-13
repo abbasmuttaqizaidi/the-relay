@@ -659,18 +659,13 @@ function MyOpportunitiesPage() {
             </p>
           </div>
 
-          <button
+          <Link
             id="my-post-opportunity-btn"
-            onClick={handleOpenCreate}
-            disabled={!isApproved}
-            className={`inline-flex items-center gap-2 h-11 px-5 font-mono text-xs uppercase tracking-widest transition-all rounded-[2px] font-bold shadow-xs cursor-pointer ${
-              isApproved
-                ? "bg-slate-900 text-white hover:bg-primary"
-                : "bg-slate-200 text-slate-400 cursor-not-allowed"
-            }`}
+            to="/post"
+            className="inline-flex items-center gap-2 h-11 px-5 font-mono text-xs uppercase tracking-widest transition-all rounded-[2px] font-bold shadow-xs cursor-pointer bg-slate-900 text-white hover:bg-primary"
           >
-            <Plus className="w-4 h-4" /> Post Opportunity
-          </button>
+            <Plus className="w-4 h-4" /> Post
+          </Link>
         </header>
 
         {/* Business Status Check Alert banner */}
@@ -789,8 +784,8 @@ function MyOpportunitiesPage() {
                     No Opportunities Posted
                   </h4>
                   <p className="text-slate-500 text-xs max-w-sm">
-                    You haven't posted any B2B partnerships or referral requests yet. Click
-                    &ldquo;Post Opportunity&rdquo; to begin.
+                    You haven&apos;t posted any B2B partnerships or referral requests yet. Click
+                    &ldquo;Post&rdquo; to begin.
                   </p>
                 </div>
               </div>

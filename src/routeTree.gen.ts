@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SavedOpportunitiesRouteImport } from './routes/saved-opportunities'
 import { Route as QueryRelayRouteImport } from './routes/query-relay'
+import { Route as PostRouteImport } from './routes/post'
 import { Route as OpportunitiesRouteImport } from './routes/opportunities'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NetworkRouteImport } from './routes/network'
@@ -43,6 +44,11 @@ const SavedOpportunitiesRoute = SavedOpportunitiesRouteImport.update({
 const QueryRelayRoute = QueryRelayRouteImport.update({
   id: '/query-relay',
   path: '/query-relay',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PostRoute = PostRouteImport.update({
+  id: '/post',
+  path: '/post',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OpportunitiesRoute = OpportunitiesRouteImport.update({
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/network': typeof NetworkRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRouteWithChildren
+  '/post': typeof PostRoute
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/network': typeof NetworkRoute
   '/onboarding': typeof OnboardingRoute
+  '/post': typeof PostRoute
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/network': typeof NetworkRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRouteWithChildren
+  '/post': typeof PostRoute
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
@@ -208,6 +217,7 @@ export interface FileRouteTypes {
     | '/network'
     | '/onboarding'
     | '/opportunities'
+    | '/post'
     | '/query-relay'
     | '/saved-opportunities'
     | '/signup'
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/network'
     | '/onboarding'
+    | '/post'
     | '/query-relay'
     | '/saved-opportunities'
     | '/signup'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/network'
     | '/onboarding'
     | '/opportunities'
+    | '/post'
     | '/query-relay'
     | '/saved-opportunities'
     | '/signup'
@@ -273,6 +285,7 @@ export interface RootRouteChildren {
   NetworkRoute: typeof NetworkRoute
   OnboardingRoute: typeof OnboardingRoute
   OpportunitiesRoute: typeof OpportunitiesRouteWithChildren
+  PostRoute: typeof PostRoute
   QueryRelayRoute: typeof QueryRelayRoute
   SavedOpportunitiesRoute: typeof SavedOpportunitiesRoute
   SignupRoute: typeof SignupRoute
@@ -302,6 +315,13 @@ declare module '@tanstack/react-router' {
       path: '/query-relay'
       fullPath: '/query-relay'
       preLoaderRoute: typeof QueryRelayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/post': {
+      id: '/post'
+      path: '/post'
+      fullPath: '/post'
+      preLoaderRoute: typeof PostRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/opportunities': {
@@ -466,6 +486,7 @@ const rootRouteChildren: RootRouteChildren = {
   NetworkRoute: NetworkRoute,
   OnboardingRoute: OnboardingRoute,
   OpportunitiesRoute: OpportunitiesRouteWithChildren,
+  PostRoute: PostRoute,
   QueryRelayRoute: QueryRelayRoute,
   SavedOpportunitiesRoute: SavedOpportunitiesRoute,
   SignupRoute: SignupRoute,
