@@ -1,5 +1,4 @@
 import React from "react";
-import DOMPurify from "isomorphic-dompurify";
 
 interface TiptapMark {
   type: string;
@@ -23,9 +22,21 @@ interface QuestionContentRendererProps {
 function sanitizeUrl(url?: string): string {
   if (!url) return "#";
   const trimmed = url.trim();
-  // Only allow http, https, mailto, or relative URLs
-  if (/^(https?:\/\/|mailto:|\/)/i.test(trimmed)) {
-    return DOMPurify.sanitize(trimmed);
+  if (
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("#") ||
+    trimmed.startsWith("./") ||
+    trimmed.startsWith("../")
+  ) {
+    return trimmed;
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:" || parsed.protocol === "mailto:") {
+      return parsed.href;
+    }
+  } catch {
+    // Malformed URL
   }
   return "#";
 }
