@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { useEffect, useState } from "react";
 import {
-  ArrowLeft,
   BadgeCheck,
   ShieldCheck,
   Clock,
@@ -300,45 +299,6 @@ export function QuestionDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-slate-900 pb-24">
-      {/* ═══════════════════════════════════════════════════════════════════
-          BREADCRUMB & TOP NAV
-          ═══════════════════════════════════════════════════════════════════ */}
-      <div className="border-b border-slate-200/80 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link
-            to="/insights"
-            search={{ tab: "questions" }}
-            className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-slate-600 hover:text-slate-900 font-semibold transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Back to Questions
-          </Link>
-
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider font-semibold rounded bg-slate-100 text-slate-700 border border-slate-200">
-              {question.topic}
-            </span>
-            {isQuestionClosed ? (
-              <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider font-medium rounded bg-amber-50 text-amber-700 border border-amber-200">
-                Closed
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider font-medium rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                Open
-              </span>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShareModalOpen(true)}
-              className="h-7 text-[10px] font-mono uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer ml-1 shadow-2xs"
-            >
-              <Share2 className="w-3 h-3 text-orange-600" />
-              <span>Share</span>
-            </Button>
-          </div>
-        </div>
-      </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -469,7 +429,7 @@ export function QuestionDetailPage() {
                 MAIN QUESTION CARD
                 ═══════════════════════════════════════════════════════════════════ */}
             <div className="bg-white border border-slate-200/90 rounded-sm p-6 sm:p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-6">
-          {/* Top row: Topic badge, Status, Your Question indicator, and Owner actions */}
+          {/* Top row: Topic badge, Status, Your Question indicator, and Actions (Edit, Close, Share) */}
           <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider font-semibold rounded bg-slate-100 text-slate-700 border border-slate-200">
@@ -491,31 +451,42 @@ export function QuestionDetailPage() {
               )}
             </div>
 
-            {/* Owner action controls */}
-            {isQuestionOwner && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate({ to: "/insights/ask", search: { edit: question.id } })}
-                  className="h-7 text-xs font-mono uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer"
-                >
-                  <Edit2 className="w-3 h-3 mr-1" />
-                  Edit
-                </Button>
-                {!isQuestionClosed && (
+            {/* Actions: Owner controls (Edit, Close) + Share button */}
+            <div className="flex items-center gap-2">
+              {isQuestionOwner && (
+                <>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCloseConfirmOpen(true)}
-                    className="h-7 text-xs font-mono uppercase tracking-wider border-amber-200 text-amber-800 hover:bg-amber-50 cursor-pointer"
+                    onClick={() => navigate({ to: "/insights/ask", search: { edit: question.id } })}
+                    className="h-7 text-xs font-mono uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer"
                   >
-                    <Lock className="w-3 h-3 mr-1" />
-                    Close Question
+                    <Edit2 className="w-3 h-3 mr-1" />
+                    Edit
                   </Button>
-                )}
-              </div>
-            )}
+                  {!isQuestionClosed && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCloseConfirmOpen(true)}
+                      className="h-7 text-xs font-mono uppercase tracking-wider border-amber-200 text-amber-800 hover:bg-amber-50 cursor-pointer"
+                    >
+                      <Lock className="w-3 h-3 mr-1" />
+                      Close Question
+                    </Button>
+                  )}
+                </>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShareModalOpen(true)}
+                className="h-7 text-xs font-mono uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+              >
+                <Share2 className="w-3 h-3 text-orange-600" />
+                <span>Share</span>
+              </Button>
+            </div>
           </div>
 
           {/* Dominant Question Title & Description */}
@@ -530,8 +501,11 @@ export function QuestionDetailPage() {
             />
           </div>
 
-          {/* Asking Business Interactive Card */}
-          <div className="pt-4 border-t border-slate-100">
+          {/* Asking Business Interactive Card (Mobile only, as desktop shows this in left sidebar) */}
+          <div className="pt-4 border-t border-slate-100 lg:hidden space-y-2">
+            <span className="text-[10.5px] font-mono uppercase tracking-wider font-bold text-slate-400 block">
+              Posted by
+            </span>
             <button
               type="button"
               onClick={() => setBusinessSheetOpen(true)}
