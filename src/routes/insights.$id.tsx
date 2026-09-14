@@ -183,6 +183,7 @@ export function QuestionDetailPage() {
     (p) => currentUserBusiness && p.business_id === currentUserBusiness.id,
   );
   const hasUserResponded = !!userPerspective;
+  const isPublicVisitor = !isSignedIn || !currentUserBusiness || currentUserBusiness.status !== "approved";
 
   // Handle closing question
   const handleConfirmCloseQuestion = async () => {
@@ -482,7 +483,7 @@ export function QuestionDetailPage() {
 
             {/* Share Perspective CTA Button */}
             {!isQuestionClosed && !isQuestionOwner && (
-              <div>
+              <div className={isPublicVisitor ? "hidden sm:block" : "block"}>
                 {hasUserResponded ? (
                   <Button
                     onClick={() => {
