@@ -19,9 +19,21 @@ import {
   Info,
   Users,
   Share2,
+  Briefcase,
+  MapPin,
+  Calendar,
+  Globe,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -124,6 +136,7 @@ export function QuestionDetailPage() {
   const [deletePerspectiveId, setDeletePerspectiveId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [businessSheetOpen, setBusinessSheetOpen] = useState(false);
 
   // Fetch current user business profile
   useEffect(() => {
@@ -291,7 +304,7 @@ export function QuestionDetailPage() {
           BREADCRUMB & TOP NAV
           ═══════════════════════════════════════════════════════════════════ */}
       <div className="border-b border-slate-200/80 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link
             to="/insights"
             search={{ tab: "questions" }}
@@ -327,11 +340,135 @@ export function QuestionDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 space-y-8">
-        {/* ═══════════════════════════════════════════════════════════════════
-            MAIN QUESTION CARD
-            ═══════════════════════════════════════════════════════════════════ */}
-        <div className="bg-white border border-slate-200/90 rounded-sm p-6 sm:p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Sidebar (Desktop View): Business Details Card */}
+          <aside className="hidden lg:block lg:col-span-4 sticky top-20 space-y-4">
+            <div className="bg-white border border-slate-200/90 rounded-sm p-5 space-y-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+              {/* Card Header */}
+              <div className="pb-3 border-b border-slate-100">
+                <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-400">
+                  Question Author
+                </span>
+              </div>
+
+              {/* Business Identity */}
+              <div className="flex items-start gap-3">
+                <CompanyLogo
+                  src={question.business?.logo_url}
+                  name={question.business?.company_name}
+                  className="w-11 h-11 rounded object-contain border border-slate-200 p-0.5 shrink-0 bg-white"
+                  fallbackClassName="w-11 h-11 rounded bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs uppercase border border-slate-200 shrink-0"
+                  textClassName="text-xs font-mono font-bold"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h3 className="font-bold text-slate-900 text-sm truncate font-sans">
+                      {question.business?.company_name}
+                    </h3>
+                    <BadgeCheck className="w-4 h-4 text-white fill-[#1877f2] shrink-0 animate-badge-shine" />
+                  </div>
+                  <div className="mt-1">
+                    <span className="inline-flex items-center gap-1 text-[10.5px] font-medium text-blue-700 bg-blue-50 border border-blue-200/80 px-2 py-0.5 rounded font-sans">
+                      <BadgeCheck className="w-3 h-3 text-[#1877f2] shrink-0" />
+                      Approved by Relay manually
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Details */}
+              <div className="space-y-2.5 pt-3 border-t border-slate-100 text-xs text-slate-600 font-sans">
+                {question.business?.industry && (
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="truncate">{question.business.industry}</span>
+                  </div>
+                )}
+                {question.business?.hq_location && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="truncate">{question.business.hq_location}</span>
+                  </div>
+                )}
+                {question.business?.company_size && (
+                  <div className="flex items-center gap-2">
+                    <Users className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span>{question.business.company_size} employees</span>
+                  </div>
+                )}
+                {question.business?.founded_year && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span>Founded in {question.business.founded_year}</span>
+                  </div>
+                )}
+                {question.business?.website && (
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <a
+                      href={
+                        question.business.website.startsWith("http")
+                          ? question.business.website
+                          : `https://${question.business.website}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline truncate"
+                    >
+                      {question.business.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                    </a>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 text-slate-400 text-[11px] font-mono">
+                  <Calendar className="w-3.5 h-3.5 shrink-0" />
+                  <span>Posted on {formatDate(question.created_at)}</span>
+                </div>
+              </div>
+
+              {/* Description (if available) */}
+              {question.business?.description && (
+                <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed pt-3 border-t border-slate-100">
+                  {question.business.description}
+                </p>
+              )}
+
+              {/* Opportunities CTA Box */}
+              <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded space-y-2.5">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-500 block">
+                    Opportunities
+                  </span>
+                  <p className="text-xs text-slate-700 font-medium leading-snug">
+                    Join to know opportunities posted by this business
+                  </p>
+                </div>
+                {isSignedIn ? (
+                  <Link
+                    to="/opportunities"
+                    search={{ search: question.business?.company_name } as any}
+                    className="inline-flex items-center justify-center w-full text-xs font-mono uppercase tracking-wider font-bold bg-slate-900 hover:bg-orange-600 text-white px-3 py-2 rounded-[2px] transition-colors"
+                  >
+                    View Opportunities
+                  </Link>
+                ) : (
+                  <Link
+                    to="/signup"
+                    className="inline-flex items-center justify-center w-full text-xs font-mono uppercase tracking-wider font-bold bg-slate-900 hover:bg-orange-600 text-white px-3 py-2 rounded-[2px] transition-colors"
+                  >
+                    Join The Relay
+                  </Link>
+                )}
+              </div>
+            </div>
+          </aside>
+
+          {/* Right Column: Question Card + Perspectives */}
+          <div className="lg:col-span-8 space-y-8 min-w-0">
+            {/* ═══════════════════════════════════════════════════════════════════
+                MAIN QUESTION CARD
+                ═══════════════════════════════════════════════════════════════════ */}
+            <div className="bg-white border border-slate-200/90 rounded-sm p-6 sm:p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-6">
           {/* Top row: Topic badge, Status, Your Question indicator, and Owner actions */}
           <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
             <div className="flex items-center gap-2 flex-wrap">
@@ -393,50 +530,44 @@ export function QuestionDetailPage() {
             />
           </div>
 
-          {/* Asking Business Credentials Row */}
-          <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <CompanyLogo
-                src={question.business?.logo_url}
-                name={question.business?.company_name}
-                className="w-10 h-10 rounded object-contain border border-slate-200 p-0.5"
-                fallbackClassName="w-10 h-10 rounded bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs uppercase border border-slate-200"
-                textClassName="text-xs font-mono font-bold"
-              />
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-semibold text-slate-900">
-                    {question.business?.company_name}
-                  </span>
-                  <span className="inline-flex items-center text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-sans">
-                    <ShieldCheck className="w-3 h-3 mr-0.5 text-emerald-600" />
-                    Approved Business
-                  </span>
-                </div>
-                <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5 font-normal">
-                  <span>{question.business?.industry}</span>
-                  {question.business?.hq_location && (
-                    <>
-                      <span>·</span>
-                      <span>{question.business.hq_location}</span>
-                    </>
-                  )}
-                  <span>·</span>
-                  <span>Posted {formatDate(question.created_at)}</span>
+          {/* Asking Business Interactive Card */}
+          <div className="pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setBusinessSheetOpen(true)}
+              className="w-full flex items-center justify-between gap-3.5 p-3 sm:p-3.5 rounded-sm bg-slate-50/70 hover:bg-slate-100/80 active:bg-slate-100 border border-slate-200/80 hover:border-slate-300 transition-all text-left cursor-pointer group shadow-2xs"
+              title="Click to view full business details"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <CompanyLogo
+                  src={question.business?.logo_url}
+                  name={question.business?.company_name}
+                  className="w-10 h-10 rounded object-contain border border-slate-200 p-0.5 bg-white shrink-0 group-hover:scale-[1.03] transition-transform"
+                  fallbackClassName="w-10 h-10 rounded bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs uppercase border border-slate-200 shrink-0"
+                  textClassName="text-xs font-mono font-bold"
+                />
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-sm font-semibold text-slate-900 group-hover:text-primary transition-colors truncate">
+                      {question.business?.company_name}
+                    </span>
+                    <BadgeCheck className="w-4 h-4 text-white fill-[#1877f2] shrink-0 animate-badge-shine" />
+                  </div>
+                  <div className="text-xs text-slate-500 font-normal flex items-center gap-2 mt-0.5 flex-wrap">
+                    {question.business?.industry && <span>{question.business.industry}</span>}
+                    {question.business?.industry && question.business?.hq_location && <span>·</span>}
+                    {question.business?.hq_location && <span>{question.business.hq_location}</span>}
+                    <span>·</span>
+                    <span>Posted {formatDate(question.created_at)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Share button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShareModalOpen(true)}
-              className="h-8 text-xs font-mono uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer shadow-2xs self-start sm:self-auto"
-            >
-              <Share2 className="w-3.5 h-3.5 text-orange-600" />
-              <span>Share</span>
-            </Button>
+              {/* Chevron icon indicating card is tap-to-open */}
+              <div className="flex items-center text-slate-400 group-hover:text-slate-700 group-hover:translate-x-0.5 transition-all shrink-0 pr-0.5">
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </button>
           </div>
 
           {/* Desired Perspective section (if set) */}
@@ -701,7 +832,7 @@ export function QuestionDetailPage() {
                   <span className="text-xs font-mono uppercase font-bold text-slate-900 tracking-wider">
                     The Relay Insights
                   </span>
-                  <span className="text-[10px] bg-white border border-slate-200 text-slate-600 px-1.5 py-0.2 rounded font-mono font-medium">
+                  <span className="hidden sm:inline-flex text-[10px] bg-white border border-slate-200 text-slate-600 px-1.5 py-0.2 rounded font-mono font-medium">
                     Verified Operators Only
                   </span>
                 </div>
@@ -728,6 +859,8 @@ export function QuestionDetailPage() {
           )}
         </div>
       </div>
+    </div>
+  </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
           MODALS & CONFIRMATIONS
@@ -824,6 +957,149 @@ export function QuestionDetailPage() {
           type="question"
         />
       )}
+
+      {/* Mobile Business Details Slider / Popup */}
+      <Sheet open={businessSheetOpen} onOpenChange={setBusinessSheetOpen}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-2xl max-h-[85vh] overflow-y-auto p-6 bg-white border-slate-200 shadow-2xl max-w-lg mx-auto font-sans"
+        >
+          {/* Drag handle */}
+          <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto -mt-2 mb-4" />
+
+          <SheetHeader className="text-left space-y-3 pb-4 border-b border-slate-100">
+            <div className="flex items-start gap-3.5">
+              <CompanyLogo
+                src={question?.business?.logo_url}
+                name={question?.business?.company_name}
+                className="w-12 h-12 rounded object-contain border border-slate-200 p-0.5 shrink-0 bg-white"
+                fallbackClassName="w-12 h-12 rounded bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm uppercase border border-slate-200 shrink-0"
+                textClassName="text-sm font-mono font-bold"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <SheetTitle className="text-base sm:text-lg font-bold text-slate-900 truncate font-sans">
+                    {question?.business?.company_name}
+                  </SheetTitle>
+                  <BadgeCheck className="w-4 h-4 text-white fill-[#1877f2] shrink-0 animate-badge-shine" />
+                </div>
+                <div className="mt-1">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-700 bg-blue-50 border border-blue-200/80 px-2 py-0.5 rounded font-sans">
+                    <BadgeCheck className="w-3.5 h-3.5 text-[#1877f2] shrink-0" />
+                    Approved by Relay manually
+                  </span>
+                </div>
+              </div>
+            </div>
+            <SheetDescription className="text-xs text-slate-500 font-sans">
+              Verified business operator profile on The Relay B2B Network.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="py-4 space-y-4 font-sans text-xs text-slate-600">
+            {/* Key Details Grid */}
+            <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded border border-slate-200/70">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block mb-0.5">
+                  Industry
+                </span>
+                <span className="font-semibold text-slate-800 text-xs">
+                  {question?.business?.industry || "—"}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block mb-0.5">
+                  Location
+                </span>
+                <span className="font-semibold text-slate-800 text-xs">
+                  {question?.business?.hq_location || "—"}
+                </span>
+              </div>
+              {question?.business?.company_size && (
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block mb-0.5">
+                    Team Size
+                  </span>
+                  <span className="font-semibold text-slate-800 text-xs">
+                    {question.business.company_size} employees
+                  </span>
+                </div>
+              )}
+              {question?.business?.founded_year && (
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block mb-0.5">
+                    Founded
+                  </span>
+                  <span className="font-semibold text-slate-800 text-xs">
+                    {question.business.founded_year}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Website */}
+            {question?.business?.website && (
+              <div className="flex items-center gap-2 text-xs">
+                <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <a
+                  href={
+                    question.business.website.startsWith("http")
+                      ? question.business.website
+                      : `https://${question.business.website}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline truncate"
+                >
+                  {question.business.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                </a>
+              </div>
+            )}
+
+            {/* Description */}
+            {question?.business?.description && (
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+                  About Company
+                </span>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {question.business.description}
+                </p>
+              </div>
+            )}
+
+            {/* Opportunities Card */}
+            <div className="p-4 bg-slate-900 text-white rounded-[4px] space-y-3 shadow-xs">
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-orange-400 font-bold block">
+                  Opportunities
+                </span>
+                <p className="text-xs text-slate-200 font-medium leading-snug">
+                  Join to know opportunities posted by this business
+                </p>
+              </div>
+              {isSignedIn ? (
+                <Link
+                  to="/opportunities"
+                  search={{ search: question?.business?.company_name } as any}
+                  onClick={() => setBusinessSheetOpen(false)}
+                  className="inline-flex items-center justify-center w-full text-xs font-mono uppercase tracking-wider font-bold bg-orange-600 hover:bg-orange-500 text-white px-3 py-2.5 rounded-[2px] transition-colors"
+                >
+                  Explore Opportunities
+                </Link>
+              ) : (
+                <Link
+                  to="/signup"
+                  onClick={() => setBusinessSheetOpen(false)}
+                  className="inline-flex items-center justify-center w-full text-xs font-mono uppercase tracking-wider font-bold bg-orange-600 hover:bg-orange-500 text-white px-3 py-2.5 rounded-[2px] transition-colors"
+                >
+                  Join The Relay
+                </Link>
+              )}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
