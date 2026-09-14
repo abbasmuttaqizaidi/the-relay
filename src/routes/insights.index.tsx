@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Lightbulb,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,7 @@ import { getAdminInsights } from "../functions/getAdminInsights";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { AskQuestionDialog } from "../components/insights/AskQuestionDialog";
 import { ShareInsightDialog } from "../components/insights/ShareInsightDialog";
+import { ShareModal } from "../components/insights/ShareModal";
 import { AdminCreateQuestionDialog } from "../components/admin/AdminCreateQuestionDialog";
 import { AdminCreateKnowledgeDialog } from "../components/admin/AdminCreateKnowledgeDialog";
 import { CompanyLogo } from "../components/company-logo";
@@ -55,6 +57,30 @@ const insightsSearchSchema = z.object({
 
 export const Route = createFileRoute("/insights/")({
   validateSearch: zodValidator(insightsSearchSchema),
+  head: () => ({
+    meta: [
+      { title: "Business Insights & Knowledge — The Relay" },
+      {
+        name: "description",
+        content:
+          "Practical business lessons, experiments, and peer perspectives shared directly by verified operators and company founders.",
+      },
+      { property: "og:title", content: "Business Insights & Knowledge — The Relay" },
+      {
+        property: "og:description",
+        content:
+          "Practical business lessons, experiments, and peer perspectives shared directly by verified operators.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Business Insights & Knowledge — The Relay" },
+      {
+        name: "twitter:description",
+        content:
+          "Practical business lessons, experiments, and peer perspectives shared directly by verified operators.",
+      },
+    ],
+  }),
   component: InsightsIndexPage,
 });
 
@@ -133,11 +159,19 @@ export function InsightsIndexPage() {
   // Filters state
   const [selectedTopic, setSelectedTopic] = useState<string>("All");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedSort, setSelectedSort] = useState<"newest" | "perspectives">("newest");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Dialog states
   const [askModalOpen, setAskModalOpen] = useState(false);
   const [shareInsightModalOpen, setShareInsightModalOpen] = useState(false);
+  const [shareItem, setShareItem] = useState<{
+    title: string;
+    topic?: string;
+    authorName?: string;
+    urlPath: string;
+    type: "insight" | "question";
+  } | null>(null);
 
   // Check admin session on mount
   useEffect(() => {
@@ -203,6 +237,9 @@ export function InsightsIndexPage() {
       if (searchQuery && searchQuery.trim()) {
         filterData.search = searchQuery.trim();
       }
+      if (selectedSort) {
+        filterData.sortBy = selectedSort;
+      }
 
       const data = await getQuestions({ data: filterData });
       setQuestions(data || []);
@@ -243,7 +280,7 @@ export function InsightsIndexPage() {
     } else {
       loadKnowledge();
     }
-  }, [activeTab, selectedTopic, selectedStatus]);
+  }, [activeTab, selectedTopic, selectedStatus, selectedSort]);
 
   // Handle search submission
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -281,7 +318,7 @@ export function InsightsIndexPage() {
       return;
     }
 
-    setAskModalOpen(true);
+    navigate({ to: "/insights/ask" });
   };
 
   // Handle "+ Share an Insight" click (Use Case 2)
@@ -338,13 +375,31 @@ export function InsightsIndexPage() {
             </div>
             <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
               {activeTab === "questions"
-                ? "Pose genuine business problems and get actionable perspectives grounded in real-world company experiences."
+                ? "Real business questions, answered by businesses with practical experience."
                 : "Practical business lessons, tips, observations, and experiences shared by approved operators."}
             </p>
           </div>
 
           {/* Action CTA */}
-          <div className="shrink-0 flex items-center gap-3">
+          <div className="shrink-0 flex items-center gap-2.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setShareItem({
+                  title: "The Relay Business Insights Exchange",
+                  topic: activeTab === "questions" ? "Peer Questions" : "Knowledge Insights",
+                  urlPath: `/insights?tab=${activeTab}`,
+                  type: activeTab === "questions" ? "question" : "insight",
+                })
+              }
+              className="h-10 px-3.5 text-xs font-mono uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <Share2 className="w-3.5 h-3.5 text-orange-600" />
+              <span className="hidden sm:inline">Share Feed</span>
+              <span className="sm:hidden">Share</span>
+            </Button>
+
             {activeTab === "questions" ? (
               <Button
                 onClick={handleAskClick}
@@ -427,7 +482,7 @@ export function InsightsIndexPage() {
               type="text"
               placeholder={
                 activeTab === "questions"
-                  ? "Search questions or keywords..."
+                  ? "Search business questions..."
                   : "Search insights, lessons, or topics..."
               }
               value={searchQuery}
@@ -436,9 +491,9 @@ export function InsightsIndexPage() {
             />
           </form>
 
-          {/* Topic & Status Dropdowns */}
+          {/* Topic, Status, and Sort Dropdowns */}
           <div className="flex items-center gap-2.5 overflow-x-auto pb-1 md:pb-0">
-            <div className="w-56 shrink-0">
+            <div className="w-52 shrink-0">
               <Select value={selectedTopic} onValueChange={setSelectedTopic}>
                 <SelectTrigger className="h-9 text-xs bg-white border-slate-200 rounded-[3px] shadow-xs">
                   <SelectValue placeholder="All Topics" />
@@ -475,13 +530,33 @@ export function InsightsIndexPage() {
               </div>
             )}
 
+            {/* Sort filter only for Questions */}
+            {activeTab === "questions" && (
+              <div className="w-40 shrink-0">
+                <Select value={selectedSort} onValueChange={(val: any) => setSelectedSort(val)}>
+                  <SelectTrigger className="h-9 text-xs bg-white border-slate-200 rounded-[3px] shadow-xs">
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-slate-200">
+                    <SelectItem value="newest" className="text-xs">
+                      Newest
+                    </SelectItem>
+                    <SelectItem value="perspectives" className="text-xs">
+                      Most Perspectives
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {(selectedTopic !== "All" ||
-              (activeTab === "questions" && selectedStatus !== "all") ||
+              (activeTab === "questions" && (selectedStatus !== "all" || selectedSort !== "newest")) ||
               searchQuery) && (
               <button
                 onClick={() => {
                   setSelectedTopic("All");
                   setSelectedStatus("all");
+                  setSelectedSort("newest");
                   setSearchQuery("");
                 }}
                 className="text-xs text-slate-400 hover:text-slate-700 underline underline-offset-4 px-1 shrink-0 cursor-pointer"
@@ -521,36 +596,66 @@ export function InsightsIndexPage() {
                 <MessageSquareQuote className="w-6 h-6" />
               </div>
               <h3 className="text-base font-semibold text-slate-900 mb-1">
-                No questions found
+                {searchQuery || selectedTopic !== "All" || selectedStatus !== "all" || selectedSort !== "newest"
+                  ? "No questions found"
+                  : "No business questions have been shared yet."}
               </h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto mb-6 leading-relaxed">
-                {searchQuery || selectedTopic !== "All" || selectedStatus !== "all"
+                {searchQuery || selectedTopic !== "All" || selectedStatus !== "all" || selectedSort !== "newest"
                   ? "No questions match your filter criteria. Try adjusting your filters or search term."
-                  : "Be the first verified business to ask a question and tap into the network's collective experience."}
+                  : isApprovedBusiness || isAdmin
+                  ? "Be the first approved business to ask a practical question."
+                  : "Questions from businesses will appear here."}
               </p>
-              <Button
-                onClick={handleAskClick}
-                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono uppercase tracking-wider h-9 px-4 rounded-[2px]"
-              >
-                <Plus className="w-3.5 h-3.5 mr-1.5" />
-                Ask a Question
-              </Button>
+              {searchQuery || selectedTopic !== "All" || selectedStatus !== "all" || selectedSort !== "newest" ? (
+                <Button
+                  onClick={() => {
+                    setSelectedTopic("All");
+                    setSelectedStatus("all");
+                    setSelectedSort("newest");
+                    setSearchQuery("");
+                  }}
+                  variant="outline"
+                  className="text-xs font-mono uppercase tracking-wider h-9 px-4 rounded-[2px]"
+                >
+                  Reset Filters
+                </Button>
+              ) : isApprovedBusiness || isAdmin ? (
+                <Button
+                  onClick={handleAskClick}
+                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono uppercase tracking-wider h-9 px-4 rounded-[2px]"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1.5" />
+                  Ask a Question
+                </Button>
+              ) : null}
             </div>
           ) : (
             <div className="space-y-3.5">
               {questions.map((q) => {
                 const perspectiveCount = q._count?.perspectives ?? 0;
                 const isClosed = q.status === "closed";
+                const isMyQuestion =
+                  currentUserBusiness && q.business_id === currentUserBusiness.id;
 
                 return (
                   <div
                     key={q.id}
-                    className="bg-white border border-slate-200/80 hover:border-slate-300 rounded-sm p-5 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.04)] group relative"
+                    onClick={() => navigate({ to: "/insights/$id", params: { id: q.id } })}
+                    role="link"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        navigate({ to: "/insights/$id", params: { id: q.id } });
+                      }
+                    }}
+                    className="bg-white border border-slate-200/80 hover:border-slate-300 rounded-sm p-5 sm:p-6 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.04)] group cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400/40"
                   >
                     <div className="flex flex-col gap-3">
-                      {/* Top row: Topic badge + Closed badge + Relative time */}
+                      {/* Top row: Topic badge + Closed badge + Your Question badge + Relative time */}
                       <div className="flex items-center justify-between gap-2 text-xs">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider font-semibold rounded bg-slate-100 text-slate-700 border border-slate-200/60">
                             {q.topic}
                           </span>
@@ -559,49 +664,48 @@ export function InsightsIndexPage() {
                               Closed
                             </span>
                           )}
+                          {isMyQuestion && (
+                            <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider font-bold rounded bg-orange-50 text-orange-700 border border-orange-200">
+                              Your Question
+                            </span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1.5 text-slate-400 text-[11px] font-mono">
+                        <div className="flex items-center gap-1.5 text-slate-400 text-[11px] font-mono shrink-0">
                           <Clock className="w-3 h-3" />
                           <span>{formatTimeAgo(q.created_at)}</span>
                         </div>
                       </div>
 
                       {/* Question Title */}
-                      <Link
-                        to="/insights/$id"
-                        params={{ id: q.id }}
-                        className="block group-hover:text-slate-900 focus:outline-none"
-                      >
-                        <h2 className="text-base font-semibold text-slate-900 tracking-tight leading-snug group-hover:underline group-hover:underline-offset-2">
-                          {q.title}
-                        </h2>
-                      </Link>
+                      <h2 className="text-base sm:text-lg font-semibold text-slate-900 tracking-tight leading-snug group-hover:text-orange-600 transition-colors">
+                        {q.title}
+                      </h2>
 
                       {/* Question Description Snippet */}
-                      <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed font-normal">
                         {q.description}
                       </p>
 
                       {/* Bottom row: Business info + Perspectives count */}
-                      <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                      <div className="pt-2.5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                         {/* Business Identity */}
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
                           <CompanyLogo
                             src={q.business?.logo_url}
                             name={q.business?.company_name}
-                            className="w-5 h-5 rounded object-contain border border-slate-200"
-                            fallbackClassName="w-5 h-5 rounded bg-slate-100 text-slate-700 font-bold flex items-center justify-center border border-slate-200"
+                            className="w-5 h-5 rounded object-contain border border-slate-200 shrink-0"
+                            fallbackClassName="w-5 h-5 rounded bg-slate-100 text-slate-700 font-bold flex items-center justify-center border border-slate-200 shrink-0"
                             textClassName="text-[8px] font-mono font-bold tracking-tight"
                           />
-                          <div className="flex items-center gap-1.5 text-slate-700 font-medium text-xs">
-                            <span>{q.business?.company_name || "Verified Business"}</span>
+                          <div className="flex items-center gap-1.5 text-slate-700 font-medium text-xs truncate">
+                            <span className="truncate">{q.business?.company_name || "Verified Business"}</span>
                             <span className="text-slate-300">·</span>
-                            <span className="text-slate-500 font-normal text-[11px]">
+                            <span className="text-slate-500 font-normal text-[11px] truncate">
                               {q.business?.industry}
                               {q.business?.hq_location ? ` · ${q.business.hq_location}` : ""}
                             </span>
                             <span
-                              className="inline-flex items-center text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1 py-0.2 rounded font-sans"
+                              className="inline-flex items-center text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1 py-0.2 rounded font-sans shrink-0 ml-0.5"
                               title="Approved Business"
                             >
                               <ShieldCheck className="w-2.5 h-2.5 mr-0.5 text-emerald-600" />
@@ -610,9 +714,9 @@ export function InsightsIndexPage() {
                           </div>
                         </div>
 
-                        {/* Perspective count & Link CTA */}
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-slate-600 font-medium flex items-center gap-1.5">
+                        {/* Perspective count & Action links */}
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="text-xs text-slate-600 font-medium flex items-center gap-1.5 font-mono">
                             <MessageSquare className="w-3.5 h-3.5 text-slate-400" />
                             {perspectiveCount === 0 ? (
                               <span className="text-slate-400">0 perspectives</span>
@@ -624,14 +728,30 @@ export function InsightsIndexPage() {
                             )}
                           </span>
 
-                          <Link
-                            to="/insights/$id"
-                            params={{ id: q.id }}
-                            className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider text-slate-900 hover:text-slate-700 font-bold ml-2"
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setShareItem({
+                                title: q.title,
+                                topic: q.topic,
+                                authorName: q.business?.company_name,
+                                urlPath: `/insights/${q.id}`,
+                                type: "question",
+                              });
+                            }}
+                            className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider text-slate-500 hover:text-slate-900 font-semibold py-1 px-1.5 hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                            title="Share this question"
                           >
+                            <Share2 className="w-3 h-3 text-orange-600" />
+                            <span>Share</span>
+                          </button>
+
+                          <span className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider text-slate-900 group-hover:text-orange-600 font-bold ml-1 transition-colors">
                             View
                             <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
-                          </Link>
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -746,6 +866,26 @@ export function InsightsIndexPage() {
                           </span>
                         </span>
                       )}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setShareItem({
+                            title: k.title,
+                            topic: k.topic,
+                            authorName: k.business?.company_name,
+                            urlPath: `/insights/knowledge/${k.id}`,
+                            type: "insight",
+                          });
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider text-slate-500 hover:text-slate-900 font-semibold py-1 px-1.5 hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                        title="Share this insight"
+                      >
+                        <Share2 className="w-3 h-3 text-orange-600" />
+                        <span>Share</span>
+                      </button>
+
                       <span className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider text-slate-900 font-bold ml-1">
                         Read
                         <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
@@ -814,6 +954,19 @@ export function InsightsIndexPage() {
             businesses={adminBusinesses}
           />
         </>
+      )}
+
+      {/* Public Share Modal */}
+      {shareItem && (
+        <ShareModal
+          open={!!shareItem}
+          onOpenChange={(open) => !open && setShareItem(null)}
+          title={shareItem.title}
+          topic={shareItem.topic}
+          authorName={shareItem.authorName}
+          urlPath={shareItem.urlPath}
+          type={shareItem.type}
+        />
       )}
     </div>
   );

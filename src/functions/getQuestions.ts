@@ -8,6 +8,7 @@ const getQuestionsSchema = z
     industry: z.string().optional().nullable(),
     search: z.string().optional().nullable(),
     status: z.string().optional().nullable(),
+    sortBy: z.enum(["newest", "perspectives"]).optional().nullable(),
     limit: z.union([z.number(), z.string()]).optional().nullable(),
     offset: z.union([z.number(), z.string()]).optional().nullable(),
   })
@@ -33,6 +34,9 @@ export const getQuestions = createServerFn({ method: "GET" })
       (data.status === "open" || data.status === "closed")
     ) {
       filters.status = data.status;
+    }
+    if (data?.sortBy === "perspectives" || data?.sortBy === "newest") {
+      filters.sortBy = data.sortBy;
     }
     if (data?.limit) {
       filters.limit = Number(data.limit);

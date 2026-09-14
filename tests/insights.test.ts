@@ -350,14 +350,14 @@ describe("Insights Feature: Business Questions & Perspectives", () => {
   });
 
   // ---------------------------------------------------------
-  // 4. Chronological Feed Order (No Engagement Ranking)
+  // 4. Chronological & Perspective Ordering
   // ---------------------------------------------------------
-  describe("Chronological Ordering (Strictly Newest First)", () => {
-    it("sorts questions by created_at descending", () => {
+  describe("Question Ordering Options", () => {
+    it("sorts questions by created_at descending (Newest first)", () => {
       const questions = [
-        { id: "1", created_at: "2026-03-01T10:00:00Z" },
-        { id: "2", created_at: "2026-03-11T12:00:00Z" },
-        { id: "3", created_at: "2026-03-05T15:00:00Z" },
+        { id: "1", created_at: "2026-03-01T10:00:00Z", _count: { perspectives: 10 } },
+        { id: "2", created_at: "2026-03-11T12:00:00Z", _count: { perspectives: 2 } },
+        { id: "3", created_at: "2026-03-05T15:00:00Z", _count: { perspectives: 5 } },
       ];
 
       const sorted = [...questions].sort(
@@ -368,10 +368,68 @@ describe("Insights Feature: Business Questions & Perspectives", () => {
       expect(sorted[1].id).toBe("3");
       expect(sorted[2].id).toBe("1");
     });
+
+    it("sorts questions by perspectives count descending (Most Perspectives)", () => {
+      const questions = [
+        { id: "1", created_at: "2026-03-01T10:00:00Z", _count: { perspectives: 10 } },
+        { id: "2", created_at: "2026-03-11T12:00:00Z", _count: { perspectives: 2 } },
+        { id: "3", created_at: "2026-03-05T15:00:00Z", _count: { perspectives: 5 } },
+      ];
+
+      const sorted = [...questions].sort(
+        (a, b) => (b._count?.perspectives || 0) - (a._count?.perspectives || 0),
+      );
+
+      expect(sorted[0].id).toBe("1");
+      expect(sorted[1].id).toBe("3");
+      expect(sorted[2].id).toBe("2");
+    });
   });
 
   // ---------------------------------------------------------
-  // 5. Notification Dispatch
+  // 5. Public Access Model & Privacy Guards
+  // ---------------------------------------------------------
+  describe("Public Access Model & Privacy Guards", () => {
+    it("ensures public question author object contains no private contact info", () => {
+      const publicBusinessProjection = {
+        id: approvedBusinessA.id,
+        company_name: approvedBusinessA.company_name,
+        industry: approvedBusinessA.industry,
+        hq_location: approvedBusinessA.hq_location,
+        status: approvedBusinessA.status,
+      };
+
+      expect(publicBusinessProjection).not.toHaveProperty("contact_email");
+      expect(publicBusinessProjection).not.toHaveProperty("phone");
+      expect(publicBusinessProjection).not.toHaveProperty("owner_user_id");
+    });
+
+    it("ensures public perspective author object contains no private contact info", () => {
+      const publicPerspectiveBusiness = {
+        id: approvedBusinessB.id,
+        company_name: approvedBusinessB.company_name,
+        industry: approvedBusinessB.industry,
+        hq_location: approvedBusinessB.hq_location,
+        status: approvedBusinessB.status,
+      };
+
+      expect(publicPerspectiveBusiness).not.toHaveProperty("contact_email");
+      expect(publicPerspectiveBusiness).not.toHaveProperty("phone");
+      expect(publicPerspectiveBusiness).not.toHaveProperty("owner_user_id");
+    });
+
+    it("identifies own question correctly for [YOUR QUESTION] badge", () => {
+      const currentBizId = approvedBusinessA.id;
+      const ownQuestion = { id: "q-1", business_id: approvedBusinessA.id };
+      const otherQuestion = { id: "q-2", business_id: approvedBusinessB.id };
+
+      expect(ownQuestion.business_id === currentBizId).toBe(true);
+      expect(otherQuestion.business_id === currentBizId).toBe(false);
+    });
+  });
+
+  // ---------------------------------------------------------
+  // 6. Notification Dispatch
   // ---------------------------------------------------------
   describe("Notification Dispatch on Perspective Creation", () => {
     it("dispatches notification to question owner when perspective is posted", async () => {

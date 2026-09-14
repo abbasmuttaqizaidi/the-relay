@@ -49,6 +49,7 @@ export class QuestionService {
           description: dto.description.trim(),
           topic: dto.topic,
           desired_perspective: dto.desired_perspective || null,
+          context_content_json: dto.context_content_json || null,
           status: "open",
         },
         include: {
@@ -117,9 +118,17 @@ export class QuestionService {
         ];
       }
 
+      const orderBy =
+        filters?.sortBy === "perspectives"
+          ? [
+              { perspectives: { _count: "desc" as const } },
+              { created_at: "desc" as const },
+            ]
+          : { created_at: "desc" as const };
+
       const questions = await prisma.question.findMany({
         where,
-        orderBy: { created_at: "desc" },
+        orderBy,
         take: filters?.limit ?? 50,
         skip: filters?.offset ?? 0,
         include: {
@@ -202,6 +211,9 @@ export class QuestionService {
       if (dto.topic !== undefined) dataToUpdate.topic = dto.topic;
       if (dto.desired_perspective !== undefined) {
         dataToUpdate.desired_perspective = dto.desired_perspective || null;
+      }
+      if (dto.context_content_json !== undefined) {
+        dataToUpdate.context_content_json = dto.context_content_json || null;
       }
       if (dto.status !== undefined) dataToUpdate.status = dto.status;
 
@@ -303,6 +315,7 @@ export class QuestionService {
       topic: q.topic,
       desired_perspective: q.desired_perspective ?? null,
       status: q.status,
+      context_content_json: q.context_content_json ?? null,
       created_at: q.created_at instanceof Date ? q.created_at.toISOString() : q.created_at,
       updated_at: q.updated_at instanceof Date ? q.updated_at.toISOString() : q.updated_at,
       business: q.business

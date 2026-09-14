@@ -27,9 +27,10 @@ const createAdminQuestionSchema = z
       .string()
       .trim()
       .min(30, "Description must be at least 30 characters")
-      .max(3000, "Description cannot exceed 3000 characters"),
+      .max(10000, "Description cannot exceed 10000 characters"),
     topic: questionTopicSchema,
     desired_perspective: desiredPerspectiveSchema.optional().nullable(),
+    context_content_json: z.string().optional().nullable(),
     status: z.enum(["open", "closed"]).optional().default("open"),
   })
   .refine((data) => Boolean(data.business_id || data.custom_company_name?.trim()), {
@@ -64,6 +65,7 @@ export const createAdminQuestion = createServerFn({ method: "POST" })
         description: data.description,
         topic: data.topic,
         desired_perspective: data.desired_perspective || null,
+        context_content_json: data.context_content_json || null,
         status: data.status || "open",
       },
       include: {

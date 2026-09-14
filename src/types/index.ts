@@ -220,6 +220,7 @@ export interface Question {
   topic: QuestionTopic;
   desired_perspective: DesiredPerspective | null;
   status: QuestionStatus;
+  context_content_json?: string | null;
   created_at: string;
   updated_at: string;
   business?: Business;
@@ -249,6 +250,7 @@ export interface CreateQuestionDTO {
   description: string;
   topic: QuestionTopic;
   desired_perspective?: DesiredPerspective | null;
+  context_content_json?: string | null;
 }
 
 export interface UpdateQuestionDTO {
@@ -257,6 +259,7 @@ export interface UpdateQuestionDTO {
   topic?: QuestionTopic;
   desired_perspective?: DesiredPerspective | null;
   status?: QuestionStatus;
+  context_content_json?: string | null;
 }
 
 export interface ListQuestionsFilters {
@@ -264,6 +267,7 @@ export interface ListQuestionsFilters {
   industry?: string;
   search?: string;
   status?: QuestionStatus;
+  sortBy?: "newest" | "perspectives";
   limit?: number;
   offset?: number;
 }

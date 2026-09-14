@@ -138,9 +138,10 @@ export const createQuestionSchema = z.object({
   description: z
     .string()
     .min(30, "Description must be at least 30 characters")
-    .max(3000, "Description cannot exceed 3000 characters"),
+    .max(10000, "Description cannot exceed 10000 characters"),
   topic: questionTopicSchema,
   desired_perspective: desiredPerspectiveSchema.optional().nullable(),
+  context_content_json: z.string().optional().nullable(),
 });
 
 export const updateQuestionSchema = z.object({
@@ -153,10 +154,11 @@ export const updateQuestionSchema = z.object({
   description: z
     .string()
     .min(30, "Description must be at least 30 characters")
-    .max(3000, "Description cannot exceed 3000 characters")
+    .max(10000, "Description cannot exceed 10000 characters")
     .optional(),
   topic: questionTopicSchema.optional(),
   desired_perspective: desiredPerspectiveSchema.optional().nullable(),
+  context_content_json: z.string().optional().nullable(),
 });
 
 export const closeQuestionSchema = z.object({

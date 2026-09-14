@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -18,11 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Loader2, HelpCircle } from "lucide-react";
+import { Loader2, HelpCircle, Maximize2 } from "lucide-react";
 import { createQuestion } from "../../functions/createQuestion";
 import { updateQuestion } from "../../functions/updateQuestion";
 import { Question, QuestionTopic, DesiredPerspective } from "../../types";
+import { QuestionRichTextEditor } from "./QuestionRichTextEditor";
 
 const TOPICS: { value: QuestionTopic; label: string }[] = [
   { value: "Building a System / Business", label: "Building a System / Business" },
@@ -58,10 +59,12 @@ export function AskQuestionDialog({
   onSuccess,
   questionToEdit,
 }: AskQuestionDialogProps) {
+  const navigate = useNavigate();
   const isEditing = !!questionToEdit;
   const [title, setTitle] = useState("");
   const [topic, setTopic] = useState<QuestionTopic>("Operations");
   const [description, setDescription] = useState("");
+  const [contextContentJson, setContextContentJson] = useState<string | null>(null);
   const [desiredPerspective, setDesiredPerspective] = useState<string>("any_business");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -71,11 +74,13 @@ export function AskQuestionDialog({
       setTitle(questionToEdit.title);
       setTopic(questionToEdit.topic);
       setDescription(questionToEdit.description);
+      setContextContentJson(questionToEdit.context_content_json || null);
       setDesiredPerspective(questionToEdit.desired_perspective || "any_business");
     } else {
       setTitle("");
       setTopic("Operations");
       setDescription("");
+      setContextContentJson(null);
       setDesiredPerspective("any_business");
     }
     setErrors({});
@@ -92,8 +97,8 @@ export function AskQuestionDialog({
 
     if (!description.trim() || description.trim().length < 30) {
       newErrors.description = "Please describe your question in at least 30 characters.";
-    } else if (description.trim().length > 3000) {
-      newErrors.description = "Description cannot exceed 3000 characters.";
+    } else if (description.trim().length > 10000) {
+      newErrors.description = "Description cannot exceed 10,000 characters.";
     }
 
     if (!topic) {
@@ -119,6 +124,7 @@ export function AskQuestionDialog({
             description: description.trim(),
             topic,
             desired_perspective: (desiredPerspective as DesiredPerspective) || null,
+            context_content_json: contextContentJson || null,
           },
         });
         toast.success("Question updated successfully.");
@@ -129,6 +135,7 @@ export function AskQuestionDialog({
             description: description.trim(),
             topic,
             desired_perspective: (desiredPerspective as DesiredPerspective) || null,
+            context_content_json: contextContentJson || null,
           },
         });
         toast.success("Question posted to The Relay.");
@@ -146,21 +153,41 @@ export function AskQuestionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-slate-200">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto bg-white border-slate-200">
         <form onSubmit={handleSubmit} className="space-y-5">
           <DialogHeader className="space-y-1 text-left">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-700">
-                <HelpCircle className="w-4 h-4" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-700">
+                  <HelpCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-semibold tracking-tight text-slate-900">
+                    {isEditing ? "Edit Question" : "Ask the Relay"}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-slate-500">
+                    Pose a genuine business challenge, decision, or problem to verified operators.
+                  </DialogDescription>
+                </div>
               </div>
-              <div>
-                <DialogTitle className="text-xl font-semibold tracking-tight text-slate-900">
-                  {isEditing ? "Edit Question" : "Ask the Relay"}
-                </DialogTitle>
-                <DialogDescription className="text-xs text-slate-500">
-                  Pose a genuine business challenge, decision, or problem to verified operators.
-                </DialogDescription>
-              </div>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  onOpenChange(false);
+                  navigate({
+                    to: "/insights/ask",
+                    search: questionToEdit ? { edit: questionToEdit.id } : {},
+                  });
+                }}
+                className="h-8 px-2 text-xs font-mono text-slate-500 hover:text-slate-900 gap-1.5"
+                title="Open in full screen page"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Full Screen</span>
+              </Button>
             </div>
           </DialogHeader>
 
@@ -231,25 +258,36 @@ export function AskQuestionDialog({
             {errors.title && <p className="text-[11px] text-red-500">{errors.title}</p>}
           </div>
 
-          {/* Question Description */}
+          {/* Question Description / Rich-Text Editor */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="question-desc" className="text-xs font-semibold text-slate-700">
                 Context & Details <span className="text-red-500">*</span>
               </Label>
               <span className="text-[11px] font-mono text-slate-400">
-                {description.length}/3000
+                {description.trim().length} chars (min 30)
               </span>
             </div>
-            <Textarea
-              id="question-desc"
-              rows={5}
+
+            <QuestionRichTextEditor
+              key={questionToEdit?.id || (open ? "new-open" : "new-closed")}
+              contentJson={contextContentJson}
+              initialPlainText={description}
+              questionId={questionToEdit?.id}
+              onChange={({ json, text }) => {
+                setContextContentJson(json);
+                setDescription(text);
+                if (errors.description && text.trim().length >= 30) {
+                  setErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.description;
+                    return next;
+                  });
+                }
+              }}
               placeholder="Share the necessary background: your current business stage, the trade-offs you are weighing, what you have tried so far, and the specific decision or perspective you are seeking..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              maxLength={3000}
-              className="text-sm bg-white border-slate-200 focus:border-slate-800 leading-relaxed resize-y"
             />
+
             {errors.description ? (
               <p className="text-[11px] text-red-500">{errors.description}</p>
             ) : (

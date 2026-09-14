@@ -18,6 +18,7 @@ import {
   HelpCircle,
   Info,
   Users,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,15 +34,53 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { getQuestionById } from "../functions/getQuestionById";
+import { getQuestions } from "../functions/getQuestions";
 import { closeQuestion } from "../functions/closeQuestion";
 import { deletePerspective } from "../functions/deletePerspective";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { AskQuestionDialog } from "../components/insights/AskQuestionDialog";
 import { SharePerspectiveDialog } from "../components/insights/SharePerspectiveDialog";
+import { ShareModal } from "../components/insights/ShareModal";
+import { QuestionContentRenderer } from "../components/insights/QuestionContentRenderer";
 import { CompanyLogo } from "../components/company-logo";
 import { Question, Perspective, Business, DesiredPerspective } from "../types";
 
 export const Route = createFileRoute("/insights/$id")({
+  loader: async ({ params }) => {
+    try {
+      const question = await getQuestionById({
+        data: { question_id: params.id },
+      });
+      return { question };
+    } catch {
+      return { question: null };
+    }
+  },
+  head: ({ loaderData }) => {
+    const title = loaderData?.question?.title
+      ? `${loaderData.question.title} — The Relay Insights`
+      : "Business Question & Perspectives — The Relay";
+    const snippet = loaderData?.question?.description
+      ? loaderData.question.description.slice(0, 160).replace(/\n/g, " ") + "..."
+      : "Peer perspectives and practical business answers from verified operators on The Relay.";
+    const author = loaderData?.question?.business?.company_name
+      ? ` Asked by ${loaderData.question.business.company_name}.`
+      : "";
+    const description = `${snippet}${author}`;
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "article" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
+    };
+  },
   component: QuestionDetailPage,
 });
 
@@ -71,6 +110,7 @@ export function QuestionDetailPage() {
   const navigate = useNavigate();
 
   const [question, setQuestion] = useState<Question | null>(null);
+  const [relatedQuestions, setRelatedQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserBusiness, setCurrentUserBusiness] = useState<Business | null>(null);
 
@@ -83,6 +123,7 @@ export function QuestionDetailPage() {
   const [perspectiveToEdit, setPerspectiveToEdit] = useState<Perspective | null>(null);
   const [deletePerspectiveId, setDeletePerspectiveId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   // Fetch current user business profile
   useEffect(() => {
@@ -100,7 +141,7 @@ export function QuestionDetailPage() {
     loadUser();
   }, [isSignedIn]);
 
-  // Fetch question details
+  // Fetch question details & related questions
   const loadQuestionData = async () => {
     try {
       setLoading(true);
@@ -108,10 +149,24 @@ export function QuestionDetailPage() {
         data: { question_id: id },
       });
       setQuestion(data);
+
+      // Fetch related questions based on topic
+      if (data?.topic) {
+        try {
+          const related = await getQuestions({
+            data: { topic: data.topic, limit: 4 },
+          });
+          setRelatedQuestions(
+            (related || []).filter((q) => q.id !== data.id).slice(0, 3),
+          );
+        } catch (relErr) {
+          console.warn("[QuestionDetailPage] Error fetching related questions:", relErr);
+        }
+      }
     } catch (err: any) {
       console.error("[QuestionDetailPage] Failed to load question:", err);
       toast.error("Failed to load question details.");
-      navigate({ to: "/insights" });
+      navigate({ to: "/insights", search: { tab: "questions" } });
     } finally {
       setLoading(false);
     }
@@ -238,6 +293,7 @@ export function QuestionDetailPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link
             to="/insights"
+            search={{ tab: "questions" }}
             className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-slate-600 hover:text-slate-900 font-semibold transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -257,6 +313,15 @@ export function QuestionDetailPage() {
                 Open
               </span>
             )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShareModalOpen(true)}
+              className="h-7 text-[10px] font-mono uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer ml-1 shadow-2xs"
+            >
+              <Share2 className="w-3 h-3 text-orange-600" />
+              <span>Share</span>
+            </Button>
           </div>
         </div>
       </div>
@@ -266,8 +331,69 @@ export function QuestionDetailPage() {
             MAIN QUESTION CARD
             ═══════════════════════════════════════════════════════════════════ */}
         <div className="bg-white border border-slate-200/90 rounded-sm p-6 sm:p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-6">
-          {/* Header row: Author business identity + Owner actions */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-slate-100">
+          {/* Top row: Topic badge, Status, Your Question indicator, and Owner actions */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider font-semibold rounded bg-slate-100 text-slate-700 border border-slate-200">
+                {question.topic}
+              </span>
+              {isQuestionClosed ? (
+                <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider font-medium rounded bg-amber-50 text-amber-700 border border-amber-200">
+                  Closed
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider font-medium rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Open
+                </span>
+              )}
+              {isQuestionOwner && (
+                <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider font-bold rounded bg-orange-50 text-orange-700 border border-orange-200">
+                  Your Question
+                </span>
+              )}
+            </div>
+
+            {/* Owner action controls */}
+            {isQuestionOwner && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate({ to: "/insights/ask", search: { edit: question.id } })}
+                  className="h-7 text-xs font-mono uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  <Edit2 className="w-3 h-3 mr-1" />
+                  Edit
+                </Button>
+                {!isQuestionClosed && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCloseConfirmOpen(true)}
+                    className="h-7 text-xs font-mono uppercase tracking-wider border-amber-200 text-amber-800 hover:bg-amber-50 cursor-pointer"
+                  >
+                    <Lock className="w-3 h-3 mr-1" />
+                    Close Question
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Dominant Question Title & Description */}
+          <div className="space-y-4">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 leading-tight font-sans">
+              {question.title}
+            </h1>
+            <QuestionContentRenderer
+              contentJson={question.context_content_json}
+              plainTextFallback={question.description}
+              className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal"
+            />
+          </div>
+
+          {/* Asking Business Credentials Row */}
+          <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <CompanyLogo
                 src={question.business?.logo_url}
@@ -277,7 +403,7 @@ export function QuestionDetailPage() {
                 textClassName="text-xs font-mono font-bold"
               />
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-semibold text-slate-900">
                     {question.business?.company_name}
                   </span>
@@ -300,41 +426,16 @@ export function QuestionDetailPage() {
               </div>
             </div>
 
-            {/* Owner action buttons */}
-            {isQuestionOwner && (
-              <div className="flex items-center gap-2 self-start sm:self-auto">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditQuestionOpen(true)}
-                  className="h-8 text-xs font-mono uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50"
-                >
-                  <Edit2 className="w-3 h-3 mr-1.5" />
-                  Edit
-                </Button>
-                {!isQuestionClosed && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCloseConfirmOpen(true)}
-                    className="h-8 text-xs font-mono uppercase tracking-wider border-amber-200 text-amber-800 hover:bg-amber-50"
-                  >
-                    <Lock className="w-3 h-3 mr-1.5" />
-                    Close Question
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Question Title & Description */}
-          <div className="space-y-4">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 leading-tight">
-              {question.title}
-            </h1>
-            <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-line space-y-3 font-normal">
-              {question.description}
-            </div>
+            {/* Share button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShareModalOpen(true)}
+              className="h-8 text-xs font-mono uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer shadow-2xs self-start sm:self-auto"
+            >
+              <Share2 className="w-3.5 h-3.5 text-orange-600" />
+              <span>Share</span>
+            </Button>
           </div>
 
           {/* Desired Perspective section (if set) */}
@@ -389,7 +490,7 @@ export function QuestionDetailPage() {
                       setSharePerspectiveOpen(true);
                     }}
                     variant="outline"
-                    className="h-9 text-xs font-mono uppercase tracking-wider border-slate-300 text-slate-800 hover:bg-slate-50"
+                    className="h-9 text-xs font-mono uppercase tracking-wider border-slate-300 text-slate-800 hover:bg-slate-50 cursor-pointer"
                   >
                     <Edit2 className="w-3.5 h-3.5 mr-1.5" />
                     Edit Your Perspective
@@ -397,7 +498,7 @@ export function QuestionDetailPage() {
                 ) : (
                   <Button
                     onClick={handleSharePerspectiveClick}
-                    className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono uppercase tracking-wider h-9 px-4 rounded-[2px] shadow-sm flex items-center gap-1.5"
+                    className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono uppercase tracking-wider h-9 px-4 rounded-[2px] shadow-sm flex items-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Share Your Perspective
@@ -423,7 +524,7 @@ export function QuestionDetailPage() {
               {!isQuestionClosed && !isQuestionOwner && (
                 <Button
                   onClick={handleSharePerspectiveClick}
-                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono uppercase tracking-wider h-8 px-4 rounded-[2px]"
+                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono uppercase tracking-wider h-8 px-4 rounded-[2px] cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5 mr-1" />
                   Share Your Perspective
@@ -439,7 +540,7 @@ export function QuestionDetailPage() {
                 return (
                   <div
                     key={perspective.id}
-                    className={`bg-white border rounded-sm p-6 space-y-4 transition-all ${
+                    className={`bg-white border rounded-sm p-6 sm:p-7 space-y-4 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${
                       isMyPerspective
                         ? "border-slate-400/80 ring-1 ring-slate-400/20"
                         : "border-slate-200/80 hover:border-slate-300"
@@ -456,8 +557,8 @@ export function QuestionDetailPage() {
                           textClassName="text-[10px] font-mono font-bold"
                         />
                         <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-semibold text-slate-900">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-xs sm:text-sm font-semibold text-slate-900">
                               {perspective.business?.company_name}
                             </span>
                             <span className="inline-flex items-center text-[9px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1 py-0.2 rounded font-sans">
@@ -491,14 +592,14 @@ export function QuestionDetailPage() {
                                 setPerspectiveToEdit(perspective);
                                 setSharePerspectiveOpen(true);
                               }}
-                              className="text-slate-500 hover:text-slate-900 p-1 transition-colors"
+                              className="text-slate-500 hover:text-slate-900 p-1 transition-colors cursor-pointer"
                               title="Edit perspective"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => setDeletePerspectiveId(perspective.id)}
-                              className="text-slate-400 hover:text-red-600 p-1 transition-colors"
+                              className="text-slate-400 hover:text-red-600 p-1 transition-colors cursor-pointer"
                               title="Delete perspective"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -508,38 +609,120 @@ export function QuestionDetailPage() {
                       </div>
                     </div>
 
-                    {/* Context Callout: Why qualified & Based on */}
-                    <div className="p-3 bg-slate-50/80 border border-slate-200/60 rounded text-xs space-y-1.5">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
-                        <div>
-                          <span className="font-semibold text-slate-700">Based on: </span>
-                          <span className="text-slate-600">{perspective.based_on}</span>
-                        </div>
-                        {perspective.relevant_experience && (
-                          <div className="sm:border-l sm:border-slate-200 sm:pl-4">
-                            <span className="font-semibold text-slate-700">Experience: </span>
-                            <span className="text-slate-600">
-                              {perspective.relevant_experience}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="pt-1 border-t border-slate-200/40">
-                        <span className="font-semibold text-slate-700">Context: </span>
-                        <span className="text-slate-600 italic">
-                          "{perspective.qualification}"
-                        </span>
-                      </div>
+                    {/* Perspective Content */}
+                    <div className="text-sm sm:text-base text-slate-800 leading-relaxed whitespace-pre-line space-y-3 font-normal py-1">
+                      {perspective.content}
                     </div>
 
-                    {/* Perspective Content */}
-                    <div className="text-sm text-slate-800 leading-relaxed whitespace-pre-line space-y-2 font-normal pt-1">
-                      {perspective.content}
+                    {/* Context & Qualification Section */}
+                    <div className="pt-3 border-t border-slate-100 space-y-2.5">
+                      {/* Why we're qualified */}
+                      <div className="p-3 bg-slate-50/80 border border-slate-200/70 rounded space-y-1">
+                        <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-700 block">
+                          Why We're Qualified
+                        </span>
+                        <p className="text-xs text-slate-700 italic leading-relaxed">
+                          "{perspective.qualification}"
+                        </p>
+                      </div>
+
+                      {/* Based on context */}
+                      <div className="flex items-center gap-2 flex-wrap text-xs text-slate-600">
+                        <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-500">
+                          Based on:
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200/80 text-[11px] font-medium font-sans">
+                          {perspective.based_on}
+                        </span>
+                        {perspective.relevant_experience && (
+                          <>
+                            <span className="text-slate-300">·</span>
+                            <span className="text-slate-500 text-xs font-normal">
+                              {perspective.relevant_experience}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Related Questions */}
+          {relatedQuestions.length > 0 && (
+            <div className="space-y-3 pt-4">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-slate-500" />
+                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-slate-700">
+                  Related Questions
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {relatedQuestions.map((rq) => {
+                  const pCount = rq._count?.perspectives ?? 0;
+                  return (
+                    <Link
+                      key={rq.id}
+                      to="/insights/$id"
+                      params={{ id: rq.id }}
+                      className="bg-white border border-slate-200/80 hover:border-slate-300 rounded-sm p-4 transition-all shadow-2xs hover:shadow-xs group flex flex-col justify-between gap-3 cursor-pointer"
+                    >
+                      <div className="space-y-1.5">
+                        <span className="text-[9px] font-mono uppercase tracking-wider font-semibold text-slate-500">
+                          {rq.topic}
+                        </span>
+                        <h4 className="text-xs font-semibold text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-2 leading-snug">
+                          {rq.title}
+                        </h4>
+                      </div>
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                        <span className="truncate max-w-[120px]">
+                          {rq.business?.company_name || "Verified Business"}
+                        </span>
+                        <span>
+                          {pCount} {pCount === 1 ? "perspective" : "perspectives"}
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Public Visitor Welcome Banner */}
+          {(!isSignedIn || (currentUserBusiness && currentUserBusiness.status !== "approved")) && (
+            <div className="p-6 bg-slate-50 border border-slate-200/80 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono uppercase font-bold text-slate-900 tracking-wider">
+                    The Relay Insights
+                  </span>
+                  <span className="text-[10px] bg-white border border-slate-200 text-slate-600 px-1.5 py-0.2 rounded font-mono font-medium">
+                    Verified Operators Only
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 max-w-lg leading-relaxed">
+                  Real business questions answered by verified businesses.
+                </p>
+              </div>
+              <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto">
+                <Link
+                  to="/signup"
+                  className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-wider font-bold bg-slate-900 hover:bg-orange-600 text-white px-4 py-2 rounded-[2px] transition-colors"
+                >
+                  Join The Relay
+                </Link>
+                <Link
+                  to="/insights"
+                  search={{ tab: "questions" }}
+                  className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-wider font-semibold border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 px-3.5 py-2 rounded-[2px] transition-colors"
+                >
+                  Explore Insights
+                </Link>
+              </div>
             </div>
           )}
         </div>
@@ -627,6 +810,19 @@ export function QuestionDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Public Share Modal */}
+      {question && (
+        <ShareModal
+          open={shareModalOpen}
+          onOpenChange={setShareModalOpen}
+          title={question.title}
+          topic={question.topic}
+          authorName={question.business?.company_name}
+          urlPath={`/insights/${question.id}`}
+          type="question"
+        />
+      )}
     </div>
   );
 }

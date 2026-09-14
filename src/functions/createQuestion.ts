@@ -30,6 +30,7 @@ export const createQuestion = createServerFn({ method: "POST" })
       description: data.description,
       topic: data.topic,
       desired_perspective: data.desired_perspective || null,
+      context_content_json: data.context_content_json || null,
     });
   });
 

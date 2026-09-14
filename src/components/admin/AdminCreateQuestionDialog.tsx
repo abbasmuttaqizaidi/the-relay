@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -18,9 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Loader2, HelpCircle, Building2 } from "lucide-react";
+import { Loader2, HelpCircle, Building2, Maximize2 } from "lucide-react";
 import { createAdminQuestion } from "../../functions/createAdminQuestion";
+import { QuestionRichTextEditor } from "../insights/QuestionRichTextEditor";
 import { QuestionTopic, DesiredPerspective } from "../../types";
 
 const TOPICS: { value: QuestionTopic; label: string }[] = [
@@ -83,6 +84,7 @@ export function AdminCreateQuestionDialog({
   onSuccess,
   businesses,
 }: AdminCreateQuestionDialogProps) {
+  const navigate = useNavigate();
   const [businessMode, setBusinessMode] = useState<"existing" | "custom">("existing");
   const [selectedBusinessId, setSelectedBusinessId] = useState("");
   const [customCompanyName, setCustomCompanyName] = useState("");
@@ -92,6 +94,7 @@ export function AdminCreateQuestionDialog({
   const [title, setTitle] = useState("");
   const [topic, setTopic] = useState<QuestionTopic>("Operations");
   const [description, setDescription] = useState("");
+  const [contextContentJson, setContextContentJson] = useState<string | null>(null);
   const [desiredPerspective, setDesiredPerspective] = useState<string>("any_business");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -113,6 +116,7 @@ export function AdminCreateQuestionDialog({
       setTitle("");
       setTopic("Operations");
       setDescription("");
+      setContextContentJson(null);
       setDesiredPerspective("any_business");
       setErrors({});
     }
@@ -141,8 +145,8 @@ export function AdminCreateQuestionDialog({
 
     if (!description.trim() || description.trim().length < 30) {
       newErrors.description = "Please describe the question in at least 30 characters.";
-    } else if (description.trim().length > 3000) {
-      newErrors.description = "Description cannot exceed 3000 characters.";
+    } else if (description.trim().length > 10000) {
+      newErrors.description = "Description cannot exceed 10000 characters.";
     }
 
     if (!topic) {
@@ -172,6 +176,7 @@ export function AdminCreateQuestionDialog({
           topic,
           desired_perspective: (desiredPerspective || null) as any,
           status: "open",
+          context_content_json: contextContentJson || null,
         },
       });
 
@@ -188,20 +193,39 @@ export function AdminCreateQuestionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-white border border-slate-200 rounded-[3px] p-6 shadow-xl">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto bg-white border border-slate-200 rounded-[3px] p-6 shadow-xl">
         <DialogHeader className="space-y-1.5 pb-4 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-[2px] bg-slate-100 text-slate-900 flex items-center justify-center">
-              <HelpCircle className="w-4 h-4" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-[2px] bg-slate-100 text-slate-900 flex items-center justify-center">
+                <HelpCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-bold text-slate-900 font-sans">
+                  Create Business Question (Admin)
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-500">
+                  Post a new business question manually on behalf of any registered company.
+                </DialogDescription>
+              </div>
             </div>
-            <div>
-              <DialogTitle className="text-lg font-bold text-slate-900 font-sans">
-                Create Business Question (Admin)
-              </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500">
-                Post a new business question manually on behalf of any registered company.
-              </DialogDescription>
-            </div>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                onOpenChange(false);
+                navigate({
+                  to: "/insights/ask",
+                });
+              }}
+              className="h-8 px-2 text-xs font-mono text-slate-500 hover:text-slate-900 gap-1.5 cursor-pointer"
+              title="Open in full screen page"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Full Screen</span>
+            </Button>
           </div>
         </DialogHeader>
 
@@ -408,7 +432,7 @@ export function AdminCreateQuestionDialog({
             )}
           </div>
 
-          {/* Description */}
+          {/* Detailed Context / Rich-Text Editor */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-mono uppercase tracking-wider text-slate-700 font-bold">
@@ -416,28 +440,40 @@ export function AdminCreateQuestionDialog({
               </Label>
               <span
                 className={`text-[10px] font-mono ${
-                  description.length > 3000
+                  description.length > 10000
                     ? "text-red-500 font-bold"
-                    : description.length >= 30
+                    : description.trim().length >= 30
                       ? "text-emerald-600 font-bold"
                       : "text-slate-400"
                 }`}
               >
-                {description.length}/3000
+                {description.trim().length} chars (min 30)
               </span>
             </div>
-            <Textarea
-              placeholder="Provide context on the problem, what has been tried, and what specifics you are looking to understand..."
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-                if (errors.description) setErrors((prev) => ({ ...prev, description: "" }));
+            <QuestionRichTextEditor
+              key={open ? "admin-open" : "admin-closed"}
+              contentJson={contextContentJson}
+              initialPlainText={description}
+              businessId={selectedBusinessId || "admin"}
+              onChange={({ json, text }) => {
+                setContextContentJson(json);
+                setDescription(text);
+                if (errors.description && text.trim().length >= 30) {
+                  setErrors((prev) => {
+                    const next = { ...prev };
+                    delete next.description;
+                    return next;
+                  });
+                }
               }}
-              className="min-h-[110px] text-xs bg-white border-slate-200 rounded-[2px] leading-relaxed resize-y focus:ring-1 focus:ring-slate-900"
-              maxLength={3000}
+              placeholder="Provide context on the problem, what has been tried, and what specifics you are looking to understand..."
             />
-            {errors.description && (
+            {errors.description ? (
               <p className="text-[11px] text-red-500 font-mono">{errors.description}</p>
+            ) : (
+              <p className="text-[10px] text-slate-400 font-mono">
+                Minimum 30 characters. Supports rich formatting (headings, lists, tables, bold, italic, code, quotes, and images).
+              </p>
             )}
           </div>
 

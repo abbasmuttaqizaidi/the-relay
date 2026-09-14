@@ -27,6 +27,7 @@ import { Route as InsightsIndexRouteImport } from './routes/insights.index'
 import { Route as RequestsSentRouteImport } from './routes/requests.sent'
 import { Route as RequestsIncomingRouteImport } from './routes/requests.incoming'
 import { Route as OpportunitiesMyRouteImport } from './routes/opportunities.my'
+import { Route as InsightsAskRouteImport } from './routes/insights.ask'
 import { Route as InsightsIdRouteImport } from './routes/insights.$id'
 import { Route as ConnectionsIdRouteImport } from './routes/connections.$id'
 import { Route as InsightsKnowledgeIdRouteImport } from './routes/insights.knowledge.$id'
@@ -121,6 +122,11 @@ const OpportunitiesMyRoute = OpportunitiesMyRouteImport.update({
   path: '/my',
   getParentRoute: () => OpportunitiesRoute,
 } as any)
+const InsightsAskRoute = InsightsAskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
+  getParentRoute: () => InsightsRoute,
+} as any)
 const InsightsIdRoute = InsightsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -153,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
+  '/insights/ask': typeof InsightsAskRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/requests/incoming': typeof RequestsIncomingRoute
   '/requests/sent': typeof RequestsSentRoute
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
+  '/insights/ask': typeof InsightsAskRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/requests/incoming': typeof RequestsIncomingRoute
   '/requests/sent': typeof RequestsSentRoute
@@ -198,6 +206,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
+  '/insights/ask': typeof InsightsAskRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/requests/incoming': typeof RequestsIncomingRoute
   '/requests/sent': typeof RequestsSentRoute
@@ -223,6 +232,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/connections/$id'
     | '/insights/$id'
+    | '/insights/ask'
     | '/opportunities/my'
     | '/requests/incoming'
     | '/requests/sent'
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/connections/$id'
     | '/insights/$id'
+    | '/insights/ask'
     | '/opportunities/my'
     | '/requests/incoming'
     | '/requests/sent'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/connections/$id'
     | '/insights/$id'
+    | '/insights/ask'
     | '/opportunities/my'
     | '/requests/incoming'
     | '/requests/sent'
@@ -422,6 +434,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OpportunitiesMyRouteImport
       parentRoute: typeof OpportunitiesRoute
     }
+    '/insights/ask': {
+      id: '/insights/ask'
+      path: '/ask'
+      fullPath: '/insights/ask'
+      preLoaderRoute: typeof InsightsAskRouteImport
+      parentRoute: typeof InsightsRoute
+    }
     '/insights/$id': {
       id: '/insights/$id'
       path: '/$id'
@@ -448,12 +467,14 @@ declare module '@tanstack/react-router' {
 
 interface InsightsRouteChildren {
   InsightsIdRoute: typeof InsightsIdRoute
+  InsightsAskRoute: typeof InsightsAskRoute
   InsightsIndexRoute: typeof InsightsIndexRoute
   InsightsKnowledgeIdRoute: typeof InsightsKnowledgeIdRoute
 }
 
 const InsightsRouteChildren: InsightsRouteChildren = {
   InsightsIdRoute: InsightsIdRoute,
+  InsightsAskRoute: InsightsAskRoute,
   InsightsIndexRoute: InsightsIndexRoute,
   InsightsKnowledgeIdRoute: InsightsKnowledgeIdRoute,
 }
