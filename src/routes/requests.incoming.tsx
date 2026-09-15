@@ -280,9 +280,14 @@ function IncomingRequestsPage() {
           <div id="requests-tabs-row" className="w-full md:w-auto flex gap-1.5 bg-slate-100 p-1 rounded-[4px] border border-slate-200 font-mono text-[9.5px] uppercase tracking-wider font-bold">
             <Link
               to="/requests/incoming"
-              className="flex-1 md:flex-initial text-center px-4 py-2 bg-white text-slate-900 border border-slate-200/50 shadow-sm rounded-[2px]"
+              className="flex-1 md:flex-initial text-center px-4 py-2 bg-white text-slate-900 border border-slate-200/50 shadow-sm rounded-[2px] inline-flex items-center justify-center gap-1.5"
             >
               Incoming ({requests.length})
+              {incomingCount > 0 && (
+                <span className="bg-red-500 text-white rounded-full text-[9px] px-1.5 py-0.5 font-sans font-bold leading-none">
+                  {incomingCount}
+                </span>
+              )}
             </Link>
             <Link
               to="/requests/sent"
@@ -408,46 +413,42 @@ function IncomingRequestsPage() {
                     </div>
 
                     {/* Actions Panel */}
-                    {!isAccepted && (
-                      <div className="flex flex-row lg:flex-col gap-2.5 w-full lg:w-44 shrink-0 lg:border-l lg:border-slate-100 lg:pl-6 justify-end lg:justify-center">
-                        {isPending && (
-                          <>
-                            <button
-                              onClick={() => handleAccept(req.id, req.requesting_business.company_name)}
-                              className="flex-1 lg:flex-none py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm shadow-emerald-950/20"
-                            >
-                              <Check className="w-3.5 h-3.5" /> Accept
-                            </button>
-                            <button
-                              onClick={() => handleDecline(req.id, req.requesting_business.company_name)}
-                              className="flex-1 lg:flex-none py-2.5 px-4 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                            >
-                              <X className="w-3.5 h-3.5" /> Decline
-                            </button>
-                          </>
-                        )}
+                    <div className="flex flex-row lg:flex-col gap-2.5 w-full lg:w-44 shrink-0 lg:border-l lg:border-slate-100 lg:pl-6 justify-end lg:justify-center">
+                      {isPending && (
+                        <>
+                          <Link
+                            to="/connections/$id"
+                            params={{ id: req.id }}
+                            className="flex-1 lg:flex-none py-2.5 px-4 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                          >
+                            Exchange Hub <ArrowRight className="w-3.5 h-3.5" />
+                          </Link>
+                          <button
+                            onClick={() => handleDecline(req.id, req.requesting_business.company_name)}
+                            className="flex-1 lg:flex-none py-2 px-3 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-[9.5px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" /> Decline
+                          </button>
+                        </>
+                      )}
 
-                        {!isPending && (
-                          <div className="w-full text-center py-2.5 px-3 border border-slate-200/80 bg-slate-50/50 text-[9px] font-mono uppercase tracking-widest font-bold text-slate-400 rounded-[2px] cursor-default">
-                            {isDeclined ? "Declined" : "Withdrawn"}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                      {isAccepted && (
+                        <Link
+                          to="/connections/$id"
+                          params={{ id: req.id }}
+                          className="w-full text-center py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                        >
+                          View Handshake <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                      )}
 
-                  {/* Full-width View Handshake Button at bottom */}
-                  {isAccepted && (
-                    <div className="pt-4 mt-2 border-t border-slate-100">
-                      <Link
-                        to="/connections/$id"
-                        params={{ id: req.id }}
-                        className="w-full text-center py-3 px-4 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs hover:shadow"
-                      >
-                        View Handshake <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
+                      {!isPending && !isAccepted && (
+                        <div className="w-full text-center py-2.5 px-3 border border-slate-200/80 bg-slate-50/50 text-[9px] font-mono uppercase tracking-widest font-bold text-slate-400 rounded-[2px] cursor-default">
+                          {isDeclined ? "Declined" : "Withdrawn"}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}

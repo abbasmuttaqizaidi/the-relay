@@ -1,11 +1,11 @@
 // Types for The Relay B2B Platform
 
-export type BusinessStatus = "pending" | "approved" | "rejected";
+export type BusinessStatus = "pending" | "approved" | "rejected" | "restricted";
 export type BusinessMemberRole = "owner" | "admin" | "member";
 export type OpportunityCategory = "partnership" | "referral" | "distribution" | "vendor" | "hiring" | "strategic_advice" | "investment";
 export type OpportunityStatus = "active" | "closed";
 export type PromotionStatus = "none" | "pending_promotion" | "promoted";
-export type InterestStatus = "pending" | "accepted" | "declined" | "withdrawn";
+export type InterestStatus = "pending" | "accepted" | "declined" | "withdrawn" | "unresponsive";
 
 // ---------------------------------------------------------
 // DATABASE MODELS
@@ -16,6 +16,16 @@ export interface User {
   clerk_user_id: string;
   email: string | null;
   created_at: string;
+}
+
+export interface ReliabilityEvent {
+  id: string;
+  business_id: string;
+  interest_id: string;
+  reason: string;
+  created_at: string;
+  business?: Business;
+  interest?: Interest;
 }
 
 export interface Business {
@@ -40,6 +50,7 @@ export interface Business {
   website_verified_domain: string | null;
   created_at: string;
   updated_at: string;
+  reliability_events?: ReliabilityEvent[];
 }
 
 export interface BusinessMember {
@@ -73,8 +84,140 @@ export interface Interest {
   requesting_business_id: string; // UUID references businesses.id
   message: string | null;
   status: InterestStatus;
+  requester_acknowledged_at?: string | null;
+  owner_acknowledged_at?: string | null;
+  last_follow_up_at?: string | null;
   created_at: string;
   updated_at: string;
+  opportunity?: Opportunity;
+  requesting_business?: Business;
+  exchange_proposals?: ExchangeProposal[];
+  exchange_agreement?: ExchangeAgreement | null;
+  contact_consents?: ContactSharingConsent[];
+  reliability_events?: ReliabilityEvent[];
+}
+
+export type ExchangeType =
+  | "fixed_amount"
+  | "revenue_share"
+  | "qualified_lead"
+  | "business_opportunity"
+  | "service_work"
+  | "partnership"
+  | "introduction"
+  | "other";
+
+export type ExchangeProposalStatus =
+  | "pending_response"
+  | "countered"
+  | "accepted"
+  | "superseded"
+  | "declined"
+  | "cancelled";
+
+export type ExchangeAgreementStatus = "draft" | "agreed" | "cancelled";
+
+export type ContactSharingStatus = "requested" | "accepted" | "declined";
+
+export type ContactField = "email" | "phone" | "whatsapp" | "linkedin" | "twitter";
+
+export type DeclineReason =
+  | "valuation_mismatch"
+  | "exchange_type_unsuitable"
+  | "timeline_conflict"
+  | "scope_unclear"
+  | "other";
+
+export interface ExchangeProposal {
+  id: string;
+  interest_id: string;
+  opportunity_id: string;
+  proposing_business_id: string;
+  receiving_business_id: string;
+  exchange_type: ExchangeType;
+  exchange_details: string;
+  revenue_percentage?: number | null;
+  fixed_amount?: number | null;
+  currency?: string | null;
+  additional_terms?: string | null;
+  version: number;
+  status: ExchangeProposalStatus;
+  decline_reason?: DeclineReason | string | null;
+  decline_note?: string | null;
+  created_at: string;
+  updated_at: string;
+  proposing_business?: Business;
+  receiving_business?: Business;
+}
+
+export interface ExchangeAgreement {
+  id: string;
+  interest_id: string;
+  opportunity_id: string;
+  final_proposal_id?: string | null;
+  owner_business_id: string;
+  interested_business_id: string;
+  exchange_type: ExchangeType;
+  exchange_details: string;
+  revenue_percentage?: number | null;
+  fixed_amount?: number | null;
+  currency?: string | null;
+  additional_terms?: string | null;
+  status: ExchangeAgreementStatus;
+  owner_confirmed_at?: string | null;
+  requester_confirmed_at?: string | null;
+  agreed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  owner_business?: Business;
+  interested_business?: Business;
+}
+
+export interface ContactSharingConsent {
+  id: string;
+  interest_id: string;
+  from_business_id: string;
+  to_business_id: string;
+  contact_field: ContactField;
+  status: ContactSharingStatus;
+  requested_at: string;
+  accepted_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateProposalDTO {
+  interest_id: string;
+  proposing_business_id: string;
+  exchange_type: ExchangeType;
+  exchange_details: string;
+  revenue_percentage?: number;
+  fixed_amount?: number;
+  currency?: string;
+  additional_terms?: string;
+}
+
+export interface CounterProposalDTO {
+  interest_id: string;
+  proposing_business_id: string;
+  exchange_type: ExchangeType;
+  exchange_details: string;
+  revenue_percentage?: number;
+  fixed_amount?: number;
+  currency?: string;
+  additional_terms?: string;
+}
+
+export interface ShareContactFieldsDTO {
+  interest_id: string;
+  business_id: string;
+  fields: ContactField[];
+}
+
+export interface AcceptContactFieldsDTO {
+  interest_id: string;
+  business_id: string;
+  fields: ContactField[];
 }
 
 
@@ -305,11 +448,13 @@ export interface KnowledgeInsight {
   business_id: string;
   title: string;
   content: string;
+  content_json?: string | null;
   topic: KnowledgeInsightTopic;
   based_on?: KnowledgeInsightBasedOn | null;
   status: KnowledgeInsightStatus;
   created_at: string;
   updated_at: string;
+  published_at?: string | null;
   business?: Business | null;
 }
 
@@ -317,9 +462,11 @@ export interface CreateKnowledgeInsightDTO {
   business_id: string;
   title: string;
   content: string;
+  content_json?: string | null;
   topic: KnowledgeInsightTopic;
   based_on?: KnowledgeInsightBasedOn | null;
   status?: KnowledgeInsightStatus;
+  published_at?: string | null;
 }
 
 export interface UpdateKnowledgeInsightDTO {
@@ -327,9 +474,11 @@ export interface UpdateKnowledgeInsightDTO {
   business_id: string;
   title?: string;
   content?: string;
+  content_json?: string | null;
   topic?: KnowledgeInsightTopic;
   based_on?: KnowledgeInsightBasedOn | null;
   status?: KnowledgeInsightStatus;
+  published_at?: string | null;
 }
 
 export interface ListKnowledgeInsightsFilters {

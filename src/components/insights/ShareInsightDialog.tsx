@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Lightbulb, ShieldCheck } from "lucide-react";
+import { Loader2, Lightbulb, ShieldCheck, ArrowRight } from "lucide-react";
 import { createKnowledgeInsight } from "../../functions/createKnowledgeInsight";
 import { updateKnowledgeInsight } from "../../functions/updateKnowledgeInsight";
 import {
@@ -67,6 +68,7 @@ export function ShareInsightDialog({
   onSuccess,
   insightToEdit,
 }: ShareInsightDialogProps) {
+  const navigate = useNavigate();
   const isEditing = !!insightToEdit;
   const [title, setTitle] = useState("");
   const [topic, setTopic] = useState<KnowledgeInsightTopic>("Operations");
@@ -74,6 +76,28 @@ export function ShareInsightDialog({
   const [basedOn, setBasedOn] = useState<string>("business_experience");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleContinueInFullEditor = () => {
+    try {
+      sessionStorage.setItem(
+        "relay_knowledge_draft_init",
+        JSON.stringify({
+          title: title.trim(),
+          topic,
+          based_on: basedOn,
+          content: content.trim(),
+        }),
+      );
+    } catch {
+      // Ignore
+    }
+    onOpenChange(false);
+    if (isEditing && insightToEdit) {
+      navigate({ to: `/insights/knowledge/${insightToEdit.id}/edit` });
+    } else {
+      navigate({ to: "/insights/knowledge/new" });
+    }
+  };
 
   useEffect(() => {
     if (insightToEdit) {
@@ -264,32 +288,44 @@ export function ShareInsightDialog({
             </span>
           </div>
 
-          <DialogFooter className="pt-2 flex items-center justify-end gap-2">
+          <DialogFooter className="pt-2 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={submitting}
-              className="text-xs border-slate-200"
+              onClick={handleContinueInFullEditor}
+              className="text-xs font-mono border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
             >
-              Cancel
+              <span>Continue in Full Editor</span>
+              <ArrowRight className="w-3.5 h-3.5 text-orange-600" />
             </Button>
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono uppercase tracking-wider h-9 px-5"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
-                  Publishing...
-                </>
-              ) : isEditing ? (
-                "Save Changes"
-              ) : (
-                "Publish Insight"
-              )}
-            </Button>
+
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+                disabled={submitting}
+                className="text-xs text-slate-500 hover:text-slate-900 cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono uppercase tracking-wider h-9 px-4 cursor-pointer"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                    Publishing...
+                  </>
+                ) : isEditing ? (
+                  "Save Changes"
+                ) : (
+                  "Publish Insight"
+                )}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

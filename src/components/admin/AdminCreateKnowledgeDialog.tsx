@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Lightbulb, Building2 } from "lucide-react";
+import { Loader2, Lightbulb, Building2, ArrowRight } from "lucide-react";
 import { createAdminKnowledgeInsight } from "../../functions/createAdminKnowledgeInsight";
 import { KnowledgeInsightTopic, KnowledgeInsightBasedOn } from "../../types";
 
@@ -88,6 +89,7 @@ export function AdminCreateKnowledgeDialog({
   onSuccess,
   businesses,
 }: AdminCreateKnowledgeDialogProps) {
+  const navigate = useNavigate();
   const [businessMode, setBusinessMode] = useState<"existing" | "custom">("existing");
   const [selectedBusinessId, setSelectedBusinessId] = useState("");
   const [customCompanyName, setCustomCompanyName] = useState("");
@@ -100,6 +102,24 @@ export function AdminCreateKnowledgeDialog({
   const [basedOn, setBasedOn] = useState<string>("business_experience");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleContinueInFullEditor = () => {
+    try {
+      sessionStorage.setItem(
+        "relay_knowledge_draft_init",
+        JSON.stringify({
+          title: title.trim(),
+          topic,
+          based_on: basedOn,
+          content: content.trim(),
+        }),
+      );
+    } catch {
+      // Ignore
+    }
+    onOpenChange(false);
+    navigate({ to: "/insights/knowledge/new" });
+  };
 
   useEffect(() => {
     if (open) {
@@ -464,30 +484,42 @@ export function AdminCreateKnowledgeDialog({
             </Select>
           </div>
 
-          <DialogFooter className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+          <DialogFooter className="pt-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={submitting}
-              className="text-xs font-mono uppercase tracking-wider h-10 px-4 rounded-[2px] border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
+              onClick={handleContinueInFullEditor}
+              className="text-xs font-mono border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs h-10 px-4"
             >
-              Cancel
+              <span>Continue in Full Editor</span>
+              <ArrowRight className="w-3.5 h-3.5 text-orange-600" />
             </Button>
-            <Button
-              type="submit"
-              disabled={submitting || businesses.length === 0}
-              className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono uppercase tracking-wider h-10 px-6 rounded-[2px] shadow-sm flex items-center gap-2 cursor-pointer font-bold"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Publishing Insight...
-                </>
-              ) : (
-                "Publish Insight"
-              )}
-            </Button>
+
+            <div className="flex items-center justify-end gap-2.5">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={submitting}
+                className="text-xs font-mono uppercase tracking-wider h-10 px-4 rounded-[2px] border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={submitting || businesses.length === 0}
+                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono uppercase tracking-wider h-10 px-6 rounded-[2px] shadow-sm flex items-center gap-2 cursor-pointer font-bold"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Publishing Insight...
+                  </>
+                ) : (
+                  "Publish Insight"
+                )}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

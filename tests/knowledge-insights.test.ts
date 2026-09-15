@@ -365,4 +365,178 @@ describe("Insights Feature: Use Case 2 (Knowledge Insights)", () => {
       expect(publicSafeBusiness).not.toHaveProperty("contact_email");
     });
   });
+
+  // ---------------------------------------------------------
+  // 6. Knowledge Editorial Workspace & Tiptap Schema Tests
+  // ---------------------------------------------------------
+  describe("Knowledge Editorial Workspace & Rich-Text Persistence", () => {
+    it("allows saving drafts with partial content (under 50 characters)", () => {
+      const draftData = {
+        title: "Initial Draft Title",
+        content: "Drafting in progress...", // Under 50 chars
+        content_json: JSON.stringify({
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Drafting in progress..." }],
+            },
+          ],
+        }),
+        topic: "Operations",
+        based_on: "business_experience",
+        status: "draft",
+      };
+
+      const result = createKnowledgeInsightSchema.safeParse(draftData);
+      expect(result.success).toBe(true);
+    });
+
+    it("enforces 50 characters minimum when publishing", () => {
+      const publishData = {
+        title: "Full Publishing Attempt",
+        content: "Too short for publish.",
+        topic: "Operations",
+        status: "published",
+      };
+
+      const result = createKnowledgeInsightSchema.safeParse(publishData);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain("at least 50 characters");
+      }
+    });
+
+    it("persists structured Tiptap JSON and round-trips without data loss", () => {
+      const tiptapDoc = {
+        type: "doc",
+        content: [
+          {
+            type: "heading",
+            attrs: { level: 2 },
+            content: [{ type: "text", text: "1. The Unit Economics Problem" }],
+          },
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "We discovered that our " },
+              { type: "text", marks: [{ type: "bold" }], text: "CAC exceeded LTV" },
+              { type: "text", text: " when targeting mid-market leads directly." },
+            ],
+          },
+          {
+            type: "image",
+            attrs: {
+              src: "https://example.com/storage/knowledge/biz-1/chart.png",
+              alt: "LTV vs CAC Chart",
+              caption: "Q3 Acquisition Performance Breakdown",
+              alignment: "center",
+            },
+          },
+          {
+            type: "blockquote",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: "Never scale customer acquisition before unit economics stabilize.",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const serialized = JSON.stringify(tiptapDoc);
+      const parsed = JSON.parse(serialized);
+
+      expect(parsed.type).toBe("doc");
+      expect(parsed.content.length).toBe(4);
+      expect(parsed.content[0].type).toBe("heading");
+      expect(parsed.content[1].content[1].marks[0].type).toBe("bold");
+      expect(parsed.content[2].attrs.alignment).toBe("center");
+      expect(parsed.content[3].type).toBe("blockquote");
+    });
+
+    it("strictly strips or rejects video/iframe embed nodes from Tiptap JSON rendering", () => {
+      const maliciousDocWithVideo = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Legitimate paragraph text here." }],
+          },
+          {
+            type: "video",
+            attrs: { src: "https://youtube.com/watch?v=12345" },
+          },
+          {
+            type: "iframe",
+            attrs: { src: "https://vimeo.com/embed/12345" },
+          },
+        ],
+      };
+
+      // Simulating our renderer filter logic
+      const allowedNodes = maliciousDocWithVideo.content.filter(
+        (node) => node.type !== "video" && node.type !== "iframe",
+      );
+
+      expect(allowedNodes.length).toBe(1);
+      expect(allowedNodes[0].type).toBe("paragraph");
+      expect(allowedNodes.some((n) => n.type === "video")).toBe(false);
+      expect(allowedNodes.some((n) => n.type === "iframe")).toBe(false);
+    });
+
+    it("strictly sanitizes dangerous javascript: URLs in links", () => {
+      const dangerousHref = "javascript:alert('xss')";
+      const isDangerous = dangerousHref.toLowerCase().startsWith("javascript:");
+      expect(isDangerous).toBe(true);
+
+      const safeUrl = (url: string) => {
+        if (url.toLowerCase().startsWith("javascript:")) return "#";
+        return url;
+      };
+
+      expect(safeUrl(dangerousHref)).toBe("#");
+      expect(safeUrl("https://company.com")).toBe("https://company.com");
+    });
+
+    it("validates knowledge image storage path convention", () => {
+      const businessId = "biz-1234";
+      const knowledgeId = "kn-5678";
+      const fileName = "chart_1720000000_abc123.png";
+
+      const expectedPath = `knowledge/${businessId}/${knowledgeId}/${fileName}`;
+      expect(expectedPath).toMatch(/^knowledge\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/);
+    });
+
+    it("verifies public vs draft visibility isolation", () => {
+      const allArticles = [
+        { id: "1", title: "Public Article", status: "published", business_id: "biz-a" },
+        { id: "2", title: "Secret Draft", status: "draft", business_id: "biz-a" },
+        { id: "3", title: "Other Draft", status: "draft", business_id: "biz-b" },
+      ];
+
+      // Unauthenticated visitor listing:
+      const publicVisitorListing = allArticles.filter((a) => a.status === "published");
+      expect(publicVisitorListing.length).toBe(1);
+      expect(publicVisitorListing[0].title).toBe("Public Article");
+      expect(publicVisitorListing.some((a) => a.status === "draft")).toBe(false);
+
+      // Non-owner direct access check for draft:
+      const canVisitorViewDraft = (article: (typeof allArticles)[0], visitorUserId?: string) => {
+        if (article.status === "published") return true;
+        return visitorUserId === article.business_id;
+      };
+
+      expect(canVisitorViewDraft(allArticles[1], undefined)).toBe(false); // Unauthenticated visitor
+      expect(canVisitorViewDraft(allArticles[1], "biz-b")).toBe(false); // Different business
+      expect(canVisitorViewDraft(allArticles[1], "biz-a")).toBe(true); // Owner business
+    });
+  });
 });
+

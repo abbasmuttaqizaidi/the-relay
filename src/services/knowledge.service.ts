@@ -46,14 +46,17 @@ export class KnowledgeService {
       }
 
       // 2. Create Knowledge Insight in database
+      const status = dto.status || "published";
       const insight = await prisma.knowledgeInsight.create({
         data: {
           business_id: dto.business_id,
           title: dto.title.trim(),
           content: dto.content.trim(),
+          content_json: dto.content_json || null,
           topic: dto.topic,
           based_on: dto.based_on || null,
-          status: dto.status || "published",
+          status,
+          published_at: status === "published" ? new Date() : null,
         },
         include: {
           business: {
@@ -202,9 +205,15 @@ export class KnowledgeService {
       const updateData: any = {};
       if (dto.title !== undefined) updateData.title = dto.title.trim();
       if (dto.content !== undefined) updateData.content = dto.content.trim();
+      if (dto.content_json !== undefined) updateData.content_json = dto.content_json || null;
       if (dto.topic !== undefined) updateData.topic = dto.topic;
       if (dto.based_on !== undefined) updateData.based_on = dto.based_on || null;
-      if (dto.status !== undefined) updateData.status = dto.status;
+      if (dto.status !== undefined) {
+        updateData.status = dto.status;
+        if (dto.status === "published" && existing.status !== "published") {
+          updateData.published_at = new Date();
+        }
+      }
 
       const updated = await prisma.knowledgeInsight.update({
         where: { id: dto.knowledge_insight_id },
@@ -366,6 +375,7 @@ export class KnowledgeService {
       business_id: insight.business_id,
       title: insight.title,
       content: insight.content,
+      content_json: insight.content_json || null,
       topic: insight.topic,
       based_on: insight.based_on || null,
       status: insight.status,
@@ -377,6 +387,11 @@ export class KnowledgeService {
         typeof insight.updated_at === "string"
           ? insight.updated_at
           : insight.updated_at.toISOString(),
+      published_at: insight.published_at
+        ? typeof insight.published_at === "string"
+          ? insight.published_at
+          : insight.published_at.toISOString()
+        : null,
       business: insight.business
         ? {
             ...insight.business,

@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ShieldCheck,
+  BadgeCheck,
   Edit2,
   Trash2,
   Archive,
@@ -32,6 +33,7 @@ import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { ShareInsightDialog } from "../components/insights/ShareInsightDialog";
 import { ShareModal } from "../components/insights/ShareModal";
 import { CompanyLogo } from "../components/company-logo";
+import { KnowledgeContentRenderer } from "../components/insights/KnowledgeContentRenderer";
 import { KnowledgeInsight, Business, KnowledgeInsightBasedOn } from "../types";
 
 export const Route = createFileRoute("/insights/knowledge/$id")({
@@ -472,11 +474,11 @@ export function KnowledgeDetailPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setEditOpen(true)}
+                  onClick={() => navigate({ to: `/insights/knowledge/${insight.id}/edit` })}
                   className="h-8 text-xs font-mono border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 cursor-pointer"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Edit</span>
+                  <span className="hidden sm:inline">Edit Article</span>
                 </Button>
                 {insight.status !== "archived" && (
                   <Button
@@ -508,6 +510,25 @@ export function KnowledgeDetailPage() {
           2. MAIN EDITORIAL ARTICLE CANVAS (NO BOXED CARD)
           ═══════════════════════════════════════════════════════════════════ */}
       <main className="max-w-[720px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14">
+        {/* Draft Notice for Owner */}
+        {insight.status === "draft" && (
+          <div className="mb-8 p-3.5 bg-amber-50/90 border border-amber-200 rounded flex items-center justify-between gap-3 text-xs text-amber-800 font-sans">
+            <div className="flex items-center gap-2">
+              <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>
+                This knowledge article is currently saved as a <strong>draft</strong> and is only visible to you.
+              </span>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => navigate({ to: `/insights/knowledge/${insight.id}/edit` })}
+              className="bg-amber-800 hover:bg-amber-900 text-white text-xs font-mono shrink-0 cursor-pointer"
+            >
+              Resume Editing
+            </Button>
+          </div>
+        )}
+
         {/* Archived Notice for Owner */}
         {insight.status === "archived" && (
           <div className="mb-8 p-3.5 bg-amber-50/90 border border-amber-200 rounded flex items-center gap-2.5 text-xs text-amber-800 font-sans">
@@ -545,13 +566,16 @@ export function KnowledgeDetailPage() {
                 <span className="text-sm font-bold text-slate-900 font-sans">
                   {insight.business?.company_name || "Verified Business"}
                 </span>
-                <span className="inline-flex items-center text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-sans font-medium">
-                  <ShieldCheck className="w-3 h-3 mr-0.5 text-emerald-600" />
-                  Approved Business
+                <span
+                  className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#1877f2] text-white shrink-0 shadow-2xs"
+                  title="Approved Business on The Relay"
+                >
+                  <BadgeCheck className="w-3.5 h-3.5 fill-current" />
                 </span>
+                <span className="text-[11px] font-mono text-slate-400">Approved Business</span>
               </div>
               <div className="text-xs text-slate-500 font-sans mt-0.5 flex flex-wrap items-center gap-1.5">
-                <span>{formatDate(insight.created_at)}</span>
+                <span>{formatDate(insight.published_at || insight.created_at)}</span>
                 <span>·</span>
                 <span>{calculateReadingTime(insight.content)}</span>
                 {insight.business?.industry && (
@@ -577,9 +601,12 @@ export function KnowledgeDetailPage() {
           </div>
         </div>
 
-        {/* 9. Article Content Body (Editorial Typography) */}
-        <article className="font-sans text-slate-800 leading-[1.8] text-[17px] sm:text-[18.5px] pb-12">
-          {renderArticleContent(insight.content)}
+        {/* 9. Article Content Body (Editorial Typography with Tiptap JSON support) */}
+        <article className="pb-12">
+          <KnowledgeContentRenderer
+            contentJson={insight.content_json}
+            plainTextFallback={insight.content}
+          />
         </article>
 
         {/* 10. "Based on" Metadata Block */}
@@ -615,10 +642,13 @@ export function KnowledgeDetailPage() {
                   <h3 className="text-base sm:text-lg font-bold text-slate-950 font-display">
                     {insight.business?.company_name || "Verified Business"}
                   </h3>
-                  <span className="inline-flex items-center text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-sans font-medium">
-                    <ShieldCheck className="w-3 h-3 mr-0.5 text-emerald-600" />
-                    Approved Business
+                  <span
+                    className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#1877f2] text-white shrink-0 shadow-2xs"
+                    title="Approved Business on The Relay"
+                  >
+                    <BadgeCheck className="w-3.5 h-3.5 fill-current" />
                   </span>
+                  <span className="text-[11px] font-mono text-slate-400">Approved Business</span>
                 </div>
                 <p className="text-xs text-slate-500 font-mono">
                   {insight.business?.industry}

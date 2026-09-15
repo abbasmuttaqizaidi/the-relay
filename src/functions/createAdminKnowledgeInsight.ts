@@ -30,6 +30,7 @@ const createAdminKnowledgeInsightSchema = z
       .max(5000, "Content cannot exceed 5000 characters"),
     topic: questionTopicSchema,
     based_on: knowledgeInsightBasedOnSchema.optional().nullable(),
+    content_json: z.string().optional().nullable(),
     status: z.enum(["published", "draft", "archived"]).optional().default("published"),
   })
   .refine((data) => Boolean(data.business_id || data.custom_company_name?.trim()), {
@@ -57,14 +58,17 @@ export const createAdminKnowledgeInsight = createServerFn({ method: "POST" })
     });
 
     // 3. Create knowledge insight in database
+    const status = data.status || "published";
     const insight = await prisma.knowledgeInsight.create({
       data: {
         business_id: business.id,
         title: data.title,
         content: data.content,
+        content_json: data.content_json || null,
         topic: data.topic,
         based_on: data.based_on || null,
-        status: data.status || "published",
+        status,
+        published_at: status === "published" ? new Date() : null,
       },
       include: {
         business: {

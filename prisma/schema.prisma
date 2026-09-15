@@ -14,10 +14,11 @@ datasource db {
 // ---------------------------------------------------------
 
 model User {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  clerk_user_id String   @unique
-  email         String?
-  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clerk_user_id  String   @unique
+  email          String?
+  tour_completed Boolean  @default(false)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
 
   businesses          Business[]
   business_members    BusinessMember[]
@@ -57,6 +58,13 @@ model Business {
   questions        Question[]
   perspectives     Perspective[]
   knowledge_insights KnowledgeInsight[]
+  proposals_sent        ExchangeProposal[]      @relation("ProposingBusinessProposals")
+  proposals_received    ExchangeProposal[]      @relation("ReceivingBusinessProposals")
+  agreements_as_owner   ExchangeAgreement[]     @relation("OwnerBusinessAgreements")
+  agreements_as_partner ExchangeAgreement[]     @relation("InterestedBusinessAgreements")
+  consents_given        ContactSharingConsent[] @relation("FromBusinessContactConsents")
+  consents_received     ContactSharingConsent[] @relation("ToBusinessContactConsents")
+  reliability_events    ReliabilityEvent[]
 
   @@map("businesses")
 }
@@ -105,22 +113,126 @@ model Opportunity {
 }
 
 model Interest {
-  id                     String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  opportunity_id         String      @db.Uuid
-  requesting_business_id String      @db.Uuid
-  message                String?
-  status                 String      @default("pending")
-  created_at             DateTime    @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime    @default(now()) @updatedAt @db.Timestamptz(6)
+  id                        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  opportunity_id            String      @db.Uuid
+  requesting_business_id    String      @db.Uuid
+  message                   String?
+  status                    String      @default("pending")
+  requester_acknowledged_at DateTime?   @db.Timestamptz(6)
+  owner_acknowledged_at     DateTime?   @db.Timestamptz(6)
+  last_follow_up_at         DateTime?   @db.Timestamptz(6)
+  created_at                DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime    @default(now()) @updatedAt @db.Timestamptz(6)
 
-  opportunity         Opportunity @relation(fields: [opportunity_id], references: [id], onDelete: Cascade)
-  requesting_business Business    @relation(fields: [requesting_business_id], references: [id], onDelete: Cascade)
+  opportunity         Opportunity             @relation(fields: [opportunity_id], references: [id], onDelete: Cascade)
+  requesting_business Business                @relation(fields: [requesting_business_id], references: [id], onDelete: Cascade)
+  exchange_proposals  ExchangeProposal[]
+  exchange_agreement  ExchangeAgreement?
+  contact_consents    ContactSharingConsent[]
+  reliability_events  ReliabilityEvent[]
 
   @@unique([opportunity_id, requesting_business_id])
   @@index([opportunity_id])
   @@index([requesting_business_id])
   @@index([status])
   @@map("interests")
+}
+
+model ExchangeProposal {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  interest_id           String    @db.Uuid
+  opportunity_id        String    @db.Uuid
+  proposing_business_id String    @db.Uuid
+  receiving_business_id String    @db.Uuid
+  exchange_type         String
+  exchange_details      String
+  revenue_percentage    Float?
+  fixed_amount          Float?
+  currency              String?   @default("USD")
+  additional_terms      String?
+  version               Int       @default(1)
+  status                String    @default("pending_response")
+  created_at            DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  interest           Interest    @relation(fields: [interest_id], references: [id], onDelete: Cascade)
+  proposing_business Business    @relation("ProposingBusinessProposals", fields: [proposing_business_id], references: [id], onDelete: Cascade)
+  receiving_business Business    @relation("ReceivingBusinessProposals", fields: [receiving_business_id], references: [id], onDelete: Cascade)
+
+  @@index([interest_id])
+  @@index([proposing_business_id])
+  @@index([receiving_business_id])
+  @@index([status])
+  @@map("exchange_proposals")
+}
+
+model ExchangeAgreement {
+  id                     String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  interest_id            String    @unique @db.Uuid
+  opportunity_id         String    @db.Uuid
+  final_proposal_id      String?   @db.Uuid
+  owner_business_id      String    @db.Uuid
+  interested_business_id String    @db.Uuid
+  exchange_type          String
+  exchange_details       String
+  revenue_percentage     Float?
+  fixed_amount           Float?
+  currency               String?   @default("USD")
+  additional_terms       String?
+  status                 String    @default("draft")
+  owner_confirmed_at     DateTime? @db.Timestamptz(6)
+  requester_confirmed_at DateTime? @db.Timestamptz(6)
+  agreed_at              DateTime? @db.Timestamptz(6)
+  created_at             DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  interest            Interest    @relation(fields: [interest_id], references: [id], onDelete: Cascade)
+  owner_business      Business    @relation("OwnerBusinessAgreements", fields: [owner_business_id], references: [id], onDelete: Cascade)
+  interested_business Business    @relation("InterestedBusinessAgreements", fields: [interested_business_id], references: [id], onDelete: Cascade)
+
+  @@index([interest_id])
+  @@index([owner_business_id])
+  @@index([interested_business_id])
+  @@index([status])
+  @@map("exchange_agreements")
+}
+
+model ContactSharingConsent {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  interest_id      String    @db.Uuid
+  from_business_id String    @db.Uuid
+  to_business_id   String    @db.Uuid
+  contact_field    String
+  status           String    @default("requested")
+  requested_at     DateTime  @default(now()) @db.Timestamptz(6)
+  accepted_at      DateTime? @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  interest      Interest @relation(fields: [interest_id], references: [id], onDelete: Cascade)
+  from_business Business @relation("FromBusinessContactConsents", fields: [from_business_id], references: [id], onDelete: Cascade)
+  to_business   Business @relation("ToBusinessContactConsents", fields: [to_business_id], references: [id], onDelete: Cascade)
+
+  @@unique([interest_id, from_business_id, contact_field])
+  @@index([interest_id])
+  @@index([from_business_id])
+  @@index([to_business_id])
+  @@map("contact_sharing_consents")
+}
+
+model ReliabilityEvent {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id String    @db.Uuid
+  interest_id String    @db.Uuid
+  reason      String    @default("unresponsive_7_days")
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+
+  business    Business  @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  interest    Interest  @relation(fields: [interest_id], references: [id], onDelete: Cascade)
+
+  @@unique([interest_id, business_id])
+  @@index([business_id])
+  @@map("reliability_events")
 }
 
 model ActivityLog {
@@ -204,15 +316,17 @@ model Perspective {
 }
 
 model KnowledgeInsight {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  business_id String   @db.Uuid
-  title       String
-  content     String
-  topic       String
-  based_on    String?
-  status      String   @default("published")
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id  String    @db.Uuid
+  title        String
+  content      String
+  content_json String?
+  topic        String
+  based_on     String?
+  status       String    @default("published")
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  published_at DateTime? @db.Timestamptz(6)
 
   business Business @relation(fields: [business_id], references: [id], onDelete: Cascade)
 

@@ -30,7 +30,9 @@ import { Route as OpportunitiesMyRouteImport } from './routes/opportunities.my'
 import { Route as InsightsAskRouteImport } from './routes/insights.ask'
 import { Route as InsightsIdRouteImport } from './routes/insights.$id'
 import { Route as ConnectionsIdRouteImport } from './routes/connections.$id'
+import { Route as InsightsKnowledgeNewRouteImport } from './routes/insights.knowledge.new'
 import { Route as InsightsKnowledgeIdRouteImport } from './routes/insights.knowledge.$id'
+import { Route as InsightsKnowledgeIdEditRouteImport } from './routes/insights.knowledge.$id.edit'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -137,10 +139,20 @@ const ConnectionsIdRoute = ConnectionsIdRouteImport.update({
   path: '/connections/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InsightsKnowledgeNewRoute = InsightsKnowledgeNewRouteImport.update({
+  id: '/knowledge/new',
+  path: '/knowledge/new',
+  getParentRoute: () => InsightsRoute,
+} as any)
 const InsightsKnowledgeIdRoute = InsightsKnowledgeIdRouteImport.update({
   id: '/knowledge/$id',
   path: '/knowledge/$id',
   getParentRoute: () => InsightsRoute,
+} as any)
+const InsightsKnowledgeIdEditRoute = InsightsKnowledgeIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => InsightsKnowledgeIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -165,7 +177,9 @@ export interface FileRoutesByFullPath {
   '/requests/sent': typeof RequestsSentRoute
   '/insights/': typeof InsightsIndexRoute
   '/opportunities/': typeof OpportunitiesIndexRoute
-  '/insights/knowledge/$id': typeof InsightsKnowledgeIdRoute
+  '/insights/knowledge/$id': typeof InsightsKnowledgeIdRouteWithChildren
+  '/insights/knowledge/new': typeof InsightsKnowledgeNewRoute
+  '/insights/knowledge/$id/edit': typeof InsightsKnowledgeIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -187,7 +201,9 @@ export interface FileRoutesByTo {
   '/requests/sent': typeof RequestsSentRoute
   '/insights': typeof InsightsIndexRoute
   '/opportunities': typeof OpportunitiesIndexRoute
-  '/insights/knowledge/$id': typeof InsightsKnowledgeIdRoute
+  '/insights/knowledge/$id': typeof InsightsKnowledgeIdRouteWithChildren
+  '/insights/knowledge/new': typeof InsightsKnowledgeNewRoute
+  '/insights/knowledge/$id/edit': typeof InsightsKnowledgeIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -212,7 +228,9 @@ export interface FileRoutesById {
   '/requests/sent': typeof RequestsSentRoute
   '/insights/': typeof InsightsIndexRoute
   '/opportunities/': typeof OpportunitiesIndexRoute
-  '/insights/knowledge/$id': typeof InsightsKnowledgeIdRoute
+  '/insights/knowledge/$id': typeof InsightsKnowledgeIdRouteWithChildren
+  '/insights/knowledge/new': typeof InsightsKnowledgeNewRoute
+  '/insights/knowledge/$id/edit': typeof InsightsKnowledgeIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -239,6 +257,8 @@ export interface FileRouteTypes {
     | '/insights/'
     | '/opportunities/'
     | '/insights/knowledge/$id'
+    | '/insights/knowledge/new'
+    | '/insights/knowledge/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -261,6 +281,8 @@ export interface FileRouteTypes {
     | '/insights'
     | '/opportunities'
     | '/insights/knowledge/$id'
+    | '/insights/knowledge/new'
+    | '/insights/knowledge/$id/edit'
   id:
     | '__root__'
     | '/'
@@ -285,6 +307,8 @@ export interface FileRouteTypes {
     | '/insights/'
     | '/opportunities/'
     | '/insights/knowledge/$id'
+    | '/insights/knowledge/new'
+    | '/insights/knowledge/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -455,6 +479,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConnectionsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/insights/knowledge/new': {
+      id: '/insights/knowledge/new'
+      path: '/knowledge/new'
+      fullPath: '/insights/knowledge/new'
+      preLoaderRoute: typeof InsightsKnowledgeNewRouteImport
+      parentRoute: typeof InsightsRoute
+    }
     '/insights/knowledge/$id': {
       id: '/insights/knowledge/$id'
       path: '/knowledge/$id'
@@ -462,21 +493,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InsightsKnowledgeIdRouteImport
       parentRoute: typeof InsightsRoute
     }
+    '/insights/knowledge/$id/edit': {
+      id: '/insights/knowledge/$id/edit'
+      path: '/edit'
+      fullPath: '/insights/knowledge/$id/edit'
+      preLoaderRoute: typeof InsightsKnowledgeIdEditRouteImport
+      parentRoute: typeof InsightsKnowledgeIdRoute
+    }
   }
 }
+
+interface InsightsKnowledgeIdRouteChildren {
+  InsightsKnowledgeIdEditRoute: typeof InsightsKnowledgeIdEditRoute
+}
+
+const InsightsKnowledgeIdRouteChildren: InsightsKnowledgeIdRouteChildren = {
+  InsightsKnowledgeIdEditRoute: InsightsKnowledgeIdEditRoute,
+}
+
+const InsightsKnowledgeIdRouteWithChildren =
+  InsightsKnowledgeIdRoute._addFileChildren(InsightsKnowledgeIdRouteChildren)
 
 interface InsightsRouteChildren {
   InsightsIdRoute: typeof InsightsIdRoute
   InsightsAskRoute: typeof InsightsAskRoute
   InsightsIndexRoute: typeof InsightsIndexRoute
-  InsightsKnowledgeIdRoute: typeof InsightsKnowledgeIdRoute
+  InsightsKnowledgeIdRoute: typeof InsightsKnowledgeIdRouteWithChildren
+  InsightsKnowledgeNewRoute: typeof InsightsKnowledgeNewRoute
 }
 
 const InsightsRouteChildren: InsightsRouteChildren = {
   InsightsIdRoute: InsightsIdRoute,
   InsightsAskRoute: InsightsAskRoute,
   InsightsIndexRoute: InsightsIndexRoute,
-  InsightsKnowledgeIdRoute: InsightsKnowledgeIdRoute,
+  InsightsKnowledgeIdRoute: InsightsKnowledgeIdRouteWithChildren,
+  InsightsKnowledgeNewRoute: InsightsKnowledgeNewRoute,
 }
 
 const InsightsRouteWithChildren = InsightsRoute._addFileChildren(

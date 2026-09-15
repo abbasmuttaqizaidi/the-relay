@@ -3,11 +3,11 @@ import { z } from "zod";
 // Shared validators
 export const uuidSchema = z.string().uuid("Invalid UUID format");
 
-export const businessStatusSchema = z.enum(["pending", "approved", "rejected"]);
+export const businessStatusSchema = z.enum(["pending", "approved", "rejected", "restricted"]);
 export const businessMemberRoleSchema = z.enum(["owner", "admin", "member"]);
 export const opportunityCategorySchema = z.enum(["partnership", "referral", "distribution", "vendor", "hiring", "strategic_advice", "investment"]);
 export const opportunityStatusSchema = z.enum(["active", "closed"]);
-export const interestStatusSchema = z.enum(["pending", "accepted", "declined", "withdrawn"]);
+export const interestStatusSchema = z.enum(["pending", "accepted", "declined", "withdrawn", "unresponsive"]);
 export const promotionStatusSchema = z.enum(["none", "pending_promotion", "promoted"]);
 
 // ---------------------------------------------------------
@@ -222,39 +222,60 @@ export const knowledgeInsightStatusSchema = z.enum([
   "archived",
 ]);
 
-export const createKnowledgeInsightSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(10, "Title must be at least 10 characters")
-    .max(200, "Title cannot exceed 200 characters"),
-  content: z
-    .string()
-    .trim()
-    .min(50, "Content must be at least 50 characters")
-    .max(5000, "Content cannot exceed 5000 characters"),
-  topic: questionTopicSchema,
-  based_on: knowledgeInsightBasedOnSchema.optional().nullable(),
-});
+export const createKnowledgeInsightSchema = z
+  .object({
+    title: z
+      .string()
+      .trim()
+      .min(10, "Title must be at least 10 characters")
+      .max(200, "Title cannot exceed 200 characters"),
+    content: z
+      .string()
+      .trim()
+      .max(5000, "Content cannot exceed 5000 characters"),
+    content_json: z.string().optional().nullable(),
+    topic: questionTopicSchema,
+    based_on: knowledgeInsightBasedOnSchema.optional().nullable(),
+    status: knowledgeInsightStatusSchema.optional().default("published"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.status !== "draft" && data.content.length < 50) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Content must be at least 50 characters",
+        path: ["content"],
+      });
+    }
+  });
 
-export const updateKnowledgeInsightSchema = z.object({
-  knowledge_insight_id: uuidSchema,
-  title: z
-    .string()
-    .trim()
-    .min(10, "Title must be at least 10 characters")
-    .max(200, "Title cannot exceed 200 characters")
-    .optional(),
-  content: z
-    .string()
-    .trim()
-    .min(50, "Content must be at least 50 characters")
-    .max(5000, "Content cannot exceed 5000 characters")
-    .optional(),
-  topic: questionTopicSchema.optional(),
-  based_on: knowledgeInsightBasedOnSchema.optional().nullable(),
-  status: knowledgeInsightStatusSchema.optional(),
-});
+export const updateKnowledgeInsightSchema = z
+  .object({
+    knowledge_insight_id: uuidSchema,
+    title: z
+      .string()
+      .trim()
+      .min(10, "Title must be at least 10 characters")
+      .max(200, "Title cannot exceed 200 characters")
+      .optional(),
+    content: z
+      .string()
+      .trim()
+      .max(5000, "Content cannot exceed 5000 characters")
+      .optional(),
+    content_json: z.string().optional().nullable(),
+    topic: questionTopicSchema.optional(),
+    based_on: knowledgeInsightBasedOnSchema.optional().nullable(),
+    status: knowledgeInsightStatusSchema.optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.status === "published" && data.content !== undefined && data.content.length < 50) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Content must be at least 50 characters",
+        path: ["content"],
+      });
+    }
+  });
 
 export const archiveKnowledgeInsightSchema = z.object({
   knowledge_insight_id: uuidSchema,
@@ -272,5 +293,92 @@ export const listKnowledgeInsightsSchema = z.object({
   limit: z.number().min(1).max(50).optional(),
   offset: z.number().min(0).optional(),
 });
+
+// ---------------------------------------------------------
+// EXCHANGE & NEGOTIATION VALIDATORS
+// ---------------------------------------------------------
+
+export const exchangeTypeSchema = z.enum([
+  "fixed_amount",
+  "revenue_share",
+  "qualified_lead",
+  "business_opportunity",
+  "service_work",
+  "partnership",
+  "introduction",
+  "other",
+]);
+
+export const contactFieldSchema = z.enum([
+  "email",
+  "phone",
+  "whatsapp",
+  "linkedin",
+  "twitter",
+]);
+
+export const acknowledgeProcessSchema = z.object({
+  interest_id: uuidSchema,
+});
+
+export const createProposalSchema = z.object({
+  interest_id: uuidSchema,
+  exchange_type: exchangeTypeSchema,
+  exchange_details: z.string().min(5, "Details must be at least 5 characters").max(3000, "Details cannot exceed 3000 characters"),
+  revenue_percentage: z.number().min(0.01).max(100).optional().nullable(),
+  fixed_amount: z.number().min(0).optional().nullable(),
+  currency: z.string().max(10).optional().nullable(),
+  additional_terms: z.string().max(2000).optional().nullable(),
+});
+
+export const counterProposalSchema = z.object({
+  interest_id: uuidSchema,
+  exchange_type: exchangeTypeSchema,
+  exchange_details: z.string().min(5, "Details must be at least 5 characters").max(3000, "Details cannot exceed 3000 characters"),
+  revenue_percentage: z.number().min(0.01).max(100).optional().nullable(),
+  fixed_amount: z.number().min(0).optional().nullable(),
+  currency: z.string().max(10).optional().nullable(),
+  additional_terms: z.string().max(2000).optional().nullable(),
+});
+
+export const declineReasonSchema = z.enum([
+  "valuation_mismatch",
+  "exchange_type_unsuitable",
+  "timeline_conflict",
+  "scope_unclear",
+  "other",
+]);
+
+export const respondProposalSchema = z.object({
+  proposal_id: uuidSchema,
+  action: z.enum(["accept", "decline"]),
+  decline_reason: declineReasonSchema.optional().nullable(),
+  decline_note: z.string().max(500).optional().nullable(),
+});
+
+export const withdrawProposalSchema = z.object({
+  proposal_id: uuidSchema,
+});
+
+export const confirmAgreementSchema = z.object({
+  interest_id: uuidSchema,
+  proposal_id: uuidSchema,
+});
+
+export const shareContactConsentSchema = z.object({
+  interest_id: uuidSchema,
+  fields: z.array(contactFieldSchema).min(1, "Please select at least one contact field to share"),
+});
+
+export const acceptContactConsentSchema = z.object({
+  interest_id: uuidSchema,
+  fields: z.array(contactFieldSchema).min(1, "Please select at least one contact field to accept"),
+});
+
+export const sendFollowUpSchema = z.object({
+  interest_id: uuidSchema,
+});
+
+
 
 

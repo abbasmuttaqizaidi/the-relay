@@ -21,21 +21,49 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/s
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { ReciprocityBadge } from "@/components/reciprocity-badge";
+import { getIncomingRequestsCount } from "@/functions/getIncomingRequestsCount";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 
 interface NavbarProps {
   incomingCount?: number;
 }
 
-export function Navbar({ incomingCount = 0 }: NavbarProps) {
+export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   const { isSignedIn } = useAuth();
   const matchRoute = useMatchRoute();
   const navigate = useNavigate();
+  const [incomingCount, setIncomingCount] = useState(propCount);
   const [profile, setProfile] = useState<{
     companyName: string;
     email: string;
     verificationLevel: string;
   } | null>(null);
+
+  const fetchIncomingCount = async () => {
+    if (!isSignedIn) return;
+    try {
+      const res = await getIncomingRequestsCount();
+      if (res && typeof res.count === "number") {
+        setIncomingCount(res.count);
+      }
+    } catch {
+      // Ignore background fetch error
+    }
+  };
+
+  useEffect(() => {
+    if (isSignedIn) {
+      fetchIncomingCount();
+      const interval = setInterval(fetchIncomingCount, 15000);
+      window.addEventListener("relay:interest", fetchIncomingCount);
+      window.addEventListener("storage", fetchIncomingCount);
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener("relay:interest", fetchIncomingCount);
+        window.removeEventListener("storage", fetchIncomingCount);
+      };
+    }
+  }, [isSignedIn]);
 
   const handleNavbarTourClick = () => {
     if (typeof window !== "undefined") {

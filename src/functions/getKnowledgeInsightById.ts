@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeaders } from "@tanstack/react-start/server";
 import { KnowledgeService } from "../services/knowledge.service";
 import { getAuthenticatedUser } from "../lib/auth.server";
 import { BusinessService } from "../services/business.service";
+import { verifyAdminSession } from "../lib/admin-auth.server";
 import { z } from "zod";
 
 const getKnowledgeInsightByIdSchema = z.object({
@@ -17,20 +19,32 @@ export const getKnowledgeInsightById = createServerFn({ method: "GET" })
     }
 
     // Public access allows reading published articles.
-    // Unpublished or archived articles are restricted to the author business owner only.
+    // Unpublished or archived articles are restricted to the author business owner or admin only.
     if (insight.status !== "published") {
-      let isOwner = false;
+      let isAllowed = false;
       try {
-        const user = await getAuthenticatedUser();
-        const business = await BusinessService.getBusinessByOwner(user.id);
-        if (business && business.id === insight.business_id) {
-          isOwner = true;
+        const headers = getRequestHeaders();
+        const cookieHeader = headers.get("cookie") || "";
+        if (verifyAdminSession(cookieHeader)) {
+          isAllowed = true;
         }
       } catch {
-        isOwner = false;
+        // Not admin
       }
 
-      if (!isOwner) {
+      if (!isAllowed) {
+        try {
+          const user = await getAuthenticatedUser();
+          const business = await BusinessService.getBusinessByOwner(user.id);
+          if (business && business.id === insight.business_id) {
+            isAllowed = true;
+          }
+        } catch {
+          isAllowed = false;
+        }
+      }
+
+      if (!isAllowed) {
         throw new Error("Knowledge insight not found");
       }
     }

@@ -369,38 +369,42 @@ function SentRequestsPage() {
                     </div>
 
                     {/* Actions Panel */}
-                    {!isAccepted && (
-                      <div className="flex flex-row lg:flex-col gap-2.5 w-full lg:w-44 shrink-0 lg:border-l lg:border-slate-100 lg:pl-6 justify-end lg:justify-center">
-                        {isPending && (
+                    <div className="flex flex-row lg:flex-col gap-2.5 w-full lg:w-44 shrink-0 lg:border-l lg:border-slate-100 lg:pl-6 justify-end lg:justify-center">
+                      {isPending && (
+                        <>
+                          <Link
+                            to="/connections/$id"
+                            params={{ id: req.id }}
+                            className="flex-1 lg:flex-none py-2.5 px-4 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                          >
+                            Exchange Hub <ArrowRight className="w-3.5 h-3.5" />
+                          </Link>
                           <button
                             onClick={() => handleWithdraw(req.id, req.opportunity.title)}
-                            className="flex-1 lg:flex-none py-2.5 px-4 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                            className="flex-1 lg:flex-none py-2 px-3 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-[9.5px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
                           >
                             <Trash2 className="w-3.5 h-3.5" /> Withdraw
                           </button>
-                        )}
+                        </>
+                      )}
 
-                        {!isPending && (
-                          <div className="w-full text-center py-2.5 px-3 border border-slate-200/80 bg-slate-50/50 text-[9px] font-mono uppercase tracking-widest font-bold text-slate-400 rounded-[2px] cursor-default">
-                            {isDeclined ? "Declined" : "Withdrawn"}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                      {isAccepted && (
+                        <Link
+                          to="/connections/$id"
+                          params={{ id: req.id }}
+                          className="w-full text-center py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                        >
+                          View Handshake <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                      )}
 
-                  {/* Full-width View Handshake Button at bottom */}
-                  {isAccepted && (
-                    <div className="pt-4 mt-2 border-t border-slate-100">
-                      <Link
-                        to="/connections/$id"
-                        params={{ id: req.id }}
-                        className="w-full text-center py-3 px-4 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs hover:shadow"
-                      >
-                        View Handshake <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
+                      {!isPending && !isAccepted && (
+                        <div className="w-full text-center py-2.5 px-3 border border-slate-200/80 bg-slate-50/50 text-[9px] font-mono uppercase tracking-widest font-bold text-slate-400 rounded-[2px] cursor-default">
+                          {isDeclined ? "Declined" : "Withdrawn"}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}

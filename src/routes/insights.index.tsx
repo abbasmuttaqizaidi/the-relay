@@ -128,6 +128,13 @@ function formatTimeAgo(dateStr: string): string {
   }
 }
 
+function calculateReadingTime(text?: string): string {
+  if (!text) return "1 min read";
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  const minutes = Math.max(1, Math.ceil(words / 200));
+  return `${minutes} min read`;
+}
+
 const getAdminToken = () => {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(/relay_admin_token=([^;]+)/);
@@ -347,7 +354,7 @@ export function InsightsIndexPage() {
       return;
     }
 
-    setShareInsightModalOpen(true);
+    navigate({ to: "/insights/knowledge/new" });
   };
 
   const isApprovedBusiness = currentUserBusiness?.status === "approved";
@@ -376,7 +383,7 @@ export function InsightsIndexPage() {
             <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
               {activeTab === "questions"
                 ? "Real business questions, answered by businesses with practical experience."
-                : "Practical business lessons, tips, observations, and experiences shared by approved operators."}
+                : "Practical knowledge from businesses with real experience."}
             </p>
           </div>
 
@@ -483,7 +490,7 @@ export function InsightsIndexPage() {
               placeholder={
                 activeTab === "questions"
                   ? "Search business questions..."
-                  : "Search insights, lessons, or topics..."
+                  : "Search business knowledge..."
               }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -767,18 +774,33 @@ export function InsightsIndexPage() {
           knowledgeList.length === 0 ? (
             /* Knowledge Empty State */
             <div className="bg-white border border-slate-200/80 rounded-sm p-12 text-center max-w-xl mx-auto my-8">
-              <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-700 mx-auto mb-4">
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mx-auto mb-4">
                 <Lightbulb className="w-6 h-6" />
               </div>
               <h3 className="text-base font-semibold text-slate-900 mb-1">
-                Knowledge is just getting started.
+                {searchQuery || selectedTopic !== "All"
+                  ? "No knowledge insights found"
+                  : "No business knowledge has been shared yet."}
               </h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto mb-6 leading-relaxed">
-                {isApprovedBusiness
-                  ? "Be among the first businesses to share something you've learned."
-                  : "Check back soon for practical lessons from businesses on Relay."}
+                {searchQuery || selectedTopic !== "All"
+                  ? "No knowledge insights match your filter criteria. Try adjusting your filters or search term."
+                  : isApprovedBusiness || isAdmin
+                  ? "Be the first approved business to share something you've learned."
+                  : "Knowledge lessons from businesses will appear here."}
               </p>
-              {isApprovedBusiness && (
+              {searchQuery || selectedTopic !== "All" ? (
+                <Button
+                  onClick={() => {
+                    setSelectedTopic("All");
+                    setSearchQuery("");
+                  }}
+                  variant="outline"
+                  className="text-xs font-mono uppercase tracking-wider h-9 px-4 rounded-[2px]"
+                >
+                  Reset Filters
+                </Button>
+              ) : isApprovedBusiness || isAdmin ? (
                 <Button
                   onClick={handleShareInsightClick}
                   className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono uppercase tracking-wider h-9 px-4 rounded-[2px] cursor-pointer"
@@ -786,114 +808,137 @@ export function InsightsIndexPage() {
                   <Plus className="w-3.5 h-3.5 mr-1.5" />
                   Share an Insight
                 </Button>
-              )}
+              ) : null}
             </div>
           ) : (
             /* Knowledge Cards */
-            <div className="space-y-4">
-              {knowledgeList.map((k) => (
-                <article
-                  key={k.id}
-                  onClick={() =>
-                    navigate({
-                      to: "/insights/knowledge/$id",
-                      params: { id: k.id },
-                    })
-                  }
-                  className="bg-white border border-slate-200/80 hover:border-slate-300 rounded-sm p-5 sm:p-6 shadow-2xs hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-3.5"
-                >
-                  <div className="space-y-2.5">
-                    {/* Top Row: Labels & Meta */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center px-2 py-0.5 text-[9.5px] font-mono uppercase tracking-wider font-bold rounded bg-amber-500/10 text-amber-800 border border-amber-300/60">
-                          INSIGHT
-                        </span>
-                        <span className="inline-flex items-center px-2 py-0.5 text-[9.5px] font-mono uppercase tracking-wider font-medium rounded bg-slate-100 text-slate-700 border border-slate-200/70">
-                          {k.topic}
-                        </span>
-                      </div>
-                      <span className="text-[11px] font-mono text-slate-400">
-                        {formatTimeAgo(k.created_at)}
-                      </span>
-                    </div>
+            <div className="space-y-3.5">
+              {knowledgeList.map((k) => {
+                const isMyKnowledge =
+                  currentUserBusiness && k.business_id === currentUserBusiness.id;
 
-                    {/* Title */}
-                    <h2 className="text-base sm:text-lg font-bold text-slate-950 group-hover:text-slate-900 group-hover:underline group-hover:underline-offset-2 leading-snug">
-                      {k.title}
-                    </h2>
-
-                    {/* Short Content Preview */}
-                    <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed font-sans">
-                      {k.content}
-                    </p>
-                  </div>
-
-                  {/* Bottom Row: Author Business Identity + Based On */}
-                  <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                    {/* Business Identity */}
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <CompanyLogo
-                        src={k.business?.logo_url}
-                        name={k.business?.company_name}
-                        className="w-5 h-5 rounded object-contain border border-slate-200"
-                        fallbackClassName="w-5 h-5 rounded bg-slate-100 text-slate-700 font-bold flex items-center justify-center border border-slate-200"
-                        textClassName="text-[8px] font-mono font-bold"
-                      />
-                      <div className="flex items-center gap-1.5 text-slate-700 font-medium text-xs min-w-0">
-                        <span className="font-semibold text-slate-900 truncate">
-                          {k.business?.company_name || "Verified Business"}
-                        </span>
-                        <span className="text-slate-300">·</span>
-                        <span className="text-slate-500 font-normal text-[11px] truncate">
-                          {k.business?.industry}
-                          {k.business?.hq_location ? ` · ${k.business.hq_location}` : ""}
-                        </span>
-                        <span className="inline-flex items-center text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1 py-0.2 rounded font-sans shrink-0">
-                          <ShieldCheck className="w-2.5 h-2.5 mr-0.5 text-emerald-600" />
-                          Approved Business
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Based on / Read Link */}
-                    <div className="flex items-center gap-3 shrink-0">
-                      {k.based_on && (
-                        <span className="text-[11px] text-slate-500 font-mono bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-                          Based on:{" "}
-                          <span className="font-medium text-slate-700">
-                            {BASED_ON_LABELS[k.based_on] || k.based_on}
+                return (
+                  <div
+                    key={k.id}
+                    onClick={() =>
+                      navigate({
+                        to: "/insights/knowledge/$id",
+                        params: { id: k.id },
+                      })
+                    }
+                    role="link"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        navigate({
+                          to: "/insights/knowledge/$id",
+                          params: { id: k.id },
+                        });
+                      }
+                    }}
+                    className="bg-white border border-slate-200/80 hover:border-slate-300 rounded-sm p-5 sm:p-6 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.04)] group cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400/40"
+                  >
+                    <div className="flex flex-col gap-3">
+                      {/* Top row: Topic badge + Your Insight badge + Relative time & reading time */}
+                      <div className="flex items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider font-semibold rounded bg-slate-100 text-slate-700 border border-slate-200/60">
+                            {k.topic}
                           </span>
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setShareItem({
-                            title: k.title,
-                            topic: k.topic,
-                            authorName: k.business?.company_name,
-                            urlPath: `/insights/knowledge/${k.id}`,
-                            type: "insight",
-                          });
-                        }}
-                        className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider text-slate-500 hover:text-slate-900 font-semibold py-1 px-1.5 hover:bg-slate-100 rounded transition-colors cursor-pointer"
-                        title="Share this insight"
-                      >
-                        <Share2 className="w-3 h-3 text-orange-600" />
-                        <span>Share</span>
-                      </button>
+                          {isMyKnowledge && (
+                            <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider font-bold rounded bg-orange-50 text-orange-700 border border-orange-200">
+                              Your Insight
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-slate-400 text-[11px] font-mono shrink-0">
+                          <Clock className="w-3 h-3" />
+                          <span>{formatTimeAgo(k.published_at || k.created_at)}</span>
+                          <span className="text-slate-300">·</span>
+                          <span>{calculateReadingTime(k.content)}</span>
+                        </div>
+                      </div>
 
-                      <span className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider text-slate-900 font-bold ml-1">
-                        Read
-                        <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
-                      </span>
+                      {/* Knowledge Title */}
+                      <h2 className="text-base sm:text-lg font-semibold text-slate-900 tracking-tight leading-snug group-hover:text-orange-600 transition-colors">
+                        {k.title}
+                      </h2>
+
+                      {/* Knowledge Description / Content Snippet */}
+                      <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed font-normal">
+                        {k.content}
+                      </p>
+
+                      {/* Bottom row: Business info + Based On / Action links */}
+                      <div className="pt-2.5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                        {/* Business Identity */}
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <CompanyLogo
+                            src={k.business?.logo_url}
+                            name={k.business?.company_name}
+                            className="w-5 h-5 rounded object-contain border border-slate-200 shrink-0"
+                            fallbackClassName="w-5 h-5 rounded bg-slate-100 text-slate-700 font-bold flex items-center justify-center border border-slate-200 shrink-0"
+                            textClassName="text-[8px] font-mono font-bold tracking-tight"
+                          />
+                          <div className="flex items-center gap-1.5 text-slate-700 font-medium text-xs truncate">
+                            <span className="truncate">{k.business?.company_name || "Verified Business"}</span>
+                            <span className="text-slate-300">·</span>
+                            <span className="text-slate-500 font-normal text-[11px] truncate">
+                              {k.business?.industry}
+                              {k.business?.hq_location ? ` · ${k.business.hq_location}` : ""}
+                            </span>
+                            <span
+                              className="inline-flex items-center text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1 py-0.2 rounded font-sans shrink-0 ml-0.5"
+                              title="Approved Business"
+                            >
+                              <ShieldCheck className="w-2.5 h-2.5 mr-0.5 text-emerald-600" />
+                              Approved
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Based on / Action links */}
+                        <div className="flex items-center gap-3 shrink-0">
+                          {k.based_on && (
+                            <span className="text-xs text-slate-600 font-medium flex items-center gap-1.5 font-mono">
+                              <Lightbulb className="w-3.5 h-3.5 text-slate-400" />
+                              <span className="text-slate-500 truncate max-w-[140px] sm:max-w-none">
+                                {BASED_ON_LABELS[k.based_on] || k.based_on}
+                              </span>
+                            </span>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setShareItem({
+                                title: k.title,
+                                topic: k.topic,
+                                authorName: k.business?.company_name,
+                                urlPath: `/insights/knowledge/${k.id}`,
+                                type: "insight",
+                              });
+                            }}
+                            className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider text-slate-500 hover:text-slate-900 font-semibold py-1 px-1.5 hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                            title="Share this insight"
+                          >
+                            <Share2 className="w-3 h-3 text-orange-600" />
+                            <span>Share</span>
+                          </button>
+
+                          <span className="inline-flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider text-slate-900 group-hover:text-orange-600 font-bold ml-1 transition-colors">
+                            Read
+                            <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </article>
-              ))}
+                );
+              })}
             </div>
           )
         )}

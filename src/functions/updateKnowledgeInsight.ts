@@ -22,6 +22,7 @@ export const updateKnowledgeInsight = createServerFn({ method: "POST" })
       business_id: business.id,
       title: data.title,
       content: data.content,
+      content_json: data.content_json,
       topic: data.topic,
       based_on: data.based_on,
       status: data.status,
