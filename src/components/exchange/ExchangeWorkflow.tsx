@@ -29,6 +29,7 @@ import {
   Award,
   Sparkles,
   Undo,
+  X,
 } from "lucide-react";
 import { ExchangeType, ContactField, DeclineReason } from "@/types";
 import { acknowledgeExchangeProcess } from "@/functions/acknowledgeExchangeProcess";
@@ -47,12 +48,13 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerClose,
+} from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -618,16 +620,18 @@ export function ExchangeWorkflow({
     }
   };
 
-  const renderProposalTimelineContent = () => {
+  const renderProposalTimelineContent = (showHeader = true) => {
     if (!proposals || proposals.length === 0) {
       return (
-        <div className="border border-slate-200 rounded-[4px] bg-white p-5 shadow-sm space-y-3">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Clock className="w-4 h-4 text-slate-400" />
-            <h4 className="font-display font-bold text-sm text-slate-900">
-              Proposal Timeline
-            </h4>
-          </div>
+        <div className={showHeader ? "border border-slate-200 rounded-[4px] bg-white p-5 shadow-sm space-y-3" : "py-4 space-y-3"}>
+          {showHeader && (
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+              <Clock className="w-4 h-4 text-slate-400" />
+              <h4 className="font-display font-bold text-sm text-slate-900">
+                Proposal Timeline
+              </h4>
+            </div>
+          )}
           <p className="text-xs text-slate-500 font-sans leading-relaxed">
             No exchange proposals have been submitted yet. Once an initial proposal is created, all versions and counter-offers will appear in this timeline.
           </p>
@@ -636,18 +640,20 @@ export function ExchangeWorkflow({
     }
 
     return (
-      <div className="border border-slate-200 rounded-[4px] bg-white p-4 sm:p-5 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-slate-500" />
-            <h4 className="font-display font-bold text-sm text-slate-900">
-              Proposal Timeline
-            </h4>
+      <div className={showHeader ? "border border-slate-200 rounded-[4px] bg-white p-4 sm:p-5 shadow-sm space-y-4" : "space-y-4"}>
+        {showHeader && (
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-slate-500" />
+              <h4 className="font-display font-bold text-sm text-slate-900">
+                Proposal Timeline
+              </h4>
+            </div>
+            <span className="font-mono text-[9px] uppercase font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-[2px]">
+              {proposals.length} {proposals.length === 1 ? "Version" : "Versions"}
+            </span>
           </div>
-          <span className="font-mono text-[9px] uppercase font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-[2px]">
-            {proposals.length} {proposals.length === 1 ? "Version" : "Versions"}
-          </span>
-        </div>
+        )}
 
         <div className="relative pl-7 sm:pl-8 space-y-5 before:absolute before:left-3 sm:before:left-3.5 before:top-3.5 before:bottom-3.5 before:w-0.5 before:bg-slate-200">
           {proposals.map((p: any, idx: number) => {
@@ -808,16 +814,16 @@ export function ExchangeWorkflow({
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             </button>
 
-            {/* History Button */}
+            {/* Proposal Logs Button */}
             <button
               type="button"
               onClick={() => setIsMobileHistoryOpen(true)}
-              className="shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 bg-white border border-slate-200/90 rounded-[4px] shadow-xs text-slate-700 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 transition-all text-xs font-mono font-bold uppercase tracking-wider cursor-pointer"
+              className="shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-[4px] shadow-sm transition-all text-xs font-mono font-bold uppercase tracking-wider cursor-pointer"
             >
-              <Clock className="w-3.5 h-3.5 text-slate-500" />
-              <span>History</span>
+              <Clock className="w-3.5 h-3.5 text-slate-300" />
+              <span>Proposal Logs</span>
               {proposals && proposals.length > 0 && (
-                <span className="px-1.5 py-0.2 bg-slate-100 text-slate-700 text-[9px] font-bold rounded-[2px] border border-slate-200">
+                <span className="px-1.5 py-0.2 bg-slate-800 text-slate-200 text-[9px] font-bold rounded-[2px] border border-slate-700">
                   {proposals.length}
                 </span>
               )}
@@ -2568,52 +2574,60 @@ export function ExchangeWorkflow({
         </DialogContent>
       </Dialog>
 
-      {/* Mobile History Bottom Sheet Modal (Covers 95% of Screen) */}
-      <Sheet open={isMobileHistoryOpen} onOpenChange={setIsMobileHistoryOpen}>
-        <SheetContent
-          side="bottom"
-          className="h-[95vh] max-h-[95vh] rounded-t-2xl p-0 flex flex-col bg-slate-50 border-t border-slate-200 shadow-2xl font-sans overflow-hidden"
-        >
-          <SheetHeader className="px-4 sm:px-6 py-4 bg-white border-b border-slate-200/80 text-left rounded-t-2xl">
-            <div className="flex items-center gap-2.5 pr-8">
-              <SheetTitle className="font-display font-bold text-base sm:text-lg text-slate-900">
+      {/* Mobile Proposal Logs Drawer (85% height, swipe-to-close with fingertip) */}
+      <Drawer open={isMobileHistoryOpen} onOpenChange={setIsMobileHistoryOpen}>
+        <DrawerContent className="h-[85vh] max-h-[85vh] w-full inset-x-0 rounded-t-2xl p-0 flex flex-col bg-white border-t border-slate-200 shadow-2xl font-sans overflow-hidden">
+          <DrawerHeader className="px-4 py-2 sm:px-5 sm:py-2.5 bg-white border-b border-slate-200/80 text-left shrink-0 pr-12 relative block">
+            <div className="flex items-center gap-2">
+              <DrawerTitle className="font-display font-bold text-sm sm:text-base text-slate-900 leading-tight">
                 Proposal Timeline
-              </SheetTitle>
+              </DrawerTitle>
               {proposals && (
-                <span className="font-mono text-[9px] uppercase font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-[2px] border border-slate-200">
+                <span className="font-mono text-[8.5px] uppercase font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-[2px] border border-slate-200">
                   {proposals.length} {proposals.length === 1 ? "Version" : "Versions"}
                 </span>
               )}
             </div>
-            <SheetDescription className="text-xs text-slate-500 font-sans mt-0.5">
+            <DrawerDescription className="text-[11px] text-slate-500 font-sans leading-tight mt-0.5 max-w-[calc(100%-1rem)]">
               Complete chronological record of all proposed terms, counter-offers, and status changes.
-            </SheetDescription>
-          </SheetHeader>
+            </DrawerDescription>
 
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-            {renderProposalTimelineContent()}
+            {/* Close Button with safe absolute positioning */}
+            <DrawerClose asChild>
+              <button
+                type="button"
+                className="absolute right-3 top-2.5 sm:right-4 sm:top-2.5 p-1 rounded-sm text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </DrawerClose>
+          </DrawerHeader>
 
-            {/* Commercial Partner Profile Summary Card inside mobile sheet */}
-            <div className="border border-slate-200 rounded-[4px] bg-white p-4 shadow-sm space-y-2">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                <Building2 className="w-3.5 h-3.5 text-slate-500" />
-                <h4 className="font-display font-bold text-[11px] uppercase font-mono tracking-wider text-slate-900">
+          <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-5 sm:py-4 space-y-3.5 bg-white">
+            {renderProposalTimelineContent(false)}
+
+            {/* Commercial Partner Profile Summary Card inside mobile drawer */}
+            <div className="border border-slate-200 rounded-[4px] bg-slate-50/70 p-3.5 shadow-sm space-y-1.5 mt-3">
+              <div className="flex items-center gap-1.5 border-b border-slate-200/70 pb-1.5">
+                <Building2 className="w-3 h-3 text-slate-500" />
+                <h4 className="font-display font-bold text-[10px] uppercase font-mono tracking-wider text-slate-900">
                   Commercial Partner
                 </h4>
               </div>
-              <div className="space-y-1 text-xs">
+              <div className="space-y-0.5 text-xs">
                 <div className="font-bold text-slate-900">{targetBusiness.company_name}</div>
                 {targetBusiness.industry && (
-                  <div className="text-slate-500 font-mono text-[11px]">{targetBusiness.industry}</div>
+                  <div className="text-slate-500 font-mono text-[10px]">{targetBusiness.industry}</div>
                 )}
                 {targetBusiness.hq_location && (
-                  <div className="text-slate-400 font-mono text-[10px]">{targetBusiness.hq_location}</div>
+                  <div className="text-slate-400 font-mono text-[9.5px]">{targetBusiness.hq_location}</div>
                 )}
               </div>
             </div>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
