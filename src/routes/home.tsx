@@ -1905,7 +1905,7 @@ export function LandingPage() {
               </div>
             </div>
 
-            {/* BEGIN: 3. A Simple Exchange Process Strip */}
+            {/* BEGIN: 3. A Simple Exchange Process Strip (8-Step Alignment) */}
             <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs mt-10">
               {/* DESKTOP VIEW: Sleek Horizontal Chain (hidden on mobile) */}
               <div className="hidden md:flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-6">
@@ -1913,7 +1913,7 @@ export function LandingPage() {
                 <div className="xl:border-r xl:border-slate-100 xl:pr-8 flex items-center shrink-0">
                   <div>
                     <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 block">
-                      A SIMPLE
+                      THE 8-STEP
                     </span>
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-900 font-display">
                       EXCHANGE PROCESS
@@ -1921,68 +1921,77 @@ export function LandingPage() {
                   </div>
                 </div>
 
-                {/* Process Steps */}
-                <div className="flex-1 flex items-center justify-between gap-2 py-1">
-                  {/* Step 1: Post */}
-                  <div className="flex flex-col items-center text-center min-w-[65px] group">
-                    <div className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
-                      <FileText className="w-4 h-4 text-slate-800" />
+                {/* Process Steps (8 Steps) */}
+                <div className="flex-1 flex items-center justify-between gap-1.5 py-1">
+                  {/* Step 1: Verify */}
+                  <div className="flex flex-col items-center text-center min-w-[55px] group">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
+                      <ShieldCheck className="w-3.5 h-3.5 text-slate-800" />
                     </div>
-                    <span className="text-[12px] font-semibold text-slate-900">Post</span>
+                    <span className="text-[11.5px] font-semibold text-slate-900">Verify</span>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                  <ChevronRight className="w-3 h-3 text-slate-300 shrink-0" />
 
-                  {/* Step 2: Discover */}
-                  <div className="flex flex-col items-center text-center min-w-[65px] group">
-                    <div className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
-                      <Search className="w-4 h-4 text-slate-800" />
+                  {/* Step 2: Post */}
+                  <div className="flex flex-col items-center text-center min-w-[55px] group">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
+                      <FileText className="w-3.5 h-3.5 text-slate-800" />
                     </div>
-                    <span className="text-[12px] font-semibold text-slate-900">Discover</span>
+                    <span className="text-[11.5px] font-semibold text-slate-900">Post</span>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                  <ChevronRight className="w-3 h-3 text-slate-300 shrink-0" />
 
-                  {/* Step 3: Express Interest */}
-                  <div className="flex flex-col items-center text-center min-w-[85px] group">
-                    <div className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
-                      <Zap className="w-4 h-4 text-slate-800" />
+                  {/* Step 3: Discover */}
+                  <div className="flex flex-col items-center text-center min-w-[55px] group">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
+                      <Search className="w-3.5 h-3.5 text-slate-800" />
                     </div>
-                    <span className="text-[12px] font-semibold text-slate-900">Express Interest</span>
+                    <span className="text-[11.5px] font-semibold text-slate-900">Discover</span>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                  <ChevronRight className="w-3 h-3 text-slate-300 shrink-0" />
 
-                  {/* Step 4: Negotiate */}
-                  <div className="flex flex-col items-center text-center min-w-[65px] group">
-                    <div className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
-                      <MessageSquare className="w-4 h-4 text-slate-800" />
-                    </div>
-                    <span className="text-[12px] font-semibold text-slate-900">Negotiate</span>
-                  </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
-
-                  {/* Step 5: Agree */}
-                  <div className="flex flex-col items-center text-center min-w-[65px] group">
-                    <div className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
-                      <FileCheck className="w-4 h-4 text-slate-800" />
-                    </div>
-                    <span className="text-[12px] font-semibold text-slate-900">Agree</span>
-                  </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
-
-                  {/* Step 6: Handshake */}
+                  {/* Step 4: Express Interest */}
                   <div className="flex flex-col items-center text-center min-w-[70px] group">
-                    <div className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
-                      <Handshake className="w-4 h-4 text-slate-800" />
+                    <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
+                      <Zap className="w-3.5 h-3.5 text-slate-800" />
                     </div>
-                    <span className="text-[12px] font-semibold text-slate-900">Handshake</span>
+                    <span className="text-[11.5px] font-semibold text-slate-900">Express</span>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                  <ChevronRight className="w-3 h-3 text-slate-300 shrink-0" />
 
-                  {/* Step 7: Connect */}
-                  <div className="flex flex-col items-center text-center min-w-[65px] group">
-                    <div className="w-9 h-9 rounded-full bg-slate-950 border border-slate-950 flex items-center justify-center mb-1.5 shadow-xs">
-                      <Share2 className="w-4 h-4 text-white" />
+                  {/* Step 5: Acknowledge */}
+                  <div className="flex flex-col items-center text-center min-w-[70px] group">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
+                      <Lock className="w-3.5 h-3.5 text-slate-800" />
                     </div>
-                    <span className="text-[12px] font-semibold text-slate-950">Connect</span>
+                    <span className="text-[11.5px] font-semibold text-slate-900">Acknowledge</span>
+                  </div>
+                  <ChevronRight className="w-3 h-3 text-slate-300 shrink-0" />
+
+                  {/* Step 6: Negotiate */}
+                  <div className="flex flex-col items-center text-center min-w-[55px] group">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
+                      <MessageSquare className="w-3.5 h-3.5 text-slate-800" />
+                    </div>
+                    <span className="text-[11.5px] font-semibold text-slate-900">Negotiate</span>
+                  </div>
+                  <ChevronRight className="w-3 h-3 text-slate-300 shrink-0" />
+
+                  {/* Step 7: Agree */}
+                  <div className="flex flex-col items-center text-center min-w-[55px] group">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center mb-1.5 group-hover:border-slate-800 transition-colors">
+                      <FileCheck className="w-3.5 h-3.5 text-slate-800" />
+                    </div>
+                    <span className="text-[11.5px] font-semibold text-slate-900">Agree</span>
+                  </div>
+                  <ChevronRight className="w-3 h-3 text-slate-300 shrink-0" />
+
+                  {/* Step 8: Handshake */}
+                  <div className="flex flex-col items-center text-center min-w-[65px] group">
+                    <div className="w-8 h-8 rounded-full bg-slate-950 border border-slate-950 flex items-center justify-center mb-1.5 shadow-xs">
+                      <Handshake className="w-3.5 h-3.5 text-white" />
+                    </div>
+                    <span className="text-[11.5px] font-semibold text-slate-950">Handshake</span>
                   </div>
                 </div>
               </div>
@@ -1990,29 +1999,40 @@ export function LandingPage() {
               {/* MOBILE VIEW: Beautiful, Connected Vertical Timeline / Cards (hidden on md+) */}
               <div className="block md:hidden">
                 {/* Mobile Header */}
-                <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-                  <div>
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
-                      HOW IT WORKS
-                    </span>
-                    <h3 className="font-display font-bold text-base text-slate-950">
-                      A Simple 7-Step Exchange Process
-                    </h3>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono text-[10px] font-bold">
-                    7 Steps
+                <div className="pb-4 mb-4 border-b border-slate-100">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+                    HOW IT WORKS
                   </span>
+                  <h3 className="font-display font-bold text-base text-slate-950">
+                    A Simple 8-Step Exchange Process
+                  </h3>
                 </div>
 
                 {/* Mobile Steps List */}
-                <div className="relative pl-6 space-y-4">
+                <div className="relative pl-6 space-y-3.5">
                   {/* Vertical Connecting Line */}
                   <div className="absolute left-[11px] top-3 bottom-3 w-[2px] bg-slate-200" />
 
-                  {/* Step 1 */}
+                  {/* Step 1: Verify */}
                   <div className="relative flex items-start gap-3">
                     <div className="absolute -left-6 top-0.5 w-6 h-6 rounded-full bg-slate-950 text-white font-mono text-[10px] font-bold flex items-center justify-center ring-4 ring-white shrink-0">
                       1
+                    </div>
+                    <div className="flex-1 bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-800 shrink-0">
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-slate-950">Verify Identity</div>
+                        <div className="text-[11px] text-slate-500 truncate">KYB &amp; executive verification</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 2: Post */}
+                  <div className="relative flex items-start gap-3">
+                    <div className="absolute -left-6 top-0.5 w-6 h-6 rounded-full bg-slate-900 text-white font-mono text-[10px] font-bold flex items-center justify-center ring-4 ring-white shrink-0">
+                      2
                     </div>
                     <div className="flex-1 bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-800 shrink-0">
@@ -2020,15 +2040,15 @@ export function LandingPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="text-xs font-bold text-slate-950">Post Opportunity</div>
-                        <div className="text-[11px] text-slate-500 truncate">List your unfulfilled client lead or service</div>
+                        <div className="text-[11px] text-slate-500 truncate">List unfulfilled lead or service anonymously</div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Step 2 */}
+                  {/* Step 3: Discover */}
                   <div className="relative flex items-start gap-3">
                     <div className="absolute -left-6 top-0.5 w-6 h-6 rounded-full bg-slate-900 text-white font-mono text-[10px] font-bold flex items-center justify-center ring-4 ring-white shrink-0">
-                      2
+                      3
                     </div>
                     <div className="flex-1 bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-800 shrink-0">
@@ -2041,10 +2061,10 @@ export function LandingPage() {
                     </div>
                   </div>
 
-                  {/* Step 3 */}
+                  {/* Step 4: Express Interest */}
                   <div className="relative flex items-start gap-3">
                     <div className="absolute -left-6 top-0.5 w-6 h-6 rounded-full bg-slate-900 text-white font-mono text-[10px] font-bold flex items-center justify-center ring-4 ring-white shrink-0">
-                      3
+                      4
                     </div>
                     <div className="flex-1 bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-800 shrink-0">
@@ -2052,15 +2072,31 @@ export function LandingPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="text-xs font-bold text-slate-950">Express Interest</div>
-                        <div className="text-[11px] text-slate-500 truncate">Submit proposal with reciprocal terms</div>
+                        <div className="text-[11px] text-slate-500 truncate">Submit structured bilateral intent</div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Step 4 */}
+                  {/* Step 5: Acknowledge */}
                   <div className="relative flex items-start gap-3">
                     <div className="absolute -left-6 top-0.5 w-6 h-6 rounded-full bg-slate-900 text-white font-mono text-[10px] font-bold flex items-center justify-center ring-4 ring-white shrink-0">
-                      4
+                      5
+                    </div>
+                    <div className="flex-1 bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-800 shrink-0">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-slate-950">Acknowledge</div>
+                        <div className="text-[11px] text-slate-500 truncate">CDOES mutual consent gate</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 6: Negotiate */}
+                  <div className="relative flex items-start gap-3">
+                    <div className="absolute -left-6 top-0.5 w-6 h-6 rounded-full bg-slate-900 text-white font-mono text-[10px] font-bold flex items-center justify-center ring-4 ring-white shrink-0">
+                      6
                     </div>
                     <div className="flex-1 bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-800 shrink-0">
@@ -2068,15 +2104,15 @@ export function LandingPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="text-xs font-bold text-slate-950">Negotiate</div>
-                        <div className="text-[11px] text-slate-500 truncate">Calibrate rev-share & scope</div>
+                        <div className="text-[11px] text-slate-500 truncate">Calibrate rev-share &amp; scope</div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Step 5 */}
+                  {/* Step 7: Agree */}
                   <div className="relative flex items-start gap-3">
                     <div className="absolute -left-6 top-0.5 w-6 h-6 rounded-full bg-slate-900 text-white font-mono text-[10px] font-bold flex items-center justify-center ring-4 ring-white shrink-0">
-                      5
+                      7
                     </div>
                     <div className="flex-1 bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-800 shrink-0">
@@ -2089,33 +2125,17 @@ export function LandingPage() {
                     </div>
                   </div>
 
-                  {/* Step 6 */}
-                  <div className="relative flex items-start gap-3">
-                    <div className="absolute -left-6 top-0.5 w-6 h-6 rounded-full bg-slate-900 text-white font-mono text-[10px] font-bold flex items-center justify-center ring-4 ring-white shrink-0">
-                      6
-                    </div>
-                    <div className="flex-1 bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-800 shrink-0">
-                        <Handshake className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-slate-950">Mutual Handshake</div>
-                        <div className="text-[11px] text-slate-500 truncate">Execute mutual consent & escrow</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 7 */}
+                  {/* Step 8: Handshake */}
                   <div className="relative flex items-start gap-3">
                     <div className="absolute -left-6 top-0.5 w-6 h-6 rounded-full bg-slate-950 text-white font-mono text-[10px] font-bold flex items-center justify-center ring-4 ring-white shrink-0">
-                      7
+                      8
                     </div>
                     <div className="flex-1 bg-slate-950 text-white border border-slate-900 rounded-xl p-3 flex items-center gap-3 shadow-xs">
                       <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center shrink-0">
-                        <Share2 className="w-4 h-4 text-white" />
+                        <Handshake className="w-4 h-4 text-white" />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-xs font-bold text-white">Connect &amp; Exchange</div>
+                        <div className="text-xs font-bold text-white">Handshake &amp; Connect</div>
                         <div className="text-[11px] text-slate-300 truncate">Direct contacts &amp; dealroom unlocked</div>
                       </div>
                     </div>
