@@ -218,7 +218,10 @@ export function OpportunityFormFlow({
       });
 
       toast.success("Opportunity Created Successfully");
-      navigate({ to: "/opportunities/my" });
+      try {
+        window.dispatchEvent(new CustomEvent("relay:opportunity_created"));
+      } catch (_) {}
+      navigate({ to: "/my-relay", search: { tab: "listings" } });
     } catch (err: any) {
       console.error("Create opportunity error:", err);
       toast.error(err.message || "Failed to create opportunity");
@@ -854,7 +857,7 @@ export function OpportunityFormFlow({
               <button
                 type="submit"
                 disabled={submitting || !isApproved}
-                className="bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-8 py-3 rounded-[2px] font-bold transition-all shadow-sm hover:shadow disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                className="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest px-8 py-3 rounded-[2px] font-bold transition-all shadow-sm hover:shadow disabled:opacity-50 flex items-center gap-2 cursor-pointer"
               >
                 {submitting ? (
                   <>

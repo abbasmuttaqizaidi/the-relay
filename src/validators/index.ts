@@ -16,21 +16,27 @@ export const promotionStatusSchema = z.enum(["none", "pending_promotion", "promo
 
 export const createBusinessSchema = z.object({
   company_name: z.string().min(2, "Company name must be at least 2 characters"),
-  website: z.string().url("Must be a valid URL starting with http:// or https://"),
+  website: z.string().url("Must be a valid URL starting with http:// or https://").optional().nullable().or(z.literal("")),
   industry: z.string().min(2, "Industry is required"),
-  description: z.string().max(1000, "Description cannot exceed 1000 characters").optional(),
-  linkedin_url: z.string().url("Must be a valid LinkedIn URL").optional().or(z.literal("")),
-  logo_url: z.string().url("Must be a valid image URL").optional().or(z.literal("")),
+  description: z.string().max(1000, "Description cannot exceed 1000 characters").optional().nullable().or(z.literal("")),
+  linkedin_url: z.string().optional().nullable().or(z.literal("")),
+  logo_url: z.string().optional().nullable().or(z.literal("")),
+  hq_location: z.string().optional().nullable().or(z.literal("")),
+  founded_year: z.number().int().optional().nullable(),
+  company_size: z.string().optional().nullable().or(z.literal("")),
+  company_type: z.string().optional().nullable().or(z.literal("")),
+  funding_stage: z.string().optional().nullable().or(z.literal("")),
+  twitter_url: z.string().optional().nullable().or(z.literal("")),
 });
 
 export const updateBusinessSchema = z.object({
   business_id: uuidSchema,
   company_name: z.string().min(2).optional(),
-  website: z.string().url().optional(),
+  website: z.string().optional().nullable().or(z.literal("")),
   industry: z.string().min(2).optional(),
-  description: z.string().max(1000).optional(),
-  linkedin_url: z.string().url().optional().or(z.literal("")),
-  logo_url: z.string().url().optional().or(z.literal("")),
+  description: z.string().max(1000).optional().nullable().or(z.literal("")),
+  linkedin_url: z.string().optional().nullable().or(z.literal("")),
+  logo_url: z.string().optional().nullable().or(z.literal("")),
   hq_location: z.string().optional().nullable().or(z.literal("")),
   founded_year: z.number().int().optional().nullable(),
   company_size: z.string().optional().nullable().or(z.literal("")),
@@ -38,6 +44,7 @@ export const updateBusinessSchema = z.object({
   funding_stage: z.string().optional().nullable().or(z.literal("")),
   twitter_url: z.string().optional().nullable().or(z.literal("")),
   contact_email: z.string().optional().nullable().or(z.literal("")),
+  phone_number: z.string().optional().nullable().or(z.literal("")),
 });
 
 export const createOpportunitySchema = z.object({
@@ -309,13 +316,7 @@ export const exchangeTypeSchema = z.enum([
   "other",
 ]);
 
-export const contactFieldSchema = z.enum([
-  "email",
-  "phone",
-  "whatsapp",
-  "linkedin",
-  "twitter",
-]);
+export const contactFieldSchema = z.string().min(1).max(100);
 
 export const acknowledgeProcessSchema = z.object({
   interest_id: uuidSchema,
@@ -375,10 +376,60 @@ export const acceptContactConsentSchema = z.object({
   fields: z.array(contactFieldSchema).min(1, "Please select at least one contact field to accept"),
 });
 
+export const declineContactConsentSchema = z.object({
+  interest_id: uuidSchema,
+  fields: z.array(contactFieldSchema).min(1, "Please select at least one contact field to decline"),
+});
+
+export const requestContactExchangeSchema = z.object({
+  interest_id: uuidSchema,
+  field: contactFieldSchema,
+  value: z.string().max(1000).optional().nullable(),
+});
+
+export const respondContactExchangeSchema = z.object({
+  interest_id: uuidSchema,
+  field: contactFieldSchema,
+  action: z.enum(["approve", "decline"]),
+  value: z.string().max(1000).optional().nullable(),
+  custom_label: z.string().max(100).optional().nullable(),
+});
+
 export const sendFollowUpSchema = z.object({
   interest_id: uuidSchema,
 });
 
+export const createCustomContactSchema = z.object({
+  label: z
+    .string()
+    .trim()
+    .min(1, "Label is required")
+    .max(100, "Label cannot exceed 100 characters"),
+  value: z
+    .string()
+    .trim()
+    .min(1, "Value is required")
+    .max(1000, "Value cannot exceed 1000 characters"),
+});
 
+export const updateCustomContactSchema = z.object({
+  id: uuidSchema,
+  label: z
+    .string()
+    .trim()
+    .min(1, "Label is required")
+    .max(100, "Label cannot exceed 100 characters"),
+  value: z
+    .string()
+    .trim()
+    .min(1, "Value is required")
+    .max(1000, "Value cannot exceed 1000 characters"),
+});
 
+export const deleteCustomContactSchema = z.object({
+  id: uuidSchema,
+});
 
+export const acceptLegalAcknowledgementSchema = z.object({
+  marketingConsent: z.boolean().optional(),
+});

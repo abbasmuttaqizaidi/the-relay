@@ -12,10 +12,13 @@ export const withdrawInterest = createServerFn({ method: "POST" })
     const user = await getAuthenticatedUser();
 
     // 2. Fetch user's business profile
+    const businessIds = await BusinessService.getUserBusinessIds(user.id);
     const business = await BusinessService.getBusinessByOwner(user.id);
-    if (!business) {
+    if (!business && businessIds.length === 0) {
       throw new Error("You must register a business profile first.");
     }
+
+    const allUserBizIds = business ? Array.from(new Set([...businessIds, business.id])) : businessIds;
 
     // 3. Fetch interest request to verify ownership
     const interest = await InterestService.getRequestById(data.interest_id);
@@ -23,7 +26,7 @@ export const withdrawInterest = createServerFn({ method: "POST" })
       throw new Error("Interest request not found.");
     }
 
-    if (interest.requesting_business_id !== business.id) {
+    if (!allUserBizIds.includes(interest.requesting_business_id)) {
       throw new Error("Forbidden: You can only withdraw your own interest requests.");
     }
 

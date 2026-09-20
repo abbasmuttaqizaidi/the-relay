@@ -159,7 +159,7 @@ export function OfferFormFlow({
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               to="/opportunities"
-              className="w-full sm:w-auto bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-6 py-2.5 rounded-[2px] font-bold transition-all shadow-sm"
+              className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest px-6 py-2.5 rounded-[2px] font-bold transition-all shadow-sm"
             >
               Explore Opportunity Feed
             </Link>
@@ -375,7 +375,7 @@ export function OfferFormFlow({
               <button
                 type="submit"
                 disabled={submitting}
-                className="bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-8 py-3 rounded-[2px] font-bold transition-all shadow-xs disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                className="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest px-8 py-3 rounded-[2px] font-bold transition-all shadow-xs disabled:opacity-50 flex items-center gap-2 cursor-pointer"
               >
                 {submitting ? (
                   <>

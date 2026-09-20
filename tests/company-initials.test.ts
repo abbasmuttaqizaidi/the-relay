@@ -2,8 +2,18 @@ import { describe, it, expect } from "vitest";
 import { getCompanyInitials } from "../src/lib/utils";
 
 describe("getCompanyInitials", () => {
+  describe("3-letter first word cases", () => {
+    it("returns the 3 letters when the first word has 3 characters", () => {
+      expect(getCompanyInitials("DHL Solutions")).toBe("DHL");
+      expect(getCompanyInitials("IBM Corp")).toBe("IBM");
+      expect(getCompanyInitials("BWS Web Studio")).toBe("BWS");
+      expect(getCompanyInitials("DHL")).toBe("DHL");
+      expect(getCompanyInitials("AWS")).toBe("AWS");
+    });
+  });
+
   describe("1-word company names", () => {
-    it("returns first 2 uppercase characters for a single word name", () => {
+    it("returns first 2 uppercase characters for a single word name (> 3 letters)", () => {
       expect(getCompanyInitials("Google")).toBe("GO");
       expect(getCompanyInitials("Acme")).toBe("AC");
       expect(getCompanyInitials("Stripe")).toBe("ST");
@@ -17,7 +27,7 @@ describe("getCompanyInitials", () => {
   });
 
   describe("2-word company names", () => {
-    it("returns first characters of both words uppercase", () => {
+    it("returns first characters of both words uppercase when first word is not 3 letters", () => {
       expect(getCompanyInitials("Nova Logistics")).toBe("NL");
       expect(getCompanyInitials("Bulyam Web")).toBe("BW");
       expect(getCompanyInitials("Cloud Scale")).toBe("CS");
@@ -26,11 +36,11 @@ describe("getCompanyInitials", () => {
   });
 
   describe("2+ word company names", () => {
-    it("returns first characters of only the first 2 words uppercase", () => {
+    it("returns first characters of only the first 2 words uppercase (when first word is not 3 letters)", () => {
       expect(getCompanyInitials("Bulyam Web Studio")).toBe("BW");
       expect(getCompanyInitials("Apex Advanced Tech Solutions")).toBe("AA");
       expect(getCompanyInitials("International Business Machines Corporation")).toBe("IB");
-      expect(getCompanyInitials("Red Hat Enterprise Linux")).toBe("RH");
+      expect(getCompanyInitials("Microsoft Cloud Azure")).toBe("MC");
     });
   });
 
@@ -39,6 +49,7 @@ describe("getCompanyInitials", () => {
       expect(getCompanyInitials("  Google  ")).toBe("GO");
       expect(getCompanyInitials("  Nova   Logistics  ")).toBe("NL");
       expect(getCompanyInitials("  Bulyam   Web   Studio  ")).toBe("BW");
+      expect(getCompanyInitials("  DHL   Express  ")).toBe("DHL");
     });
 
     it("handles empty strings and null/undefined values gracefully", () => {

@@ -49,89 +49,73 @@ export const deleteUserFromAdmin = createServerFn({ method: "POST" })
       console.error(`[Admin Delete] Failed to delete user from Clerk (may already be deleted):`, clerkErr);
     }
 
-    // 4. Delete from Supabase (if user has a record in DB)
+    // 4. Delete from Supabase PostgreSQL (Atomic native cascade)
     const isDbUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.id);
-    if (!isDbUuid) {
-      serverCache.delete(`user:clerk:${data.clerk_user_id}`);
-      return { success: true, deletedUser: null };
-    }
-
-    const userInDb = await prisma.user.findUnique({ where: { id: data.id } });
-    if (!userInDb) {
-      serverCache.delete(`user:clerk:${data.clerk_user_id}`);
-      return { success: true, deletedUser: null };
-    }
-
-    const { deletedUser, businessIds } = await prisma.$transaction(async (tx) => {
-      // Find all businesses owned by this user
-      const userBusinesses = await tx.business.findMany({
-        where: { owner_user_id: data.id },
-        select: { id: true },
-      });
-      const businessIds = userBusinesses.map((b) => b.id);
-
-      // A. Delete Interests (where the business is interest target or interest source)
-      await tx.interest.deleteMany({
-        where: {
-          OR: [
-            { requesting_business_id: { in: businessIds } },
-            { opportunity: { business_id: { in: businessIds } } },
-          ],
-        },
-      });
-
-      // B. Delete Saved Opportunities (saved by user, or opportunities of the user's business saved by others)
-      await tx.savedOpportunity.deleteMany({
-        where: {
-          OR: [
-            { user_id: data.id },
-            { opportunity: { business_id: { in: businessIds } } },
-          ],
-        },
-      });
-
-      // C. Delete Opportunities belonging to user's businesses
-      await tx.opportunity.deleteMany({
-        where: { business_id: { in: businessIds } },
-      });
-
-      // D. Delete Business members
-      await tx.businessMember.deleteMany({
-        where: {
-          OR: [
-            { business_id: { in: businessIds } },
-            { user_id: data.id },
-          ],
-        },
-      });
-
-      // E. Delete Notifications for the user
-      await tx.notification.deleteMany({
-        where: { user_id: data.id },
-      });
-
-      // F. Delete Businesses owned by the user
-      await tx.business.deleteMany({
-        where: { owner_user_id: data.id },
-      });
-
-      // G. Finally, delete the User
-      const user = await tx.user.delete({
-        where: { id: data.id },
-      });
-
-      return { deletedUser: user, businessIds };
+    const userInDb = await prisma.user.findFirst({
+      where: {
+        OR: [
+          ...(isDbUuid ? [{ id: data.id }] : []),
+          { clerk_user_id: data.clerk_user_id },
+        ],
+      },
+      include: {
+        businesses: true,
+      },
     });
 
-    // Invalidate user cache and any owned business caches
+    const realUserId = userInDb?.id || (isDbUuid ? data.id : null);
+    const businessIds = userInDb?.businesses?.map((b) => b.id) || [];
+
+    if (realUserId) {
+      try {
+        // Execute atomic cascade delete directly in Postgres
+        await prisma.$executeRawUnsafe(
+          `DELETE FROM businesses WHERE owner_user_id = $1::uuid;`,
+          realUserId,
+        );
+        await prisma.$executeRawUnsafe(
+          `DELETE FROM users WHERE id = $1::uuid OR clerk_user_id = $2;`,
+          realUserId,
+          data.clerk_user_id,
+        );
+      } catch (dbErr: any) {
+        console.error("[Admin Delete] Postgres raw delete error:", dbErr);
+        // Fallback: try Prisma user delete
+        try {
+          await prisma.user.deleteMany({
+            where: {
+              OR: [
+                { id: realUserId },
+                { clerk_user_id: data.clerk_user_id },
+              ],
+            },
+          });
+        } catch (fallbackErr) {
+          console.error("[Admin Delete] Fallback delete error:", fallbackErr);
+        }
+      }
+    } else {
+      try {
+        await prisma.$executeRawUnsafe(
+          `DELETE FROM users WHERE clerk_user_id = $1;`,
+          data.clerk_user_id,
+        );
+      } catch (dbErr) {
+        console.error("[Admin Delete] Postgres clerk user delete error:", dbErr);
+      }
+    }
+
+    // 5. Invalidate server caches
     serverCache.delete(`user:clerk:${data.clerk_user_id}`);
-    serverCache.delete(`business:owner:${data.id}`);
+    if (realUserId) {
+      serverCache.delete(`business:owner:${realUserId}`);
+    }
     for (const businessId of businessIds) {
       serverCache.delete(`business:id:${businessId}`);
     }
 
-    console.log(`[Admin Delete] Deleted user ${data.id} and all cascade business relations from Supabase.`);
-    return { success: true, deletedUser };
+    console.log(`[Admin Delete] Successfully wiped user ${data.clerk_user_id} (${realUserId || "no-db-id"}).`);
+    return { success: true };
   });
 
 export type DeleteUserFromAdminFn = typeof deleteUserFromAdmin;

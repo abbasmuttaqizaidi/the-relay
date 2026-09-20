@@ -1,8 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/tanstack-react-start";
-import { driver } from "driver.js";
-import "driver.js/dist/driver.css";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { toast } from "@/components/ui/sonner";
@@ -11,7 +10,6 @@ import { getMyOpportunities } from "../functions/getMyOpportunities";
 import { createOpportunity } from "../functions/createOpportunity";
 import { updateOpportunity } from "../functions/updateOpportunity";
 import { closeOpportunity } from "../functions/closeOpportunity";
-import { deleteOpportunity } from "../functions/deleteOpportunity";
 import { countSavedOpportunities } from "../functions/countSavedOpportunities";
 import { getSavedOpportunities } from "../functions/getSavedOpportunities";
 import { removeSavedOpportunity } from "../functions/removeSavedOpportunity";
@@ -23,6 +21,7 @@ import { getCompanyInitials } from "@/lib/utils";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
+import { ProposalConfirmationModal } from "@/components/ProposalConfirmationModal";
 import { Menu, ChevronRight } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import {
@@ -115,15 +114,9 @@ const INDUSTRIES = [
 
 function MyOpportunitiesPage() {
   const { isSignedIn, isLoaded, userId } = useAuth();
-  const isSignedInRef = useRef(isSignedIn);
-  isSignedInRef.current = isSignedIn;
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { tab, create } = Route.useSearch();
-  const [isValidating, setIsValidating] = useState(true);
-  const [business, setBusiness] = useState<any>(null);
-  const [myOpps, setMyOpps] = useState<any[]>([]);
-  const [loadingList, setLoadingList] = useState(true);
-  const [savedCount, setSavedCount] = useState(0);
   const approvedBannerKey = userId ? `relay_approved_banner_dismissed_${userId}` : "relay_approved_banner_dismissed";
   const [approvedBannerDismissed, setApprovedBannerDismissed] = useState(() => {
     try {
@@ -131,90 +124,24 @@ function MyOpportunitiesPage() {
     } catch { return false; }
   });
 
-  // New Tab-related states
+  // Tab State
   const [activeTab, setActiveTab] = useState<"posted" | "saved">(tab);
 
   useEffect(() => {
     setActiveTab(tab);
   }, [tab]);
 
-  const startTour = () => {
-    const driverObj = driver({
-      showProgress: true,
-      popoverClass: "relay-tour-popover",
-      steps: [
-        {
-          element: "#my-opportunities-info",
-          popover: {
-            title: "Operator Dashboard",
-            description: "Yahan aap platform par published listing memos ko manage aur tracks kar sakte hain.",
-            side: "bottom",
-            align: "start"
-          }
-        },
-        {
-          element: "#my-post-opportunity-btn",
-          popover: {
-            title: "Publish Listing",
-            description: "Approved businesses yahan se direct naya requirement memorandum share kar sakte hain.",
-            side: "bottom",
-            align: "end"
-          }
-        },
-        {
-          element: "#my-dashboard-tabs",
-          popover: {
-            title: "Dashboard Navigation",
-            description: "Apni custom listings check karne, bookmark kiye deals dekhne, aur outbound pitches track karne ke liye tabs switch karein.",
-            side: "bottom",
-            align: "start"
-          }
-        },
-        {
-          element: "#my-listings-container",
-          popover: {
-            title: "Memorandums & Pitches",
-            description: "Yahan active listings display hoti hain. Aap listing details view kar sakte hain, memo delete kar sakte hain, ya edit form trigger kar sakte hain.",
-            side: "top",
-            align: "center"
-          }
-        }
-      ]
-    });
-    driverObj.drive();
-  };
-
-  useEffect(() => {
-    const handleTourEvent = () => startTour();
-    window.addEventListener("relay:start-tour:my-opportunities", handleTourEvent);
-    return () => {
-      window.removeEventListener("relay:start-tour:my-opportunities", handleTourEvent);
-    };
-  }, [business]);
-
-  useEffect(() => {
-    if (create && business) {
-      if (business.status === "approved") {
-        setCreateOpen(true);
-      } else {
-        toast.error(
-          `Forbidden: Your business profile status is "${business.status || "pending"}". Only approved businesses can create opportunities.`,
-        );
-      }
-      navigate({ to: "/opportunities/my", search: { tab, create: false } });
-    }
-  }, [create, business, navigate, tab]);
-  const [savedItems, setSavedItems] = useState<any[]>([]);
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [selectedDetailOpp, setSelectedDetailOpp] = useState<any>(null);
-
-  const mockStorageKey = userId ? `relay_saved_mocks_${userId}` : "relay_saved_mocks";
-
   // Form Dialog States
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedOpp, setSelectedOpp] = useState<any>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  // Detail Modal States
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedDetailOpp, setSelectedDetailOpp] = useState<any>(null);
+
+  const mockStorageKey = userId ? `relay_saved_mocks_${userId}` : "relay_saved_mocks";
 
   // Form Fields
   const [title, setTitle] = useState("");
@@ -232,49 +159,70 @@ function MyOpportunitiesPage() {
   const { store, request } = useInterestStore();
   const [pitch, setPitch] = useState("");
   const [interestOpen, setInterestOpen] = useState(false);
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [submittedTargetCompany, setSubmittedTargetCompany] = useState("");
+  const [submittedOppTitle, setSubmittedOppTitle] = useState("");
 
-  const handleExpressInterest = async () => {
-    if (!selectedDetailOpp) return;
-    const trimmed = pitch.trim();
-    if (trimmed.length < 20) {
-      toast.error("Add a short context note (20+ characters).");
-      return;
-    }
-    try {
-      await expressInterest({ data: { opportunity_id: selectedDetailOpp.id } });
-      request(selectedDetailOpp.id, trimmed);
-      setInterestOpen(false);
-      setPitch("");
-      toast.success("Interest sent. Awaiting mutual acceptance.");
-    } catch (err: any) {
-      console.error("Failed to express interest:", err);
-      toast.error(err.message || "Failed to express interest.");
-    }
-  };
+  // 1. React Query: Onboarding & Business Profile
+  const { data: onboardingData, isLoading: onboardingLoading } = useQuery({
+    queryKey: ["onboarding-status", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return null;
+      return await checkOnboardingStatus();
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60 * 5,
+  });
 
-  // Fetch list of owner's opportunities
-  const loadMyOpportunities = async () => {
-    try {
-      setLoadingList(true);
+  const business = onboardingData?.business || null;
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      toast.error("Please sign in to access this page.", { id: "my-opps-auth-required" });
+      navigate({ to: "/login", replace: true });
+    } else if (onboardingData && onboardingData.isAuthenticated && !onboardingData.hasBusiness) {
+      toast.error("Please register your business profile first.", {
+        id: "my-opps-onboarding-redirect",
+      });
+      navigate({ to: "/onboarding", replace: true });
+    }
+  }, [isLoaded, isSignedIn, onboardingData, navigate]);
+
+  useEffect(() => {
+    if (create && business) {
+      if (business.status === "approved") {
+        setCreateOpen(true);
+      } else {
+        toast.error(
+          `Forbidden: Your business profile status is "${business.status || "pending"}". Only approved businesses can create opportunities.`,
+        );
+      }
+      navigate({ to: "/opportunities/my", search: { tab, create: false } });
+    }
+  }, [create, business, navigate, tab]);
+
+  // 2. React Query: My Opportunities List
+  const { data: myOpps = [], isLoading: loadingOpps } = useQuery({
+    queryKey: ["my-opportunities", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return [];
       const data = await getMyOpportunities();
-      setMyOpps(data || []);
-    } catch (err) {
-      console.error("Error loading my opportunities:", err);
-      toast.error("Failed to load your opportunities.");
-    } finally {
-      setLoadingList(false);
-    }
-  };
+      return data || [];
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60 * 2,
+  });
 
-  const loadSavedOpportunities = async () => {
-    try {
+  // 3. React Query: Saved Opportunities List
+  const { data: savedItems = [], isLoading: loadingSaved } = useQuery({
+    queryKey: ["saved-opportunities-list", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return [];
       const items = await getSavedOpportunities();
       let mockIds: string[] = [];
       try {
         const stored = localStorage.getItem(mockStorageKey);
-        if (stored) {
-          mockIds = JSON.parse(stored);
-        }
+        if (stored) mockIds = JSON.parse(stored);
       } catch (err) {
         console.error("Error reading mock saves:", err);
       }
@@ -305,11 +253,34 @@ function MyOpportunitiesPage() {
           };
         })
         .filter(Boolean);
-      setSavedItems([...(items || []), ...mockItems]);
-    } catch (err) {
-      console.error("Failed to load saved opportunities:", err);
-    }
-  };
+      return [...(items || []), ...mockItems];
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60 * 2,
+  });
+
+  // 4. React Query: Saved Opportunities Count
+  const { data: savedCount = 0 } = useQuery({
+    queryKey: ["saved-opportunities-count", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return 0;
+      try {
+        const count = await countSavedOpportunities();
+        let mockCount = 0;
+        try {
+          const stored = localStorage.getItem(mockStorageKey);
+          if (stored) mockCount = JSON.parse(stored).length;
+        } catch (_) {}
+        return (typeof count === "number" ? count : 0) + mockCount;
+      } catch {
+        return 0;
+      }
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60 * 2,
+  });
+
+  const loadingList = loadingOpps || loadingSaved;
 
   useEffect(() => {
     const handleOutsideClick = () => {
@@ -319,82 +290,37 @@ function MyOpportunitiesPage() {
     return () => window.removeEventListener("click", handleOutsideClick);
   }, []);
 
-  useEffect(() => {
-    let active = true;
-
-    const proceedWithStatus = async (status: any) => {
-      if (!active) return;
-      if (status.isAuthenticated && !status.hasBusiness) {
-        toast.error("Please register your business profile first.", {
-          id: "my-opps-onboarding-redirect",
-        });
-        navigate({ to: "/onboarding", replace: true });
-      } else {
-        setBusiness(status.business);
-        setIsValidating(false);
-        await loadMyOpportunities();
-        await loadSavedOpportunities();
-        try {
-          const count = await countSavedOpportunities();
-          setSavedCount(count);
-        } catch (cErr) {
-          console.error("Failed to fetch saved count:", cErr);
-        }
-      }
-    };
-
-    if (isSignedIn) {
-      async function verifyUserAndLoad() {
-        try {
-          const status = await checkOnboardingStatus();
-          if (!active) return;
-          if (status.isAuthenticated) {
-            await proceedWithStatus(status);
-            return;
-          }
-        } catch (error) {
-          console.error("Error verifying onboarding status:", error);
-          setIsValidating(false);
-        }
-      }
-      verifyUserAndLoad();
-
-      return () => {
-        active = false;
-      };
+  const handleExpressInterest = async () => {
+    if (!selectedDetailOpp) return;
+    const trimmed = pitch.trim();
+    if (trimmed.length < 20) {
+      toast.error("Add a short context note (20+ characters).");
+      return;
     }
-
-    const unauthenticatedRedirectTimer = setTimeout(async () => {
-      if (!active) return;
-      if (isSignedInRef.current) return;
-
-      try {
-        const status = await checkOnboardingStatus();
-        if (!active) return;
-        if (status.isAuthenticated) {
-          await proceedWithStatus(status);
-          return;
-        }
-      } catch (error) {
-        console.error("Fallback onboarding check error:", error);
-      }
-
-      if (!isSignedInRef.current && active) {
-        toast.error("Please sign in to access this page.", { id: "my-opps-auth-required" });
-        navigate({ to: "/login", replace: true });
-      }
-    }, 2500);
-
-    return () => {
-      active = false;
-      clearTimeout(unauthenticatedRedirectTimer);
-    };
-  }, [isLoaded, isSignedIn, navigate]);
-
-  const handleRemove = async (oppId: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    const isMock = oppId.startsWith("RY-");
     try {
+      await expressInterest({ data: { opportunity_id: selectedDetailOpp.id } });
+      request(selectedDetailOpp.id, trimmed);
+      const targetCompany =
+        selectedDetailOpp.business?.company_name ||
+        selectedDetailOpp.company ||
+        "Counterparty";
+      const oppTitle = selectedDetailOpp.title;
+      setSubmittedTargetCompany(targetCompany);
+      setSubmittedOppTitle(oppTitle);
+      setInterestOpen(false);
+      setPitch("");
+      setConfirmationOpen(true);
+      toast.success("Interest sent. Awaiting mutual acceptance.");
+    } catch (err: any) {
+      console.error("Failed to express interest:", err);
+      toast.error(err.message || "Failed to express interest.");
+    }
+  };
+
+  // Remove Saved Mutation
+  const removeSavedMutation = useMutation({
+    mutationFn: async (oppId: string) => {
+      const isMock = oppId.startsWith("RY-");
       if (!isMock) {
         await removeSavedOpportunity({ data: { opportunity_id: oppId } });
       } else {
@@ -406,15 +332,36 @@ function MyOpportunitiesPage() {
         mockIds = mockIds.filter((id) => id !== oppId);
         localStorage.setItem(mockStorageKey, JSON.stringify(mockIds));
       }
-      setSavedItems((prev) => prev.filter((item) => item.opportunity_id !== oppId));
-      toast.success("Opportunity removed from saved.");
-      setSavedCount((prev) => Math.max(0, prev - 1));
-      if (selectedDetailOpp?.id === oppId) {
-        setDetailOpen(false);
+    },
+    onMutate: async (oppId: string) => {
+      await queryClient.cancelQueries({ queryKey: ["saved-opportunities-list", userId] });
+      const previous = queryClient.getQueryData<any[]>(["saved-opportunities-list", userId]) || [];
+      queryClient.setQueryData(
+        ["saved-opportunities-list", userId],
+        previous.filter((item) => item.opportunity_id !== oppId)
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["saved-opportunities-list", userId], context.previous);
       }
-    } catch (err: any) {
-      console.error("Failed to remove saved opportunity:", err);
-      toast.error(err.message || "Failed to remove opportunity.");
+      toast.error("Failed to remove opportunity.");
+    },
+    onSuccess: () => {
+      toast.success("Opportunity removed from saved.");
+      queryClient.invalidateQueries({ queryKey: ["saved-opportunities-count", userId] });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-opportunities-list", userId] });
+    },
+  });
+
+  const handleRemove = (oppId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    removeSavedMutation.mutate(oppId);
+    if (selectedDetailOpp?.id === oppId) {
+      setDetailOpen(false);
     }
   };
 
@@ -504,7 +451,8 @@ function MyOpportunitiesPage() {
 
       toast.success("Opportunity Created Successfully");
       setCreateOpen(false);
-      await loadMyOpportunities();
+      queryClient.invalidateQueries({ queryKey: ["my-opportunities", userId] });
+      queryClient.invalidateQueries({ queryKey: ["opportunities-feed"] });
     } catch (err: any) {
       console.error("Create opportunity error:", err);
       toast.error(err.message || "Failed to create opportunity");
@@ -561,7 +509,8 @@ function MyOpportunitiesPage() {
 
       toast.success("Opportunity Updated Successfully");
       setEditOpen(false);
-      await loadMyOpportunities();
+      queryClient.invalidateQueries({ queryKey: ["my-opportunities", userId] });
+      queryClient.invalidateQueries({ queryKey: ["opportunities-feed"] });
     } catch (err: any) {
       console.error("Update opportunity error:", err);
       toast.error(err.message || "Failed to update opportunity");
@@ -584,43 +533,21 @@ function MyOpportunitiesPage() {
         data: { opportunity_id: opportunityId },
       });
       toast.success("Opportunity Closed Successfully");
-      await loadMyOpportunities();
+      queryClient.invalidateQueries({ queryKey: ["my-opportunities", userId] });
+      queryClient.invalidateQueries({ queryKey: ["opportunities-feed"] });
     } catch (err: any) {
       console.error("Close opportunity error:", err);
       toast.error(err.message || "Failed to close opportunity");
     }
   };
 
-  // Delete Opportunity
-  const handleDelete = async (opportunityId: string) => {
-    if (
-      !confirm(
-        "WARNING: Are you sure you want to delete this opportunity permanently? This action cannot be undone.",
-      )
-    )
-      return;
-
-    try {
-      await deleteOpportunity({
-        data: { opportunity_id: opportunityId },
-      });
-      toast.success("Opportunity Deleted Successfully");
-      await loadMyOpportunities();
-    } catch (err: any) {
-      console.error("Delete opportunity error:", err);
-      toast.error(err.message || "Failed to delete opportunity");
-    }
-  };
-
-
-
   const isApproved = business?.status === "approved";
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col">
+    <div className="min-h-screen bg-white text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col overflow-x-hidden w-full max-w-full">
 
       {/* Main Workspace */}
-      {isValidating ? (
+      {!isLoaded || onboardingLoading ? (
         <div className="flex-1 flex flex-col items-center justify-center px-6">
           <div className="flex flex-col items-center space-y-6">
             <div className="relative">
@@ -636,16 +563,7 @@ function MyOpportunitiesPage() {
           </div>
         </div>
       ) : (
-        <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-1.5 pb-24 md:pt-6">
-        {/* Breadcrumb Back */}
-        <div className="mb-1.5 md:mb-6">
-          <Link
-            to="/opportunities"
-            className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-800 transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Feed
-          </Link>
-        </div>
+        <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-24">
 
         {/* Header Title & Action button */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -662,7 +580,7 @@ function MyOpportunitiesPage() {
           <Link
             id="my-post-opportunity-btn"
             to="/post"
-            className="inline-flex items-center gap-2 h-11 px-5 font-mono text-xs uppercase tracking-widest transition-all rounded-[2px] font-bold shadow-xs cursor-pointer bg-slate-900 text-white hover:bg-primary"
+            className="inline-flex items-center gap-2 h-11 px-5 font-mono text-xs uppercase tracking-widest transition-all rounded-[2px] font-bold shadow-xs cursor-pointer bg-slate-900 text-white hover:bg-slate-800"
           >
             <Plus className="w-4 h-4" /> Post
           </Link>
@@ -701,7 +619,7 @@ function MyOpportunitiesPage() {
               </div>
               <Link
                 to="/saved-opportunities"
-                className="bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-4 py-2.5 rounded-[2px] font-bold shadow-xs hover:shadow text-center shrink-0 cursor-pointer"
+                className="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest px-4 py-2.5 rounded-[2px] font-bold shadow-xs hover:shadow text-center shrink-0 cursor-pointer"
               >
                 View Saved Opportunities
               </Link>
@@ -897,17 +815,6 @@ function MyOpportunitiesPage() {
                                 <XCircle className="w-3 h-3 text-red-400" /> Close
                               </button>
                             )}
-                            <button
-                              onClick={() => handleDelete(opp.id)}
-                              disabled={!isApproved}
-                              className={`inline-flex items-center gap-1 px-2.5 py-1.5 border border-red-100 hover:border-red-600 text-[10px] font-mono font-bold uppercase tracking-widest rounded-[2px] transition-all bg-white cursor-pointer ${
-                                isApproved
-                                  ? "text-red-600 hover:bg-red-50/50"
-                                  : "opacity-30 cursor-not-allowed"
-                              }`}
-                            >
-                              <Trash2 className="w-3 h-3 text-red-400" /> Delete
-                            </button>
                           </td>
                         </tr>
                       ))}
@@ -1023,20 +930,6 @@ function MyOpportunitiesPage() {
                                   Close
                                 </button>
                               )}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveMenuId(null);
-                                  handleDelete(opp.id);
-                                }}
-                                disabled={!isApproved}
-                                className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors ${
-                                  isApproved ? "text-red-600" : "opacity-30 cursor-not-allowed"
-                                }`}
-                              >
-                                <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                                Delete
-                              </button>
                             </div>
                           )}
                         </div>
@@ -1521,7 +1414,7 @@ function MyOpportunitiesPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="h-10 flex-1 px-5 py-2 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest rounded-[2px] font-bold shadow-xs hover:shadow transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 sm:flex-none"
+                className="h-10 flex-1 px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest rounded-[2px] font-bold shadow-xs hover:shadow transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 sm:flex-none"
               >
                 {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Publish
@@ -1789,7 +1682,7 @@ function MyOpportunitiesPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="h-10 flex-1 px-5 py-2 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest rounded-[2px] font-bold shadow-xs hover:shadow transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 sm:flex-none"
+                className="h-10 flex-1 px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest rounded-[2px] font-bold shadow-xs hover:shadow transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 sm:flex-none"
               >
                 {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Save
@@ -1878,7 +1771,7 @@ function MyOpportunitiesPage() {
                           Company
                         </span>
                         <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-[2px] bg-slate-100 border border-slate-200 flex items-center justify-center font-sans text-[8px] font-bold text-slate-600 uppercase">
+                          <div className="w-5 h-5 rounded-[2px] bg-slate-950 border border-slate-900 flex items-center justify-center font-sans text-[8px] font-bold text-white uppercase">
                             {initials}
                           </div>
                           <span className="text-xs font-bold text-slate-900 break-words">
@@ -1972,7 +1865,7 @@ function MyOpportunitiesPage() {
                                   setDetailOpen(false);
                                   setInterestOpen(true);
                                 }}
-                                className="py-2.5 px-4 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
+                                className="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
                               >
                                 Express Interest
                               </button>
@@ -2052,7 +1945,7 @@ function MyOpportunitiesPage() {
                 </button>
                 <button
                   onClick={handleExpressInterest}
-                  className="py-2.5 px-5 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
+                  className="py-2.5 px-5 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
                 >
                   Submit Handshake
                 </button>
@@ -2061,6 +1954,17 @@ function MyOpportunitiesPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          PROPOSAL SUBMITTED CONFIRMATION MODAL
+          ═══════════════════════════════════════════════════════════════════ */}
+      <ProposalConfirmationModal
+        isOpen={confirmationOpen}
+        onClose={() => setConfirmationOpen(false)}
+        targetCompanyName={submittedTargetCompany}
+        opportunityTitle={submittedOppTitle}
+        backButtonText="Back to My Opportunities"
+      />
     </div>
   );
 }

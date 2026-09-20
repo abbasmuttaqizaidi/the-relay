@@ -16,11 +16,17 @@ export class BusinessService {
           data: {
             owner_user_id: dto.owner_user_id,
             company_name: dto.company_name,
-            website: dto.website,
+            website: dto.website || "",
             industry: dto.industry,
             description: dto.description || null,
             linkedin_url: dto.linkedin_url || null,
             logo_url: dto.logo_url || null,
+            hq_location: dto.hq_location || null,
+            founded_year: dto.founded_year || null,
+            company_size: dto.company_size || null,
+            company_type: dto.company_type || null,
+            funding_stage: dto.funding_stage || null,
+            twitter_url: dto.twitter_url || null,
             status: "pending",
           },
         });
@@ -69,6 +75,7 @@ export class BusinessService {
           funding_stage: dto.funding_stage,
           twitter_url: dto.twitter_url,
           contact_email: dto.contact_email,
+          phone_number: dto.phone_number,
         },
       });
 
@@ -109,6 +116,7 @@ export class BusinessService {
 
   /**
    * Retrieves a business profile by Owner User ID.
+   * Prioritizes valid non-test businesses with active listings/interests.
    */
   static async getBusinessByOwner(ownerUserId: string): Promise<Business | null> {
     const cacheKey = `business:owner:${ownerUserId}`;
@@ -116,17 +124,81 @@ export class BusinessService {
     if (cached) return cached;
 
     try {
-      const business = await prisma.business.findFirst({
-        where: { owner_user_id: ownerUserId },
+      const businesses = await prisma.business.findMany({
+        where: {
+          OR: [
+            { owner_user_id: ownerUserId },
+            { members: { some: { user_id: ownerUserId } } },
+          ],
+        },
+        include: {
+          opportunities: {
+            select: { id: true },
+          },
+          interests: {
+            select: { id: true },
+          },
+        },
+        orderBy: {
+          created_at: "asc",
+        },
       });
-      if (!business) return null;
 
-      const result = BusinessService.mapBusinessModel(business);
+      if (!businesses || businesses.length === 0) return null;
+
+      // Filter out test/audit temporary businesses if genuine businesses exist
+      const validBusinesses = businesses.filter(
+        (b) => !b.company_name.startsWith("__Audit") && !b.company_name.startsWith("__Test"),
+      );
+      const candidates = validBusinesses.length > 0 ? validBusinesses : businesses;
+
+      // Prioritize business with existing opportunities/interests or approved status
+      const activeBusiness =
+        candidates.find(
+          (b) =>
+            (b.opportunities && b.opportunities.length > 0) ||
+            (b.interests && b.interests.length > 0),
+        ) ||
+        candidates.find((b) => b.status === "approved") ||
+        candidates[0];
+
+      const result = BusinessService.mapBusinessModel(activeBusiness);
       serverCache.set(cacheKey, result, 300);
       return result;
     } catch (error: any) {
       console.error("[BusinessService.getBusinessByOwner] Error:", error);
       throw new Error(`Failed to fetch owner's business: ${error.message || error}`);
+    }
+  }
+
+  /**
+   * Retrieves all active business IDs associated with a user.
+   */
+  static async getUserBusinessIds(userId: string): Promise<string[]> {
+    try {
+      const businesses = await prisma.business.findMany({
+        where: {
+          OR: [
+            { owner_user_id: userId },
+            { members: { some: { user_id: userId } } },
+          ],
+        },
+        select: {
+          id: true,
+          company_name: true,
+        },
+      });
+
+      if (!businesses || businesses.length === 0) return [];
+
+      const valid = businesses.filter(
+        (b) => !b.company_name.startsWith("__Audit") && !b.company_name.startsWith("__Test"),
+      );
+      const target = valid.length > 0 ? valid : businesses;
+      return target.map((b) => b.id);
+    } catch (error) {
+      console.error("[BusinessService.getUserBusinessIds] Error:", error);
+      return [];
     }
   }
 
@@ -333,12 +405,163 @@ export class BusinessService {
       funding_stage: business.funding_stage,
       twitter_url: business.twitter_url,
       contact_email: business.contact_email,
+      phone_number: business.phone_number ?? null,
       status: business.status as any,
       website_verified: business.website_verified,
       website_verified_at: business.website_verified_at?.toISOString() ?? null,
       website_verified_domain: business.website_verified_domain ?? null,
       created_at: business.created_at.toISOString(),
       updated_at: business.updated_at.toISOString(),
+      custom_contact_details: business.custom_contact_details
+        ? business.custom_contact_details.map((c: any) => ({
+            id: c.id,
+            business_id: c.business_id,
+            label: c.label,
+            value: c.value,
+            created_at: c.created_at.toISOString(),
+            updated_at: c.updated_at.toISOString(),
+          }))
+        : undefined,
     };
+  }
+
+  /**
+   * Adds a custom contact detail for a business.
+   */
+  static async createCustomContactDetail(businessId: string, label: string, value: string) {
+    const created = await prisma.customContactDetail.create({
+      data: {
+        business_id: businessId,
+        label: label.trim(),
+        value: value.trim(),
+      },
+    });
+
+    return {
+      id: created.id,
+      business_id: created.business_id,
+      label: created.label,
+      value: created.value,
+      created_at: created.created_at.toISOString(),
+      updated_at: created.updated_at.toISOString(),
+    };
+  }
+
+  /**
+   * Updates an existing custom contact detail.
+   * If value is changed, resets any accepted consents back to requested to prevent leaking unconsented data.
+   */
+  static async updateCustomContactDetail(
+    businessId: string,
+    id: string,
+    label: string,
+    value: string
+  ) {
+    const existing = await prisma.customContactDetail.findUnique({
+      where: { id },
+    });
+
+    if (!existing || existing.business_id !== businessId) {
+      throw new Error("Custom contact detail not found or unauthorized.");
+    }
+
+    const valueChanged = existing.value !== value.trim();
+
+    return await prisma.$transaction(async (tx) => {
+      const updated = await tx.customContactDetail.update({
+        where: { id },
+        data: {
+          label: label.trim(),
+          value: value.trim(),
+        },
+      });
+
+      // If value changed, reset active consents for this custom contact to 'requested'
+      if (valueChanged) {
+        await tx.contactSharingConsent.updateMany({
+          where: {
+            from_business_id: businessId,
+            contact_field: `custom:${id}`,
+          },
+          data: {
+            status: "requested",
+            accepted_at: null,
+          },
+        });
+      }
+
+      return {
+        id: updated.id,
+        business_id: updated.business_id,
+        label: updated.label,
+        value: updated.value,
+        created_at: updated.created_at.toISOString(),
+        updated_at: updated.updated_at.toISOString(),
+      };
+    });
+  }
+
+  /**
+   * Deletes a custom contact detail and removes any active/pending consents referencing it.
+   */
+  static async deleteCustomContactDetail(businessId: string, id: string) {
+    const existing = await prisma.customContactDetail.findUnique({
+      where: { id },
+    });
+
+    if (!existing || existing.business_id !== businessId) {
+      throw new Error("Custom contact detail not found or unauthorized.");
+    }
+
+    return await prisma.$transaction(async (tx) => {
+      // Remove consents referencing this field
+      await tx.contactSharingConsent.deleteMany({
+        where: {
+          from_business_id: businessId,
+          contact_field: `custom:${id}`,
+        },
+      });
+
+      await tx.customContactDetail.delete({
+        where: { id },
+      });
+
+      return { success: true, id };
+    });
+  }
+
+  /**
+   * Fetches all custom contact details for a business.
+   */
+  static async getCustomContactDetails(businessId: string) {
+    if (!prisma.customContactDetail) {
+      return [];
+    }
+    const details = await prisma.customContactDetail.findMany({
+      where: { business_id: businessId },
+      orderBy: { created_at: "asc" },
+    });
+
+    return details.map((d) => ({
+      id: d.id,
+      business_id: d.business_id,
+      label: d.label,
+      value: d.value,
+      created_at: d.created_at.toISOString(),
+      updated_at: d.updated_at.toISOString(),
+    }));
+  }
+
+  /**
+   * Returns total count of registered businesses in the database added to the base count of 745.
+   */
+  static async getVerifiedBusinessCount(baseCount: number = 745): Promise<number> {
+    try {
+      const count = await prisma.business.count();
+      return baseCount + count;
+    } catch (err) {
+      console.error("[BusinessService.getVerifiedBusinessCount] Error:", err);
+      return baseCount;
+    }
   }
 }

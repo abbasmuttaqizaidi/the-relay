@@ -44,13 +44,24 @@ export interface Business {
   funding_stage: string | null;
   twitter_url: string | null;
   contact_email: string | null;
+  phone_number: string | null;
   status: BusinessStatus;
   website_verified: boolean;
   website_verified_at: string | null;
   website_verified_domain: string | null;
   created_at: string;
   updated_at: string;
+  custom_contact_details?: CustomContactDetail[];
   reliability_events?: ReliabilityEvent[];
+}
+
+export interface CustomContactDetail {
+  id: string; // UUID
+  business_id: string; // UUID
+  label: string;
+  value: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface BusinessMember {
@@ -119,7 +130,7 @@ export type ExchangeAgreementStatus = "draft" | "agreed" | "cancelled";
 
 export type ContactSharingStatus = "requested" | "accepted" | "declined";
 
-export type ContactField = "email" | "phone" | "whatsapp" | "linkedin" | "twitter";
+export type ContactField = "email" | "phone" | "whatsapp" | "linkedin" | "twitter" | string;
 
 export type DeclineReason =
   | "valuation_mismatch"
@@ -249,11 +260,17 @@ export interface CreateUserDTO {
 export interface CreateBusinessDTO {
   owner_user_id: string;
   company_name: string;
-  website: string;
+  website?: string;
   industry: string;
   description?: string;
   linkedin_url?: string;
   logo_url?: string;
+  hq_location?: string;
+  founded_year?: number;
+  company_size?: string;
+  company_type?: string;
+  funding_stage?: string;
+  twitter_url?: string;
 }
 
 export interface UpdateBusinessDTO {
@@ -270,6 +287,22 @@ export interface UpdateBusinessDTO {
   funding_stage?: string;
   twitter_url?: string;
   contact_email?: string;
+  phone_number?: string;
+}
+
+export interface CreateCustomContactDTO {
+  label: string;
+  value: string;
+}
+
+export interface UpdateCustomContactDTO {
+  id: string;
+  label: string;
+  value: string;
+}
+
+export interface DeleteCustomContactDTO {
+  id: string;
 }
 
 export interface CreateOpportunityDTO {

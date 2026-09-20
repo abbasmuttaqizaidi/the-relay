@@ -400,7 +400,7 @@ export function KnowledgeDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FDFDFD] py-16">
+      <div className="min-h-screen bg-white py-16">
         <div className="max-w-[720px] mx-auto px-4 sm:px-6 space-y-8 animate-pulse">
           <div className="h-4 w-28 bg-slate-200 rounded" />
           <div className="space-y-3">
@@ -428,7 +428,7 @@ export function KnowledgeDetailPage() {
 
   if (!insight) {
     return (
-      <div className="min-h-screen bg-[#FDFDFD] py-20 text-center">
+      <div className="min-h-screen bg-white py-20 text-center">
         <p className="text-sm text-slate-500">Knowledge article not found.</p>
         <Link
           to="/insights"
@@ -442,7 +442,7 @@ export function KnowledgeDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] text-slate-900 pb-28">
+    <div className="min-h-screen bg-white text-slate-900 pb-28">
       {/* ═══════════════════════════════════════════════════════════════════
           1. TOP NAVIGATION / BREADCRUMB
           ═══════════════════════════════════════════════════════════════════ */}

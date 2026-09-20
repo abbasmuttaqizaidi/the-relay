@@ -36,6 +36,7 @@ import {
   Lightbulb,
   Plus,
 } from "lucide-react";
+import { RelayVerificationSeal } from "@/components/relay-verification-seal";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -404,19 +405,23 @@ function AdminDashboard() {
       return;
     }
 
-    setDeletingId(dbId);
+    const actionKey = clerkId || dbId;
+    setDeletingId(actionKey);
     try {
-      await deleteUserFromAdmin({
+      console.log("[Admin] Initiating delete for user:", { dbId, clerkId });
+      const res = await deleteUserFromAdmin({
         data: {
           id: dbId,
           clerk_user_id: clerkId,
         },
       });
-      toast.success("User successfully deleted from both systems.");
-      setUsers(users.filter((u) => u.id !== dbId));
+      console.log("[Admin] Delete result:", res);
+      toast.success("User and all associated business data permanently deleted.");
+      setUsers((prev) => prev.filter((u) => u.id !== dbId && u.clerk_user_id !== clerkId));
+      fetchAdminData();
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Failed to delete user.");
+      console.error("[Admin] Delete failed error:", err);
+      toast.error(err?.message || "Failed to delete user.");
     } finally {
       setDeletingId(null);
     }
@@ -552,7 +557,7 @@ function AdminDashboard() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-6 text-slate-800">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-slate-800">
         <Loader2 className="w-10 h-10 animate-spin text-[hsl(24_95%_45%)]" />
         <span className="font-mono text-xs uppercase tracking-widest mt-4 text-slate-500">
           Loading Control Center...
@@ -607,7 +612,7 @@ function AdminDashboard() {
 
   if (loading && users.length === 0 && opportunities.length === 0) {
     return (
-      <div className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-6 text-slate-800">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-slate-800">
         <Loader2 className="w-10 h-10 animate-spin text-[hsl(24_95%_45%)]" />
         <span className="font-mono text-xs uppercase tracking-widest mt-4 text-slate-500">
           Fetching Database Directory...
@@ -645,7 +650,7 @@ function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] text-foreground font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-white text-foreground font-sans flex flex-col justify-between">
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-10 space-y-8 animate-momentum">
         {/* Header Title */}
@@ -889,7 +894,7 @@ function AdminDashboard() {
                               className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase rounded-[2px] px-2 py-0.5"
                             >
                               {user.business.status === "approved" && (
-                                <ShieldCheck className="w-3 h-3" />
+                                <RelayVerificationSeal className="w-3 h-3 shrink-0" />
                               )}
                               {user.business.status}
                             </Badge>
@@ -959,11 +964,11 @@ function AdminDashboard() {
                             {/* Delete button — always shown */}
                             <Button
                               onClick={() => handleDeleteUser(user.id, user.clerk_user_id)}
-                              disabled={deletingId === user.id}
+                              disabled={deletingId === user.clerk_user_id || deletingId === user.id}
                               variant="destructive"
                               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-red-500/10 rounded-[2px] bg-red-500/5 hover:bg-red-500 hover:text-white transition-all text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-none"
                             >
-                              {deletingId === user.id ? (
+                              {deletingId === user.clerk_user_id || deletingId === user.id ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                               ) : (
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1060,7 +1065,7 @@ function AdminDashboard() {
                             className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase rounded-[2px] px-2 py-0.5"
                           >
                             {user.business.status === "approved" && (
-                              <ShieldCheck className="w-3.5 h-3.5" />
+                              <RelayVerificationSeal className="w-3.5 h-3.5 shrink-0" />
                             )}
                             {user.business.status}
                           </Badge>
@@ -1132,11 +1137,11 @@ function AdminDashboard() {
 
                       <Button
                         onClick={() => handleDeleteUser(user.id, user.clerk_user_id)}
-                        disabled={deletingId === user.id}
+                        disabled={deletingId === user.clerk_user_id || deletingId === user.id}
                         variant="destructive"
                         className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-red-500/10 rounded-[2px] bg-red-500/5 hover:bg-red-500 hover:text-white transition-all text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-none"
                       >
-                        {deletingId === user.id ? (
+                        {deletingId === user.clerk_user_id || deletingId === user.id ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         ) : (
                           <Trash2 className="w-3.5 h-3.5" />

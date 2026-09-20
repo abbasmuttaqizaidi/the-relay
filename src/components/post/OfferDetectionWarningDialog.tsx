@@ -69,7 +69,7 @@ export function OfferDetectionWarningDialog({
           <button
             type="button"
             onClick={onSwitchToOffer}
-            className="w-full bg-slate-900 hover:bg-primary text-white text-[11px] font-mono uppercase tracking-wider py-2.5 px-4 rounded-[2px] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-mono uppercase tracking-wider py-2.5 px-4 rounded-[2px] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
           >
             <Megaphone className="w-3.5 h-3.5" />
             Post as Offer Instead

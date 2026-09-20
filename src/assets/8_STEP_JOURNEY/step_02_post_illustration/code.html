@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%" fill="none">
+  <rect width="800" height="500" rx="16" fill="#F8FAFC"/>
+  <defs>
+    <pattern id="grid_v2" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#E2E8F0" stroke-width="1" stroke-opacity="0.6"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="500" rx="16" fill="url(#grid_v2)"/>
+
+  <!-- Step 02: Post -->
+  <g transform="translate(150, 60)">
+    <!-- Back card layer -->
+    <rect x="110" y="30" width="340" height="250" rx="14" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" opacity="0.6"/>
+    
+    <!-- Main Card -->
+    <rect x="70" y="60" width="360" height="280" rx="16" fill="#FFFFFF" stroke="#0F172A" stroke-width="2" filter="drop-shadow(0 20px 35px rgba(15,23,42,0.07))"/>
+    
+    <!-- Header of Card -->
+    <rect x="100" y="90" width="120" height="24" rx="12" fill="#F1F5F9"/>
+    <text x="160" y="106" fill="#475569" font-family="Plus Jakarta Sans, sans-serif" font-size="10" font-weight="700" text-anchor="middle" letter-spacing="0.5">BLINDED DEAL</text>
+
+    <rect x="350" y="90" width="50" height="24" rx="6" fill="#0F172A"/>
+    <text x="375" y="106" fill="#FFFFFF" font-family="Plus Jakarta Sans, sans-serif" font-size="10" font-weight="700" text-anchor="middle">NEW</text>
+
+    <!-- Deal Content Placeholder lines -->
+    <rect x="100" y="132" width="240" height="14" rx="7" fill="#0F172A"/>
+    <rect x="100" y="156" width="285" height="8" rx="4" fill="#64748B"/>
+    <rect x="100" y="172" width="210" height="8" rx="4" fill="#94A3B8"/>
+
+    <!-- Offering / Seeking Tags -->
+    <g transform="translate(100, 204)">
+      <rect width="140" height="46" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+      <text x="14" y="20" fill="#0F172A" font-family="Plus Jakarta Sans, sans-serif" font-size="9" font-weight="700">OFFERING</text>
+      <text x="14" y="36" fill="#64748B" font-family="Plus Jakarta Sans, sans-serif" font-size="10" font-weight="500">Tier-1 Cloud Infra</text>
+    </g>
+
+    <g transform="translate(255, 204)">
+      <rect width="145" height="46" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+      <text x="14" y="20" fill="#0F172A" font-family="Plus Jakarta Sans, sans-serif" font-size="9" font-weight="700">SEEKING</text>
+      <text x="14" y="36" fill="#64748B" font-family="Plus Jakarta Sans, sans-serif" font-size="10" font-weight="500">EU B2B Resellers</text>
+    </g>
+
+    <!-- Confidential Shield Footer -->
+    <g transform="translate(100, 276)">
+      <circle cx="10" cy="10" r="10" fill="#0F172A"/>
+      <path d="M7 10 V8 C7 6.5 8.5 5 10 5 C11.5 5 13 6.5 13 8 V10 M6 10 H14 V14 H6 Z" stroke="#FFFFFF" stroke-width="1.2" fill="none"/>
+      <text x="28" y="14" fill="#64748B" font-family="Plus Jakarta Sans, sans-serif" font-size="10" font-weight="600">Proprietary Identifiers Blinded</text>
+    </g>
+  </g>
+</svg>

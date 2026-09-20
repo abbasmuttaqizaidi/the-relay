@@ -14,8 +14,8 @@ export const deleteOpportunity = createServerFn({ method: "POST" })
     }
     const business = await BusinessService.getBusinessByOwner(user.id);
     if (!business || opportunity.business_id !== business.id) {
-      throw new Error("Unauthorized: You do not have permission to delete this opportunity.");
+      throw new Error("Unauthorized: You do not have permission to modify this opportunity.");
     }
-    return await OpportunityService.deleteOpportunity(data.opportunity_id);
+    throw new Error("Constraint Restriction: Posted opportunities cannot be deleted permanently. You can only close them.");
   });
 export type DeleteOpportunityFn = typeof deleteOpportunity;

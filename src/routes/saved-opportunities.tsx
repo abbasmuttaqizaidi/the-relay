@@ -1,8 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/tanstack-react-start";
-import { driver } from "driver.js";
-import "driver.js/dist/driver.css";
 import { toast } from "@/components/ui/sonner";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
@@ -10,6 +9,7 @@ import { getSavedOpportunities } from "../functions/getSavedOpportunities";
 import { removeSavedOpportunity } from "../functions/removeSavedOpportunity";
 import { expressInterest } from "../functions/expressInterest";
 import { Navbar } from "@/components/navbar";
+import { ProposalConfirmationModal } from "@/components/ProposalConfirmationModal";
 import { useInterestStore, RECIPROCITY_WEIGHTS } from "@/lib/interest-store";
 import { getCompanyInitials } from "@/lib/utils";
 import {
@@ -53,13 +53,8 @@ export const Route = createFileRoute("/saved-opportunities")({
 
 function SavedOpportunitiesPage() {
   const { isSignedIn, isLoaded, userId } = useAuth();
-  const isSignedInRef = useRef(isSignedIn);
-  isSignedInRef.current = isSignedIn;
   const navigate = useNavigate();
-  const [isValidating, setIsValidating] = useState(true);
-  const [business, setBusiness] = useState<any>(null);
-  const [savedItems, setSavedItems] = useState<any[]>([]);
-  const [loadingList, setLoadingList] = useState(true);
+  const queryClient = useQueryClient();
 
   // Detail Dialog States
   const [selectedOpp, setSelectedOpp] = useState<any>(null);
@@ -69,63 +64,52 @@ function SavedOpportunitiesPage() {
   const { store, request, respond } = useInterestStore();
   const [pitch, setPitch] = useState("");
   const [interestOpen, setInterestOpen] = useState(false);
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [submittedTargetCompany, setSubmittedTargetCompany] = useState("");
+  const [submittedOppTitle, setSubmittedOppTitle] = useState("");
 
   const mockStorageKey = userId ? `relay_saved_mocks_${userId}` : "relay_saved_mocks";
 
-  const startTour = () => {
-    const driverObj = driver({
-      showProgress: true,
-      popoverClass: "relay-tour-popover",
-      steps: [
-        {
-          element: "#saved-opportunities-header-info",
-          popover: {
-            title: "Saved Memos",
-            description: "Yahan aapke dwara save ya bookmark kiye gaye business opportunities memorandums showcase hote hain.",
-            side: "bottom",
-            align: "start"
-          }
-        },
-        {
-          element: "#saved-opportunities-list",
-          popover: {
-            title: "Bookmarked Listings",
-            description: "Aap save kiye gaye items ko click karke details dekh sakte hain, interest pitch submit kar sakte hain, ya list se remove kar sakte hain.",
-            side: "top",
-            align: "center"
-          }
-        }
-      ]
-    });
-    driverObj.drive();
-  };
+  // 1. Onboarding Query
+  const { data: onboardingStatus } = useQuery({
+    queryKey: ["onboarding-status", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return null;
+      return await checkOnboardingStatus();
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const business = onboardingStatus?.business || null;
 
   useEffect(() => {
-    const handleTourEvent = () => startTour();
-    window.addEventListener("relay:start-tour:saved-opportunities", handleTourEvent);
-    return () => {
-      window.removeEventListener("relay:start-tour:saved-opportunities", handleTourEvent);
-    };
-  }, []);
+    if (isLoaded && !isSignedIn) {
+      navigate({ to: "/login", replace: true });
+    } else if (onboardingStatus && onboardingStatus.isAuthenticated) {
+      if (!onboardingStatus.hasBusiness) {
+        toast.error("Please register your business profile first.");
+        navigate({ to: "/onboarding", replace: true });
+      } else if (onboardingStatus.business?.status === "approved") {
+        navigate({ to: "/opportunities/my", search: { tab: "saved" }, replace: true });
+      }
+    }
+  }, [isLoaded, isSignedIn, onboardingStatus, navigate]);
 
-  const loadData = async () => {
-    try {
-      setLoadingList(true);
+  // 2. Saved Opportunities Query
+  const { data: savedItems = [], isLoading: loadingList } = useQuery({
+    queryKey: ["saved-opportunities-list", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return [];
       const items = await getSavedOpportunities();
 
-      // Load mock saves from localStorage
       let mockIds: string[] = [];
       try {
-        console.log("[Saved Opps Page] Reading mock saves from key:", mockStorageKey);
         const stored = localStorage.getItem(mockStorageKey);
-        console.log("[Saved Opps Page] Raw stored value in localStorage:", stored);
-        if (stored) {
-          mockIds = JSON.parse(stored);
-        }
+        if (stored) mockIds = JSON.parse(stored);
       } catch (err) {
         console.error("[Saved Opps Page] Error reading mock saves:", err);
       }
-      console.log("[Saved Opps Page] Resolved mock IDs:", mockIds);
 
       const mockItems = mockIds
         .map((id) => {
@@ -150,85 +134,16 @@ function SavedOpportunitiesPage() {
         })
         .filter(Boolean);
 
-      setSavedItems([...(items || []), ...mockItems]);
-    } catch (err) {
-      console.error("Failed to load saved opportunities:", err);
-      toast.error("Failed to load saved opportunities.");
-    } finally {
-      setLoadingList(false);
-    }
-  };
+      return [...(items || []), ...mockItems];
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60 * 2,
+  });
 
-  useEffect(() => {
-    let active = true;
-
-    const proceedWithStatus = async (status: any) => {
-      if (!active) return;
-      if (status.isAuthenticated && !status.hasBusiness) {
-        toast.error("Please register your business profile first.");
-        navigate({ to: "/onboarding", replace: true });
-      } else {
-        setBusiness(status.business);
-        if (status.business?.status === "approved") {
-          navigate({ to: "/opportunities/my", search: { tab: "saved" }, replace: true });
-          return;
-        }
-        await loadData();
-        setIsValidating(false);
-      }
-    };
-
-    if (isSignedIn) {
-      async function verifyUser() {
-        try {
-          const status = await checkOnboardingStatus();
-          if (!active) return;
-          if (status.isAuthenticated) {
-            await proceedWithStatus(status);
-            return;
-          }
-        } catch (err) {
-          console.error("Error verifying onboarding status:", err);
-          setIsValidating(false);
-        }
-      }
-      verifyUser();
-
-      return () => {
-        active = false;
-      };
-    }
-
-    const unauthenticatedRedirectTimer = setTimeout(async () => {
-      if (!active) return;
-      if (isSignedInRef.current) return;
-
-      try {
-        const status = await checkOnboardingStatus();
-        if (!active) return;
-        if (status.isAuthenticated) {
-          await proceedWithStatus(status);
-          return;
-        }
-      } catch (err) {
-        console.error("Fallback auth check error in saved opportunities:", err);
-      }
-
-      if (!isSignedInRef.current && active) {
-        navigate({ to: "/login", replace: true });
-      }
-    }, 2500);
-
-    return () => {
-      active = false;
-      clearTimeout(unauthenticatedRedirectTimer);
-    };
-  }, [isLoaded, isSignedIn, navigate]);
-
-  const handleRemove = async (oppId: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    const isMock = oppId.startsWith("RY-");
-    try {
+  // Remove Mutation with optimistic UI updates
+  const removeMutation = useMutation({
+    mutationFn: async (oppId: string) => {
+      const isMock = oppId.startsWith("RY-");
       if (!isMock) {
         await removeSavedOpportunity({ data: { opportunity_id: oppId } });
       } else {
@@ -240,14 +155,36 @@ function SavedOpportunitiesPage() {
         mockIds = mockIds.filter(id => id !== oppId);
         localStorage.setItem(mockStorageKey, JSON.stringify(mockIds));
       }
-      setSavedItems(prev => prev.filter(item => item.opportunity_id !== oppId));
-      toast.success("Opportunity removed from saved.");
-      if (selectedOpp?.id === oppId) {
-        setDetailOpen(false);
+    },
+    onMutate: async (oppId: string) => {
+      await queryClient.cancelQueries({ queryKey: ["saved-opportunities-list", userId] });
+      const previous = queryClient.getQueryData<any[]>(["saved-opportunities-list", userId]) || [];
+      queryClient.setQueryData(
+        ["saved-opportunities-list", userId],
+        previous.filter((item) => item.opportunity_id !== oppId)
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["saved-opportunities-list", userId], context.previous);
       }
-    } catch (err: any) {
-      console.error("Failed to remove saved opportunity:", err);
-      toast.error(err.message || "Failed to remove opportunity.");
+      toast.error("Failed to remove opportunity.");
+    },
+    onSuccess: () => {
+      toast.success("Opportunity removed from saved.");
+      queryClient.invalidateQueries({ queryKey: ["saved-opportunities", userId] });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-opportunities-list", userId] });
+    },
+  });
+
+  const handleRemove = (oppId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    removeMutation.mutate(oppId);
+    if (selectedOpp?.id === oppId) {
+      setDetailOpen(false);
     }
   };
 
@@ -261,8 +198,16 @@ function SavedOpportunitiesPage() {
     try {
       await expressInterest({ data: { opportunity_id: selectedOpp.id } });
       request(selectedOpp.id, trimmed);
+      const targetCompany =
+        selectedOpp.business?.company_name ||
+        selectedOpp.company ||
+        "Counterparty";
+      const oppTitle = selectedOpp.title;
+      setSubmittedTargetCompany(targetCompany);
+      setSubmittedOppTitle(oppTitle);
       setInterestOpen(false);
       setPitch("");
+      setConfirmationOpen(true);
       toast.success("Interest sent. Awaiting mutual acceptance.");
     } catch (err: any) {
       console.error("Failed to express interest:", err);
@@ -270,15 +215,10 @@ function SavedOpportunitiesPage() {
     }
   };
 
-  if (isValidating) {
+  if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="w-6 h-6 animate-spin text-slate-900" />
-          <span className="font-mono text-[10px] uppercase tracking-widest text-slate-500 font-bold">
-            Verifying secure credentials...
-          </span>
-        </div>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-900" />
       </div>
     );
   }
@@ -286,20 +226,10 @@ function SavedOpportunitiesPage() {
   const isApproved = business?.status === "approved";
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-900 selection:bg-slate-900 selection:text-white">
+    <div className="min-h-screen bg-white text-slate-900 selection:bg-slate-900 selection:text-white overflow-x-hidden w-full max-w-full">
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-1.5 pb-24 md:pt-6">
-        {/* Back Link */}
-        <div className="mb-1.5 md:mb-6">
-          <Link
-            to="/opportunities"
-            className="inline-flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors font-bold"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Back to Opportunities
-          </Link>
-        </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-24">
 
         {/* Page Title & Status Banner */}
         <div id="saved-opportunities-header-info" className="space-y-4 mb-8">
@@ -352,7 +282,7 @@ function SavedOpportunitiesPage() {
               </div>
               <Link
                 to="/opportunities"
-                className="inline-block bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest px-5 py-2.5 rounded-[2px] font-bold shadow-sm transition-all"
+                className="inline-block bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest px-5 py-2.5 rounded-[2px] font-bold shadow-sm transition-all"
               >
                 Explore Feed
               </Link>
@@ -601,7 +531,7 @@ function SavedOpportunitiesPage() {
                     <div className="space-y-1">
                       <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold block">Company</span>
                       <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-[2px] bg-slate-100 border border-slate-200 flex items-center justify-center font-sans text-[8px] font-bold text-slate-600 uppercase">
+                        <div className="w-5 h-5 rounded-[2px] bg-slate-950 border border-slate-900 flex items-center justify-center font-sans text-[8px] font-bold text-white uppercase">
                           {initials}
                         </div>
                         <span className="text-xs font-bold text-slate-900 break-words">{displayName}</span>
@@ -673,7 +603,7 @@ function SavedOpportunitiesPage() {
                                 setDetailOpen(false);
                                 setInterestOpen(true);
                               }}
-                              className="py-2.5 px-4 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
+                              className="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
                             >
                               Express Interest
                             </button>
@@ -753,7 +683,7 @@ function SavedOpportunitiesPage() {
                 </button>
                 <button
                   onClick={handleExpressInterest}
-                  className="py-2.5 px-5 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
+                  className="py-2.5 px-5 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
                 >
                   Submit Handshake
                 </button>
@@ -762,6 +692,17 @@ function SavedOpportunitiesPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          PROPOSAL SUBMITTED CONFIRMATION MODAL
+          ═══════════════════════════════════════════════════════════════════ */}
+      <ProposalConfirmationModal
+        isOpen={confirmationOpen}
+        onClose={() => setConfirmationOpen(false)}
+        targetCompanyName={submittedTargetCompany}
+        opportunityTitle={submittedOppTitle}
+        backButtonText="Back to Saved Opportunities"
+      />
     </div>
   );
 }

@@ -523,17 +523,42 @@ export class ExchangeService {
     });
   }
 
+
   /**
-   * Submits contact fields a business is willing to share.
+   * Helper to format human-readable contact field names.
    */
-  static async shareContactConsent(interestId: string, businessId: string, fields: ContactField[]) {
+  private static getContactFieldName(field: string): string {
+    switch (field) {
+      case "email":
+        return "Business Email";
+      case "phone":
+        return "Phone Number";
+      case "linkedin":
+        return "LinkedIn Profile";
+      case "whatsapp":
+        return "WhatsApp";
+      case "twitter":
+        return "Twitter / X";
+      default:
+        if (field.startsWith("custom:")) return "Custom Contact";
+        return field;
+    }
+  }
+
+  /**
+   * Requests a field exchange from current business to partner business.
+   */
+  static async requestContactExchange(
+    interestId: string,
+    businessId: string,
+    field: string,
+    value?: string | null
+  ) {
     const interest = await prisma.interest.findUnique({
       where: { id: interestId },
       include: {
         opportunity: {
-          include: {
-            business: true,
-          },
+          include: { business: true },
         },
         requesting_business: true,
         exchange_agreement: true,
@@ -545,7 +570,7 @@ export class ExchangeService {
     }
 
     if (!interest.exchange_agreement || interest.exchange_agreement.status !== "agreed") {
-      throw new Error("Contact sharing is only permitted after exchange terms are mutually confirmed.");
+      throw new Error("Contact exchange is only permitted after exchange terms are mutually confirmed.");
     }
 
     const isRequester = interest.requesting_business_id === businessId;
@@ -559,31 +584,81 @@ export class ExchangeService {
       ? interest.opportunity.business_id
       : interest.requesting_business_id;
 
-    // Upsert consent for each selected field
-    const results = await prisma.$transaction(
-      fields.map((field) =>
-        prisma.contactSharingConsent.upsert({
-          where: {
-            interest_id_from_business_id_contact_field: {
-              interest_id: interestId,
-              from_business_id: businessId,
-              contact_field: field,
-            },
-          },
-          create: {
-            interest_id: interestId,
-            from_business_id: businessId,
-            to_business_id,
-            contact_field: field,
-            status: "requested",
-          },
-          update: {
-            status: "requested",
-            requested_at: new Date(),
-          },
-        })
-      )
-    );
+    // If value provided, update profile or custom detail
+    if (value && value.trim()) {
+      if (field === "email") {
+        await prisma.business.update({
+          where: { id: businessId },
+          data: { contact_email: value.trim() },
+        });
+      } else if (field === "phone") {
+        await prisma.business.update({
+          where: { id: businessId },
+          data: { phone_number: value.trim() },
+        });
+      } else if (field === "linkedin") {
+        await prisma.business.update({
+          where: { id: businessId },
+          data: { linkedin_url: value.trim() },
+        });
+      } else if (field.startsWith("custom:")) {
+        const customId = field.replace("custom:", "");
+        if (prisma.customContactDetail) {
+          await prisma.customContactDetail.updateMany({
+            where: { id: customId, business_id: businessId },
+            data: { value: value.trim() },
+          });
+        }
+      }
+    }
+
+    // Ensure business has a valid value for this field
+    const biz = isRequester ? interest.requesting_business : interest.opportunity.business;
+    let hasValue = false;
+    let fieldLabel = ExchangeService.getContactFieldName(field);
+
+    if (field === "email") {
+      hasValue = Boolean(value?.trim() || biz.contact_email);
+    } else if (field === "phone") {
+      hasValue = Boolean(value?.trim() || biz.phone_number);
+    } else if (field === "linkedin") {
+      hasValue = Boolean(value?.trim() || biz.linkedin_url);
+    } else if (field.startsWith("custom:")) {
+      const customId = field.replace("custom:", "");
+      if (prisma.customContactDetail) {
+        const customItem = await prisma.customContactDetail.findUnique({ where: { id: customId } });
+        if (customItem && customItem.business_id === businessId) {
+          hasValue = Boolean(customItem.value);
+          fieldLabel = customItem.label;
+        }
+      }
+    }
+
+    if (!hasValue) {
+      throw new Error(`Please provide a valid value for ${fieldLabel} before requesting an exchange.`);
+    }
+
+    // Upsert consent as requested
+    const consent = await prisma.contactSharingConsent.upsert({
+      where: {
+        interest_id_from_business_id_contact_field: {
+          interest_id: interestId,
+          from_business_id: businessId,
+          contact_field: field,
+        },
+      },
+      create: {
+        interest_id: interestId,
+        from_business_id: businessId,
+        to_business_id,
+        contact_field: field,
+        status: "requested",
+      },
+      update: {
+        status: "requested",
+        requested_at: new Date(),
+      },
+    });
 
     // Notify recipient
     const recipientUserId = isRequester
@@ -596,27 +671,32 @@ export class ExchangeService {
     try {
       await NotificationService.createNotification({
         user_id: recipientUserId,
-        title: "Contact Sharing Request",
-        description: `${senderName} has chosen contact details to share with you for "${interest.opportunity.title}". Review and accept to connect.`,
+        title: "Contact Exchange Requested",
+        description: `${senderName} wants to exchange their ${fieldLabel} with you for "${interest.opportunity.title}".`,
       });
     } catch (err) {
-      console.error("[ExchangeService.shareContactConsent] Notification error:", err);
+      console.error("[ExchangeService.requestContactExchange] Notification error:", err);
     }
 
-    return results;
+    return consent;
   }
 
   /**
-   * Accepts contact fields shared by the other business.
+   * Responds to an incoming field exchange request (Approve & Exchange or Decline).
    */
-  static async acceptContactConsent(interestId: string, businessId: string, fields: ContactField[]) {
+  static async respondContactExchange(
+    interestId: string,
+    businessId: string,
+    field: string,
+    action: "approve" | "decline",
+    value?: string | null,
+    customLabel?: string | null
+  ) {
     const interest = await prisma.interest.findUnique({
       where: { id: interestId },
       include: {
         opportunity: {
-          include: {
-            business: true,
-          },
+          include: { business: true },
         },
         requesting_business: true,
         exchange_agreement: true,
@@ -634,26 +714,131 @@ export class ExchangeService {
       throw new Error("Unauthorized: Business is not a participant in this exchange.");
     }
 
+    const otherBusinessId = isRequester
+      ? interest.opportunity.business_id
+      : interest.requesting_business_id;
+
+    if (action === "decline") {
+      await prisma.contactSharingConsent.updateMany({
+        where: {
+          interest_id: interestId,
+          to_business_id: businessId,
+          contact_field: field,
+        },
+        data: {
+          status: "declined",
+        },
+      });
+      return { success: true, status: "declined" };
+    }
+
+    // Action is APPROVE
+    // 1. If value provided, update profile or custom detail
+    if (value && value.trim()) {
+      if (field === "email") {
+        await prisma.business.update({
+          where: { id: businessId },
+          data: { contact_email: value.trim() },
+        });
+      } else if (field === "phone") {
+        await prisma.business.update({
+          where: { id: businessId },
+          data: { phone_number: value.trim() },
+        });
+      } else if (field === "linkedin") {
+        await prisma.business.update({
+          where: { id: businessId },
+          data: { linkedin_url: value.trim() },
+        });
+      }
+    }
+
+    // If custom field and value provided, ensure CustomContactDetail exists for this business
+    let reciprocalField = field;
+    if (field.startsWith("custom:") && value && value.trim()) {
+      if (prisma.customContactDetail) {
+        const customItem = await prisma.customContactDetail.create({
+          data: {
+            business_id: businessId,
+            label: customLabel?.trim() || "Custom Contact",
+            value: value.trim(),
+          },
+        });
+        reciprocalField = `custom:${customItem.id}`;
+      }
+    }
+
+    // Ensure business has valid value for this field
+    const biz = await prisma.business.findUnique({
+      where: { id: businessId },
+      include: { owner: true },
+    });
+    if (!biz) throw new Error("Business not found");
+
+    let hasValue = false;
+    let fieldLabel = ExchangeService.getContactFieldName(field);
+
+    if (field === "email") {
+      hasValue = Boolean(biz.contact_email || biz.owner?.email);
+    } else if (field === "phone") {
+      hasValue = Boolean(biz.phone_number);
+    } else if (field === "linkedin") {
+      hasValue = Boolean(biz.linkedin_url);
+    } else if (field.startsWith("custom:")) {
+      hasValue = Boolean(value?.trim());
+      if (!hasValue && prisma.customContactDetail) {
+        const customList = await prisma.customContactDetail.findMany({ where: { business_id: businessId } });
+        hasValue = customList.length > 0;
+      }
+    }
+
+    if (!hasValue) {
+      throw new Error(`Please provide your ${fieldLabel} to complete the exchange.`);
+    }
+
     const now = new Date();
 
-    // Update the consents where to_business_id === businessId and contact_field in fields
-    const updated = await prisma.$transaction(
-      fields.map((field) =>
-        prisma.contactSharingConsent.updateMany({
-          where: {
-            interest_id: interestId,
-            to_business_id: businessId,
-            contact_field: field,
-          },
-          data: {
-            status: "accepted",
-            accepted_at: now,
-          },
-        })
-      )
-    );
+    // Atomically accept partner's incoming consent and create/accept reciprocal consent
+    await prisma.$transaction(async (tx) => {
+      // 1. Accept incoming consent
+      await tx.contactSharingConsent.updateMany({
+        where: {
+          interest_id: interestId,
+          to_business_id: businessId,
+          contact_field: field,
+        },
+        data: {
+          status: "accepted",
+          accepted_at: now,
+        },
+      });
 
-    // Notify sender that contacts were accepted
+      // 2. Accept reciprocal consent from this business
+      await tx.contactSharingConsent.upsert({
+        where: {
+          interest_id_from_business_id_contact_field: {
+            interest_id: interestId,
+            from_business_id: businessId,
+            contact_field: reciprocalField,
+          },
+        },
+        create: {
+          interest_id: interestId,
+          from_business_id: businessId,
+          to_business_id: otherBusinessId,
+          contact_field: reciprocalField,
+          status: "accepted",
+          requested_at: now,
+          accepted_at: now,
+        },
+        update: {
+          status: "accepted",
+          accepted_at: now,
+        },
+      });
+    });
+
+    // Notify partner
     const senderUserId = isRequester
       ? interest.opportunity.business.owner_user_id
       : interest.requesting_business.owner_user_id;
@@ -664,14 +849,50 @@ export class ExchangeService {
     try {
       await NotificationService.createNotification({
         user_id: senderUserId,
-        title: "Contact Sharing Accepted",
-        description: `${acceptorName} accepted your shared contact details for "${interest.opportunity.title}".`,
+        title: "Contact Exchange Completed",
+        description: `${acceptorName} approved the ${fieldLabel} exchange for "${interest.opportunity.title}". You can now see each other's ${fieldLabel}.`,
       });
     } catch (err) {
-      console.error("[ExchangeService.acceptContactConsent] Notification error:", err);
+      console.error("[ExchangeService.respondContactExchange] Notification error:", err);
     }
 
-    return updated;
+    return { success: true, status: "accepted" };
+  }
+
+  /**
+   * Backward-compatible helper for sharing contact consents in bulk.
+   */
+  static async shareContactConsent(interestId: string, businessId: string, fields: string[]) {
+    const results = [];
+    for (const field of fields) {
+      const res = await ExchangeService.requestContactExchange(interestId, businessId, field);
+      results.push(res);
+    }
+    return results;
+  }
+
+  /**
+   * Accepts contact fields shared by the other business.
+   */
+  static async acceptContactConsent(interestId: string, businessId: string, fields: string[]) {
+    const results = [];
+    for (const field of fields) {
+      const res = await ExchangeService.respondContactExchange(interestId, businessId, field, "approve");
+      results.push(res);
+    }
+    return results;
+  }
+
+  /**
+   * Declines contact fields shared by the other business.
+   */
+  static async declineContactConsent(interestId: string, businessId: string, fields: string[]) {
+    const results = [];
+    for (const field of fields) {
+      const res = await ExchangeService.respondContactExchange(interestId, businessId, field, "decline");
+      results.push(res);
+    }
+    return results;
   }
 
   /**
@@ -990,14 +1211,57 @@ export class ExchangeService {
       ? interest.opportunity.business_id
       : interest.requesting_business_id;
 
+    // Fetch custom contact details for both businesses
+    const [myCustomContacts, otherCustomContacts] = await Promise.all([
+      prisma.customContactDetail
+        ? prisma.customContactDetail.findMany({
+            where: { business_id: authenticatedBusinessId },
+            orderBy: { created_at: "asc" },
+          })
+        : Promise.resolve([]),
+      prisma.customContactDetail
+        ? prisma.customContactDetail.findMany({
+            where: { business_id: otherBusinessId },
+            orderBy: { created_at: "asc" },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    const myBusiness = isRequester
+      ? interest.requesting_business
+      : interest.opportunity.business;
+
+    const myContacts = {
+      email: myBusiness.contact_email || myBusiness.owner?.email || null,
+      phone: myBusiness.phone_number || null,
+      linkedin: myBusiness.linkedin_url || null,
+      twitter: myBusiness.twitter_url || null,
+      custom: myCustomContacts.map((c) => ({
+        id: c.id,
+        label: c.label,
+        value: c.value,
+        created_at: c.created_at.toISOString(),
+      })),
+    };
+
     const consentsFromOtherToMe = interest.contact_consents.filter(
       (c) =>
         c.from_business_id === otherBusinessId &&
-        c.to_business_id === authenticatedBusinessId &&
-        c.status === "accepted"
+        c.to_business_id === authenticatedBusinessId
     );
 
-    const allowedFieldsForOther = new Set(consentsFromOtherToMe.map((c) => c.contact_field));
+    const consentsFromMeToOther = interest.contact_consents.filter(
+      (c) =>
+        c.from_business_id === authenticatedBusinessId &&
+        c.to_business_id === otherBusinessId
+    );
+
+    const acceptedConsentsFromOther = consentsFromOtherToMe.filter(
+      (c) => c.status === "accepted"
+    );
+    const acceptedConsentsFromMe = consentsFromMeToOther.filter(
+      (c) => c.status === "accepted"
+    );
 
     // Backward compatibility: Legacy handshakes (accepted interest with no agreement & consents)
     const isLegacyHandshake =
@@ -1005,8 +1269,32 @@ export class ExchangeService {
       !interest.exchange_agreement &&
       interest.contact_consents.length === 0;
 
+    // Strict bilateral reciprocity: Field is ONLY allowed if BOTH sides have accepted (or legacy handshake)
+    const allowedFieldsForOther = new Set<string>();
+
     if (isLegacyHandshake) {
       allowedFieldsForOther.add("email");
+    } else {
+      // Standard fields check
+      for (const stdField of ["email", "phone", "linkedin", "twitter", "whatsapp"]) {
+        const otherAccepted = acceptedConsentsFromOther.some((c) => c.contact_field === stdField);
+        const meAccepted = acceptedConsentsFromMe.some((c) => c.contact_field === stdField);
+        if (otherAccepted && meAccepted) {
+          allowedFieldsForOther.add(stdField);
+        }
+      }
+
+      // Custom fields check
+      for (const consent of acceptedConsentsFromOther) {
+        if (consent.contact_field.startsWith("custom:")) {
+          const hasMyReciprocalConsent = acceptedConsentsFromMe.some((c) =>
+            c.contact_field.startsWith("custom:")
+          );
+          if (hasMyReciprocalConsent) {
+            allowedFieldsForOther.add(consent.contact_field);
+          }
+        }
+      }
     }
 
     // Filter target business contact information server-side
@@ -1014,17 +1302,65 @@ export class ExchangeService {
       ? interest.opportunity.business
       : interest.requesting_business;
 
+    const getFieldLabel = (field: string, customList: typeof otherCustomContacts) => {
+      switch (field) {
+        case "email":
+          return "Business Email";
+        case "phone":
+          return "Phone Number";
+        case "whatsapp":
+          return "WhatsApp";
+        case "linkedin":
+          return "LinkedIn";
+        case "twitter":
+          return "Twitter / X";
+        default:
+          if (field.startsWith("custom:")) {
+            const customId = field.replace("custom:", "");
+            const customItem = customList.find((c) => c.id === customId);
+            return customItem ? customItem.label : "Custom Contact";
+          }
+          return field;
+      }
+    };
+
+    const getFieldValue = (field: string, biz: typeof targetBusiness, customList: typeof otherCustomContacts) => {
+      switch (field) {
+        case "email":
+          return biz.contact_email || biz.owner?.email || null;
+        case "phone":
+          return biz.phone_number || null;
+        case "linkedin":
+          return biz.linkedin_url || null;
+        case "twitter":
+          return biz.twitter_url || null;
+        default:
+          if (field.startsWith("custom:")) {
+            const customId = field.replace("custom:", "");
+            const customItem = customList.find((c) => c.id === customId);
+            return customItem ? customItem.value : null;
+          }
+          return null;
+      }
+    };
+
     const filteredTargetContact: {
       email?: string | null;
       phone?: string | null;
       whatsapp?: string | null;
       linkedin?: string | null;
       twitter?: string | null;
-    } = {};
+      custom?: Array<{ id: string; label: string; value: string }>;
+    } = {
+      custom: [],
+    };
 
     if (allowedFieldsForOther.has("email")) {
       filteredTargetContact.email =
         targetBusiness.contact_email || targetBusiness.owner?.email || null;
+    }
+    if (allowedFieldsForOther.has("phone")) {
+      filteredTargetContact.phone = targetBusiness.phone_number || null;
     }
     if (allowedFieldsForOther.has("linkedin")) {
       filteredTargetContact.linkedin = targetBusiness.linkedin_url || null;
@@ -1033,6 +1369,52 @@ export class ExchangeService {
       filteredTargetContact.twitter = targetBusiness.twitter_url || null;
     }
 
+    // Add accepted custom fields
+    for (const consent of acceptedConsentsFromOther) {
+      if (consent.contact_field.startsWith("custom:")) {
+        const customId = consent.contact_field.replace("custom:", "");
+        const customItem = otherCustomContacts.find((c) => c.id === customId);
+        if (customItem) {
+          filteredTargetContact.custom?.push({
+            id: customItem.id,
+            label: customItem.label,
+            value: customItem.value,
+          });
+        }
+      }
+    }
+
+    // Consents received details (from partner to current user)
+    // CRITICAL: NEVER include value if status !== "accepted"
+    const consentsReceived = consentsFromOtherToMe.map((c) => {
+      const isAccepted = c.status === "accepted";
+      return {
+        id: c.id,
+        contact_field: c.contact_field,
+        label: getFieldLabel(c.contact_field, otherCustomContacts),
+        value: isAccepted ? getFieldValue(c.contact_field, targetBusiness, otherCustomContacts) : null,
+        status: c.status,
+        requested_at: c.requested_at.toISOString(),
+        accepted_at: c.accepted_at?.toISOString() || null,
+      };
+    });
+
+    // Consents given details (from current user to partner)
+    const consentsGivenFromMe = interest.contact_consents.filter(
+      (c) =>
+        c.from_business_id === authenticatedBusinessId &&
+        c.to_business_id === otherBusinessId
+    );
+
+    const consentsGiven = consentsGivenFromMe.map((c) => ({
+      id: c.id,
+      contact_field: c.contact_field,
+      label: getFieldLabel(c.contact_field, myCustomContacts),
+      status: c.status,
+      requested_at: c.requested_at.toISOString(),
+      accepted_at: c.accepted_at?.toISOString() || null,
+    }));
+
     // Strip raw sensitive fields from the other business object before sending to client
     if (isRequester) {
       if (!allowedFieldsForOther.has("email")) {
@@ -1040,6 +1422,9 @@ export class ExchangeService {
         if (interest.opportunity.business.owner) {
           interest.opportunity.business.owner.email = null;
         }
+      }
+      if (!allowedFieldsForOther.has("phone")) {
+        interest.opportunity.business.phone_number = null;
       }
       if (!allowedFieldsForOther.has("linkedin")) {
         interest.opportunity.business.linkedin_url = null;
@@ -1053,6 +1438,9 @@ export class ExchangeService {
         if (interest.requesting_business.owner) {
           interest.requesting_business.owner.email = null;
         }
+      }
+      if (!allowedFieldsForOther.has("phone")) {
+        interest.requesting_business.phone_number = null;
       }
       if (!allowedFieldsForOther.has("linkedin")) {
         interest.requesting_business.linkedin_url = null;
@@ -1112,6 +1500,9 @@ export class ExchangeService {
       owner_business: interest.opportunity.business,
       is_requester: isRequester,
       is_owner: isOwner,
+      my_contacts: myContacts,
+      consents_received: consentsReceived,
+      consents_given: consentsGiven,
       proposals: interest.exchange_proposals.map((p) => ({
         ...p,
         created_at: p.created_at.toISOString(),

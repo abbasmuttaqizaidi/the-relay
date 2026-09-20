@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, ChangeEvent, FormEvent, useEffect } from "react";
-import { driver } from "driver.js";
-import "driver.js/dist/driver.css";
+import { useState, ChangeEvent, FormEvent } from "react";
 
 export const Route = createFileRoute("/query-relay")({
   head: () => ({
@@ -25,33 +23,6 @@ function QueryRelayPage() {
   const [statusColor, setStatusColor] = useState("#16a34a");
   const [statusVisible, setStatusVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const startTour = () => {
-    const driverObj = driver({
-      showProgress: true,
-      popoverClass: "relay-tour-popover",
-      steps: [
-        {
-          element: "#nexorem-lead-form",
-          popover: {
-            title: "Contact Form",
-            description: "Apni custom inquiries ya queries submit karne ke liye is contact form ko fill up karein.",
-            side: "top",
-            align: "center"
-          }
-        }
-      ]
-    });
-    driverObj.drive();
-  };
-
-  useEffect(() => {
-    const handleTourEvent = () => startTour();
-    window.addEventListener("relay:start-tour:query-relay", handleTourEvent);
-    return () => {
-      window.removeEventListener("relay:start-tour:query-relay", handleTourEvent);
-    };
-  }, []);
 
   const handleInputChange =
     (setter: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -108,7 +79,7 @@ function QueryRelayPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-900 flex items-center justify-center px-4 py-12 selection:bg-slate-900 selection:text-white">
+    <div className="min-h-screen bg-white text-slate-900 flex items-center justify-center px-4 py-12 selection:bg-slate-900 selection:text-white">
       <form
         id="nexorem-lead-form"
         onSubmit={handleSubmit}
@@ -179,7 +150,7 @@ function QueryRelayPage() {
           type="submit"
           id="nexorem-submit-btn"
           disabled={isSubmitting}
-          className="w-full bg-slate-900 hover:bg-orange-600 hover:border-orange-600 disabled:opacity-50 text-white h-11 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] font-bold shadow-sm flex items-center justify-center border border-slate-900 cursor-pointer"
+          className="w-full bg-slate-900 hover:bg-slate-800 hover:border-slate-800 disabled:opacity-50 text-white h-11 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] font-bold shadow-sm flex items-center justify-center border border-slate-900 cursor-pointer"
         >
           {isSubmitting ? "Submitting..." : "Submit Lead"}
         </button>

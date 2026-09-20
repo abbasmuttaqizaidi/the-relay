@@ -7,11 +7,16 @@ export const getIncomingRequestsCount = createServerFn({ method: "GET" })
   .handler(async () => {
     try {
       const user = await getAuthenticatedUser();
-      const business = await BusinessService.getBusinessByOwner(user.id);
-      if (!business) {
-        return { count: 0 };
+      const businessIds = await BusinessService.getUserBusinessIds(user.id);
+      if (businessIds.length === 0) {
+        const business = await BusinessService.getBusinessByOwner(user.id);
+        if (!business) {
+          return { count: 0 };
+        }
+        const count = await InterestService.countIncoming(business.id);
+        return { count };
       }
-      const count = await InterestService.countIncoming(business.id);
+      const count = await InterestService.countIncomingForBusinessIds(businessIds);
       return { count };
     } catch (err) {
       return { count: 0 };

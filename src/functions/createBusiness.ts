@@ -21,9 +21,15 @@ export const createBusiness = createServerFn({ method: "POST" })
       company_name: data.company_name,
       website: data.website,
       industry: data.industry,
-      description: data.description,
-      linkedin_url: data.linkedin_url,
-      logo_url: data.logo_url,
+      description: data.description || undefined,
+      linkedin_url: data.linkedin_url || undefined,
+      logo_url: data.logo_url || undefined,
+      hq_location: data.hq_location || undefined,
+      founded_year: data.founded_year || undefined,
+      company_size: data.company_size || undefined,
+      company_type: data.company_type || undefined,
+      funding_stage: data.funding_stage || undefined,
+      twitter_url: data.twitter_url || undefined,
     });
   });
 export type CreateBusinessFn = typeof createBusiness;

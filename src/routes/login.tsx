@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { SignIn, useAuth } from "@clerk/tanstack-react-start";
 import { useEffect, useMemo } from "react";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/login")({
       {
         name: "description",
         content:
-          "Sign in to your verified operator account on The Relay B2B network.",
+          "Sign in to your confidential opportunity dealroom, active bilateral negotiations, and verified business network on The Relay.",
       },
     ],
   }),
@@ -50,7 +50,6 @@ function SignInPage() {
   const search = Route.useSearch();
 
   const isReturningFromOAuth = useMemo(() => {
-    // Check search params on both SSR and Client
     const searchKeys = Object.keys(search || {});
     const hasSearchClerkParam = searchKeys.some(
       (k) =>
@@ -81,174 +80,134 @@ function SignInPage() {
     }
   }, [isLoaded, isSignedIn, navigate]);
 
-  // Appearance overrides to align Clerk elements with The Relay's Swiss-inspired Operator Orange aesthetic
+  // Appearance overrides strictly following SIGN_IN.md & Monochrome Executive design tokens
   const clerkAppearance = {
-    layout: { shadow: "none" },
+    layout: {
+      shadow: "none",
+      socialButtonsVariant: "blockButton" as const,
+      socialButtonsPlacement: "top" as const,
+    },
     variables: {
-      colorPrimary: "hsl(24 95% 45%)", // Operator Orange
+      colorPrimary: "#0F172A",
       colorBackground: "white",
-      colorText: "hsl(215 25% 12%)",
-      colorTextSecondary: "hsl(215 25% 40%)",
-      colorInputText: "hsl(215 25% 12%)",
-      colorInputBackground: "hsl(210 15% 98%)",
-      borderRadius: "2px", // Sharp Swiss edges
+      colorText: "#0F172A",
+      colorTextSecondary: "#64748B",
+      colorInputText: "#0F172A",
+      colorInputBackground: "#F8FAFC",
+      borderRadius: "0.75rem",
     },
     elements: {
-      rootBox: "w-full shadow-none flex justify-center",
-      card: "shadow-none border border-[#1f25301f] bg-white p-5 sm:p-8 w-full rounded-[2px]",
-      headerTitle: "text-2xl font-display font-extrabold tracking-tight text-[#111827]",
-      headerSubtitle: "text-slate-500 font-sans mt-1 text-sm leading-relaxed",
+      rootBox: "w-full flex justify-center items-center my-0",
+      card: "w-full max-w-[420px] mx-auto my-0 shadow-xl shadow-slate-900/5 border border-slate-200/80 bg-white p-5 sm:p-8 rounded-2xl flex flex-col items-center justify-center text-center",
+      header: "w-full text-center flex flex-col items-center",
+      headerTitle: "text-2xl font-display font-bold tracking-tight text-slate-900 text-center w-full",
+      headerSubtitle: "text-slate-500 font-sans mt-1.5 text-sm leading-relaxed text-center w-full",
       socialButtonsBlockButton:
-        "rounded-[2px] border border-[#1f25301f] bg-[#fafafa] hover:bg-[#f3f3f3] transition-all h-12 shadow-none font-mono text-xs uppercase tracking-wider text-slate-700",
-      socialButtonsBlockButtonText: "font-bold tracking-wide",
-      formButtonPrimary:
-        "bg-[hsl(24_95%_45%)] hover:bg-orange-700 text-white rounded-[2px] h-12 text-xs font-mono font-bold uppercase tracking-widest shadow-none transition-all active:scale-[0.98]",
-      formFieldInput:
-        "h-12 rounded-[2px] border border-[#1f25301f] bg-slate-50 focus:bg-white focus:border-[hsl(24_95%_45%)] focus:ring-1 focus:ring-[hsl(24_95%_45%)] transition-all text-slate-800 font-mono text-sm",
+        "w-full h-12 bg-white hover:bg-slate-50 active:bg-slate-100 transition-colors duration-150 rounded-xl border border-slate-200 flex items-center justify-center px-4 shadow-xs cursor-pointer gap-3 text-[13px] font-medium text-slate-700",
+      socialButtonsBlockButtonText: "text-[13px] font-medium text-slate-700 font-sans tracking-normal",
+      socialButtonsProviderIcon: "w-4 h-4 shrink-0",
+      dividerRow: "my-5 w-full",
+      dividerLine: "bg-slate-200",
+      dividerText:
+        "bg-white px-3 text-[10.5px] font-semibold text-slate-400 tracking-wider uppercase font-mono",
+      form: "w-full flex flex-col",
+      formField: "w-full text-left",
       formFieldLabel:
-        "text-[9px] font-mono font-bold uppercase tracking-widest text-slate-500 mb-1 ml-0.5",
-      footerActionLink:
-        "text-[hsl(24_95%_45%)] font-bold hover:text-orange-700 transition-colors font-mono text-xs",
-      dividerLine: "bg-[#1f25300d]",
-      dividerText: "text-slate-400 font-mono text-[9px] uppercase tracking-wider",
-      footer: "hidden",
+        "text-xs font-semibold text-slate-700 tracking-wider uppercase mb-1.5 block font-sans",
+      formFieldInput:
+        "w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm placeholder-slate-400 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all font-sans",
+      formButtonPrimary:
+        "w-full h-12 mt-3 bg-[#0F172A] hover:bg-slate-800 active:scale-[0.99] text-white rounded-xl text-sm font-medium tracking-wide shadow-sm hover:shadow transition-all duration-150 cursor-pointer flex items-center justify-center gap-2 font-sans font-semibold",
+      footer: "w-full flex justify-center text-center",
+      footerAction: "w-full flex justify-center text-center",
+      footerActionLink: "text-slate-900 hover:text-slate-700 font-medium text-xs text-center",
     },
   };
 
-  // Dynamic conditional check
   const showLoader = isReturningFromOAuth || (isLoaded && isSignedIn);
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] text-foreground font-sans flex flex-col justify-between selection:bg-primary selection:text-white relative">
-      {/* 1. Branded Loading Screen (Shown during OAuth resolution or active session) */}
-      <div
-        className={`clerk-auth-loading-overlay min-h-screen flex-1 flex flex-col items-center justify-center px-6 selection:bg-primary selection:text-white ${
-          showLoader ? "flex" : "hidden"
-        }`}
-      >
-        <div className="flex flex-col items-center space-y-6 animate-momentum">
-          <div className="relative">
-            <div className="absolute -inset-4 bg-slate-900/5 rounded-full blur-xl animate-pulse" />
-            <img
-              src={logoUrl}
-              alt="The Relay Logo"
-              className="relative h-12 w-auto object-contain mix-blend-multiply"
-            />
-          </div>
-          <div className="flex flex-col items-center space-y-2 pt-2">
-            <div className="flex items-center gap-2.5">
-              <Loader2 className="w-4 h-4 animate-spin text-slate-800" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-semibold">
-                {isSignedIn ? "Authenticating Session" : "Completing Handshake"}
+    <div className="min-h-[calc(100dvh-3.5rem)] md:min-h-[calc(100dvh-4rem)] w-full bg-white text-slate-900 font-sans flex items-center justify-center p-4 sm:p-6 lg:p-8 selection:bg-slate-900 selection:text-white relative">
+      {/* ─── Branded Loading Screen (OAuth Resolution) ─── */}
+      {showLoader && (
+        <div className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center px-6 selection:bg-slate-900 selection:text-white">
+          <div className="flex flex-col items-center space-y-6">
+            <div className="relative">
+              <div className="absolute -inset-4 bg-slate-900/5 rounded-full blur-xl animate-pulse" />
+              <img
+                src={logoUrl}
+                alt="The Relay Logo"
+                className="relative h-12 w-auto object-contain mix-blend-multiply"
+              />
+            </div>
+            <div className="flex flex-col items-center space-y-2 pt-2">
+              <div className="flex items-center gap-2.5">
+                <Loader2 className="w-4 h-4 animate-spin text-slate-800" />
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-semibold">
+                  {isSignedIn ? "Authenticating Session" : "Completing Handshake"}
+                </span>
+              </div>
+              <span className="font-mono text-[9px] text-slate-400 uppercase tracking-widest animate-pulse">
+                {isSignedIn
+                  ? "Redirecting to opportunities feed..."
+                  : "Verifying credentials with Google..."}
               </span>
             </div>
-            <span className="font-mono text-[9px] text-slate-400 uppercase tracking-widest animate-pulse">
-              {isSignedIn
-                ? "Redirecting to opportunities feed..."
-                : "Verifying credentials with Google..."}
-            </span>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* 2. Main Content (Centered Form on Mobile, Split Layout on Desktop) */}
-      <main
-        className={`clerk-auth-layout flex-1 flex flex-col justify-center items-center max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 md:py-16 lg:py-20 ${
-          showLoader ? "opacity-0 pointer-events-none absolute -top-[9999px] -left-[9999px]" : ""
-        }`}
-      >
-        <div className="w-full lg:grid lg:grid-cols-12 lg:gap-16 items-center">
-          {/* Left Side: Modern Editorial Brand Banner (Desktop only) */}
-          <section className="hidden lg:block lg:col-span-6 space-y-8 animate-momentum">
-            <div className="space-y-4">
-              <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-none text-slate-900">
-                Where growth <br />
-                finds <span className="italic text-primary">momentum</span>.
-              </h1>
-              <p className="text-sm text-slate-500 leading-relaxed max-w-[48ch]">
-                Sign in to access the operator-grade, curated business opportunity exchange.
-                Review inbound pitches, post referral swaps, or coordinate channel partnerships.
-              </p>
+      {/* ─── Main Content (Strictly Centered & Responsive) ─── */}
+      <main className="w-full max-w-7xl mx-auto flex items-center justify-center">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center justify-items-center">
+          {/* Left Hero (Desktop only: hidden on mobile) */}
+          <div className="hidden lg:flex lg:col-span-7 flex-col max-w-[680px] justify-center space-y-6">
+            <div className="inline-flex items-center gap-2 self-start">
+              <span className="text-[10px] font-mono font-bold text-slate-700 bg-slate-100 border border-slate-200/90 px-2.5 py-1 rounded uppercase tracking-wider">
+                B2B OPPORTUNITY EXCHANGE
+              </span>
             </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[44px] lg:leading-[1.12] font-black text-slate-950 tracking-tight font-display">
+              The World's First Consent-Driven Opportunity Exchange.
+            </h1>
+            <p className="max-w-xl text-slate-600 text-base sm:text-lg leading-relaxed font-normal">
+              Monetize unserviceable leads or source verified commercial growth partners within an encrypted, bilateral dealroom.
+            </p>
 
-            {/* Key Value Propositions */}
-            <div className="grid sm:grid-cols-2 gap-6 pt-6 border-t border-[#1f253012]">
-              <div className="space-y-1.5">
-                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#111827]">
-                  Double Opt-In
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Connect only when both businesses accept. Zero cold calls, zero unwanted messaging.
+            {/* Clean Features Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
+              <div className="space-y-1">
+                <div className="font-mono text-[11px] text-slate-900 font-bold uppercase tracking-wider">
+                  Engine 01 • Exchange
+                </div>
+                <p className="text-[13px] text-slate-500 leading-snug">
+                  Unserviceable leads converted into contracted revenue share (10%–25%).
                 </p>
               </div>
 
-              <div className="space-y-1.5">
-                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#111827]">
-                  Reciprocity Engine
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Express interest, establish connections, and boost your trust scores automatically.
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#111827]">
-                  Operator Vetting
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Manual domain verification checks preserve a high-trust network ecosystem.
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#111827]">
-                  Secure RLS
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Your data is protected by secondary Row Level Security policies at all layers.
+              <div className="space-y-1">
+                <div className="font-mono text-[11px] text-slate-900 font-bold uppercase tracking-wider">
+                  Engine 02 • Discover
+                </div>
+                <p className="text-[13px] text-slate-500 leading-snug">
+                  Bilateral co-selling, distribution, and enterprise partnership search.
                 </p>
               </div>
             </div>
+          </div>
 
-            <div className="pt-4 flex items-center gap-4 text-xs font-mono text-muted-foreground">
-              <span>Don't have an account yet?</span>
-              <Link
-                to="/signup"
-                className="text-primary hover:text-orange-700 font-bold uppercase tracking-wider flex items-center gap-1"
-              >
-                Apply for Vetting <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </section>
-
-          {/* Right Side: Centered Clerk SignIn Container */}
-          <section className="w-full flex flex-col justify-center items-center lg:col-span-6">
-            <div className="w-full max-w-[420px] mx-auto">
-              <SignIn
-                routing="path"
-                path="/login"
-                signUpUrl="/signup"
-                forceRedirectUrl="/opportunities"
-                appearance={clerkAppearance}
-              />
-              <div className="lg:hidden text-center pt-4 text-xs font-mono text-muted-foreground">
-                <span>Don't have an account yet? </span>
-                <Link
-                  to="/signup"
-                  className="text-primary hover:text-orange-700 font-bold uppercase tracking-wider inline-flex items-center gap-1"
-                >
-                  Apply for Vetting <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-          </section>
+          {/* Right Column (Mobile & Desktop: Centered and Fully Responsive) */}
+          <div className="w-full lg:col-span-5 flex flex-col items-center justify-center max-w-[420px] mx-auto">
+            <SignIn
+              routing="path"
+              path="/login"
+              signUpUrl="/signup"
+              forceRedirectUrl="/opportunities"
+              appearance={clerkAppearance}
+            />
+          </div>
         </div>
       </main>
-
-      {/* Modern Compact Footer */}
-      <footer className="py-8 border-t border-[#1f253012] text-center font-mono text-[9px] text-muted-foreground uppercase tracking-widest">
-        <span>© 2026 The Relay Protocol · Double Opt-In Verified B2B Network</span>
-      </footer>
     </div>
   );
 }

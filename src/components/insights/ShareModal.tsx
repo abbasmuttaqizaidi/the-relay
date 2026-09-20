@@ -162,7 +162,7 @@ export function ShareModal({
               className={`h-9 px-3.5 text-xs font-mono uppercase tracking-wider font-bold shrink-0 transition-all ${
                 copied
                   ? "bg-emerald-600 hover:bg-emerald-600 text-white"
-                  : "bg-slate-900 hover:bg-orange-600 text-white"
+                  : "bg-slate-900 hover:bg-slate-800 text-white"
               }`}
             >
               {copied ? (

@@ -23,7 +23,7 @@ export function CompanyLogo({
   src,
   name,
   className = "w-6 h-6 rounded object-contain border border-slate-200",
-  fallbackClassName = "w-6 h-6 rounded bg-slate-100 text-slate-700 font-bold flex items-center justify-center border border-slate-200 uppercase",
+  fallbackClassName = "w-6 h-6 rounded bg-slate-950 text-white font-bold flex items-center justify-center border border-slate-900 uppercase",
   textClassName = "text-[10px] font-mono",
   alt,
 }: CompanyLogoProps) {

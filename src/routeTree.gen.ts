@@ -12,15 +12,20 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SavedOpportunitiesRouteImport } from './routes/saved-opportunities'
 import { Route as QueryRelayRouteImport } from './routes/query-relay'
+import { Route as ProposalsRouteImport } from './routes/proposals'
 import { Route as PostRouteImport } from './routes/post'
 import { Route as OpportunitiesRouteImport } from './routes/opportunities'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NetworkRouteImport } from './routes/network'
+import { Route as MyRelayRouteImport } from './routes/my-relay'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as HomeRouteImport } from './routes/home'
+import { Route as EightStepJourneyRouteImport } from './routes/eight-step-journey'
+import { Route as CorePillarsRouteImport } from './routes/core-pillars'
 import { Route as BusinessProfileRouteImport } from './routes/business-profile'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as R8StepJourneyRouteImport } from './routes/8-step-journey'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OpportunitiesIndexRouteImport } from './routes/opportunities.index'
 import { Route as InsightsIndexRouteImport } from './routes/insights.index'
@@ -49,6 +54,11 @@ const QueryRelayRoute = QueryRelayRouteImport.update({
   path: '/query-relay',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProposalsRoute = ProposalsRouteImport.update({
+  id: '/proposals',
+  path: '/proposals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PostRoute = PostRouteImport.update({
   id: '/post',
   path: '/post',
@@ -69,6 +79,11 @@ const NetworkRoute = NetworkRouteImport.update({
   path: '/network',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MyRelayRoute = MyRelayRouteImport.update({
+  id: '/my-relay',
+  path: '/my-relay',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -84,6 +99,16 @@ const HomeRoute = HomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EightStepJourneyRoute = EightStepJourneyRouteImport.update({
+  id: '/eight-step-journey',
+  path: '/eight-step-journey',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CorePillarsRoute = CorePillarsRouteImport.update({
+  id: '/core-pillars',
+  path: '/core-pillars',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BusinessProfileRoute = BusinessProfileRouteImport.update({
   id: '/business-profile',
   path: '/business-profile',
@@ -92,6 +117,11 @@ const BusinessProfileRoute = BusinessProfileRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R8StepJourneyRoute = R8StepJourneyRouteImport.update({
+  id: '/8-step-journey',
+  path: '/8-step-journey',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -157,15 +187,20 @@ const InsightsKnowledgeIdEditRoute = InsightsKnowledgeIdEditRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/8-step-journey': typeof R8StepJourneyRoute
   '/admin': typeof AdminRoute
   '/business-profile': typeof BusinessProfileRoute
+  '/core-pillars': typeof CorePillarsRoute
+  '/eight-step-journey': typeof EightStepJourneyRoute
   '/home': typeof HomeRoute
   '/insights': typeof InsightsRouteWithChildren
   '/login': typeof LoginRoute
+  '/my-relay': typeof MyRelayRoute
   '/network': typeof NetworkRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRouteWithChildren
   '/post': typeof PostRoute
+  '/proposals': typeof ProposalsRoute
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
@@ -183,13 +218,18 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/8-step-journey': typeof R8StepJourneyRoute
   '/admin': typeof AdminRoute
   '/business-profile': typeof BusinessProfileRoute
+  '/core-pillars': typeof CorePillarsRoute
+  '/eight-step-journey': typeof EightStepJourneyRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
+  '/my-relay': typeof MyRelayRoute
   '/network': typeof NetworkRoute
   '/onboarding': typeof OnboardingRoute
   '/post': typeof PostRoute
+  '/proposals': typeof ProposalsRoute
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
@@ -208,15 +248,20 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/8-step-journey': typeof R8StepJourneyRoute
   '/admin': typeof AdminRoute
   '/business-profile': typeof BusinessProfileRoute
+  '/core-pillars': typeof CorePillarsRoute
+  '/eight-step-journey': typeof EightStepJourneyRoute
   '/home': typeof HomeRoute
   '/insights': typeof InsightsRouteWithChildren
   '/login': typeof LoginRoute
+  '/my-relay': typeof MyRelayRoute
   '/network': typeof NetworkRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRouteWithChildren
   '/post': typeof PostRoute
+  '/proposals': typeof ProposalsRoute
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
@@ -236,15 +281,20 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/8-step-journey'
     | '/admin'
     | '/business-profile'
+    | '/core-pillars'
+    | '/eight-step-journey'
     | '/home'
     | '/insights'
     | '/login'
+    | '/my-relay'
     | '/network'
     | '/onboarding'
     | '/opportunities'
     | '/post'
+    | '/proposals'
     | '/query-relay'
     | '/saved-opportunities'
     | '/signup'
@@ -262,13 +312,18 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/8-step-journey'
     | '/admin'
     | '/business-profile'
+    | '/core-pillars'
+    | '/eight-step-journey'
     | '/home'
     | '/login'
+    | '/my-relay'
     | '/network'
     | '/onboarding'
     | '/post'
+    | '/proposals'
     | '/query-relay'
     | '/saved-opportunities'
     | '/signup'
@@ -286,15 +341,20 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/8-step-journey'
     | '/admin'
     | '/business-profile'
+    | '/core-pillars'
+    | '/eight-step-journey'
     | '/home'
     | '/insights'
     | '/login'
+    | '/my-relay'
     | '/network'
     | '/onboarding'
     | '/opportunities'
     | '/post'
+    | '/proposals'
     | '/query-relay'
     | '/saved-opportunities'
     | '/signup'
@@ -313,15 +373,20 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  R8StepJourneyRoute: typeof R8StepJourneyRoute
   AdminRoute: typeof AdminRoute
   BusinessProfileRoute: typeof BusinessProfileRoute
+  CorePillarsRoute: typeof CorePillarsRoute
+  EightStepJourneyRoute: typeof EightStepJourneyRoute
   HomeRoute: typeof HomeRoute
   InsightsRoute: typeof InsightsRouteWithChildren
   LoginRoute: typeof LoginRoute
+  MyRelayRoute: typeof MyRelayRoute
   NetworkRoute: typeof NetworkRoute
   OnboardingRoute: typeof OnboardingRoute
   OpportunitiesRoute: typeof OpportunitiesRouteWithChildren
   PostRoute: typeof PostRoute
+  ProposalsRoute: typeof ProposalsRoute
   QueryRelayRoute: typeof QueryRelayRoute
   SavedOpportunitiesRoute: typeof SavedOpportunitiesRoute
   SignupRoute: typeof SignupRoute
@@ -353,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QueryRelayRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/proposals': {
+      id: '/proposals'
+      path: '/proposals'
+      fullPath: '/proposals'
+      preLoaderRoute: typeof ProposalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/post': {
       id: '/post'
       path: '/post'
@@ -381,6 +453,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NetworkRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/my-relay': {
+      id: '/my-relay'
+      path: '/my-relay'
+      fullPath: '/my-relay'
+      preLoaderRoute: typeof MyRelayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -402,6 +481,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/eight-step-journey': {
+      id: '/eight-step-journey'
+      path: '/eight-step-journey'
+      fullPath: '/eight-step-journey'
+      preLoaderRoute: typeof EightStepJourneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/core-pillars': {
+      id: '/core-pillars'
+      path: '/core-pillars'
+      fullPath: '/core-pillars'
+      preLoaderRoute: typeof CorePillarsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/business-profile': {
       id: '/business-profile'
       path: '/business-profile'
@@ -414,6 +507,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/8-step-journey': {
+      id: '/8-step-journey'
+      path: '/8-step-journey'
+      fullPath: '/8-step-journey'
+      preLoaderRoute: typeof R8StepJourneyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -550,15 +650,20 @@ const OpportunitiesRouteWithChildren = OpportunitiesRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  R8StepJourneyRoute: R8StepJourneyRoute,
   AdminRoute: AdminRoute,
   BusinessProfileRoute: BusinessProfileRoute,
+  CorePillarsRoute: CorePillarsRoute,
+  EightStepJourneyRoute: EightStepJourneyRoute,
   HomeRoute: HomeRoute,
   InsightsRoute: InsightsRouteWithChildren,
   LoginRoute: LoginRoute,
+  MyRelayRoute: MyRelayRoute,
   NetworkRoute: NetworkRoute,
   OnboardingRoute: OnboardingRoute,
   OpportunitiesRoute: OpportunitiesRouteWithChildren,
   PostRoute: PostRoute,
+  ProposalsRoute: ProposalsRoute,
   QueryRelayRoute: QueryRelayRoute,
   SavedOpportunitiesRoute: SavedOpportunitiesRoute,
   SignupRoute: SignupRoute,

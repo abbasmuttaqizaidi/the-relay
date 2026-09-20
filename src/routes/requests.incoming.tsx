@@ -1,8 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { useEffect, useState } from "react";
-import { driver } from "driver.js";
-import "driver.js/dist/driver.css";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Check,
@@ -18,6 +17,7 @@ import {
   ArrowRight,
   Shield,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { getIncomingRequests } from "../functions/getIncomingRequests";
 import { acceptInterest } from "../functions/acceptInterest";
@@ -33,160 +33,57 @@ export const Route = createFileRoute("/requests/incoming")({
 });
 
 function IncomingRequestsPage() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded, userId } = useAuth();
   const navigate = useNavigate();
-  const [requests, setRequests] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [incomingCount, setIncomingCount] = useState(0);
+  const queryClient = useQueryClient();
 
-  const startTour = () => {
-    const driverObj = driver({
-      showProgress: true,
-      popoverClass: "relay-tour-popover",
-      steps: [
-        {
-          element: "#requests-header-info",
-          popover: {
-            title: "Handshake Pitches",
-            description: "Yahan dusre businesses ke partners dwara aapki listing par bheje gaye pitch details review kar sakte hain.",
-            side: "bottom",
-            align: "start"
-          }
-        },
-        {
-          element: "#requests-tabs-row",
-          popover: {
-            title: "Incoming & Outbound Requests",
-            description: "Inbound handshakes aur outbound pitch status sheets ke beech switch karne ke liye request links toggle karein.",
-            side: "bottom",
-            align: "start"
-          }
-        },
-        {
-          element: "#requests-list-container",
-          popover: {
-            title: "Pitches List",
-            description: "Yahan pitch messages aur verification levels list hote hain. Pitches check karke aap interest Accept ya Decline kar sakte hain.",
-            side: "top",
-            align: "center"
-          }
-        }
-      ]
-    });
-    driverObj.drive();
-  };
+  // 1. Onboarding Query
+  const { data: onboardingData } = useQuery({
+    queryKey: ["onboarding-status", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return null;
+      return await checkOnboardingStatus();
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60 * 5,
+  });
 
   useEffect(() => {
-    const handleTourEvent = () => startTour();
-    window.addEventListener("relay:start-tour:requests", handleTourEvent);
-    return () => {
-      window.removeEventListener("relay:start-tour:requests", handleTourEvent);
-    };
-  }, []);
-
-  const loadRequests = async () => {
-    try {
-      setLoading(true);
-      const data = await getIncomingRequests();
-      setRequests(data || []);
-      setIncomingCount((data || []).filter((r: any) => r.status === "pending").length);
-    } catch (err: any) {
-      console.error("Failed to load incoming requests:", err);
-      toast.error("Failed to load incoming requests.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    let active = true;
-
-    // Safety timeout to clear loading screen after 3.5 seconds if network/Clerk hangs
-    const safetyTimeout = setTimeout(() => {
-      if (active) {
-        console.warn("[Incoming Requests] Onboarding verification safety timeout triggered.");
-        loadRequests();
-      }
-    }, 3500);
-
-    async function verifyAndLoad() {
-      if (!isLoaded) return;
-
-      const proceedWithStatus = (status: any) => {
-        if (!active) return;
-        if (status.isAuthenticated && !status.hasBusiness) {
-          clearTimeout(safetyTimeout);
-          navigate({ to: "/onboarding", replace: true });
-        } else {
-          clearTimeout(safetyTimeout);
-          loadRequests();
-        }
-      };
-
-      if (isSignedIn) {
-        try {
-          const status = await checkOnboardingStatus();
-          if (!active) return;
-          if (status.isAuthenticated) {
-            proceedWithStatus(status);
-            return;
-          }
-        } catch (err) {
-          console.error("Error verifying onboarding in incoming requests:", err);
-          clearTimeout(safetyTimeout);
-          loadRequests();
-          return;
-        }
-      }
-
-      // 2. Secondary check: If returning from OAuth callback, do NOT redirect to /login
-      const isOAuthHandshake =
-        typeof window !== "undefined" &&
-        (window.location.search.includes("__clerk") ||
-          window.location.hash.includes("__clerk") ||
-          window.location.search.includes("status=") ||
-          window.location.search.includes("created_session_id") ||
-          window.location.search.includes("redirect_url"));
-
-      if (isOAuthHandshake) {
-        return;
-      }
-
-      // 3. Fallback server session check
-      try {
-        const status = await checkOnboardingStatus();
-        if (!active) return;
-        if (status.isAuthenticated) {
-          proceedWithStatus(status);
-          return;
-        }
-      } catch (err) {
-        console.error("Fallback onboarding check error in incoming requests:", err);
-      }
-
-      clearTimeout(safetyTimeout);
+    if (isLoaded && !isSignedIn) {
       navigate({ to: "/login", replace: true });
+    } else if (onboardingData && onboardingData.isAuthenticated && !onboardingData.hasBusiness) {
+      navigate({ to: "/onboarding", replace: true });
     }
+  }, [isLoaded, isSignedIn, onboardingData, navigate]);
 
-    verifyAndLoad();
+  // 2. Incoming Requests Query
+  const { data: requests = [], isLoading: loading } = useQuery({
+    queryKey: ["incoming-requests", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return [];
+      const data = await getIncomingRequests();
+      return data || [];
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60, // 1 minute
+  });
 
-    return () => {
-      active = false;
-      clearTimeout(safetyTimeout);
-    };
-  }, [isLoaded, isSignedIn, navigate]);
+  const incomingCount = requests.filter((r: any) => r.status === "pending").length;
 
-  const handleAccept = async (interestId: string, companyName: string) => {
-    try {
+  // Accept Mutation
+  const acceptMutation = useMutation({
+    mutationFn: async ({ interestId, companyName }: { interestId: string; companyName: string }) => {
       await acceptInterest({ data: { interest_id: interestId } });
+    },
+    onSuccess: (_data, { interestId, companyName }) => {
       toast.success("Handshake Complete", {
         description: `You’ve been introduced to ${companyName} regarding this opportunity.`,
       });
-      loadRequests();
-      // Sync localStorage store
+      queryClient.invalidateQueries({ queryKey: ["incoming-requests", userId] });
+      queryClient.invalidateQueries({ queryKey: ["my-opportunities", userId] });
+
       const localStore = JSON.parse(localStorage.getItem("relay.interest.v1") || "{}");
-      // Find the request locally and update it
-      const req = requests.find((r) => r.id === interestId);
+      const req = requests.find((r: any) => r.id === interestId);
       if (req) {
         localStore[req.opportunity_id] = {
           id: req.id,
@@ -195,32 +92,36 @@ function IncomingRequestsPage() {
           requestedAt: req.created_at,
           respondedAt: new Date().toISOString(),
           contact: {
-            name: req.requesting_business.company_name,
+            name: req.requesting_business?.company_name || req.requesting_business?.name || "Partner",
             role: "Owner",
-            email: req.requesting_business.contact_email || req.requesting_business.owner?.email || "",
-            website: req.requesting_business.website || "",
-            linkedin: req.requesting_business.linkedin_url || "",
-            description: req.requesting_business.description || "",
+            email: req.requesting_business?.contact_email || req.requesting_business?.owner?.email || "",
+            website: req.requesting_business?.website || "",
+            linkedin: req.requesting_business?.linkedin_url || "",
+            description: req.requesting_business?.description || "",
           },
         };
         localStorage.setItem("relay.interest.v1", JSON.stringify(localStore));
         window.dispatchEvent(new Event("relay:interest"));
       }
-    } catch (err: any) {
+    },
+    onError: (err: any) => {
       toast.error(err.message || "Failed to accept interest.");
-    }
-  };
+    },
+  });
 
-  const handleDecline = async (interestId: string, companyName: string) => {
-    try {
+  // Decline Mutation
+  const declineMutation = useMutation({
+    mutationFn: async ({ interestId, companyName }: { interestId: string; companyName: string }) => {
       await declineInterest({ data: { interest_id: interestId } });
+    },
+    onSuccess: (_data, { interestId, companyName }) => {
       toast.success("Interest declined successfully", {
         description: `You declined the request from ${companyName}.`,
       });
-      loadRequests();
-      // Sync localStorage store
+      queryClient.invalidateQueries({ queryKey: ["incoming-requests", userId] });
+
       const localStore = JSON.parse(localStorage.getItem("relay.interest.v1") || "{}");
-      const req = requests.find((r) => r.id === interestId);
+      const req = requests.find((r: any) => r.id === interestId);
       if (req) {
         localStore[req.opportunity_id] = {
           id: req.id,
@@ -232,10 +133,11 @@ function IncomingRequestsPage() {
         localStorage.setItem("relay.interest.v1", JSON.stringify(localStore));
         window.dispatchEvent(new Event("relay:interest"));
       }
-    } catch (err: any) {
+    },
+    onError: (err: any) => {
       toast.error(err.message || "Failed to decline interest.");
-    }
-  };
+    },
+  });
 
   const formatDistance = (dateString: string) => {
     const now = new Date();
@@ -252,18 +154,9 @@ function IncomingRequestsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 font-sans text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col">
+    <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col overflow-x-hidden w-full max-w-full">
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 pt-1.5 pb-8 md:py-12">
-        {/* Breadcrumb Back */}
-        <div className="mb-1.5 md:mb-6">
-          <Link
-            to="/opportunities"
-            className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-800 transition-colors font-bold"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Feed
-          </Link>
-        </div>
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 pt-6 pb-8 md:py-12">
 
         {/* Title Section */}
         <div className="mb-8 border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
@@ -321,7 +214,7 @@ function IncomingRequestsPage() {
             </p>
             <Link
               to="/opportunities/my"
-              className="inline-flex bg-slate-900 text-white px-5 py-2.5 text-[10px] font-mono uppercase tracking-widest hover:bg-primary transition-all rounded-[2px] shadow-sm hover:shadow font-bold"
+              className="inline-flex bg-slate-900 text-white px-5 py-2.5 text-[10px] font-mono uppercase tracking-widest hover:bg-slate-800 transition-all rounded-[2px] shadow-sm hover:shadow font-bold"
             >
               Manage My Listings <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
             </Link>
@@ -419,13 +312,22 @@ function IncomingRequestsPage() {
                           <Link
                             to="/connections/$id"
                             params={{ id: req.id }}
-                            className="flex-1 lg:flex-none py-2.5 px-4 bg-slate-900 hover:bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                            className="flex-1 lg:flex-none py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
                           >
                             Exchange Hub <ArrowRight className="w-3.5 h-3.5" />
                           </Link>
                           <button
-                            onClick={() => handleDecline(req.id, req.requesting_business.company_name)}
-                            className="flex-1 lg:flex-none py-2 px-3 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-[9.5px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                            onClick={() =>
+                              declineMutation.mutate({
+                                interestId: req.id,
+                                companyName:
+                                  req.requesting_business?.company_name ||
+                                  req.requesting_business?.name ||
+                                  "Partner",
+                              })
+                            }
+                            disabled={declineMutation.isPending}
+                            className="flex-1 lg:flex-none py-2 px-3 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-[9.5px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                           >
                             <X className="w-3.5 h-3.5" /> Decline
                           </button>

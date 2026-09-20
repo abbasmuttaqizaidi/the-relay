@@ -6,10 +6,12 @@ import { InterestService } from "../services/interest.service";
 export const getIncomingRequests = createServerFn({ method: "GET" })
   .handler(async () => {
     const user = await getAuthenticatedUser();
-    const business = await BusinessService.getBusinessByOwner(user.id);
-    if (!business) {
-      return [];
+    const businessIds = await BusinessService.getUserBusinessIds(user.id);
+    if (businessIds.length === 0) {
+      const business = await BusinessService.getBusinessByOwner(user.id);
+      if (!business) return [];
+      return await InterestService.getIncoming(business.id);
     }
-    return await InterestService.getIncoming(business.id);
+    return await InterestService.getIncomingForBusinessIds(businessIds);
   });
 export type GetIncomingRequestsFn = typeof getIncomingRequests;

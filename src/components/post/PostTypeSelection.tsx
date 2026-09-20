@@ -96,7 +96,7 @@ export function PostTypeSelection({ onSelect }: PostTypeSelectionProps) {
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="w-9 h-9 rounded-[2px] bg-slate-900 flex items-center justify-center text-white group-hover:bg-primary transition-colors">
+              <div className="w-9 h-9 rounded-[2px] bg-slate-900 flex items-center justify-center text-white group-hover:bg-slate-800 transition-colors">
                 <Handshake className="w-4 h-4" />
               </div>
               <span className="text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-[2px]">

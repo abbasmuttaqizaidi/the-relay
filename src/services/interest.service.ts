@@ -367,11 +367,19 @@ export class InterestService {
    * Strips private emails if request status is not accepted.
    */
   static async getIncoming(businessId: string) {
+    return this.getIncomingForBusinessIds([businessId]);
+  }
+
+  /**
+   * Gets incoming interest requests for any of the given business IDs.
+   */
+  static async getIncomingForBusinessIds(businessIds: string[]) {
     try {
+      if (!businessIds || businessIds.length === 0) return [];
       const results = await prisma.interest.findMany({
         where: {
           opportunity: {
-            business_id: businessId,
+            business_id: { in: businessIds },
           },
         },
         include: {
@@ -399,7 +407,7 @@ export class InterestService {
 
       return results;
     } catch (error) {
-      console.error("[InterestService.getIncoming] Error:", error);
+      console.error("[InterestService.getIncomingForBusinessIds] Error:", error);
       throw error;
     }
   }
@@ -409,10 +417,18 @@ export class InterestService {
    * Strips private emails if request status is not accepted.
    */
   static async getSent(businessId: string) {
+    return this.getSentForBusinessIds([businessId]);
+  }
+
+  /**
+   * Gets sent interest requests by any of the given business IDs.
+   */
+  static async getSentForBusinessIds(businessIds: string[]) {
     try {
+      if (!businessIds || businessIds.length === 0) return [];
       const results = await prisma.interest.findMany({
         where: {
-          requesting_business_id: businessId,
+          requesting_business_id: { in: businessIds },
         },
         include: {
           opportunity: {
@@ -442,7 +458,7 @@ export class InterestService {
 
       return results;
     } catch (error) {
-      console.error("[InterestService.getSent] Error:", error);
+      console.error("[InterestService.getSentForBusinessIds] Error:", error);
       throw error;
     }
   }
@@ -451,17 +467,25 @@ export class InterestService {
    * Counts incoming pending requests for a business.
    */
   static async countIncoming(businessId: string): Promise<number> {
+    return this.countIncomingForBusinessIds([businessId]);
+  }
+
+  /**
+   * Counts incoming pending requests for any of the given business IDs.
+   */
+  static async countIncomingForBusinessIds(businessIds: string[]): Promise<number> {
     try {
+      if (!businessIds || businessIds.length === 0) return 0;
       return await prisma.interest.count({
         where: {
           opportunity: {
-            business_id: businessId,
+            business_id: { in: businessIds },
           },
           status: "pending",
         },
       });
     } catch (error) {
-      console.error("[InterestService.countIncoming] Error:", error);
+      console.error("[InterestService.countIncomingForBusinessIds] Error:", error);
       throw error;
     }
   }

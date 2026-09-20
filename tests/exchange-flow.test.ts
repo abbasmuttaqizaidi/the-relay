@@ -317,7 +317,19 @@ describe("Relay Exchange Agreement, Negotiation & Mutual Contact Sharing (26 Val
       }
     }
 
-    getRevealedContacts(interestId: string, viewerBusinessId: string) {
+    declineContact(interestId: string, toBusinessId: string, fields: string[]) {
+      for (const c of this.consents) {
+        if (
+          c.interest_id === interestId &&
+          c.to_business_id === toBusinessId &&
+          fields.includes(c.contact_field)
+        ) {
+          c.status = "declined";
+        }
+      }
+    }
+
+    getRevealedContacts(interestId: string, viewerBusinessId: string, customContacts?: Record<string, any[]>) {
       if (viewerBusinessId !== businessA_Owner.id && viewerBusinessId !== businessB_Requester.id) {
         throw new Error("Forbidden: Access denied to exchange details.");
       }
@@ -340,10 +352,22 @@ describe("Relay Exchange Agreement, Negotiation & Mutual Contact Sharing (26 Val
       const allowed = new Set(acceptedConsents.map((c) => c.contact_field));
       if (isLegacy) allowed.add("email");
 
-      const revealed: any = {};
+      const revealed: any = { custom: [] };
       if (allowed.has("email")) revealed.email = otherBusiness.contact_email;
+      if (allowed.has("phone")) revealed.phone = (otherBusiness as any).phone_number;
       if (allowed.has("linkedin")) revealed.linkedin = otherBusiness.linkedin_url;
       if (allowed.has("twitter")) revealed.twitter = otherBusiness.twitter_url;
+
+      if (customContacts && customContacts[otherBusiness.id]) {
+        for (const c of acceptedConsents) {
+          if (c.contact_field.startsWith("custom:")) {
+            const id = c.contact_field.replace("custom:", "");
+            const item = customContacts[otherBusiness.id].find((x) => x.id === id);
+            if (item) revealed.custom.push(item);
+          }
+        }
+      }
+
       return revealed;
     }
 
@@ -1104,5 +1128,170 @@ describe("Relay Exchange Agreement, Negotiation & Mutual Contact Sharing (26 Val
     expect(acceptedProp.status).toBe("accepted");
     expect(agreement.status).toBe("draft");
     expect(agreement.final_proposal_id).toBe(prop2.id);
+  });
+
+  // 37. Contact sharing request marks fields as "requested" and does NOT reveal values to partner before approval
+  it("37. Requesting contact sharing keeps contact values hidden until partner explicitly approves", () => {
+    const engine = new SimulatedExchangeEngine();
+    const interest = engine.expressInterest(opportunity.id, businessB_Requester);
+    engine.acknowledgeProcess(interest.id, businessA_Owner.id);
+
+    const prop = engine.createProposal({
+      interestId: interest.id,
+      proposingBusinessId: businessB_Requester.id,
+      exchangeType: "fixed_amount",
+      exchangeDetails: "Deal terms",
+    });
+    engine.respondProposal(prop.id, businessA_Owner.id, "accept");
+    engine.confirmAgreement(interest.id, prop.id, businessB_Requester.id);
+    engine.confirmAgreement(interest.id, prop.id, businessA_Owner.id);
+
+    // Alpha requests to share email and phone
+    engine.shareContact(interest.id, businessA_Owner.id, ["email", "phone"]);
+
+    // Consent records created with status "requested"
+    const alphaConsents = engine.consents.filter(
+      (c) => c.interest_id === interest.id && c.from_business_id === businessA_Owner.id
+    );
+    expect(alphaConsents.length).toBe(2);
+    expect(alphaConsents.every((c) => c.status === "requested")).toBe(true);
+
+    // Beta cannot see Alpha's email or phone yet (unapproved)
+    const betaRevealed = engine.getRevealedContacts(interest.id, businessB_Requester.id);
+    expect(betaRevealed.email).toBeUndefined();
+    expect(betaRevealed.phone).toBeUndefined();
+  });
+
+  // 38. Partner reviewing requested contacts approves them, revealing verified contact values
+  it("38. Partner reviewing requested contacts approves them, revealing verified contact values", () => {
+    const engine = new SimulatedExchangeEngine();
+    const interest = engine.expressInterest(opportunity.id, businessB_Requester);
+    engine.acknowledgeProcess(interest.id, businessA_Owner.id);
+
+    const prop = engine.createProposal({
+      interestId: interest.id,
+      proposingBusinessId: businessB_Requester.id,
+      exchangeType: "fixed_amount",
+      exchangeDetails: "Deal terms",
+    });
+    engine.respondProposal(prop.id, businessA_Owner.id, "accept");
+    engine.confirmAgreement(interest.id, prop.id, businessB_Requester.id);
+    engine.confirmAgreement(interest.id, prop.id, businessA_Owner.id);
+
+    // Alpha requests sharing email and linkedin
+    engine.shareContact(interest.id, businessA_Owner.id, ["email", "linkedin"]);
+
+    // Beta approves email only
+    engine.acceptContact(interest.id, businessB_Requester.id, ["email"]);
+
+    // Beta can now see Alpha's email, but not LinkedIn
+    const betaRevealed = engine.getRevealedContacts(interest.id, businessB_Requester.id);
+    expect(betaRevealed.email).toBe("alpha@alphacorp.com");
+    expect(betaRevealed.linkedin).toBeUndefined();
+
+    // Beta then approves LinkedIn
+    engine.acceptContact(interest.id, businessB_Requester.id, ["linkedin"]);
+    const betaRevealed2 = engine.getRevealedContacts(interest.id, businessB_Requester.id);
+    expect(betaRevealed2.linkedin).toBe("https://linkedin.com/company/alphacorp");
+  });
+
+  // 39. Declining a contact sharing request marks status as "declined" and strictly hides values
+  it("39. Declining a contact sharing request marks status as declined and hides values", () => {
+    const engine = new SimulatedExchangeEngine();
+    const interest = engine.expressInterest(opportunity.id, businessB_Requester);
+    engine.acknowledgeProcess(interest.id, businessA_Owner.id);
+
+    const prop = engine.createProposal({
+      interestId: interest.id,
+      proposingBusinessId: businessB_Requester.id,
+      exchangeType: "fixed_amount",
+      exchangeDetails: "Deal terms",
+    });
+    engine.respondProposal(prop.id, businessA_Owner.id, "accept");
+    engine.confirmAgreement(interest.id, prop.id, businessB_Requester.id);
+    engine.confirmAgreement(interest.id, prop.id, businessA_Owner.id);
+
+    // Beta requests sharing phone
+    engine.shareContact(interest.id, businessB_Requester.id, ["phone"]);
+
+    // Alpha declines the phone request
+    engine.declineContact(interest.id, businessA_Owner.id, ["phone"]);
+
+    const consent = engine.consents.find(
+      (c) => c.from_business_id === businessB_Requester.id && c.contact_field === "phone"
+    );
+    expect(consent.status).toBe("declined");
+
+    // Alpha cannot see Beta's phone
+    const alphaRevealed = engine.getRevealedContacts(interest.id, businessA_Owner.id);
+    expect(alphaRevealed.phone).toBeUndefined();
+  });
+
+  // 40. Custom contact details can be added, requested via custom:<id>, and revealed upon approval
+  it("40. Custom contact details can be shared via custom:<id> and revealed when approved", () => {
+    const engine = new SimulatedExchangeEngine();
+    const interest = engine.expressInterest(opportunity.id, businessB_Requester);
+    engine.acknowledgeProcess(interest.id, businessA_Owner.id);
+
+    const prop = engine.createProposal({
+      interestId: interest.id,
+      proposingBusinessId: businessB_Requester.id,
+      exchangeType: "fixed_amount",
+      exchangeDetails: "Deal terms",
+    });
+    engine.respondProposal(prop.id, businessA_Owner.id, "accept");
+    engine.confirmAgreement(interest.id, prop.id, businessB_Requester.id);
+    engine.confirmAgreement(interest.id, prop.id, businessA_Owner.id);
+
+    const customContacts: Record<string, any[]> = {
+      [businessA_Owner.id]: [
+        { id: "cust-1", label: "Telegram Support", value: "@alphacorp_support" },
+        { id: "cust-2", label: "Escalation Desk", value: "esc@alphacorp.com" },
+      ],
+    };
+
+    // Alpha requests to share cust-1
+    engine.shareContact(interest.id, businessA_Owner.id, ["custom:cust-1"]);
+
+    // Beta cannot see cust-1 before accepting
+    let betaRevealed = engine.getRevealedContacts(interest.id, businessB_Requester.id, customContacts);
+    expect(betaRevealed.custom.length).toBe(0);
+
+    // Beta accepts cust-1
+    engine.acceptContact(interest.id, businessB_Requester.id, ["custom:cust-1"]);
+    betaRevealed = engine.getRevealedContacts(interest.id, businessB_Requester.id, customContacts);
+    expect(betaRevealed.custom.length).toBe(1);
+    expect(betaRevealed.custom[0].label).toBe("Telegram Support");
+    expect(betaRevealed.custom[0].value).toBe("@alphacorp_support");
+  });
+
+  // 41. Independent 2-way non-reciprocal contact sharing
+  it("41. Independent 2-way non-reciprocal contact sharing: Alpha approving Beta's contact does not reveal Alpha's contact to Beta", () => {
+    const engine = new SimulatedExchangeEngine();
+    const interest = engine.expressInterest(opportunity.id, businessB_Requester);
+    engine.acknowledgeProcess(interest.id, businessA_Owner.id);
+
+    const prop = engine.createProposal({
+      interestId: interest.id,
+      proposingBusinessId: businessB_Requester.id,
+      exchangeType: "fixed_amount",
+      exchangeDetails: "Deal terms",
+    });
+    engine.respondProposal(prop.id, businessA_Owner.id, "accept");
+    engine.confirmAgreement(interest.id, prop.id, businessB_Requester.id);
+    engine.confirmAgreement(interest.id, prop.id, businessA_Owner.id);
+
+    // Beta shares email with Alpha
+    engine.shareContact(interest.id, businessB_Requester.id, ["email"]);
+    // Alpha approves Beta's email
+    engine.acceptContact(interest.id, businessA_Owner.id, ["email"]);
+
+    // Alpha can see Beta's email
+    const alphaRevealed = engine.getRevealedContacts(interest.id, businessA_Owner.id);
+    expect(alphaRevealed.email).toBe("beta@betasolutions.com");
+
+    // Beta CANNOT see Alpha's email because Alpha hasn't shared or Beta hasn't approved Alpha's email
+    const betaRevealed = engine.getRevealedContacts(interest.id, businessB_Requester.id);
+    expect(betaRevealed.email).toBeUndefined();
   });
 });

@@ -9,10 +9,13 @@ export const getRequestById = createServerFn({ method: "GET" })
   .inputValidator(z.object({ interest_id: uuidSchema }))
   .handler(async ({ data }) => {
     const user = await getAuthenticatedUser();
+    const businessIds = await BusinessService.getUserBusinessIds(user.id);
     const business = await BusinessService.getBusinessByOwner(user.id);
-    if (!business) {
+    if (!business && businessIds.length === 0) {
       throw new Error("You must register a business profile first.");
     }
+
+    const allUserBizIds = business ? Array.from(new Set([...businessIds, business.id])) : businessIds;
 
     const interest = await InterestService.getRequestById(data.interest_id);
     if (!interest) {
@@ -21,8 +24,8 @@ export const getRequestById = createServerFn({ method: "GET" })
 
     // A business can only view a request if they are either the sender or the opportunity owner
     if (
-      interest.requesting_business_id !== business.id &&
-      interest.opportunity.business_id !== business.id
+      !allUserBizIds.includes(interest.requesting_business_id) &&
+      !allUserBizIds.includes(interest.opportunity.business_id)
     ) {
       throw new Error("Forbidden: You do not have permission to view this request.");
     }

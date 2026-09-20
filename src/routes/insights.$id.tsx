@@ -24,6 +24,7 @@ import {
   Globe,
   ChevronRight,
 } from "lucide-react";
+import { RelayVerificationSeal } from "@/components/relay-verification-seal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -279,7 +280,7 @@ export function QuestionDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FDFDFD] py-12 px-4 sm:px-6">
+      <div className="min-h-screen bg-white py-12 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="h-6 w-36 bg-slate-100 rounded animate-pulse" />
           <div className="bg-white border border-slate-200 rounded-sm p-8 space-y-4 animate-pulse">
@@ -298,7 +299,7 @@ export function QuestionDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] text-slate-900 pb-24">
+    <div className="min-h-screen bg-white text-slate-900 pb-24">
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -407,14 +408,14 @@ export function QuestionDetailPage() {
                   <Link
                     to="/opportunities"
                     search={{ search: question.business?.company_name } as any}
-                    className="inline-flex items-center justify-center w-full text-xs font-mono uppercase tracking-wider font-bold bg-slate-900 hover:bg-orange-600 text-white px-3 py-2 rounded-[2px] transition-colors"
+                    className="inline-flex items-center justify-center w-full text-xs font-mono uppercase tracking-wider font-bold bg-slate-900 hover:bg-slate-800 text-white px-3 py-2 rounded-[2px] transition-colors"
                   >
                     View Opportunities
                   </Link>
                 ) : (
                   <Link
                     to="/signup"
-                    className="inline-flex items-center justify-center w-full text-xs font-mono uppercase tracking-wider font-bold bg-slate-900 hover:bg-orange-600 text-white px-3 py-2 rounded-[2px] transition-colors"
+                    className="inline-flex items-center justify-center w-full text-xs font-mono uppercase tracking-wider font-bold bg-slate-900 hover:bg-slate-800 text-white px-3 py-2 rounded-[2px] transition-colors"
                   >
                     Join The Relay
                   </Link>
@@ -667,10 +668,7 @@ export function QuestionDetailPage() {
                             <span className="text-xs sm:text-sm font-semibold text-slate-900">
                               {perspective.business?.company_name}
                             </span>
-                            <span className="inline-flex items-center text-[9px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1 py-0.2 rounded font-sans">
-                              <ShieldCheck className="w-2.5 h-2.5 mr-0.5 text-emerald-600" />
-                              Approved
-                            </span>
+                            <RelayVerificationSeal className="w-3.5 h-3.5 shrink-0" title="Verified Business" />
                             {isMyPerspective && (
                               <span className="text-[10px] font-mono uppercase bg-slate-900 text-white px-1.5 py-0.2 rounded font-semibold ml-1">
                                 You
@@ -817,7 +815,7 @@ export function QuestionDetailPage() {
               <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto">
                 <Link
                   to="/signup"
-                  className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-wider font-bold bg-slate-900 hover:bg-orange-600 text-white px-4 py-2 rounded-[2px] transition-colors"
+                  className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-wider font-bold bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-[2px] transition-colors"
                 >
                   Join The Relay
                 </Link>

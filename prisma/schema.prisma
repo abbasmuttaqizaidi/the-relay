@@ -44,6 +44,7 @@ model Business {
   funding_stage           String?
   twitter_url             String?
   contact_email           String?
+  phone_number            String?
   status                  String    @default("pending")
   website_verified        Boolean   @default(false)
   website_verified_at     DateTime? @db.Timestamptz(6)
@@ -64,6 +65,7 @@ model Business {
   agreements_as_partner ExchangeAgreement[]     @relation("InterestedBusinessAgreements")
   consents_given        ContactSharingConsent[] @relation("FromBusinessContactConsents")
   consents_received     ContactSharingConsent[] @relation("ToBusinessContactConsents")
+  custom_contact_details CustomContactDetail[]
   reliability_events    ReliabilityEvent[]
 
   @@map("businesses")
@@ -335,4 +337,19 @@ model KnowledgeInsight {
   @@index([business_id, created_at(sort: Desc)])
   @@map("knowledge_insights")
 }
+
+model CustomContactDetail {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_id String   @db.Uuid
+  label       String
+  value       String
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  business Business @relation(fields: [business_id], references: [id], onDelete: Cascade)
+
+  @@index([business_id])
+  @@map("custom_contact_details")
+}
+
 

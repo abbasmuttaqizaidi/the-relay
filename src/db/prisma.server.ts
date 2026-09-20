@@ -31,12 +31,20 @@ const getPrismaClient = () => {
   });
 };
 
-const isStalePrisma =
-  globalThis.prisma && !(globalThis.prisma as any).knowledgeInsight;
+const isStalePrisma = Boolean(
+  globalThis.prisma &&
+    (!(globalThis.prisma as any).customContactDetail ||
+      !(globalThis.prisma as any).knowledgeInsight ||
+      !(globalThis.prisma as any).contactSharingConsent ||
+      !(globalThis.prisma as any).exchangeProposal ||
+      !(globalThis.prisma as any).exchangeAgreement ||
+      !(globalThis.prisma as any).reliabilityEvent),
+);
 
 export const prisma =
-  (!isStalePrisma && globalThis.prisma) || getPrismaClient();
+  (!isStalePrisma && globalThis.prisma) ? globalThis.prisma : getPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalThis.prisma = prisma;
 }
+

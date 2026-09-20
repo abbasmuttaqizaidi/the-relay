@@ -135,17 +135,21 @@ export class OpportunityService {
 
   /**
    * Deletes an opportunity.
+   * RESTRICTION: Posted opportunities cannot be deleted. They can only be closed.
    */
   static async deleteOpportunity(opportunityId: string): Promise<boolean> {
     try {
-      await prisma.opportunity.delete({
+      const opportunity = await prisma.opportunity.findUnique({
         where: { id: opportunityId },
       });
-      serverCache.delete(`opportunity:id:${opportunityId}`);
-      return true;
+      if (!opportunity) {
+        throw new Error("Opportunity not found.");
+      }
+      // Strict constraint: Posted opportunities cannot be deleted, only closed
+      throw new Error("Constraint Restriction: Posted opportunities cannot be deleted permanently. You can only close them.");
     } catch (error: any) {
       console.error("[OpportunityService.deleteOpportunity] Error:", error);
-      throw new Error(`Failed to delete opportunity: ${error.message || error}`);
+      throw new Error(error.message || `Failed to delete opportunity: ${error}`);
     }
   }
 
@@ -275,9 +279,17 @@ export class OpportunityService {
    * Retrieves all opportunities belonging to a specific business.
    */
   static async getByBusiness(businessId: string) {
+    return this.getByBusinessIds([businessId]);
+  }
+
+  /**
+   * Retrieves all opportunities belonging to any of the specified business IDs.
+   */
+  static async getByBusinessIds(businessIds: string[]) {
     try {
+      if (!businessIds || businessIds.length === 0) return [];
       const opportunities = await prisma.opportunity.findMany({
-        where: { business_id: businessId },
+        where: { business_id: { in: businessIds } },
         include: {
           _count: {
             select: { interests: true },
@@ -298,7 +310,7 @@ export class OpportunityService {
         interestedCount: opp._count?.interests || 0,
       }));
     } catch (error: any) {
-      console.error("[OpportunityService.getByBusiness] Error:", error);
+      console.error("[OpportunityService.getByBusinessIds] Error:", error);
       throw new Error(`Failed to get business opportunities: ${error.message || error}`);
     }
   }
@@ -325,7 +337,7 @@ export class OpportunityService {
         ];
       }
 
-      const opportunities = await prisma.opportunity.findMany({
+      let opportunities = await prisma.opportunity.findMany({
         where: whereClause,
         include: {
           business: true,
@@ -339,6 +351,29 @@ export class OpportunityService {
         skip: filters?.offset ?? 0,
         take: filters?.limit ?? 100,
       });
+
+      if (opportunities.length === 0) {
+        try {
+          const { ensureDatabaseOpportunitiesSeeded } = await import("../lib/seed-opportunities.server");
+          await ensureDatabaseOpportunitiesSeeded();
+          opportunities = await prisma.opportunity.findMany({
+            where: whereClause,
+            include: {
+              business: true,
+              _count: {
+                select: { interests: true },
+              },
+            },
+            orderBy: {
+              created_at: "desc",
+            },
+            skip: filters?.offset ?? 0,
+            take: filters?.limit ?? 100,
+          });
+        } catch (seedErr) {
+          console.error("[OpportunityService.listActive] Auto-seed error:", seedErr);
+        }
+      }
 
       return opportunities.map((opp) => ({
         ...opp,

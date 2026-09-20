@@ -377,10 +377,76 @@ To ensure user engagement and clean onboarding on first-time usage, we implement
 ## 🛡️ 12. Agent Guidelines & Safety Guardrails
 
 To ensure development safety, all AI coding agents working on this project must adhere strictly to the following rules:
+- **Design System Adherence & Component Reuse**: When building any new component or screen across the entire application, you MUST strictly adhere to the central Design System color palette, typography tokens, and specifications (located in `src/design-system/` and detailed in `design_system_components.md`). All features across the entire app MUST reuse these standardized design system components (`@/design-system`)—including Buttons, Inputs, Selects, Checkboxes, Metric Cards, Opportunity Cards, Badges, and Reciprocal Reveal widgets. Never introduce ad-hoc mismatched colors or disconnected duplicate UI controls.
 - **No Destructive Commands**: Never execute any database drops, table wipes, force resets (`prisma db push --force-reset` or similar), or clean commands that remove database records or reset data states without explicit user verification and permission.
 - **No Regressions**: Avoid introducing any style, alignment, or functional regressions across mobile or desktop views.
 - **No Unrequested Logic Disruptions**: Never modify, delete, rewrite, or break existing business logic, structure, or functional code of existing modules or features unless explicitly requested and approved by the user. Adhere strictly to the existing features and structure.
 - **No Git Commands**: Do not run any git commands (`git checkout`, `git reset`, `git push`, `git commit`, etc.) without explicit user permission.
+
+---
+
+## 🎨 13. Unified Design System (`src/design-system/`)
+
+All UI across the entire application is standardized around a standalone, modular design system in `src/design-system/`.
+
+### Key Design System Principles & Rules:
+1. **Color Palette & Visual Hierarchy:**
+   - **Primary Action Buttons & CTAs:** Solid Pure Black / Deep Charcoal (`#000000` / `#171F2C` / `bg-slate-950 hover:bg-slate-800 text-white`).
+   - **High-Intent / Momentum Accents:** Operator Orange (`#F97316` / `hsl(24 95% 45%)`) reserved for indicators, ticker badges, featured highlights, and progress bars.
+   - **Verified / Trust State:** Emerald Green (`#10B981`) with 6px glowing indicator dots.
+   - **Backgrounds & Surfaces:** Soft Slate (`#F8FAFC` / `#FFFFFF` / `#0F172A`).
+   - **Borders:** Crisp ultra-thin borders (`border-slate-200` / `border-slate-800` / `hsl(215 25% 12% / 0.12)`).
+2. **Standardized Reusable Components:**
+   - `Button`: Primary monochrome, high-intent, authoritative, outline, ghost, surface-dark variants.
+   - `Input`, `SearchInput`, `Textarea`, `Label`: Precision inputs with focus rings and search controls.
+   - `Select`, `SelectTrigger`, `SelectContent`, `SelectItem`: Radix-based custom dropdowns with clean border radiuses.
+   - `Checkbox`: Square precision checkbox with custom checkmark.
+   - `MetricCard`, `HowItWorksCard`, `TargetedPlacementCard`, `RecentHandshakesCard`, `ExchangeCalloutBox`: Modular dashboard and feed cards.
+   - `OpportunityCard`: Self-contained listing card with company headers, badges, reciprocity details, and action trays.
+   - `ReciprocalRevealMetric`: Dynamic 0–100 score indicator with connection/blinded status bars.
+   - `VerifiedBadge`, `UrgentBadge`, `DealCodeStamp`, `CategoryPill`, `ParityScoreBadge`, `LivePulseBadge`: Standard badge primitives.
+3. **Mandatory Usage Rule:**
+   - Any new page, modal, drawer, or widget implemented in the app **must import and compose these design system components** rather than recreating local ad-hoc elements.
+
+---
+
+## 🏢 14. Redesigned Business Profile (`/business-profile`)
+
+The Business Profile page has been redesigned according to the enterprise specification in `BUSINESS_PROFILE.md` and composed using `@/design-system` modular components.
+
+### A. Layout & Structure
+- **Header Action Bar**: Contains back navigation to Explore, page title, and the primary action button (`Save Changes`).
+- **Enterprise Identity Banner**: Displays company logo avatar (with in-place upload trigger and `[getCompanyInitials]`), verified trust badge, membership timestamp, and enterprise protocol code (`RELAY-ENT-XXXX`).
+- **Two-Column Workspace (12-col grid)**:
+  - **Left Column (8 cols)**:
+    - **Company Details Card**: Form controls for Legal Name, Primary Industry, HQ Location, Founded Year, Company Size, Company Type, Funding Stage, Website URL (with live external test action), and Market Positioning & Objectives (with 1000-character live counter).
+    - **Connected Accounts & Profiles Card**: Profile links for LinkedIn, X / Twitter, GitHub / API Documentation, and Crunchbase.
+  - **Right Column (4 cols)**:
+    - **Verification & Status Card**: Displays Trust Identity Level 4 status, Bilateral Masking Stage 4 Blinded status, and Domain SSL certification.
+    - **Exchange Activity Card**: Real-time network telemetry summary displaying Completed Exchanges and Reciprocal Parity percentage.
+
+### B. Dynamic vs. Static Functionality Breakdown
+- **Dynamic Real-Time Features (Connected to Database & Server Functions):**
+  - Company Legal Name (`company_name`)
+  - Primary Industry (`industry`)
+  - Website URL (`website`)
+  - HQ Location (`hq_location`)
+  - Founded Year (`founded_year`)
+  - Company Size (`company_size`)
+  - Company Type (`company_type`)
+  - Funding Stage (`funding_stage`)
+  - Market Positioning & Objectives Description (`description`)
+  - LinkedIn URL (`linkedin_url`)
+  - X / Twitter URL (`twitter_url`)
+  - Logo Upload & Storage (`logo_url` via `uploadBusinessLogo`)
+  - Verification & Approved status badge
+- **Static / Mock Functionalities (Future Roadmap Integrations):**
+  - **GitHub / API Documentation Endpoint**: Static developer registry field.
+  - **Crunchbase URL**: Static ecosystem registry field.
+  - **Bilateral Masking Status ("Stage 4 Blinded")**: Static protocol indicator representing future masked negotiation phases.
+  - **Exchange Activity Counters ("Completed Exchanges: 28" & "Reciprocal Parity: 95%")**: Static telemetry display cards for future aggregate network stats.
+
+
 
 
 

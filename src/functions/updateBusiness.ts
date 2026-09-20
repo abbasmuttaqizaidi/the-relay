@@ -15,8 +15,9 @@ export const updateBusiness = createServerFn({ method: "POST" })
       throw new Error("Not Found: Business profile not found.");
     }
 
-    // Check if the current user is the owner
-    if (business.owner_user_id !== user.id) {
+    // Check if the current user is the owner or member
+    const userBizIds = await BusinessService.getUserBusinessIds(user.id);
+    if (business.owner_user_id !== user.id && !userBizIds.includes(business.id)) {
       throw new Error("Unauthorized: You do not own this business profile.");
     }
 
@@ -35,6 +36,7 @@ export const updateBusiness = createServerFn({ method: "POST" })
       funding_stage: data.funding_stage ?? undefined,
       twitter_url: data.twitter_url ?? undefined,
       contact_email: data.contact_email ?? undefined,
+      phone_number: data.phone_number ?? undefined,
     });
   });
 export type UpdateBusinessFn = typeof updateBusiness;

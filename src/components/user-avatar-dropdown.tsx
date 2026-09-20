@@ -22,7 +22,13 @@ interface ProfileData {
   score?: number;
 }
 
-export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean }) {
+export function UserAvatarDropdown({
+  isMobile = false,
+  onNavigate,
+}: {
+  isMobile?: boolean;
+  onNavigate?: () => void;
+}) {
   const { user } = useUser();
   const { signOut } = useClerk();
   const navigate = useNavigate();
@@ -194,7 +200,7 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
                       className="object-cover"
                       onError={() => setLogoFailed(true)}
                     />
-                    <AvatarFallback className="text-[10px] font-mono font-bold bg-primary/10 text-primary">
+                    <AvatarFallback className="text-[10px] font-mono font-bold bg-slate-950 text-white">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
@@ -235,7 +241,7 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
                     className="object-cover"
                     onError={() => setLogoFailed(true)}
                   />
-                  <AvatarFallback className="text-[9px] font-mono font-bold bg-primary/10 text-primary">
+                  <AvatarFallback className="text-[9px] font-mono font-bold bg-slate-950 text-white">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
@@ -277,7 +283,10 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
         <DropdownMenuSeparator className="bg-slate-100/80 my-1" />
         
         <DropdownMenuItem
-          onClick={() => navigate({ to: "/business-profile" })}
+          onClick={() => {
+            onNavigate?.();
+            navigate({ to: "/onboarding" });
+          }}
           className="group px-3 py-2 text-xs text-slate-600 focus:bg-primary/10 focus:text-primary cursor-pointer flex items-center gap-2 rounded-md transition-colors"
         >
           <Building2 className="w-3.5 h-3.5 text-slate-400 group-focus:text-primary transition-colors" />
@@ -287,7 +296,10 @@ export function UserAvatarDropdown({ isMobile = false }: { isMobile?: boolean })
         <DropdownMenuSeparator className="bg-slate-100/80 my-1" />
         
         <DropdownMenuItem
-          onClick={handleLogout}
+          onClick={() => {
+            onNavigate?.();
+            handleLogout();
+          }}
           className="group px-3 py-2 text-xs text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer flex items-center gap-2 font-medium rounded-md transition-colors"
         >
           <LogOut className="w-3.5 h-3.5 text-red-500 group-focus:text-red-600 transition-colors" />

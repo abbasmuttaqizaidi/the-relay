@@ -16,6 +16,7 @@ import {
   Sparkles,
   UserCheck,
 } from "lucide-react";
+import { RelayVerificationSeal } from "@/components/relay-verification-seal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -643,9 +644,9 @@ export function KnowledgeEditorWorkspace({
                   Super Admin Mode
                 </span>
               ) : business ? (
-                <span className="hidden md:inline-flex items-center text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-sans">
-                  <ShieldCheck className="w-3 h-3 mr-0.5 text-emerald-600" />
-                  {business.company_name}
+                <span className="hidden md:inline-flex items-center text-xs font-semibold text-slate-900 font-sans gap-1.5">
+                  <span>{business.company_name}</span>
+                  <RelayVerificationSeal className="w-3.5 h-3.5 shrink-0" title="Verified Business" />
                 </span>
               ) : null}
             </div>
