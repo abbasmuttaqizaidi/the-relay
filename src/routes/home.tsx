@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowRight,
   ShieldCheck,
@@ -69,28 +69,28 @@ const PILLARS_DATA = [
     num: "PILLAR 01",
     label: "What Relay Creates",
     badgeClass: "text-slate-800 bg-slate-100 border-slate-200",
-    title: "Exchange Business Opportunities",
-    body: "Businesses can exchange leads, referrals, introductions, services, partnerships, distribution opportunities, and more for money, referrals, services, opportunities, or other mutually agreed value.",
-    quote: "“I have something another business can use. What can I get in return?”",
-    cardClass: "border border-slate-200/90 shadow-xs hover:shadow-md",
+    title: "Turn Unused Leads into Revenue",
+    body: "Trade client leads, referrals, introductions, distribution, and services you can't fulfill for cash commissions, reciprocal leads, or expert services.",
+    quote: "“I have a lead I can't take. What can I get in return?”",
+    cardClass: "shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)]",
   },
   {
     num: "PILLAR 02",
     label: "How Relay Works · CDOES",
     badgeClass: "text-white bg-slate-950 border-slate-950",
-    title: "Both Businesses Stay in Control",
-    body: "Every exchange follows a structured, consent-driven process. Both businesses acknowledge the exchange, negotiate the terms, agree on the final value, and decide what contact information they share.",
-    quote: "“Nothing moves forward unless both businesses agree.”",
-    cardClass: "border-2 border-slate-950 shadow-[0_12px_36px_rgba(15,23,42,0.14)] hover:shadow-[0_18px_48px_rgba(15,23,42,0.2)]",
+    title: "100% Mutual Consent (CDOES)",
+    body: "Every deal follows a clear, two-way consent flow. Both businesses negotiate terms and agree on value before any confidential identity or contact is unlocked.",
+    quote: "“No forced deals. Nothing unlocks without mutual agreement.”",
+    cardClass: "shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)]",
   },
   {
     num: "PILLAR 03",
     label: "Why Relay is Different",
     badgeClass: "text-slate-700 bg-slate-100 border-slate-200",
-    title: "Built for Business. Not Social.",
-    body: "No feeds. No followers. No endless DMs. No cold outreach. Relay keeps interactions focused on opportunities, exchange terms, consent, and the next business decision.",
-    quote: "“Less socializing. More business.”",
-    cardClass: "border border-slate-200/90 shadow-xs hover:shadow-md",
+    title: "Strictly Business. Zero Spam.",
+    body: "No social feeds. No fake vanity metrics. No cold scrape spam. Relay is strictly a private, verified network built for closing real B2B deals quickly.",
+    quote: "“Less socializing. More business deals.”",
+    cardClass: "shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)]",
   },
 ];
 
@@ -140,7 +140,8 @@ export function LandingPage() {
   const [expandedViewMode, setExpandedViewMode] = useState<"flow" | "text">("flow");
   const [animStep, setAnimStep] = useState<number>(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(true);
-  const [activePillarMobile, setActivePillarMobile] = useState<number>(0);
+  const [activePillarMobile, setActivePillarMobile] = useState<number>(1);
+  const pillarsScrollRef = useRef<HTMLDivElement>(null);
   const [activeScenarioMobile, setActiveScenarioMobile] = useState<number>(0);
   const [diffTabMobile, setDiffTabMobile] = useState<"difference" | "trade">("difference");
 
@@ -197,6 +198,18 @@ export function LandingPage() {
       document.removeEventListener("touchstart", handleOutsideClick);
     };
   }, [expandedMobileEngine]);
+
+  useEffect(() => {
+    // Center the 2nd pillar card by default on mobile mount
+    if (pillarsScrollRef.current) {
+      const container = pillarsScrollRef.current;
+      const card = container.children[1] as HTMLElement | undefined;
+      if (card) {
+        const targetLeft = card.offsetLeft - (container.clientWidth - card.clientWidth) / 2;
+        container.scrollTo({ left: Math.max(0, targetLeft), behavior: "instant" });
+      }
+    }
+  }, []);
 
   const needsOptions = [
     "Distribution",
@@ -2163,17 +2176,19 @@ export function LandingPage() {
               </p>
             </div>
 
-            {/* DESKTOP VIEW: 3-Column Side-by-Side Grid (hidden on mobile) */}
-            <div className="hidden lg:grid grid-cols-3 gap-8 items-stretch">
-              {PILLARS_DATA.map((pillar) => (
+            {/* DESKTOP VIEW: 3-Column Grid (hidden on mobile) */}
+            <div className="hidden lg:grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+              {PILLARS_DATA.map((pillar, idx) => (
                 <div
                   key={pillar.num}
-                  className={`bg-white rounded-2xl p-8 sm:p-9 transition-all flex flex-col justify-between ${pillar.cardClass}`}
+                  className={`bg-white rounded-2xl p-8 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] transition-all flex flex-col justify-between ${
+                    idx === 1 ? "border-2 border-slate-950" : ""
+                  }`}
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-[11px] font-mono font-bold tracking-wider uppercase text-slate-500">
-                        {pillar.num}
+                    <div className="flex items-center justify-between mb-6">
+                      <span className="text-xs font-mono font-bold tracking-wider uppercase text-slate-500 bg-slate-100 px-3 py-1 rounded">
+                        0{idx + 1} / {pillar.num}
                       </span>
                       <span
                         className={`text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full ${pillar.badgeClass}`}
@@ -2197,97 +2212,133 @@ export function LandingPage() {
               ))}
             </div>
 
-            {/* MOBILE VIEW: True Apple-Wallet Style Physical Stacked Cards Deck (visible on < lg) */}
+            {/* MOBILE VIEW: Horizontal Swipeable Card Carousel (visible on < lg) */}
             <div className="block lg:hidden">
-              {/* Stack Ground Mat */}
-              <div className="bg-slate-100/90 border border-slate-200/90 rounded-[28px] p-4 sm:p-6 shadow-inner">
-                {/* Physical Stacked Deck */}
-                <div className="relative flex flex-col space-y-3.5">
-                  {PILLARS_DATA.map((pillar, idx) => {
-                    const isActive = activePillarMobile === idx;
-
-                    return (
-                      <div
-                        key={pillar.num}
-                        onClick={() => setActivePillarMobile(idx)}
-                        className={`cursor-pointer transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] rounded-[22px] relative overflow-hidden select-none ${
-                          isActive
-                            ? "bg-white border-0 shadow-[0_18px_40px_-6px_rgba(15,23,42,0.22),0_8px_16px_-4px_rgba(15,23,42,0.12)] z-20"
-                            : "bg-white border border-slate-200/90 shadow-2xs hover:border-slate-300 hover:shadow-xs z-10"
-                        }`}
-                      >
-                        {/* Physical Specular Light Rim */}
-                        <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-white to-transparent opacity-80" />
-
-                        {/* Top Card Header Strip */}
-                        <div
-                          className={`px-4 py-3 flex items-center justify-between transition-colors duration-300 ${
-                            isActive
-                              ? "bg-slate-50/90 border-b border-slate-100/90"
-                              : "bg-slate-50/40 hover:bg-slate-100/60"
-                          }`}
+              <div
+                ref={pillarsScrollRef}
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  const cardWidth = el.offsetWidth * 0.85;
+                  const newIndex = Math.round(el.scrollLeft / cardWidth);
+                  if (newIndex !== activePillarMobile && newIndex >= 0 && newIndex < PILLARS_DATA.length) {
+                    setActivePillarMobile(newIndex);
+                  }
+                }}
+                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none gap-4 pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 pt-1"
+              >
+                {PILLARS_DATA.map((pillar, idx) => (
+                  <div
+                    key={pillar.num}
+                    className={`w-[85vw] sm:w-[380px] shrink-0 snap-center bg-white rounded-2xl p-6 sm:p-7 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] transition-all flex flex-col justify-between ${
+                      idx === 1 ? "border-2 border-slate-950" : ""
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-[11px] font-mono font-bold tracking-wider uppercase text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded">
+                          0{idx + 1} / {pillar.num}
+                        </span>
+                        <span
+                          className={`text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full ${pillar.badgeClass}`}
                         >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="px-2 py-0.5 rounded-md bg-slate-900 text-white font-mono text-[10px] font-bold shrink-0">
-                              #{idx + 1}
-                            </span>
-                            <span
-                              className={`text-[10.5px] font-mono font-semibold px-2.5 py-0.5 rounded-full truncate ${pillar.badgeClass}`}
-                            >
-                              {pillar.label}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Card Title (Always visible with smooth typography transition) */}
-                        <div className={`px-4 sm:px-5 pt-3.5 transition-all duration-300 ${isActive ? "pb-2" : "pb-4"}`}>
-                          <h3
-                            className={`font-bold font-display leading-snug transition-all duration-300 ${
-                              isActive
-                                ? "text-xl text-slate-950"
-                                : "text-[15px] text-slate-800 line-clamp-1"
-                            }`}
-                          >
-                            {pillar.title}
-                          </h3>
-                        </div>
-
-                        {/* Smooth CSS Grid Expand/Collapse Body Wrapper */}
-                        <div
-                          className={`grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                            isActive
-                              ? "grid-rows-[1fr] opacity-100"
-                              : "grid-rows-[0fr] opacity-0 pointer-events-none"
-                          }`}
-                        >
-                          <div className="overflow-hidden">
-                            <div
-                              className={`px-4 sm:px-5 pb-5 pt-1 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                                isActive ? "translate-y-0" : "-translate-y-3"
-                              }`}
-                            >
-                              <p className="text-[13.5px] text-slate-600 leading-relaxed">
-                                {pillar.body}
-                              </p>
-
-                              {/* Tactile Quote Box */}
-                              <div className="pt-3.5 mt-4 bg-slate-50/70 p-3.5 rounded-2xl border border-slate-100/90">
-                                <p className="text-[12.5px] font-medium text-slate-900 italic font-mono leading-snug">
-                                  {pillar.quote}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                          {pillar.label}
+                        </span>
                       </div>
-                    );
-                  })}
+                      <h3 className="text-lg sm:text-xl font-bold text-slate-950 mb-3 leading-snug font-display">
+                        {pillar.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        {pillar.body}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 mt-6 border-t border-slate-100">
+                      <div className="bg-slate-50 border border-slate-100 rounded-lg p-3">
+                        <p className="text-xs font-medium text-slate-900 italic font-mono leading-snug">
+                          {pillar.quote}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination Dots & Navigation Buttons */}
+              <div className="flex items-center justify-between pt-2 px-1">
+                {/* Dots */}
+                <div className="flex items-center gap-1.5">
+                  {PILLARS_DATA.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setActivePillarMobile(idx);
+                        if (pillarsScrollRef.current) {
+                          const container = pillarsScrollRef.current;
+                          const card = container.children[idx] as HTMLElement | undefined;
+                          if (card) {
+                            const targetLeft = card.offsetLeft - (container.clientWidth - card.clientWidth) / 2;
+                            container.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
+                          }
+                        }
+                      }}
+                      className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                        activePillarMobile === idx
+                          ? "w-7 bg-slate-950"
+                          : "w-2 bg-slate-300 hover:bg-slate-400"
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
                 </div>
 
-                {/* Stack Thickness Lines (Physical Deck Base) */}
-                <div className="flex flex-col items-center justify-center pt-3 gap-0.5 opacity-50">
-                  <div className="w-20 h-[2.5px] bg-slate-300 rounded-full" />
-                  <div className="w-12 h-[1.5px] bg-slate-200 rounded-full" />
+                {/* Swipe Helper Text / Arrows */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-mono text-slate-400">
+                    Swipe {activePillarMobile + 1} of {PILLARS_DATA.length}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={activePillarMobile === 0}
+                      onClick={() => {
+                        const newIdx = Math.max(0, activePillarMobile - 1);
+                        setActivePillarMobile(newIdx);
+                        if (pillarsScrollRef.current) {
+                          const container = pillarsScrollRef.current;
+                          const card = container.children[newIdx] as HTMLElement | undefined;
+                          if (card) {
+                            const targetLeft = card.offsetLeft - (container.clientWidth - card.clientWidth) / 2;
+                            container.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
+                          }
+                        }
+                      }}
+                      className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center text-slate-700 transition-colors cursor-pointer"
+                      aria-label="Previous slide"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={activePillarMobile === PILLARS_DATA.length - 1}
+                      onClick={() => {
+                        const newIdx = Math.min(PILLARS_DATA.length - 1, activePillarMobile + 1);
+                        setActivePillarMobile(newIdx);
+                        if (pillarsScrollRef.current) {
+                          const container = pillarsScrollRef.current;
+                          const card = container.children[newIdx] as HTMLElement | undefined;
+                          if (card) {
+                            const targetLeft = card.offsetLeft - (container.clientWidth - card.clientWidth) / 2;
+                            container.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
+                          }
+                        }
+                      }}
+                      className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center text-slate-700 transition-colors cursor-pointer"
+                      aria-label="Next slide"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2703,156 +2754,26 @@ export function LandingPage() {
         {/* ═══════════════════════════════════════════════════════════════════
             BEGIN: EightStepJourney (#how-it-works)
             ═══════════════════════════════════════════════════════════════════ */}
-        <section className="hidden md:block bg-[#FAFAFA] border-b border-slate-200 py-12 sm:py-16" id="how-it-works">
+        <section className="bg-[#FAFAFA] border-b border-slate-200 py-12 sm:py-16" id="how-it-works">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center mb-10">
+            <div className="max-w-3xl mx-auto text-center">
               <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
                 THE 8-STEP BILATERAL JOURNEY
               </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight mt-3 mb-4 font-display">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight mt-3 mb-3 font-display">
                 From Blinded Discovery to Delivered Value
               </h2>
-              <p className="text-slate-600 text-sm sm:text-base">
-                From initial anonymous post to getting paid. Every step requires mutual confirmation and bilateral agreement.
+              <p className="text-slate-600 text-sm sm:text-base mb-6">
+                From initial verification to final commercial handshake. Every step requires mutual confirmation and bilateral agreement.
               </p>
-            </div>
-
-            {/* 8-Step Timeline Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-              {/* Step 1 */}
-              <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono font-bold text-slate-400 block">01 / STEP ONE</span>
-                    <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-                  </div>
-                  <h3 className="text-base font-bold text-slate-950 mb-2">Post</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Share deal or need anonymously without revealing sensitive company or client data.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 text-[10.5px] font-mono text-slate-400">
-                  Blinded submission
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono font-bold text-slate-400 block">02 / STEP TWO</span>
-                    <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-                  </div>
-                  <h3 className="text-base font-bold text-slate-950 mb-2">Discover / Match</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Identify verified businesses with matching needs, capabilities, and parity.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 text-[10.5px] font-mono text-slate-400">
-                  Parametric fit engine
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono font-bold text-slate-400 block">03 / STEP THREE</span>
-                    <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-                  </div>
-                  <h3 className="text-base font-bold text-slate-950 mb-2">Express Interest</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Send structured bilateral intent outlining what you offer and need.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 text-[10.5px] font-mono text-slate-400">
-                  Zero cold pitches
-                </div>
-              </div>
-
-              {/* Step 4 */}
-              <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono font-bold text-slate-400 block">04 / STEP FOUR</span>
-                    <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-                  </div>
-                  <h3 className="text-base font-bold text-slate-950 mb-2">Acknowledge</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Counterparty reviews proposal and unlocks a secure private dealroom.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 text-[10.5px] font-mono text-slate-400">
-                  Dealroom opened
-                </div>
-              </div>
-
-              {/* Step 5 */}
-              <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono font-bold text-slate-400 block">05 / STEP FIVE</span>
-                    <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-                  </div>
-                  <h3 className="text-base font-bold text-slate-950 mb-2">Propose &amp; Negotiate</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Agree on rev-share %, reciprocal referrals, barter, or joint pact rules.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 text-[10.5px] font-mono text-slate-400">
-                  Structured settlement
-                </div>
-              </div>
-
-              {/* Step 6 */}
-              <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono font-bold text-slate-400 block">06 / STEP SIX</span>
-                    <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-                  </div>
-                  <h3 className="text-base font-bold text-slate-950 mb-2">Agree</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Both parties sign mutual digital covenants to lock terms and prevent circumvention.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 text-[10.5px] font-mono text-slate-400">
-                  Legal protection
-                </div>
-              </div>
-
-              {/* Step 7 (Highlighted Dark Step) */}
-              <div className="p-5 bg-slate-950 text-white rounded-xl border border-slate-800 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono font-bold text-emerald-400 block">07 / STEP SEVEN</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  </div>
-                  <h3 className="text-base font-bold text-white mb-2">Consent &amp; Handshake</h3>
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    Verified identities and unmasked executive contact details are unlocked.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-800 text-[10.5px] font-mono text-emerald-300 font-semibold">
-                  Mutual consent unmask
-                </div>
-              </div>
-
-              {/* Step 8 */}
-              <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono font-bold text-slate-400 block">08 / STEP EIGHT</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  </div>
-                  <h3 className="text-base font-bold text-slate-950 mb-2">Connect &amp; Deliver</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Fulfill the opportunity under your agreed bilateral contract terms.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 text-[10.5px] font-mono text-emerald-700 font-semibold">
-                  Value realized
-                </div>
+              <div className="flex items-center justify-center">
+                <Link
+                  to="/8-step-journey"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-950 hover:bg-black text-white text-xs sm:text-sm font-medium tracking-tight shadow-md hover:shadow-xl transition-all duration-200 group border border-slate-800 hover:border-slate-700"
+                >
+                  <span>Explore Full 8-Step Interactive Journey</span>
+                  <ArrowRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-1 transition-transform duration-200" />
+                </Link>
               </div>
             </div>
           </div>

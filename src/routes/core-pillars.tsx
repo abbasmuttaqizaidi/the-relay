@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -6,6 +7,8 @@ import {
   Lock,
   ArrowLeftRight,
   FilterX,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/core-pillars")({
@@ -33,6 +36,42 @@ export const Route = createFileRoute("/core-pillars")({
 });
 
 export function CorePillarsPage() {
+  const [activePillar, setActivePillar] = useState(1);
+  const pillarsScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Center the 2nd card (CDOES) by default on mobile screens
+    if (pillarsScrollRef.current) {
+      const container = pillarsScrollRef.current;
+      const card = container.children[1] as HTMLElement | undefined;
+      if (card) {
+        const targetLeft = card.offsetLeft - (container.clientWidth - card.clientWidth) / 2;
+        container.scrollTo({ left: Math.max(0, targetLeft), behavior: "instant" });
+      }
+    }
+  }, []);
+
+  const handlePillarsScroll = () => {
+    if (!pillarsScrollRef.current) return;
+    const { scrollLeft, clientWidth } = pillarsScrollRef.current;
+    const index = Math.round(scrollLeft / (clientWidth * 0.85));
+    setActivePillar(Math.min(Math.max(index, 0), 2));
+  };
+
+  const scrollPillarsTo = (idx: number) => {
+    if (!pillarsScrollRef.current) return;
+    const container = pillarsScrollRef.current;
+    const card = container.children[idx] as HTMLElement | undefined;
+    if (card) {
+      const targetLeft = card.offsetLeft - (container.clientWidth - card.clientWidth) / 2;
+      container.scrollTo({
+        left: Math.max(0, targetLeft),
+        behavior: "smooth",
+      });
+    }
+    setActivePillar(idx);
+  };
+
   return (
     <div className="bg-[#f7f9fb] text-[#191c1e] font-sans antialiased min-h-screen flex flex-col selection:bg-slate-900/10 selection:text-slate-900">
       {/* MAIN CONTENT */}
@@ -54,9 +93,13 @@ export function CorePillarsPage() {
 
         {/* 2. THE 3 PILLARS IN A UNIFIED 3-COLUMN GRID */}
         <section className="w-full py-12 md:py-16 px-6 max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-            {/* CARD 1: PILLAR 01 — VALUE EXCHANGE */}
-            <article className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group hover:border-slate-300">
+          <div
+            ref={pillarsScrollRef}
+            onScroll={handlePillarsScroll}
+            className="flex lg:grid lg:grid-cols-3 gap-5 sm:gap-6 overflow-x-auto lg:overflow-x-visible snap-x snap-mandatory scrollbar-none pb-6 lg:pb-0 -mx-6 px-6 lg:mx-0 lg:px-0"
+          >
+            {/* CARD 1: PILLAR 01 — VALUE CREATION */}
+            <article className="w-[85vw] max-w-[380px] sm:w-[380px] lg:w-auto shrink-0 snap-center bg-white rounded-2xl p-6 sm:p-7 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] transition-all flex flex-col justify-between relative group">
               <div>
                 {/* Tag */}
                 <div className="flex items-center justify-between mb-4">
@@ -70,118 +113,122 @@ export function CorePillarsPage() {
 
                 {/* Title & Subtitle */}
                 <h2 className="font-bold text-xl text-slate-950 tracking-tight leading-snug mb-2">
-                  Turn Unused Opportunities into Value
+                  Trade Unused Leads into Real Revenue
                 </h2>
                 <p className="text-slate-600 text-[13.5px] leading-relaxed mb-5">
-                  Don't let valuable inquiries expire. Trade unserviceable pipeline for real commercial assets.
+                  Don't waste client leads you can't take. Trade them with trusted businesses for cash cuts or valuable services.
                 </p>
 
                 {/* Core Idea Callout */}
-                <div className="bg-slate-50 border-l-2 border-l-slate-900 border-y border-r border-slate-200 rounded-r-xl rounded-l-none p-4 mb-5">
+                <div className="bg-slate-50 border-l-2 border-l-slate-900 rounded-r-xl p-4 mb-5">
                   <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-500 block mb-1">
-                    Core Principle
+                    Simple Rule
                   </span>
                   <p className="text-[13px] font-semibold text-slate-900 leading-snug italic">
-                    "I have something another business needs — what can I get in return?"
+                    "I have a deal I can't take — what can I get in return?"
                   </p>
                 </div>
 
                 {/* Quick Exchange List */}
                 <div className="space-y-2.5 mb-6">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-                    Exchangeable Value Structures:
+                    What You Can Get:
                   </span>
                   <div className="flex items-start gap-2.5 text-[13px] text-slate-800">
-                    <CheckCircle2 className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" />
-                    <span>Rev-share agreements (10%–25%)</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span>10%–25% revenue share from won deals</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-[13px] text-slate-800">
-                    <CheckCircle2 className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" />
-                    <span>Direct warm referrals &amp; intros</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span>Direct warm client referrals in return</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-[13px] text-slate-800">
-                    <CheckCircle2 className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" />
-                    <span>Specialist services &amp; tech barter</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span>Expert team skills or tech barter</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-[13px] text-slate-800">
-                    <CheckCircle2 className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" />
-                    <span>Strategic distribution partnerships</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span>Co-selling &amp; distribution partners</span>
                   </div>
                 </div>
               </div>
 
               {/* Footer Tag */}
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Reciprocal Liquidity</span>
+                <span className="text-slate-500 font-medium">Extra Income</span>
                 <span className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-slate-700 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-                  Dormant pipeline unlocked
+                  Zero wasted opportunities
                 </span>
               </div>
             </article>
 
             {/* CARD 2: PILLAR 02 — CDOES */}
-            <article className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group hover:border-slate-300">
+            <article className="w-[85vw] max-w-[380px] sm:w-[380px] lg:w-auto shrink-0 snap-center bg-white rounded-2xl p-6 sm:p-7 border-2 border-slate-950 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] transition-all flex flex-col justify-between relative group">
               <div>
                 {/* Tag */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 text-slate-800 text-[11px] font-mono font-bold tracking-wider uppercase">
                     <span>PIL-02</span>
                     <span className="text-slate-400">•</span>
-                    <span className="text-slate-900">Proprietary System</span>
+                    <span className="text-slate-900">Protected System</span>
                   </div>
                   <Lock className="w-5 h-5 text-slate-700" />
                 </div>
 
                 {/* Title & Subtitle */}
                 <h2 className="font-bold text-xl text-slate-950 tracking-tight leading-snug mb-2">
-                  Consent-Driven Opportunity Exchange (CDOES)
+                  100% Mutual Consent (CDOES)
                 </h2>
                 <p className="text-slate-600 text-[13.5px] leading-relaxed mb-5">
-                  Structured bilateral exchange where both businesses retain 100% control over disclosures.
+                  You stay completely in control. Contact details and identities are revealed only after both sides agree.
                 </p>
 
                 {/* Core Idea Callout */}
-                <div className="bg-slate-50 border-l-2 border-l-slate-900 border-y border-r border-slate-200 rounded-r-xl rounded-l-none p-4 mb-5">
+                <div className="bg-slate-50 border-l-2 border-l-slate-900 rounded-r-xl p-4 mb-5">
                   <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-500 block mb-1">
-                    Enforced Consent
+                    Simple Rule
                   </span>
                   <p className="text-[13px] font-semibold text-slate-900 leading-snug italic">
-                    "No forced transactions. Every exchange is 100% mutually agreed."
+                    "No forced deals. Nothing unlocks without mutual agreement."
                   </p>
                 </div>
 
-                {/* Compact 7-Step Bilateral Sequence Chips */}
+                {/* Compact 8-Step Bilateral Sequence Chips */}
                 <div className="mb-6">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2.5">
-                    7-Step Bilateral Sequence:
+                    Simple 8-Step Journey:
                   </span>
                   <div className="flex flex-wrap gap-1.5 items-center">
                     <span className="text-[11px] font-medium bg-slate-50 border border-slate-200 px-2 py-1 rounded text-slate-700">
-                      1. Express Interest
+                      1. Verify
                     </span>
                     <span className="text-slate-300 text-xs">→</span>
                     <span className="text-[11px] font-medium bg-slate-50 border border-slate-200 px-2 py-1 rounded text-slate-700">
-                      2. Acknowledge
+                      2. Post
                     </span>
                     <span className="text-slate-300 text-xs">→</span>
                     <span className="text-[11px] font-medium bg-slate-50 border border-slate-200 px-2 py-1 rounded text-slate-700">
-                      3. Propose
+                      3. Discover
                     </span>
                     <span className="text-slate-300 text-xs">→</span>
                     <span className="text-[11px] font-medium bg-slate-50 border border-slate-200 px-2 py-1 rounded text-slate-700">
-                      4. Negotiate
+                      4. Express Interest
                     </span>
                     <span className="text-slate-300 text-xs">→</span>
                     <span className="text-[11px] font-medium bg-slate-50 border border-slate-200 px-2 py-1 rounded text-slate-700">
-                      5. Agree
+                      5. Acknowledge
                     </span>
                     <span className="text-slate-300 text-xs">→</span>
                     <span className="text-[11px] font-medium bg-slate-50 border border-slate-200 px-2 py-1 rounded text-slate-700">
-                      6. Consent
+                      6. Negotiate
+                    </span>
+                    <span className="text-slate-300 text-xs">→</span>
+                    <span className="text-[11px] font-medium bg-slate-50 border border-slate-200 px-2 py-1 rounded text-slate-700">
+                      7. Agree
                     </span>
                     <span className="text-slate-300 text-xs">→</span>
                     <span className="text-[11px] font-bold bg-slate-900 border border-slate-900 px-2.5 py-1 rounded text-white shadow-xs">
-                      7. Handshake
+                      8. Handshake
                     </span>
                   </div>
                 </div>
@@ -189,76 +236,112 @@ export function CorePillarsPage() {
 
               {/* Footer Tag */}
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Cryptographic Privacy</span>
+                <span className="text-slate-500 font-medium">Full Privacy</span>
                 <span className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                  Zero unilateral leaks • Double-blind
+                  Hidden until you approve
                 </span>
               </div>
             </article>
 
             {/* CARD 3: PILLAR 03 — ZERO SOCIAL NOISE */}
-            <article className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group hover:border-slate-300">
+            <article className="w-[85vw] max-w-[380px] sm:w-[380px] lg:w-auto shrink-0 snap-center bg-white rounded-2xl p-6 sm:p-7 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.12)] transition-all flex flex-col justify-between relative group">
               <div>
                 {/* Tag */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 text-slate-800 text-[11px] font-mono font-bold tracking-wider uppercase">
                     <span>PIL-03</span>
                     <span className="text-slate-400">•</span>
-                    <span className="text-slate-900">Commercial Discipline</span>
+                    <span className="text-slate-900">Zero Noise</span>
                   </div>
                   <FilterX className="w-5 h-5 text-slate-400 group-hover:text-slate-800 transition-colors" />
                 </div>
 
                 {/* Title & Subtitle */}
                 <h2 className="font-bold text-xl text-slate-950 tracking-tight leading-snug mb-2">
-                  No Social or Chat Noise
+                  Strictly Business. Zero Spam.
                 </h2>
                 <p className="text-slate-600 text-[13.5px] leading-relaxed mb-5">
-                  Relay is strictly a commercial exchange, not a social feed. Deals close faster with zero distractions.
+                  Relay is built for real business deals — not social feeds, likes, or endless unsolicited sales pitches.
                 </p>
 
                 {/* Core Idea Callout */}
-                <div className="bg-slate-50 border-l-2 border-l-slate-900 border-y border-r border-slate-200 rounded-r-xl rounded-l-none p-4 mb-5">
+                <div className="bg-slate-50 border-l-2 border-l-slate-900 rounded-r-xl p-4 mb-5">
                   <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-500 block mb-1">
-                    Signal Purity
+                    Simple Rule
                   </span>
                   <p className="text-[13px] font-semibold text-slate-900 leading-snug italic">
-                    "Businesses come to exchange opportunities, not socialize."
+                    "Businesses come to make deals, not to scroll social feeds."
                   </p>
                 </div>
 
                 {/* What Relay Eliminates List */}
                 <div className="space-y-2.5 mb-6">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-                    What Relay Eliminates:
+                    What We Eliminate:
                   </span>
                   <div className="flex items-start gap-2.5 text-[13px] text-slate-900">
                     <span className="text-red-600 font-bold text-[14px] leading-tight shrink-0 mt-0.5">✕</span>
-                    <span>No algorithmic feeds or vanity metrics</span>
+                    <span>No cold emails, bot spam, or scraping</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-[13px] text-slate-900">
                     <span className="text-red-600 font-bold text-[14px] leading-tight shrink-0 mt-0.5">✕</span>
-                    <span>No followers, likes, or public posts</span>
+                    <span>No algorithmic feeds, likes, or vanity posts</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-[13px] text-slate-900">
                     <span className="text-red-600 font-bold text-[14px] leading-tight shrink-0 mt-0.5">✕</span>
-                    <span>No unsolicited DMs or scrape spam</span>
+                    <span>No uninvited sales DMs or aggressive pitching</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-[13px] text-slate-900">
                     <span className="text-red-600 font-bold text-[14px] leading-tight shrink-0 mt-0.5">✕</span>
-                    <span>No endless casual chat</span>
+                    <span>No endless casual back-and-forth chat</span>
                   </div>
                 </div>
               </div>
 
               {/* Footer Tag */}
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Institutional Focus</span>
+                <span className="text-slate-500 font-medium">Dealroom Speed</span>
                 <span className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-slate-700 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-                  100% Commercial dealroom
+                  Direct verified partners
                 </span>
               </div>
             </article>
+          </div>
+
+          {/* Mobile Pagination Dots & Controls */}
+          <div className="flex lg:hidden items-center justify-between pt-4">
+            <div className="flex items-center gap-1.5">
+              {[0, 1, 2].map((idx) => (
+                <button
+                  key={idx}
+                  onClick={() => scrollPillarsTo(idx)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    activePillar === idx
+                      ? "w-6 bg-slate-900"
+                      : "w-2 bg-slate-200 hover:bg-slate-300"
+                  }`}
+                  aria-label={`Go to pillar ${idx + 1}`}
+                />
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => scrollPillarsTo(Math.max(activePillar - 1, 0))}
+                disabled={activePillar === 0}
+                className="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-xs"
+                aria-label="Previous pillar"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => scrollPillarsTo(Math.min(activePillar + 1, 2))}
+                disabled={activePillar === 2}
+                className="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-xs"
+                aria-label="Next pillar"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </section>
 
