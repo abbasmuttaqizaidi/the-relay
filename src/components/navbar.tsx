@@ -102,7 +102,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   }, []);
 
   // Route matching for active states
-  const isHome = !!matchRoute({ to: "/home", fuzzy: true });
+  const isHome = !!matchRoute({ to: "/", fuzzy: false });
   const isOpportunities = !!matchRoute({ to: "/opportunities", fuzzy: true });
   const isProposals = !!matchRoute({ to: "/proposals", fuzzy: true });
   const isMyRelay =
@@ -132,7 +132,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           {/* Left: Logo + Nav Links */}
           <div className="flex items-center gap-8 shrink-0">
             <Link
-              to={isSignedIn ? "/opportunities" : "/home"}
+              to={isSignedIn ? "/opportunities" : "/"}
               className="flex items-center gap-2 group shrink-0"
             >
               <img
@@ -304,7 +304,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
       <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-md md:hidden">
         <div className="px-4 h-14 flex items-center justify-between">
           {/* Left: Logo */}
-          <Link to="/home" className="flex items-center">
+          <Link to="/" className="flex items-center">
             <img
               src={logoUrl}
               alt="The Relay Logo"
@@ -340,7 +340,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                 <div className="px-5 pt-5 pb-4 border-b border-slate-100">
                   <div className="flex items-center justify-between">
                     <Link
-                      to={isSignedIn ? "/opportunities" : "/home"}
+                      to={isSignedIn ? "/opportunities" : "/"}
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center"
                     >
@@ -478,7 +478,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                       <>
                         <SheetClose asChild>
                           <Link
-                            to="/home"
+                            to="/"
                             onClick={() => setMobileMenuOpen(false)}
                             className={`flex items-center justify-between px-3 py-3 rounded-lg transition-all ${
                               isHome

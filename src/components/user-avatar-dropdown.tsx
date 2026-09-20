@@ -129,7 +129,7 @@ export function UserAvatarDropdown({
     }
 
     toast.success("Signed out successfully.", { id: "signout-success" });
-    navigate({ to: "/home" });
+    navigate({ to: "/" });
   };
 
   // Define tooltip content for the user verification tier
