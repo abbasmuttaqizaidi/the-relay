@@ -16,6 +16,8 @@ import {
   Columns3,
   Milestone,
   FileText,
+  Layers,
+  ShieldCheck,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
@@ -117,6 +119,9 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   const is8StepJourney =
     !!matchRoute({ to: "/8-step-journey", fuzzy: true }) ||
     !!matchRoute({ to: "/eight-step-journey", fuzzy: true });
+  const isFaq = !!matchRoute({ to: "/faq", fuzzy: true });
+  const isAbout = !!matchRoute({ to: "/about", fuzzy: true });
+  const isTrustAndSafety = !!matchRoute({ to: "/trust-and-safety", fuzzy: true });
   const isPost = !!matchRoute({ to: "/post", fuzzy: true });
 
   // Check if the Opportunities feed (not my) is active
@@ -181,9 +186,25 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                   >
                     Insights
                   </Link>
+                  <Link
+                    to="/faq"
+                    className={`hover:text-slate-800 pb-1 transition-colors ${
+                      isFaq ? "text-slate-900 border-b-2 border-slate-900" : ""
+                    }`}
+                  >
+                    FAQ
+                  </Link>
                 </>
               ) : (
                 <>
+                  <Link
+                    to="/about"
+                    className={`hover:text-slate-800 pb-1 transition-colors ${
+                      isAbout ? "text-slate-900 border-b-2 border-slate-900" : ""
+                    }`}
+                  >
+                    About
+                  </Link>
                   <Link
                     to="/core-pillars"
                     className={`hover:text-slate-800 pb-1 transition-colors ${
@@ -207,6 +228,22 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                     }`}
                   >
                     Insights
+                  </Link>
+                  <Link
+                    to="/faq"
+                    className={`hover:text-slate-800 pb-1 transition-colors ${
+                      isFaq ? "text-slate-900 border-b-2 border-slate-900" : ""
+                    }`}
+                  >
+                    FAQ
+                  </Link>
+                  <Link
+                    to="/trust-and-safety"
+                    className={`hover:text-slate-800 pb-1 transition-colors ${
+                      isTrustAndSafety ? "text-slate-900 border-b-2 border-slate-900" : ""
+                    }`}
+                  >
+                    Trust &amp; Safety
                   </Link>
                 </>
               )}
@@ -473,6 +510,26 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                             <ChevronRight className={`w-3.5 h-3.5 ${isInsights ? "text-white/50" : "text-slate-300"}`} />
                           </Link>
                         </SheetClose>
+
+                        <SheetClose asChild>
+                          <Link
+                            to="/faq"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`flex items-center justify-between px-3 py-3 rounded-lg transition-all ${
+                              isFaq
+                                ? "bg-slate-900 text-white"
+                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <HelpCircle className="w-4 h-4" />
+                              <span className="text-[12px] font-mono uppercase tracking-wider font-bold">
+                                FAQ
+                              </span>
+                            </span>
+                            <ChevronRight className={`w-3.5 h-3.5 ${isFaq ? "text-white/50" : "text-slate-300"}`} />
+                          </Link>
+                        </SheetClose>
                       </>
                     ) : (
                       <>
@@ -493,6 +550,26 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                               </span>
                             </span>
                             <ChevronRight className={`w-3.5 h-3.5 ${isHome ? "text-white/50" : "text-slate-300"}`} />
+                          </Link>
+                        </SheetClose>
+
+                        <SheetClose asChild>
+                          <Link
+                            to="/about"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`flex items-center justify-between px-3 py-3 rounded-lg transition-all ${
+                              isAbout
+                                ? "bg-slate-900 text-white"
+                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <Layers className="w-4 h-4" />
+                              <span className="text-[12px] font-mono uppercase tracking-wider font-bold">
+                                About
+                              </span>
+                            </span>
+                            <ChevronRight className={`w-3.5 h-3.5 ${isAbout ? "text-white/50" : "text-slate-300"}`} />
                           </Link>
                         </SheetClose>
 
@@ -559,6 +636,46 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                               </span>
                             </span>
                             <ChevronRight className={`w-3.5 h-3.5 ${isInsights ? "text-white/50" : "text-slate-300"}`} />
+                          </Link>
+                        </SheetClose>
+
+                        <SheetClose asChild>
+                          <Link
+                            to="/faq"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`flex items-center justify-between px-3 py-3 rounded-lg transition-all ${
+                              isFaq
+                                ? "bg-slate-900 text-white"
+                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <HelpCircle className="w-4 h-4" />
+                              <span className="text-[12px] font-mono uppercase tracking-wider font-bold">
+                                FAQ
+                              </span>
+                            </span>
+                            <ChevronRight className={`w-3.5 h-3.5 ${isFaq ? "text-white/50" : "text-slate-300"}`} />
+                          </Link>
+                        </SheetClose>
+
+                        <SheetClose asChild>
+                          <Link
+                            to="/trust-and-safety"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`flex items-center justify-between px-3 py-3 rounded-lg transition-all ${
+                              isTrustAndSafety
+                                ? "bg-slate-900 text-white"
+                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <ShieldCheck className="w-4 h-4" />
+                              <span className="text-[12px] font-mono uppercase tracking-wider font-bold">
+                                Trust &amp; Safety
+                              </span>
+                            </span>
+                            <ChevronRight className={`w-3.5 h-3.5 ${isTrustAndSafety ? "text-white/50" : "text-slate-300"}`} />
                           </Link>
                         </SheetClose>
                       </>

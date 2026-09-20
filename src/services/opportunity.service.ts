@@ -8,6 +8,7 @@ import {
 } from "../types";
 import { serverCache } from "../lib/server-cache";
 import { NotificationService } from "./notification.service";
+import { OpportunityViewService } from "./opportunity-view.service";
 
 export class OpportunityService {
   /**
@@ -254,6 +255,7 @@ export class OpportunityService {
         created_at: opp.created_at.toISOString(),
         updated_at: opp.updated_at.toISOString(),
         interestedCount: opp._count?.interests || 0,
+        views: OpportunityViewService.getViews(opp.id, opp._count?.interests || 0),
         business: opp.business
           ? {
               ...opp.business,
@@ -308,6 +310,7 @@ export class OpportunityService {
         created_at: opp.created_at.toISOString(),
         updated_at: opp.updated_at.toISOString(),
         interestedCount: opp._count?.interests || 0,
+        views: OpportunityViewService.getViews(opp.id, opp._count?.interests || 0),
       }));
     } catch (error: any) {
       console.error("[OpportunityService.getByBusinessIds] Error:", error);
@@ -385,6 +388,7 @@ export class OpportunityService {
         created_at: opp.created_at.toISOString(),
         updated_at: opp.updated_at.toISOString(),
         interestedCount: opp._count?.interests || 0,
+        views: OpportunityViewService.getViews(opp.id, opp._count?.interests || 0),
         business: opp.business
           ? {
               ...opp.business,

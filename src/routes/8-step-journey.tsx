@@ -196,19 +196,20 @@ const STEPS_DATA: StepData[] = [
 export const Route = createFileRoute("/8-step-journey")({
   head: () => ({
     meta: [
-      { title: "The Relay — 8-Step Bilateral Journey" },
+      { title: "How The Relay Works — 8-Step B2B Opportunity Exchange | The Relay" },
       {
         name: "description",
         content:
-          "Step through the 8 stages of consent-driven bilateral exchange. Relay gives verified enterprises complete control at every milestone without identity exposure.",
+          "See how businesses move from opportunity discovery to interest, negotiation, agreement, consent, and a completed handshake on The Relay.",
       },
       {
         property: "og:title",
-        content: "The Relay — 8-Step Bilateral Journey",
+        content: "How The Relay Works — 8-Step B2B Opportunity Exchange | The Relay",
       },
       {
         property: "og:description",
-        content: "From opportunity to handshake in 8 structured, bilateral steps.",
+        content:
+          "See how businesses move from opportunity discovery to interest, negotiation, agreement, consent, and a completed handshake on The Relay.",
       },
       { property: "og:type", content: "website" },
     ],
@@ -294,18 +295,29 @@ export function EightStepJourneyPage() {
         {/* Hero Section */}
         <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 pb-8 text-center md:text-left">
           <div className="flex flex-col gap-3">
-            <span className="inline-flex self-center md:self-start text-xs font-mono font-bold uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200 px-3.5 py-1 rounded-full shadow-2xs">
-              THE 8-STEP BILATERAL PROTOCOL
-            </span>
             <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-950">
-              The Relay Journey
+              How The Relay Works
             </h1>
-            <p className="text-lg sm:text-xl font-medium text-slate-600">
-              From opportunity to handshake.
+            <p className="text-lg sm:text-xl font-medium text-slate-700">
+              From opportunity to handshake — without the noise.
             </p>
             <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
-              Step through the 8 stages of consent-driven bilateral exchange. Relay gives verified enterprises complete control at every milestone without identity exposure or unsolicited outreach.
+              Step through the 8 stages of consent-driven bilateral exchange. Relay gives verified enterprises complete control at every milestone without identity exposure, data leakage, or unsolicited cold outreach.
             </p>
+
+            {/* Why the steps matter Callout Box */}
+            <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs text-left">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
+                  PROTOCOL ARCHITECTURE
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="text-xs font-semibold text-slate-900">Why the 8 steps matter</span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <strong className="text-slate-950 font-semibold">Interest is not agreement. Negotiation is not agreement.</strong> The 8-step structure deliberately separates discovery, evaluation, term negotiation, and explicit dual-party consent so the final commercial connection is verified, uncompromised, and spam-free.
+              </p>
+            </div>
           </div>
 
           {/* DESKTOP: Clickable 8-Step Navigation Bar (hidden on mobile) */}
@@ -665,6 +677,16 @@ export function EightStepJourneyPage() {
                 className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors"
               >
                 Post an Opportunity
+              </Link>
+            </div>
+
+            <div className="pt-4 mt-2 border-t border-slate-100 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-slate-500 font-mono">
+              <Link to="/core-pillars" className="hover:text-slate-950 underline underline-offset-4 transition-colors">
+                Read Core Pillars &amp; CDOES
+              </Link>
+              <span>•</span>
+              <Link to="/faq" className="hover:text-slate-950 underline underline-offset-4 transition-colors">
+                View Protocol FAQ &amp; Standards
               </Link>
             </div>
           </div>

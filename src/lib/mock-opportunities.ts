@@ -18,6 +18,7 @@ export type MockOpportunity = {
   logo_url?: string | null;
   parityScore?: number;
   exchangesCompleted?: number;
+  views?: number;
 };
 
 export const OPPORTUNITIES: MockOpportunity[] = [
@@ -2551,8 +2552,7 @@ export const OPPORTUNITIES: MockOpportunity[] = [
     offer_text: "JPY 11,000,000 - 14,500,000 + annual incentive + commuter allowance.",
     expires_at: new Date(Date.now() + 25 * 86400000).toISOString(),
     parityScore: 95,
-    exchangesCompleted: 24,
-  },,
+  },
 
   // ══════════════════════════════════════════════════════════════════════════
   // STRATEGIC ADVICE (14 items)

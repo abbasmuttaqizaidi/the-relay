@@ -17,8 +17,8 @@ const extraViewsMap = globalRef.__extraViewsMap as Map<string, number>;
 
 export class OpportunityViewService {
   /**
-   * Records a view for an opportunity by an authenticated user.
-   * Ensures STRICT 1-view-per-user deduplication across all devices, sessions, logouts/logins.
+   * Records a view for an opportunity when a non-owner user expands the card.
+   * Ensures STRICT 1-view-per-user deduplication across all devices, sessions, and expand/collapse actions.
    */
   static async recordUniqueView(
     opportunityId: string,
@@ -28,24 +28,39 @@ export class OpportunityViewService {
       return { isNew: false, totalViews: this.getViews(opportunityId) };
     }
 
+    // 1. If real opportunity in DB, verify that viewer is NOT the owner
+    try {
+      if (!opportunityId.startsWith("RY-")) {
+        const { prisma } = await import("../db/prisma.server");
+        const opp = await prisma.opportunity.findUnique({
+          where: { id: opportunityId },
+          include: { business: { include: { owner: true } } },
+        });
+        if (opp && opp.business?.owner?.clerk_user_id === clerkUserId) {
+          // Poster expanding their own listing -> do not increment
+          return { isNew: false, totalViews: this.getViews(opportunityId) };
+        }
+      }
+    } catch (_) {}
+
     const dedupKey = `view:${clerkUserId}:${opportunityId}`;
 
-    // 1. Check if user has already viewed this opportunity
+    // 2. Check if user has already viewed/expanded this opportunity
     if (uniqueUserOpportunityViews.has(dedupKey)) {
       return { isNew: false, totalViews: this.getViews(opportunityId) };
     }
 
-    // 2. Also check persistent server cache
+    // 3. Also check persistent server cache
     if (serverCache.get(dedupKey)) {
       uniqueUserOpportunityViews.add(dedupKey);
       return { isNew: false, totalViews: this.getViews(opportunityId) };
     }
 
-    // 3. Mark as viewed for this user permanently
+    // 4. Mark as viewed for this user permanently
     uniqueUserOpportunityViews.add(dedupKey);
     serverCache.set(dedupKey, true, 86400 * 365); // 1 year persistence
 
-    // 4. Increment unique view count for this opportunity
+    // 5. Increment unique view count for this opportunity
     const currentExtra = extraViewsMap.get(opportunityId) || 0;
     const newExtra = currentExtra + 1;
     extraViewsMap.set(opportunityId, newExtra);
@@ -64,7 +79,7 @@ export class OpportunityViewService {
     const cachedExtra = serverCache.get<number>(`opp_extra_views:${opportunityId}`);
     const extra = cachedExtra ?? (extraViewsMap.get(opportunityId) || 0);
 
-    const mock = OPPORTUNITIES.find((m) => m.id === opportunityId);
+    const mock = OPPORTUNITIES.find((m) => m?.id === opportunityId);
     const isMock = Boolean(mock);
 
     // If it's a real newly created opportunity, it starts at 0 and grows 100% organically

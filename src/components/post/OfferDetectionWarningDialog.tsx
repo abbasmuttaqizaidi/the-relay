@@ -1,13 +1,7 @@
 import React from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { AlertCircle, Megaphone, Edit3, ArrowRight } from "lucide-react";
+import { Modal } from "@/design-system/modal";
+import { Button } from "@/design-system/button";
 
 interface OfferDetectionWarningDialogProps {
   open: boolean;
@@ -25,79 +19,77 @@ export function OfferDetectionWarningDialog({
   onProceedAnyway,
 }: OfferDetectionWarningDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white p-6 rounded-[4px] border border-slate-200 shadow-xl">
-        <DialogHeader className="space-y-3 text-left">
-          <div className="w-10 h-10 rounded-[2px] bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
-            <AlertCircle className="w-5 h-5" />
-          </div>
-          <DialogTitle className="font-display text-lg font-black uppercase tracking-tight text-slate-950">
-            THIS LOOKS LIKE AN OFFER
-          </DialogTitle>
-          <DialogDescription className="text-slate-600 text-xs leading-relaxed space-y-2">
-            <span className="block font-medium text-slate-800">
-              Your post appears to describe a product or service your business provides rather than a specific business opportunity.
-            </span>
-            <span className="block text-slate-500">
-              Relay Opportunities are for situations where another business can participate, help, provide something, collaborate, refer, distribute, hire, advise, or invest.
-            </span>
-          </DialogDescription>
-        </DialogHeader>
+    <Modal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={
+        <span className="flex items-center gap-2 font-display text-base sm:text-lg font-bold text-[#171F2C]">
+          <AlertCircle className="w-5 h-5 text-[#171F2C]" />
+          <span>Commercial Intent Notice</span>
+        </span>
+      }
+      description="Your brief appears to describe a direct capability or service your business delivers rather than an unfulfilled partner need."
+      maxWidth="max-w-[540px]"
+    >
+      <div className="space-y-4 font-sans text-xs">
+        <p className="text-[#64748B] leading-relaxed">
+          Relay <strong className="text-[#171F2C]">Opportunities</strong> are reserved for bilateral arrangements where counterparty peers can co-sell, refer, distribute, advise, or partner.
+        </p>
 
-        {/* Suggestion comparison box */}
-        <div className="my-3 p-3.5 bg-slate-50 border border-slate-200 rounded-[2px] text-xs space-y-2 font-mono">
-          <div className="flex items-start gap-2">
-            <span className="text-[9px] uppercase px-1.5 py-0.5 bg-amber-100 text-amber-800 font-bold rounded-[2px] shrink-0">
-              Detected Offer
+        {/* Comparison Box */}
+        <div className="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-2.5 font-mono text-[11px]">
+          <div className="flex items-start gap-2.5">
+            <span className="text-[10px] uppercase tracking-[0.04em] px-2 py-0.5 bg-[#FFFFFF] text-[#64748B] font-semibold border border-[#E2E8F0] rounded-[4px] shrink-0">
+              Detected Pattern
             </span>
-            <span className="text-slate-600 text-[11px] leading-tight">
-              &ldquo;Providing [Product/Service]...&rdquo;
+            <span className="text-[#171F2C] leading-snug">
+              &ldquo;Providing [Product / Service / Agency Deliverables]...&rdquo;
             </span>
           </div>
-          <div className="flex items-start gap-2 pt-1 border-t border-slate-200/60">
-            <span className="text-[9px] uppercase px-1.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-[2px] shrink-0">
-              Opportunity Style
+          <div className="flex items-start gap-2.5 pt-2 border-t border-[#E2E8F0]">
+            <span className="text-[10px] uppercase tracking-[0.04em] px-2 py-0.5 bg-[#171F2C] text-[#FFFFFF] font-semibold rounded-[4px] shrink-0">
+              Opportunity Format
             </span>
-            <span className="text-slate-700 text-[11px] leading-tight">
-              &ldquo;Looking for [Partner / Vendor / Reseller] for...&rdquo;
+            <span className="text-[#171F2C] font-semibold leading-snug">
+              &ldquo;Seeking [Partner / Vendor / Reseller] to co-deliver...&rdquo;
             </span>
           </div>
         </div>
 
-        <DialogFooter className="flex-col sm:flex-col gap-2 pt-2">
-          {/* Primary Action: Switch to Offer */}
-          <button
-            type="button"
+        {/* Action Controls */}
+        <div className="pt-2 space-y-2">
+          <Button
+            variant="authoritative"
             onClick={onSwitchToOffer}
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-mono uppercase tracking-wider py-2.5 px-4 rounded-[2px] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
+            className="w-full justify-between"
           >
-            <Megaphone className="w-3.5 h-3.5" />
-            Post as Offer Instead
-            <ArrowRight className="w-3.5 h-3.5 ml-auto" />
-          </button>
+            <span className="flex items-center gap-2">
+              <Megaphone className="w-4 h-4 text-white" />
+              <span>Post as Product / Service Offer Instead</span>
+            </span>
+            <ArrowRight className="w-4 h-4 text-white" />
+          </Button>
 
-          {/* Secondary Action: Edit Opportunity */}
-          <button
-            type="button"
+          <Button
+            variant="outline"
             onClick={onEditOpportunity}
-            className="w-full border border-slate-300 hover:border-slate-900 hover:bg-slate-50 text-slate-700 text-[11px] font-mono uppercase tracking-wider py-2.5 px-4 rounded-[2px] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full justify-center gap-2"
           >
-            <Edit3 className="w-3.5 h-3.5" />
-            Edit Opportunity
-          </button>
+            <Edit3 className="w-4 h-4 text-[#171F2C]" />
+            <span>Edit Opportunity Requirements</span>
+          </Button>
 
-          {/* Tertiary Action: Submit Anyway (if user insists) */}
           {onProceedAnyway && (
             <button
               type="button"
               onClick={onProceedAnyway}
-              className="w-full text-center text-[10px] font-mono uppercase tracking-wider text-slate-400 hover:text-slate-700 pt-1 transition-colors cursor-pointer"
+              className="w-full text-center text-[11px] font-mono uppercase tracking-[0.04em] text-[#94A3B8] hover:text-[#171F2C] pt-1.5 transition-colors cursor-pointer"
             >
-              I believe this is an opportunity &mdash; Submit anyway
+              Continue as Opportunity Brief &mdash; Submit anyway
             </button>
           )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </Modal>
   );
 }

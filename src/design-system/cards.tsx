@@ -432,28 +432,41 @@ export interface MetricCardProps extends React.HTMLAttributes<HTMLDivElement> {
   value: string | number;
   subLabel?: string;
   subLabelColor?: string;
+  badgeText?: string;
 }
 
 export function MetricCard({
   label,
   value,
   subLabel,
-  subLabelColor = "text-[#64748B]",
+  subLabelColor = "text-[#94A3B8]",
+  badgeText,
   className,
   ...props
 }: MetricCardProps) {
   return (
     <div
       className={cn(
-        "bg-white border border-[#E2E8F0] hover:border-[#CBD5E1] rounded-[4px] p-4 flex flex-col justify-between shadow-2xs transition-all",
+        "bg-white p-5 rounded-2xl border border-slate-200/75 shadow-sm flex flex-col justify-between transition-all hover:border-slate-300",
         className,
       )}
       {...props}
     >
-      <span className="text-xs font-medium text-[#64748B]">{label}</span>
-      <div className="flex items-baseline gap-2 mt-1">
-        <span className="font-mono text-2xl font-bold text-[#171F2C]">{value}</span>
-        {subLabel && <span className={cn("text-[11px]", subLabelColor)}>{subLabel}</span>}
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium uppercase tracking-wider text-[#64748B]">{label}</span>
+        {badgeText && (
+          <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+            {badgeText}
+          </span>
+        )}
+      </div>
+      <div className="mt-3">
+        <div className="font-display font-bold text-2xl sm:text-3xl text-[#171F2C] tracking-tight">
+          {value}
+        </div>
+        {subLabel && (
+          <div className={cn("text-xs mt-0.5", subLabelColor)}>{subLabel}</div>
+        )}
       </div>
     </div>
   );
@@ -466,54 +479,53 @@ export function MetricCard({
 export function HowItWorksCard({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("bg-white border border-[#E2E8F0] rounded-[4px] p-5 shadow-2xs", className)}
+      className={cn("bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col gap-4", className)}
       {...props}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <Repeat className="w-5 h-5 text-[#000000]" />
-        <h3 className="font-bold text-sm text-[#171F2C]">How The Relay Works</h3>
+      <div className="flex items-center gap-2">
+        <Repeat className="w-5 h-5 text-[#171F2C]" />
+        <h3 className="font-display font-semibold text-base text-[#171F2C]">How The Relay Works</h3>
       </div>
-      <p className="text-xs text-[#64748B] mb-4 leading-relaxed">
-        The Relay connects verified enterprises on mutual reciprocity. Identity is strictly
-        obscured until terms are agreed.
+      <p className="text-xs text-[#64748B] leading-relaxed">
+        Every transaction adheres strictly to Sovereign Reciprocal Architecture to ensure equal leverage and total confidentiality.
       </p>
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3.5 pt-1">
         {/* Step 1 */}
         <div className="flex items-start gap-3">
-          <div className="w-6 h-6 rounded-full bg-[#000000] text-white text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5 font-mono">
+          <span className="w-6 h-6 rounded-lg bg-slate-100 text-[#171F2C] font-mono text-xs font-semibold flex items-center justify-center shrink-0 border border-slate-200/60">
             1
-          </div>
+          </span>
           <div>
-            <div className="text-xs font-semibold text-[#171F2C]">Blinded Discovery</div>
-            <div className="text-[11px] text-[#64748B] mt-0.5">
-              Browse listings and submit reciprocal value pitches without exposing contact data.
-            </div>
+            <span className="text-xs font-semibold text-[#171F2C]">Blinded Discovery</span>
+            <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">
+              Listings display commercial terms and verified revenue tier without leaking corporate identity.
+            </p>
           </div>
         </div>
 
         {/* Step 2 */}
         <div className="flex items-start gap-3">
-          <div className="w-6 h-6 rounded-full bg-[#F1F5F9] border border-[#CBD5E1] text-[#171F2C] text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5 font-mono">
+          <span className="w-6 h-6 rounded-lg bg-slate-100 text-[#171F2C] font-mono text-xs font-semibold flex items-center justify-center shrink-0 border border-slate-200/60">
             2
-          </div>
+          </span>
           <div>
-            <div className="text-xs font-semibold text-[#171F2C]">Negotiate Terms</div>
-            <div className="text-[11px] text-[#64748B] mt-0.5">
-              Parties align on commercial exchange terms and verify parity inside the sandbox.
-            </div>
+            <span className="text-xs font-semibold text-[#171F2C]">Negotiate Terms</span>
+            <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">
+              Submit reciprocal terms through blinded channels. Parity scores quantify bilateral commitment balance.
+            </p>
           </div>
         </div>
 
         {/* Step 3 */}
         <div className="flex items-start gap-3">
-          <div className="w-6 h-6 rounded-full bg-[#059669] text-white text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5 font-mono">
+          <span className="w-6 h-6 rounded-lg bg-slate-100 text-[#171F2C] font-mono text-xs font-semibold flex items-center justify-center shrink-0 border border-slate-200/60">
             3
-          </div>
+          </span>
           <div>
-            <div className="text-xs font-semibold text-[#171F2C]">Contact Unlock on Agreement</div>
-            <div className="text-[11px] text-[#64748B] mt-0.5">
-              Simultaneous release of executive contacts, calendars, and legal NDAs.
-            </div>
+            <span className="text-xs font-semibold text-[#171F2C]">Contact Unlock on Mutual Agreement</span>
+            <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">
+              Direct sovereign executive contacts and deal rooms reveal only after mutual bilateral handshake.
+            </p>
           </div>
         </div>
       </div>
@@ -541,24 +553,26 @@ export function TargetedPlacementCard({
   return (
     <div
       className={cn(
-        "bg-[#171F2C] border border-[#334155] text-white rounded-[4px] p-5 shadow-sm",
+        "bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col gap-3",
         className,
       )}
       {...props}
     >
-      <span className="text-[10px] font-semibold tracking-wider text-[#94A3B8] uppercase font-mono">
-        Targeted Placement
-      </span>
-      <h4 className="font-bold text-base text-white mt-1">Need a Custom Partner?</h4>
-      <p className="text-xs text-[#94A3B8] mt-1.5 leading-relaxed">
-        Broadcast what you need and what you offer in exchange. Your company identity remains
-        completely confidential.
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">
+          Direct Procurement
+        </span>
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+      </div>
+      <h3 className="font-display font-semibold text-base text-[#171F2C]">Need a Custom Partner?</h3>
+      <p className="text-xs text-[#64748B] leading-relaxed">
+        Broadcast a bespoke request to our private syndicate network of 3,920+ verified B2B enterprises.
       </p>
       {disabled ? (
         <button
           type="button"
           disabled
-          className="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-slate-800 text-slate-500 text-xs font-semibold py-2.5 px-4 rounded-[4px] cursor-not-allowed select-none opacity-60 border border-slate-700"
+          className="mt-2 w-full py-2.5 rounded-xl bg-slate-100 text-slate-400 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-not-allowed select-none"
         >
           <span>Post Blinded Request</span>
           <ArrowRight className="w-4 h-4" />
@@ -566,7 +580,7 @@ export function TargetedPlacementCard({
       ) : buttonHref ? (
         <Link
           to={buttonHref}
-          className="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-white hover:bg-[#F8FAFC] text-[#000000] text-xs font-semibold py-2.5 px-4 rounded-[4px] transition-colors cursor-pointer shadow-xs"
+          className="mt-2 w-full py-2.5 rounded-xl bg-[#171F2C] hover:bg-[#2C374A] text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
         >
           <span>Post Blinded Request</span>
           <ArrowRight className="w-4 h-4" />
@@ -575,7 +589,7 @@ export function TargetedPlacementCard({
         <button
           type="button"
           onClick={onButtonClick}
-          className="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-white hover:bg-[#F8FAFC] text-[#000000] text-xs font-semibold py-2.5 px-4 rounded-[4px] transition-colors cursor-pointer shadow-xs"
+          className="mt-2 w-full py-2.5 rounded-xl bg-[#171F2C] hover:bg-[#2C374A] text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
         >
           <span>Post Blinded Request</span>
           <ArrowRight className="w-4 h-4" />
@@ -592,51 +606,54 @@ export function TargetedPlacementCard({
 export function RecentHandshakesCard({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("bg-white border border-[#E2E8F0] rounded-[4px] p-5 shadow-2xs", className)}
+      className={cn("bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col gap-4", className)}
       {...props}
     >
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-bold text-sm text-[#171F2C]">Recent Handshakes</h3>
-        <LivePulseBadge />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Repeat className="w-4 h-4 text-slate-700" />
+          <span className="font-display font-semibold text-sm text-[#171F2C]">Recent Handshakes</span>
+        </div>
+        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Live Feed</span>
       </div>
-      <div className="space-y-3">
-        <div className="pb-2.5 border-b border-[#F1F5F9]">
-          <div className="flex items-center justify-between text-[11px] text-[#94A3B8]">
-            <span className="font-mono text-[#0F172A] font-semibold">[RY-0012] Handshake Sealed</span>
-            <span className="font-mono">4m ago</span>
+      <div className="flex flex-col gap-2.5">
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-mono text-[11px] font-semibold text-[#171F2C]">RY-0012</span>
+            <span className="text-[#94A3B8] text-[11px]">4m ago</span>
           </div>
-          <p className="text-xs text-[#171F2C] font-medium mt-1">
-            Payment Gateway ↔ ERP Migration Firm
-          </p>
-          <span className="inline-flex items-center gap-1 text-[11px] text-[#059669] mt-0.5">
-            <Lock className="w-3 h-3" /> Contacts released
-          </span>
+          <span className="text-xs font-semibold text-[#171F2C]">Handshake Sealed</span>
+          <p className="text-xs text-[#64748B]">Payment Gateway ↔ ERP Migration Firm</p>
+          <div className="flex items-center gap-1 text-[11px] text-emerald-700 font-medium mt-0.5">
+            <Lock className="w-3 h-3" />
+            <span>Stage 4 Contact Revealed</span>
+          </div>
         </div>
 
-        <div className="pb-2.5 border-b border-[#F1F5F9]">
-          <div className="flex items-center justify-between text-[11px] text-[#94A3B8]">
-            <span className="font-mono text-[#0F172A] font-semibold">[RY-0188] Pitch Accepted</span>
-            <span className="font-mono">21m ago</span>
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-mono text-[11px] font-semibold text-[#171F2C]">RY-0188</span>
+            <span className="text-[#94A3B8] text-[11px]">21m ago</span>
           </div>
-          <p className="text-xs text-[#171F2C] font-medium mt-1">
-            Autonomous Drone Fleet ↔ Defense Contractor
-          </p>
-          <span className="inline-flex items-center gap-1 text-[11px] text-[#64748B] mt-0.5">
-            <SlidersHorizontal className="w-3 h-3" /> Terms harmonization
-          </span>
+          <span className="text-xs font-semibold text-[#171F2C]">Pitch Accepted</span>
+          <p className="text-xs text-[#64748B]">Autonomous Drone Fleet ↔ Defense Contractor</p>
+          <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium mt-0.5">
+            <Repeat className="w-3 h-3" />
+            <span>Terms in Escrow Review</span>
+          </div>
         </div>
 
-        <div>
-          <div className="flex items-center justify-between text-[11px] text-[#94A3B8]">
-            <span className="font-mono text-[#0F172A] font-semibold">[RY-0204] Handshake Sealed</span>
-            <span className="font-mono">54m ago</span>
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-mono text-[11px] font-semibold text-[#171F2C]">RY-0204</span>
+            <span className="text-[#94A3B8] text-[11px]">54m ago</span>
           </div>
-          <p className="text-xs text-[#171F2C] font-medium mt-1">
-            B2B Telehealth ↔ HIPAA Cloud Provider
-          </p>
-          <span className="inline-flex items-center gap-1 text-[11px] text-[#059669] mt-0.5">
-            <Lock className="w-3 h-3" /> Contacts released
-          </span>
+          <span className="text-xs font-semibold text-[#171F2C]">Handshake Sealed</span>
+          <p className="text-xs text-[#64748B]">B2B Telehealth ↔ HIPAA Cloud Provider</p>
+          <div className="flex items-center gap-1 text-[11px] text-emerald-700 font-medium mt-0.5">
+            <Lock className="w-3 h-3" />
+            <span>Stage 4 Contact Revealed</span>
+          </div>
         </div>
       </div>
     </div>
@@ -645,7 +662,7 @@ export function RecentHandshakesCard({ className, ...props }: React.HTMLAttribut
 
 /**
  * ExchangeCalloutBox Component
- * "What We Offer in Exchange" callout envelope
+ * "Seeking in Exchange" callout envelope
  */
 export interface ExchangeCalloutBoxProps extends React.HTMLAttributes<HTMLDivElement> {
   offerText: string;
@@ -662,7 +679,7 @@ export function ExchangeCalloutBox({ offerText, className, ...props }: ExchangeC
     >
       <div className="flex items-center gap-1.5 text-[#171F2C] font-semibold text-xs mb-1">
         <Repeat className="w-4 h-4 text-[#F97316]" />
-        <span>What We Offer in Exchange:</span>
+        <span>Seeking in Exchange:</span>
       </div>
       <p className="text-[#64748B] leading-relaxed">{offerText}</p>
     </div>

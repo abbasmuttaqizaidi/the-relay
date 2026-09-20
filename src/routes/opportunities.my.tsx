@@ -1331,9 +1331,9 @@ function MyOpportunitiesPage() {
             <div className="space-y-1">
               <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
                 <span className="flex flex-wrap items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> What Can You Offer in Return? (Optional)
+                  <CheckCircle2 className="w-3 h-3" /> Seeking in Exchange (Optional)
                 </span>
-                <TooltipSimple content="Explain what value, referral pipeline, or resources you can provide to the partner in return.">
+                <TooltipSimple content="Explain what value, referral pipeline, or resources you are looking to exchange in return with the partner.">
                   <HelpCircle className="w-3 h-3 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
                 </TooltipSimple>
               </label>
@@ -1599,9 +1599,9 @@ function MyOpportunitiesPage() {
             <div className="space-y-1">
               <label className="text-[9px] font-mono font-bold uppercase tracking-wider sm:tracking-widest text-slate-500 flex flex-wrap items-center gap-1.5">
                 <span className="flex flex-wrap items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> What Can You Offer in Return? (Optional)
+                  <CheckCircle2 className="w-3 h-3" /> Seeking in Exchange (Optional)
                 </span>
-                <TooltipSimple content="Explain what value, referral pipeline, or resources you can provide to the partner in return.">
+                <TooltipSimple content="Explain what value, referral pipeline, or resources you are looking to exchange in return with the partner.">
                   <HelpCircle className="w-3 h-3 text-slate-400 hover:text-slate-900 cursor-pointer transition-colors" />
                 </TooltipSimple>
               </label>
@@ -1757,7 +1757,7 @@ function MyOpportunitiesPage() {
                     {selectedDetailOpp.offer_text && (
                       <div className="space-y-1">
                         <h4 className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold">
-                          What is offered:
+                          Seeking in exchange:
                         </h4>
                         <p className="text-xs text-slate-600 font-sans">
                           {selectedDetailOpp.offer_text}

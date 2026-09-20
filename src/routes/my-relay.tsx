@@ -636,17 +636,22 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
 }
 
   // Computed All Requests (Combined Inbound & Outbound with full workflow state)
+  // Withdrawn requests are excluded from active pipeline & opportunities view
   const allCombinedRequests = useMemo(() => {
-    const inbound = incomingRequests.map((r) => ({
-      ...r,
-      direction: "inbound" as const,
-      partnerBusiness: r.requesting_business,
-    }));
-    const outbound = sentRequests.map((r) => ({
-      ...r,
-      direction: "outbound" as const,
-      partnerBusiness: r.opportunity?.business,
-    }));
+    const inbound = incomingRequests
+      .filter((r) => r.status !== "withdrawn")
+      .map((r) => ({
+        ...r,
+        direction: "inbound" as const,
+        partnerBusiness: r.requesting_business,
+      }));
+    const outbound = sentRequests
+      .filter((r) => r.status !== "withdrawn")
+      .map((r) => ({
+        ...r,
+        direction: "outbound" as const,
+        partnerBusiness: r.opportunity?.business,
+      }));
     return [...inbound, ...outbound].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrustAndSafetyRouteImport } from './routes/trust-and-safety'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SavedOpportunitiesRouteImport } from './routes/saved-opportunities'
 import { Route as QueryRelayRouteImport } from './routes/query-relay'
@@ -21,10 +22,12 @@ import { Route as MyRelayRouteImport } from './routes/my-relay'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as HomeRouteImport } from './routes/home'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EightStepJourneyRouteImport } from './routes/eight-step-journey'
 import { Route as CorePillarsRouteImport } from './routes/core-pillars'
 import { Route as BusinessProfileRouteImport } from './routes/business-profile'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as R8StepJourneyRouteImport } from './routes/8-step-journey'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OpportunitiesIndexRouteImport } from './routes/opportunities.index'
@@ -39,6 +42,11 @@ import { Route as InsightsKnowledgeNewRouteImport } from './routes/insights.know
 import { Route as InsightsKnowledgeIdRouteImport } from './routes/insights.knowledge.$id'
 import { Route as InsightsKnowledgeIdEditRouteImport } from './routes/insights.knowledge.$id.edit'
 
+const TrustAndSafetyRoute = TrustAndSafetyRouteImport.update({
+  id: '/trust-and-safety',
+  path: '/trust-and-safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -99,6 +107,11 @@ const HomeRoute = HomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EightStepJourneyRoute = EightStepJourneyRouteImport.update({
   id: '/eight-step-journey',
   path: '/eight-step-journey',
@@ -117,6 +130,11 @@ const BusinessProfileRoute = BusinessProfileRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const R8StepJourneyRoute = R8StepJourneyRouteImport.update({
@@ -188,10 +206,12 @@ const InsightsKnowledgeIdEditRoute = InsightsKnowledgeIdEditRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/8-step-journey': typeof R8StepJourneyRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/business-profile': typeof BusinessProfileRoute
   '/core-pillars': typeof CorePillarsRoute
   '/eight-step-journey': typeof EightStepJourneyRoute
+  '/faq': typeof FaqRoute
   '/home': typeof HomeRoute
   '/insights': typeof InsightsRouteWithChildren
   '/login': typeof LoginRoute
@@ -204,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
+  '/trust-and-safety': typeof TrustAndSafetyRoute
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
   '/insights/ask': typeof InsightsAskRoute
@@ -219,10 +240,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/8-step-journey': typeof R8StepJourneyRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/business-profile': typeof BusinessProfileRoute
   '/core-pillars': typeof CorePillarsRoute
   '/eight-step-journey': typeof EightStepJourneyRoute
+  '/faq': typeof FaqRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
   '/my-relay': typeof MyRelayRoute
@@ -233,6 +256,7 @@ export interface FileRoutesByTo {
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
+  '/trust-and-safety': typeof TrustAndSafetyRoute
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
   '/insights/ask': typeof InsightsAskRoute
@@ -249,10 +273,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/8-step-journey': typeof R8StepJourneyRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/business-profile': typeof BusinessProfileRoute
   '/core-pillars': typeof CorePillarsRoute
   '/eight-step-journey': typeof EightStepJourneyRoute
+  '/faq': typeof FaqRoute
   '/home': typeof HomeRoute
   '/insights': typeof InsightsRouteWithChildren
   '/login': typeof LoginRoute
@@ -265,6 +291,7 @@ export interface FileRoutesById {
   '/query-relay': typeof QueryRelayRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
+  '/trust-and-safety': typeof TrustAndSafetyRoute
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
   '/insights/ask': typeof InsightsAskRoute
@@ -282,10 +309,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/8-step-journey'
+    | '/about'
     | '/admin'
     | '/business-profile'
     | '/core-pillars'
     | '/eight-step-journey'
+    | '/faq'
     | '/home'
     | '/insights'
     | '/login'
@@ -298,6 +327,7 @@ export interface FileRouteTypes {
     | '/query-relay'
     | '/saved-opportunities'
     | '/signup'
+    | '/trust-and-safety'
     | '/connections/$id'
     | '/insights/$id'
     | '/insights/ask'
@@ -313,10 +343,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/8-step-journey'
+    | '/about'
     | '/admin'
     | '/business-profile'
     | '/core-pillars'
     | '/eight-step-journey'
+    | '/faq'
     | '/home'
     | '/login'
     | '/my-relay'
@@ -327,6 +359,7 @@ export interface FileRouteTypes {
     | '/query-relay'
     | '/saved-opportunities'
     | '/signup'
+    | '/trust-and-safety'
     | '/connections/$id'
     | '/insights/$id'
     | '/insights/ask'
@@ -342,10 +375,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/8-step-journey'
+    | '/about'
     | '/admin'
     | '/business-profile'
     | '/core-pillars'
     | '/eight-step-journey'
+    | '/faq'
     | '/home'
     | '/insights'
     | '/login'
@@ -358,6 +393,7 @@ export interface FileRouteTypes {
     | '/query-relay'
     | '/saved-opportunities'
     | '/signup'
+    | '/trust-and-safety'
     | '/connections/$id'
     | '/insights/$id'
     | '/insights/ask'
@@ -374,10 +410,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   R8StepJourneyRoute: typeof R8StepJourneyRoute
+  AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   BusinessProfileRoute: typeof BusinessProfileRoute
   CorePillarsRoute: typeof CorePillarsRoute
   EightStepJourneyRoute: typeof EightStepJourneyRoute
+  FaqRoute: typeof FaqRoute
   HomeRoute: typeof HomeRoute
   InsightsRoute: typeof InsightsRouteWithChildren
   LoginRoute: typeof LoginRoute
@@ -390,6 +428,7 @@ export interface RootRouteChildren {
   QueryRelayRoute: typeof QueryRelayRoute
   SavedOpportunitiesRoute: typeof SavedOpportunitiesRoute
   SignupRoute: typeof SignupRoute
+  TrustAndSafetyRoute: typeof TrustAndSafetyRoute
   ConnectionsIdRoute: typeof ConnectionsIdRoute
   RequestsIncomingRoute: typeof RequestsIncomingRoute
   RequestsSentRoute: typeof RequestsSentRoute
@@ -397,6 +436,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/trust-and-safety': {
+      id: '/trust-and-safety'
+      path: '/trust-and-safety'
+      fullPath: '/trust-and-safety'
+      preLoaderRoute: typeof TrustAndSafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -481,6 +527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/eight-step-journey': {
       id: '/eight-step-journey'
       path: '/eight-step-journey'
@@ -507,6 +560,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/8-step-journey': {
@@ -651,10 +711,12 @@ const OpportunitiesRouteWithChildren = OpportunitiesRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   R8StepJourneyRoute: R8StepJourneyRoute,
+  AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   BusinessProfileRoute: BusinessProfileRoute,
   CorePillarsRoute: CorePillarsRoute,
   EightStepJourneyRoute: EightStepJourneyRoute,
+  FaqRoute: FaqRoute,
   HomeRoute: HomeRoute,
   InsightsRoute: InsightsRouteWithChildren,
   LoginRoute: LoginRoute,
@@ -667,6 +729,7 @@ const rootRouteChildren: RootRouteChildren = {
   QueryRelayRoute: QueryRelayRoute,
   SavedOpportunitiesRoute: SavedOpportunitiesRoute,
   SignupRoute: SignupRoute,
+  TrustAndSafetyRoute: TrustAndSafetyRoute,
   ConnectionsIdRoute: ConnectionsIdRoute,
   RequestsIncomingRoute: RequestsIncomingRoute,
   RequestsSentRoute: RequestsSentRoute,

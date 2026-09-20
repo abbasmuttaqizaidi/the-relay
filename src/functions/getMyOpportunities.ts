@@ -5,13 +5,20 @@ import { OpportunityService } from "../services/opportunity.service";
 
 export const getMyOpportunities = createServerFn({ method: "GET" })
   .handler(async () => {
-    const user = await getAuthenticatedUser();
-    const businessIds = await BusinessService.getUserBusinessIds(user.id);
-    if (businessIds.length === 0) {
-      const business = await BusinessService.getBusinessByOwner(user.id);
-      if (!business) return [];
-      return await OpportunityService.getByBusiness(business.id);
+    try {
+      const user = await getAuthenticatedUser();
+      let businessIds = await BusinessService.getUserBusinessIds(user.id);
+      if (businessIds.length === 0) {
+        const business = await BusinessService.getBusinessByOwner(user.id);
+        if (business) {
+          businessIds = [business.id];
+        }
+      }
+      if (businessIds.length === 0) return [];
+      return await OpportunityService.getByBusinessIds(businessIds);
+    } catch (err) {
+      console.error("[getMyOpportunities] Error fetching my opportunities:", err);
+      return [];
     }
-    return await OpportunityService.getByBusinessIds(businessIds);
   });
 export type GetMyOpportunitiesFn = typeof getMyOpportunities;

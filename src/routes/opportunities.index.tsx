@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth, useUser } from "@clerk/tanstack-react-start";
 import { toast } from "@/components/ui/sonner";
@@ -275,66 +275,68 @@ function ObservedOpportunityCard({
   onEdit,
   onViewRecorded,
 }: ObservedOpportunityCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
   const recordedRef = useRef(false);
 
+  // Check persistent client-side tracking to avoid duplicate calls across mounts
   useEffect(() => {
-    if (recordedRef.current || !cardRef.current) return;
-    let timer: any = null;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // Dwell time: 300ms in viewport before recording unique view
-            timer = setTimeout(async () => {
-              if (!recordedRef.current) {
-                recordedRef.current = true;
-                try {
-                  const visitorId = getVisitorId();
-                  const res = await recordOpportunityView({
-                    data: {
-                      opportunity_id: opp.id,
-                      visitor_id: visitorId || undefined,
-                    },
-                  });
-                  if (res && typeof res.totalViews === "number" && onViewRecorded) {
-                    onViewRecorded(opp.id, res.totalViews);
-                  }
-                } catch {
-                  // Silent
-                }
-              }
-            }, 300);
-          } else if (timer) {
-            clearTimeout(timer);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(cardRef.current);
-
-    return () => {
-      if (timer) clearTimeout(timer);
-      observer.disconnect();
-    };
+    try {
+      const visitorId = getVisitorId();
+      const storageKey = `relay_viewed_${visitorId || "anon"}_${opp.id}`;
+      if (localStorage.getItem(storageKey)) {
+        recordedRef.current = true;
+      }
+    } catch (_) {}
   }, [opp.id]);
 
+  const handleExpand = useCallback(async () => {
+    // 1. Never count views if the opportunity creator (owner) expands their own card
+    if (isOwner) return;
+
+    // 2. Never count multiple views if this viewer has already expanded this card
+    if (recordedRef.current) return;
+
+    recordedRef.current = true;
+    try {
+      const visitorId = getVisitorId();
+      const storageKey = `relay_viewed_${visitorId || "anon"}_${opp.id}`;
+      try {
+        localStorage.setItem(storageKey, "1");
+      } catch (_) {}
+
+      // Optimistic increment for immediate UI response
+      const currentViews = opp.views ?? 0;
+      if (onViewRecorded) {
+        onViewRecorded(opp.id, currentViews + 1);
+      }
+
+      // Persist to server / database with strict backend deduplication
+      const res = await recordOpportunityView({
+        data: {
+          opportunity_id: opp.id,
+          visitor_id: visitorId || undefined,
+        },
+      });
+
+      if (res && typeof res.totalViews === "number" && onViewRecorded) {
+        onViewRecorded(opp.id, res.totalViews);
+      }
+    } catch (err) {
+      console.warn("[ObservedOpportunityCard] Failed to record expand view:", err);
+    }
+  }, [opp.id, opp.views, isOwner, onViewRecorded]);
+
   return (
-    <div ref={cardRef}>
-      <OpportunityCard
-        opp={opp}
-        isOwner={isOwner}
-        isSaved={isSaved}
-        isBlurred={isBlurred}
-        interestStatus={interestStatus}
-        onSaveToggle={onSaveToggle}
-        onExpressInterest={onExpressInterest}
-        onEdit={onEdit}
-      />
-    </div>
+    <OpportunityCard
+      opp={opp}
+      isOwner={isOwner}
+      isSaved={isSaved}
+      isBlurred={isBlurred}
+      interestStatus={interestStatus}
+      onSaveToggle={onSaveToggle}
+      onExpressInterest={onExpressInterest}
+      onEdit={onEdit}
+      onExpand={handleExpand}
+    />
   );
 }
 
@@ -885,9 +887,9 @@ export function OpportunitiesPage() {
       isSignedIn ? "pb-16" : "pb-4"
     )}>
       {/* ═══════════════════════════════════════════════════════════════════
-          MAIN WRAPPER (MAX-W-[1400PX] / 12-COL GRID)
+          MAIN WRAPPER (MAX-W-7XL / 12-COL GRID)
           ═══════════════════════════════════════════════════════════════════ */}
-      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6 md:py-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8">
         {/* ═══════════════════════════════════════════════════════════════════
             TOP HEADER & BRIEF SUBHEADING
             ═══════════════════════════════════════════════════════════════════ */}
@@ -980,7 +982,7 @@ export function OpportunitiesPage() {
         <div
           id="category-tabs-filter"
           className={cn(
-            "flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none",
+            "flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none",
             !isSignedIn ? "pt-6" : "",
           )}
         >
@@ -1000,14 +1002,20 @@ export function OpportunitiesPage() {
                   })
                 }
                 type="button"
-                className={`shrink-0 px-4 py-2 rounded-[4px] text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5 ${
+                className={`shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5 ${
                   isActive
-                    ? "bg-[#000000] text-white shadow-xs"
-                    : "bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#171F2C] hover:bg-[#F8FAFC] hover:border-[#CBD5E1]"
+                    ? "bg-[#171F2C] text-white shadow-xs"
+                    : "bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 <span>{t === "All" ? "All Deals" : t}</span>
-                <span className={isActive ? "opacity-75 font-mono text-[11px]" : "text-[#94A3B8] font-mono text-[11px]"}>
+                <span
+                  className={
+                    isActive
+                      ? "bg-white/20 text-white px-1.5 py-0.2 rounded-full text-[10px]"
+                      : "text-slate-400 text-[11px]"
+                  }
+                >
                   {count}
                 </span>
               </button>
@@ -1016,114 +1024,118 @@ export function OpportunitiesPage() {
         </div>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            SEARCH & SECONDARY FILTER CONTROLS (DESIGN SYSTEM INPUTS & SELECTS)
+            SEARCH & SECONDARY FILTER CONTROLS (V2 DESIGN)
             ═══════════════════════════════════════════════════════════════════ */}
         <div
           id="search-and-filters-bar"
-          className="mt-4 mb-6 bg-white border border-[#E2E8F0] rounded-[4px] p-3 flex flex-col md:flex-row items-center gap-3 shadow-2xs"
+          className="mt-3 mb-6 bg-white border border-slate-200/80 rounded-2xl p-2.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 shadow-sm"
         >
-          {/* Design System Search Input */}
-          <SearchInput
-            placeholder="Search by title, exchange terms, or industry keywords..."
-            value={searchInputVal}
-            onChange={(e) => setSearchInputVal(e.target.value)}
-            onClear={() => {
-              setSearchInputVal("");
-              navigate({
-                search: (prev: SearchParams) => ({
-                  ...prev,
-                  q: "",
-                  page: 1,
-                }),
-              });
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                navigate({
-                  search: (prev: SearchParams) => ({
-                    ...prev,
-                    q: searchInputVal,
-                    page: 1,
-                  }),
-                });
-              }
-            }}
-          />
+          {/* Search Input */}
+          <div className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl flex-1">
+            <Search className="w-4 h-4 text-slate-400 shrink-0" />
+            <input
+              type="text"
+              placeholder="Search keywords, industries, reciprocal offers, or deal IDs..."
+              value={searchInputVal}
+              onChange={(e) => setSearchInputVal(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  navigate({
+                    search: (prev: SearchParams) => ({
+                      ...prev,
+                      q: searchInputVal,
+                      page: 1,
+                    }),
+                  });
+                }
+              }}
+              className="bg-transparent border-0 outline-none text-slate-800 text-xs sm:text-sm w-full placeholder:text-slate-400 focus:ring-0"
+            />
+            {searchInputVal && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchInputVal("");
+                  navigate({
+                    search: (prev: SearchParams) => ({
+                      ...prev,
+                      q: "",
+                      page: 1,
+                    }),
+                  });
+                }}
+                className="text-slate-400 hover:text-slate-600 p-0.5"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <kbd className="hidden sm:inline-block font-mono text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded text-slate-400">
+              ⌘K
+            </kbd>
+          </div>
 
-          {/* Dropdown Filters (Design System Select Triggers) */}
-          <div className="flex items-center gap-2 w-full md:w-auto shrink-0 flex-wrap sm:flex-nowrap">
+          {/* Dropdown Filters */}
+          <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
             {/* Industry Filter */}
-            <DSSelect
+            <select
               value={industry}
-              onValueChange={(val) =>
+              onChange={(e) =>
                 navigate({
                   search: (prev: SearchParams) => ({
                     ...prev,
-                    industry: val,
+                    industry: e.target.value,
                     page: 1,
                   }),
                 })
               }
+              className="appearance-none bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium pl-3 pr-7 py-2 rounded-xl border border-slate-200/60 outline-none cursor-pointer transition-colors"
             >
-              <DSSelectTrigger className="w-[140px]">
-                <DSSelectValue placeholder="Industry: All" />
-              </DSSelectTrigger>
-              <DSSelectContent>
-                {INDUSTRIES.map((ind) => (
-                  <DSSelectItem key={ind} value={ind}>
-                    {ind === "All" ? "Industry: All" : ind}
-                  </DSSelectItem>
-                ))}
-              </DSSelectContent>
-            </DSSelect>
+              {INDUSTRIES.map((ind) => (
+                <option key={ind} value={ind}>
+                  {ind === "All" ? "Industry: All Sectors" : ind}
+                </option>
+              ))}
+            </select>
 
             {/* Region Filter */}
-            <DSSelect
+            <select
               value={geo}
-              onValueChange={(val) =>
+              onChange={(e) =>
                 navigate({
                   search: (prev: SearchParams) => ({
                     ...prev,
-                    geo: val,
+                    geo: e.target.value,
                     page: 1,
                   }),
                 })
               }
+              className="appearance-none bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium pl-3 pr-7 py-2 rounded-xl border border-slate-200/60 outline-none cursor-pointer transition-colors"
             >
-              <DSSelectTrigger className="w-[140px]">
-                <DSSelectValue placeholder="Region: Global" />
-              </DSSelectTrigger>
-              <DSSelectContent>
-                {GEOGRAPHIES.map((g) => (
-                  <DSSelectItem key={g} value={g}>
-                    {g === "All" ? "Region: Global" : g}
-                  </DSSelectItem>
-                ))}
-              </DSSelectContent>
-            </DSSelect>
+              {GEOGRAPHIES.map((g) => (
+                <option key={g} value={g}>
+                  {g === "All" ? "Region: Global" : g}
+                </option>
+              ))}
+            </select>
 
             {/* Sort Filter */}
-            <DSSelect
+            <select
               value={sort}
-              onValueChange={(val: any) =>
+              onChange={(e) =>
                 navigate({
                   search: (prev: SearchParams) => ({
                     ...prev,
-                    sort: val,
+                    sort: e.target.value as any,
                     page: 1,
                   }),
                 })
               }
+              className="appearance-none bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium pl-3 pr-7 py-2 rounded-xl border border-slate-200/60 outline-none cursor-pointer transition-colors"
             >
-              <DSSelectTrigger className="w-[160px]">
-                <DSSelectValue placeholder="Sort: Newest First" />
-              </DSSelectTrigger>
-              <DSSelectContent>
-                <DSSelectItem value="newest">Sort: Newest First</DSSelectItem>
-                <DSSelectItem value="expiring">Sort: Expiring Soon</DSSelectItem>
-                <DSSelectItem value="reciprocity">Sort: Highest Reciprocity</DSSelectItem>
-              </DSSelectContent>
-            </DSSelect>
+              <option value="newest">Sort: Newest First</option>
+              <option value="expiring">Sort: Expiry Soonest</option>
+              <option value="reciprocity">Sort: Parity Score</option>
+            </select>
 
             {/* Reset Filter Button */}
             {(type !== "All" || industry !== "All" || geo !== "All" || q || sort !== "newest") && (
@@ -1406,7 +1418,7 @@ export function OpportunitiesPage() {
           }
         }}
       >
-        <DialogContent className="max-w-2xl bg-white rounded-lg shadow-2xl p-0 sm:p-0 !p-0 gap-0 overflow-hidden flex flex-col border border-[#E2E8F0] animate-in fade-in zoom-in-95 duration-150">
+        <DialogContent className="max-w-2xl bg-white rounded-2xl shadow-2xl p-0 sm:p-0 !p-0 gap-0 overflow-hidden flex flex-col border border-[#E2E8F0] animate-in fade-in zoom-in-95 duration-150">
           {selectedOppForInterest && (
             <div className="w-full flex flex-col overflow-hidden">
               {/* 1. Minimal Clean Modal Header */}
@@ -1416,8 +1428,8 @@ export function OpportunitiesPage() {
                     <DialogTitle className="font-display text-lg sm:text-xl font-bold text-[#171F2C] tracking-tight">
                       Express Interest: {selectedOppForInterest.company}
                     </DialogTitle>
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#065F46] bg-[#ECFDF5] px-2.5 py-0.5 rounded-full border border-[#A7F3D0] shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                       94% Match
                     </span>
                   </div>
@@ -1430,13 +1442,13 @@ export function OpportunitiesPage() {
               {/* 2. Clean Single-Column Modal Content */}
               <div className="px-6 sm:px-8 py-5 sm:py-6 space-y-5 overflow-y-auto max-h-[calc(88vh-140px)]">
                 {/* Seeking & Offering Context Pill */}
-                <div className="flex items-center gap-2 px-3.5 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] text-xs text-[#64748B]">
-                  <Info className="w-4 h-4 text-[#94A3B8] shrink-0" />
+                <div className="flex items-center gap-2 px-3.5 py-2.5 bg-slate-50 border border-[#E2E8F0] rounded-xl text-xs text-slate-600">
+                  <Info className="w-4 h-4 text-slate-400 shrink-0" />
                   <span>
-                    <strong className="font-semibold text-[#171F2C]">Seeking:</strong>{" "}
+                    <strong className="font-semibold text-slate-800">Seeking:</strong>{" "}
                     {selectedOppForInterest.location || selectedOppForInterest.geo || "Tier-1 Enterprise Intros"}
                     {selectedOppForInterest.industry ? ` in ${selectedOppForInterest.industry}` : ""} •{" "}
-                    <strong className="font-semibold text-[#171F2C]">Offering:</strong>{" "}
+                    <strong className="font-semibold text-slate-800">Offering:</strong>{" "}
                     {selectedOppForInterest.offer_text || "25% recurring rev-share"}
                   </span>
                 </div>
@@ -1458,7 +1470,7 @@ export function OpportunitiesPage() {
                     maxLength={500}
                     placeholder="Describe your reciprocal value or reach..."
                     rows={3}
-                    className="w-full bg-white border border-[#E2E8F0] text-[#171F2C] text-xs md:text-sm rounded-[4px] p-3.5 focus:outline-none focus:border-[#000000] focus:ring-1 focus:ring-[#000000]/20 leading-relaxed transition-all shadow-xs resize-none placeholder-[#94A3B8]"
+                    className="w-full bg-white border border-[#E2E8F0] text-slate-900 text-xs md:text-sm rounded-xl p-3.5 focus:outline-none focus:ring-1 focus:ring-[#000000] focus:border-[#000000] leading-relaxed transition-all shadow-xs resize-none placeholder-slate-400"
                   />
                 </div>
 
@@ -1468,7 +1480,7 @@ export function OpportunitiesPage() {
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-xs font-semibold text-[#171F2C]">Proposed Rev Share</span>
-                      <span className="font-mono font-bold text-xs text-[#000000]" id="split-val">
+                      <span className="font-mono font-bold text-xs text-[#171F2C]" id="split-val">
                         {splitVal}
                       </span>
                     </div>
@@ -1480,10 +1492,10 @@ export function OpportunitiesPage() {
                             key={val}
                             type="button"
                             onClick={() => setSplitVal(val)}
-                            className={`py-2 text-center text-xs rounded-[4px] transition-colors cursor-pointer ${
+                            className={`py-2 text-center text-xs rounded-lg transition-colors cursor-pointer ${
                               isSelected
                                 ? "bg-[#000000] text-white font-semibold shadow-xs"
-                                : "border border-[#E2E8F0] text-[#64748B] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] hover:text-[#171F2C] font-medium"
+                                : "border border-[#E2E8F0] text-slate-600 hover:bg-slate-50 font-medium"
                             }`}
                           >
                             {val === "25.0%" ? "25%" : val === "27.5%" ? "27.5%" : "30%"}
@@ -1497,7 +1509,7 @@ export function OpportunitiesPage() {
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-xs font-semibold text-[#171F2C]">Commitment Period</span>
-                      <span className="text-[#94A3B8] font-mono text-[11px]">
+                      <span className="text-slate-400 font-mono text-[11px]">
                         {duration.includes("6") ? "6 mo." : "12 mo."}
                       </span>
                     </div>
@@ -1510,10 +1522,10 @@ export function OpportunitiesPage() {
                             key={dur}
                             type="button"
                             onClick={() => setDuration(dur)}
-                            className={`py-2 text-center text-xs rounded-[4px] transition-colors cursor-pointer ${
+                            className={`py-2 text-center text-xs rounded-lg transition-colors cursor-pointer ${
                               isSelected
                                 ? "bg-[#000000] text-white font-semibold shadow-xs"
-                                : "border border-[#E2E8F0] text-[#64748B] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] hover:text-[#171F2C] font-medium"
+                                : "border border-[#E2E8F0] text-slate-600 hover:bg-slate-50 font-medium"
                             }`}
                           >
                             {dur}
@@ -1525,21 +1537,21 @@ export function OpportunitiesPage() {
                 </div>
 
                 {/* Blinded NDA notice */}
-                <div className="pt-1 flex items-center gap-2 text-xs text-[#64748B]">
-                  <Lock className="w-3.5 h-3.5 text-[#94A3B8] shrink-0" />
+                <div className="pt-1 flex items-center gap-2 text-xs text-slate-500">
+                  <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   <span>Bilateral mutual NDA automatically included. Identity remains blinded until accepted.</span>
                 </div>
               </div>
 
               {/* 3. Modal Clean Direct Footer */}
-              <div className="px-6 sm:px-8 py-4 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-end gap-3 shrink-0">
+              <div className="px-6 sm:px-8 py-4 border-t border-[#E2E8F0] bg-slate-50/50 flex items-center justify-end gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={() => {
                     setInterestOpen(false);
                     setSelectedOppForInterest(null);
                   }}
-                  className="px-4 py-2 rounded-[4px] bg-white hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C] text-xs font-medium border border-[#E2E8F0] transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium border border-[#E2E8F0] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1547,7 +1559,7 @@ export function OpportunitiesPage() {
                   type="button"
                   onClick={handleSubmitInterest}
                   disabled={submittingInterest}
-                  className="px-5 py-2 rounded-[4px] bg-[#000000] hover:bg-[#171F2C] text-white text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 rounded-lg bg-[#000000] hover:bg-zinc-800 text-white text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {submittingInterest ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -1649,7 +1661,7 @@ export function OpportunitiesPage() {
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-[#171F2C]">
-                What We Offer in Exchange
+                Seeking in Exchange
               </Label>
               <Input
                 placeholder="e.g. 25% recurring margin + co-marketing budget"

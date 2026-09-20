@@ -87,6 +87,7 @@ export interface Opportunity {
   expires_at: string | null; // ISO Date String
   created_at: string;
   updated_at: string;
+  views?: number;
 }
 
 export interface Interest {

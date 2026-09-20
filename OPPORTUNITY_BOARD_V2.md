@@ -1,749 +1,872 @@
 Design
 
-<!DOCTYPE html>
-
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>The Relay — Commercial Opportunity Board</title>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <style>
     @layer base {
       html, body { margin: 0; padding: 0; }
       body { overscroll-behavior: none; }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
     }
     ::-webkit-scrollbar { display: none; }
   </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "canvas": "#F8FAFC",
+            "charcoal": "#171F2C",
+            "charcoal-dark": "#0B111A",
+            "charcoal-muted": "#2C374A",
+            "body-text": "#475569",
+            "muted-label": "#64748B",
+            "subtle-meta": "#94A3B8",
+            "card-border": "rgba(226, 232, 240, 0.8)",
+            "primary": "#171F2C",
+            "surface": "#F8FAFC"
+          },
+          borderRadius: {
+            "2xl": "1rem",
+            "xl": "0.75rem",
+            "lg": "0.5rem"
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            display: ["Plus Jakarta Sans", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
 </head>
-<body class="bg-[#F8FAFC] font-['Inter'] text-[#171F2C] antialiased min-h-screen flex flex-col">
-<!-- Minimalist Clean Top Header -->
-<header class="sticky top-0 z-50 bg-[#FFFFFF] border-b border-[#E2E8F0] shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-<div class="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between gap-6">
-<!-- Brand & Main Nav -->
-<div class="flex items-center gap-8">
-<a class="flex items-center gap-2.5 group" href="#">
-<div class="w-8 h-8 rounded-lg bg-[#000000] flex items-center justify-center text-white font-['Plus_Jakarta_Sans'] font-extrabold text-base tracking-tight shadow-sm group-hover:bg-[#171F2C] transition-colors">
-            R
-          </div>
-<div class="flex items-baseline gap-1.5">
-<span class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-[#000000] tracking-tight">The Relay</span>
-<span class="inline-block w-1.5 h-1.5 rounded-full bg-[#F97316]"></span>
+<body class="bg-[#F8FAFC] font-sans text-[#171F2C] antialiased">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
+<div class="h-16 w-full max-w-[1600px] mx-auto px-6 sm:px-8 flex items-center justify-between gap-6">
+<div class="flex items-center gap-8 shrink-0">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-[#171F2C] flex items-center justify-center text-white shadow-xs">
+<span class="material-symbols-outlined text-[19px]">swap_horiz</span>
 </div>
-</a>
-<!-- Clean Navigation Links -->
-<nav class="hidden md:flex items-center gap-1">
-<a aria-current="page" class="px-3.5 py-1.5 text-sm font-medium rounded-md bg-[#F8FAFC] text-[#000000] transition-colors" href="#">Opportunity Board</a>
-<a class="px-3.5 py-1.5 text-sm font-medium rounded-md text-[#64748B] hover:text-[#000000] hover:bg-[#F8FAFC] transition-colors" href="#">My Listings</a>
-<a class="px-3.5 py-1.5 text-sm font-medium rounded-md text-[#64748B] hover:text-[#000000] hover:bg-[#F8FAFC] transition-colors" href="#">Saved</a>
-<a class="px-3.5 py-1.5 text-sm font-medium rounded-md text-[#64748B] hover:text-[#000000] hover:bg-[#F8FAFC] transition-colors" href="#">Exchanges</a>
-<a class="px-3.5 py-1.5 text-sm font-medium rounded-md text-[#64748B] hover:text-[#000000] hover:bg-[#F8FAFC] transition-colors" href="#">Network Directory</a>
+<span class="font-display font-bold text-lg text-[#171F2C] tracking-tight">The Relay</span>
+</div>
+<div class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50/70 border border-emerald-100 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+<span class="text-[11px] font-medium text-emerald-700 tracking-wide uppercase">Verified Business Network</span>
+</div>
+</div>
+<nav class="hidden lg:flex items-center gap-7 h-16 text-sm font-medium">
+<a class="text-[#171F2C] font-semibold border-b-2 border-[#171F2C] py-[1.35rem]" href="#">Opportunity Board</a>
+<a class="text-slate-500 hover:text-[#171F2C] transition-colors py-2" href="#">My Listings</a>
+<a class="text-slate-500 hover:text-[#171F2C] transition-colors py-2" href="#">Saved</a>
+<a class="text-slate-500 hover:text-[#171F2C] transition-colors py-2" href="#">Proposals</a>
+<a class="text-slate-500 hover:text-[#171F2C] transition-colors py-2" href="#">Exchanges</a>
+<a class="text-slate-500 hover:text-[#171F2C] transition-colors py-2" href="#">Directory</a>
 </nav>
+<div class="flex items-center gap-3 shrink-0">
+<div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg text-slate-500 text-xs hover:border-slate-300 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[16px]">search</span>
+<span class="">Search network</span>
+<kbd class="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-slate-200 text-slate-400 ml-1">⌘K</kbd>
 </div>
-<!-- Search & Right Profile Actions -->
-<div class="flex items-center gap-3">
-<div class="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-xs text-[#64748B] w-64 hover:border-[#CBD5E1] transition-colors">
-<span class="material-symbols-outlined text-[16px] text-[#94A3B8]">search</span>
-<span class="flex-1">Search network...</span>
-<kbd class="font-['JetBrains_Mono'] text-[10px] bg-white border border-[#E2E8F0] px-1.5 py-0.5 rounded text-[#94A3B8]">⌘K</kbd>
-</div>
-<button class="relative p-2 text-[#64748B] hover:text-[#000000] hover:bg-[#F8FAFC] rounded-lg transition-colors" title="Notifications">
+<button aria-label="Notifications" class="relative p-2 text-slate-500 hover:text-[#171F2C] rounded-lg hover:bg-slate-50 transition-colors">
 <span class="material-symbols-outlined text-[20px]">notifications</span>
-<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#F97316]"></span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-[#171F2C] rounded-full ring-2 ring-white"></span>
 </button>
-<!-- Primary Post Button (Solid Black #000000) -->
-<a class="inline-flex items-center gap-1.5 bg-[#000000] hover:bg-[#171F2C] text-white font-medium text-sm px-4 py-2 rounded-lg transition-all shadow-sm" href="#">
-<span class="material-symbols-outlined text-[18px]">add</span>
-<span>Post Opportunity</span>
-</a>
-<!-- Account Avatar -->
-<div class="w-8 h-8 rounded-full bg-[#171F2C] text-white font-medium text-xs flex items-center justify-center ml-1 cursor-pointer">
-          AS
-        </div>
+<button class="inline-flex items-center gap-1.5 bg-[#171F2C] hover:bg-[#2C374A] text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all shadow-xs">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span class="">Post Opportunity</span>
+</button>
+<div class="flex items-center gap-2.5 pl-2 border-l border-slate-200">
+<div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-semibold text-xs">
+            AL
+          </div>
+</div>
 </div>
 </div>
 </header>
-<!-- Main Content Wrapper -->
-<main class="flex-1 w-full max-w-[1400px] mx-auto px-6 py-8">
-<!-- Clean Header & Brief Subheading -->
-<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-[#E2E8F0]">
-<div>
-<div class="flex items-center gap-2 mb-1.5">
-<span class="text-xs font-semibold text-[#F97316] uppercase tracking-wider">Reciprocal Dealflow</span>
-<span class="text-[#CBD5E1]">•</span>
-<span class="text-xs text-[#64748B]">Zero Cold Outreach</span>
-</div>
-<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-2xl md:text-3xl text-[#000000] tracking-tight">
-          Commercial Opportunity Board
-        </h1>
-<p class="text-sm md:text-base text-[#64748B] mt-1.5 max-w-2xl leading-relaxed">
-          Discover high-intent B2B partnerships, distribution deals, and reciprocal exchanges. Privacy-guaranteed until mutual agreement.
-        </p>
-</div>
-<!-- Quick Action Pill / Help -->
-<div class="flex items-center gap-2">
-<button class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-[#171F2C] bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] rounded-lg transition-colors" id="guidedTourBtn">
-<span class="material-symbols-outlined text-[16px] text-[#64748B]">help_outline</span>
-<span>How It Works</span>
-</button>
-</div>
-</div>
-<!-- Streamlined Metrics Strip (4 clean, uncluttered stats) -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 py-6">
-<div class="bg-white border border-[#E2E8F0] rounded-xl p-4 flex flex-col justify-between">
-<span class="text-xs font-medium text-[#64748B]">Active Deals</span>
-<div class="flex items-baseline gap-2 mt-1">
-<span class="font-['JetBrains_Mono'] text-2xl font-bold text-[#000000]">1,482</span>
-<span class="text-[11px] text-[#64748B]">verified</span>
-</div>
-</div>
-<div class="bg-white border border-[#E2E8F0] rounded-xl p-4 flex flex-col justify-between">
-<span class="text-xs font-medium text-[#64748B]">Median Response</span>
-<div class="flex items-baseline gap-2 mt-1">
-<span class="font-['JetBrains_Mono'] text-2xl font-bold text-[#000000]">3.4h</span>
-<span class="text-[11px] text-[#64748B]">avg pitch turn</span>
-</div>
-</div>
-<div class="bg-white border border-[#E2E8F0] rounded-xl p-4 flex flex-col justify-between">
-<span class="text-xs font-medium text-[#64748B]">Reciprocity Rate</span>
-<div class="flex items-baseline gap-2 mt-1">
-<span class="font-['JetBrains_Mono'] text-2xl font-bold text-[#000000]">97%</span>
-<span class="text-[11px] text-[#059669] font-medium">Bilateral</span>
-</div>
-</div>
-<div class="bg-white border border-[#E2E8F0] rounded-xl p-4 flex flex-col justify-between">
-<span class="text-xs font-medium text-[#64748B]">Verified Businesses</span>
-<div class="flex items-baseline gap-2 mt-1">
-<span class="font-['JetBrains_Mono'] text-2xl font-bold text-[#000000]">3,920</span>
-<span class="text-[11px] text-[#64748B]">members</span>
-</div>
-</div>
-</div>
-<!-- Category Tabs Filter -->
-<div class="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
-<button class="category-pill shrink-0 px-4 py-2 rounded-lg bg-[#000000] text-white text-xs font-medium transition-colors shadow-xs">
-        All Deals <span class="ml-1 opacity-70">1,482</span>
-</button>
-<button class="category-pill shrink-0 px-4 py-2 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#000000] hover:bg-[#F8FAFC] text-xs font-medium transition-colors">
-        Partnership <span class="ml-1 text-[#94A3B8]">412</span>
-</button>
-<button class="category-pill shrink-0 px-4 py-2 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#000000] hover:bg-[#F8FAFC] text-xs font-medium transition-colors">
-        Referral <span class="ml-1 text-[#94A3B8]">320</span>
-</button>
-<button class="category-pill shrink-0 px-4 py-2 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#000000] hover:bg-[#F8FAFC] text-xs font-medium transition-colors">
-        Distribution <span class="ml-1 text-[#94A3B8]">215</span>
-</button>
-<button class="category-pill shrink-0 px-4 py-2 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#000000] hover:bg-[#F8FAFC] text-xs font-medium transition-colors">
-        Vendor <span class="ml-1 text-[#94A3B8]">198</span>
-</button>
-<button class="category-pill shrink-0 px-4 py-2 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#000000] hover:bg-[#F8FAFC] text-xs font-medium transition-colors">
-        Hiring <span class="ml-1 text-[#94A3B8]">110</span>
-</button>
-<button class="category-pill shrink-0 px-4 py-2 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#000000] hover:bg-[#F8FAFC] text-xs font-medium transition-colors">
-        Strategic Advice <span class="ml-1 text-[#94A3B8]">142</span>
-</button>
-<button class="category-pill shrink-0 px-4 py-2 rounded-lg bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#000000] hover:bg-[#F8FAFC] text-xs font-medium transition-colors">
-        Investment <span class="ml-1 text-[#94A3B8]">85</span>
-</button>
-</div>
-<!-- Search & Secondary Filter Controls -->
-<div class="mt-4 mb-6 bg-white border border-[#E2E8F0] rounded-xl p-3 flex flex-col md:flex-row items-center gap-3">
-<!-- Search Input -->
-<div class="relative flex-1 w-full">
-<span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-[#94A3B8]">search</span>
-<input class="w-full h-10 pl-9 pr-4 text-xs md:text-sm bg-[#F8FAFC] text-[#000000] placeholder-[#94A3B8] rounded-lg border-0 focus:ring-1 focus:ring-[#000000] transition-colors" id="dealSearchInput" placeholder="Search by title, exchange terms, or industry keywords..." type="text"/>
-</div>
-<!-- Filters & Sort -->
-<div class="flex items-center gap-2 w-full md:w-auto shrink-0 flex-wrap sm:flex-nowrap">
-<select class="h-10 px-3 bg-[#F8FAFC] text-xs font-medium text-[#171F2C] border-0 rounded-lg focus:ring-1 focus:ring-[#000000] cursor-pointer">
-<option value="">Industry: All</option>
-<option value="saas">SaaS &amp; Cloud</option>
-<option value="ai">AI &amp; Data</option>
-<option value="fintech">FinTech</option>
-<option value="logistics">Logistics</option>
-<option value="health">Healthcare</option>
-</select>
-<select class="h-10 px-3 bg-[#F8FAFC] text-xs font-medium text-[#171F2C] border-0 rounded-lg focus:ring-1 focus:ring-[#000000] cursor-pointer">
-<option value="na">Region: Global</option>
-<option value="na">North America</option>
-<option value="eu">Europe</option>
-<option value="apac">APAC</option>
-</select>
-<select class="h-10 px-3 bg-[#F8FAFC] text-xs font-medium text-[#171F2C] border-0 rounded-lg focus:ring-1 focus:ring-[#000000] cursor-pointer">
-<option>Sort: Newest First</option>
-<option>Sort: Expiring Soon</option>
-<option>Sort: Highest Reciprocity</option>
-</select>
-</div>
-</div>
-<!-- 2-Column Main Feed Layout -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-<!-- Main Feed Column (8 Cols) -->
-<div class="lg:col-span-8 space-y-4">
-<!-- CARD 1: RY-0042 -->
-<article class="bg-white border border-[#E2E8F0] hover:border-[#CBD5E1] rounded-xl p-5 md:p-6 transition-all duration-200 hover:shadow-sm flex flex-col gap-4 group">
-<!-- Card Header Bar -->
-<div class="flex items-center justify-between gap-3 text-xs">
-<div class="flex items-center gap-2 flex-wrap">
-<span class="font-['JetBrains_Mono'] font-medium text-[#171F2C] bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-0.5 rounded">RY-0042</span>
-<span class="font-semibold text-[11px] text-[#171F2C] bg-[#F1F5F9] px-2 py-0.5 rounded uppercase tracking-wider">Distribution</span>
-<span class="text-[11px] font-semibold text-[#C2410C] bg-[#FFF7ED] border border-[#FFEDD5] px-2 py-0.5 rounded uppercase">Urgent</span>
-</div>
-<div class="flex items-center gap-1.5 text-[#94A3B8]">
-<span class="material-symbols-outlined text-[14px]">schedule</span>
-<span>Expires in 6 days</span>
-</div>
-</div>
-<!-- Company Info Row -->
-<div class="flex items-center justify-between gap-3">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-lg bg-[#171F2C] text-white flex items-center justify-center font-bold text-sm font-['Plus_Jakarta_Sans'] shrink-0">
-                SX
-              </div>
-<div>
-<div class="flex items-center gap-1.5">
-<span class="font-semibold text-sm text-[#000000]">Synthetix AI</span>
-<span class="material-symbols-outlined text-[16px] text-[#059669]" title="Verified Business">check_circle</span>
-</div>
-<div class="text-xs text-[#64748B]">San Francisco, CA • AI &amp; Enterprise Data</div>
-</div>
-</div>
-<div class="text-right hidden sm:block">
-<div class="text-xs font-semibold text-[#059669]">98% Parity Score</div>
-<div class="text-[11px] text-[#94A3B8]">42 Exchanges Completed</div>
-</div>
-</div>
-<!-- Title & Description -->
-<div class="space-y-2">
-<h2 class="font-['Plus_Jakarta_Sans'] font-bold text-base md:text-lg text-[#000000] group-hover:text-[#171F2C] transition-colors leading-snug">
-              European Distribution Partner Needed for SOC-2 Compliant Enterprise Agent Platform
-            </h2>
-<p class="text-xs md:text-sm text-[#64748B] leading-relaxed">
-              Seeking established system integrators and SaaS distributors in DACH &amp; UK regions with direct C-level buyer relationships in Tier-1 logistics or banking. Target transaction sizes $120k–$350k ACV. Solution is EU-hosted and GDPR compliant.
-            </p>
-</div>
-<!-- What We Offer in Exchange Callout Box -->
-<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-3.5 text-xs md:text-sm">
-<div class="flex items-center gap-1.5 text-[#000000] font-semibold text-xs mb-1">
-<span class="material-symbols-outlined text-[16px] text-[#F97316]">swap_horiz</span>
-<span>What We Offer in Exchange:</span>
-</div>
-<p class="text-[#64748B] leading-relaxed">
-              Direct reseller commission of 25% recurring for contract life + co-marketing budget allocation of $15,000 per enterprise account closed, plus dedicated solutions architect field support.
-            </p>
-</div>
-<!-- Card Footer & Actions -->
-<div class="flex items-center justify-between gap-4 pt-2 border-t border-[#F1F5F9] text-xs">
-<div class="flex items-center gap-4 text-[#64748B]">
-<button class="bookmark-toggle inline-flex items-center gap-1 hover:text-[#000000] transition-colors">
-<span class="material-symbols-outlined text-[16px]">bookmark_border</span>
-<span>14 saves</span>
-</button>
-<div class="flex items-center gap-1">
-<span class="material-symbols-outlined text-[16px]">inbox</span>
-<span>6 pitches in review</span>
-</div>
-<div class="hidden sm:flex items-center gap-1 text-[#94A3B8]" title="Contact details unlocked at Stage 4">
-<span class="material-symbols-outlined text-[15px]">lock</span>
-<span>Stage 4 Reveal</span>
-</div>
-</div>
-<!-- Primary Action (Black Button) -->
-<button class="inline-flex items-center gap-1.5 bg-[#000000] hover:bg-[#171F2C] text-white text-xs md:text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-xs" onclick="openInterestModal('RY-0042', 'Synthetix AI', 'European Distribution Partner Needed for SOC-2 Compliant Enterprise Agent Platform', '25% recurring reseller commission + $15k co-op budget')">
-<span>Express Interest</span>
-<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-</button>
-</div>
-</article>
-<!-- CARD 2: RY-0089 -->
-<article class="bg-white border border-[#E2E8F0] hover:border-[#CBD5E1] rounded-xl p-5 md:p-6 transition-all duration-200 hover:shadow-sm flex flex-col gap-4 group">
-<div class="flex items-center justify-between gap-3 text-xs">
-<div class="flex items-center gap-2 flex-wrap">
-<span class="font-['JetBrains_Mono'] font-medium text-[#171F2C] bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-0.5 rounded">RY-0089</span>
-<span class="font-semibold text-[11px] text-[#171F2C] bg-[#F1F5F9] px-2 py-0.5 rounded uppercase tracking-wider">Referral</span>
-<span class="text-[11px] font-semibold text-[#171F2C] bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-0.5 rounded uppercase">Featured</span>
-</div>
-<div class="flex items-center gap-1.5 text-[#94A3B8]">
-<span class="material-symbols-outlined text-[14px]">schedule</span>
-<span>Expires in 11 days</span>
-</div>
-</div>
-<div class="flex items-center justify-between gap-3">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-lg bg-[#000000] text-white flex items-center justify-center font-bold text-sm font-['Plus_Jakarta_Sans'] shrink-0">
-                AL
-              </div>
-<div>
-<div class="flex items-center gap-1.5">
-<span class="font-semibold text-sm text-[#000000]">Apex Logistics Group</span>
-<span class="material-symbols-outlined text-[16px] text-[#059669]" title="Verified Business">check_circle</span>
-</div>
-<div class="text-xs text-[#64748B]">Chicago, IL • Enterprise Freight Systems (450+ Managed Fleets)</div>
-</div>
-</div>
-<div class="text-right hidden sm:block">
-<div class="text-xs font-semibold text-[#059669]">95% Parity Score</div>
-<div class="text-[11px] text-[#94A3B8]">28 Exchanges Completed</div>
-</div>
-</div>
-<div class="space-y-2">
-<h2 class="font-['Plus_Jakarta_Sans'] font-bold text-base md:text-lg text-[#000000] group-hover:text-[#171F2C] transition-colors leading-snug">
-              Cross-Referral Pact: Mid-Market Salesforce Implementation for HubSpot Migration Agencies
-            </h2>
-<p class="text-xs md:text-sm text-[#64748B] leading-relaxed">
-              We manage enterprise Salesforce instances for 300+ transportation leaders. Our clients regularly require dedicated inbound marketing migrations to HubSpot that fall outside our scope. Looking for a high-retention agency partner for reciprocal routing.
-            </p>
-</div>
-<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-3.5 text-xs md:text-sm">
-<div class="flex items-center gap-1.5 text-[#000000] font-semibold text-xs mb-1">
-<span class="material-symbols-outlined text-[16px] text-[#F97316]">swap_horiz</span>
-<span>What We Offer in Exchange:</span>
-</div>
-<p class="text-[#64748B] leading-relaxed">
-              Direct reciprocal routing of 4–6 mid-market marketing automation setups per month ($45k average contract value) in exchange for enterprise Salesforce CRM advisory leads.
-            </p>
-</div>
-<div class="flex items-center justify-between gap-4 pt-2 border-t border-[#F1F5F9] text-xs">
-<div class="flex items-center gap-4 text-[#64748B]">
-<button class="bookmark-toggle inline-flex items-center gap-1 hover:text-[#000000] transition-colors">
-<span class="material-symbols-outlined text-[16px]">bookmark_border</span>
-<span>21 saves</span>
-</button>
-<div class="flex items-center gap-1">
-<span class="material-symbols-outlined text-[16px]">inbox</span>
-<span>9 pitches in review</span>
-</div>
-<div class="hidden sm:flex items-center gap-1 text-[#94A3B8]">
-<span class="material-symbols-outlined text-[15px]">lock</span>
-<span>Stage 4 Reveal</span>
-</div>
-</div>
-<button class="inline-flex items-center gap-1.5 bg-[#000000] hover:bg-[#171F2C] text-white text-xs md:text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-xs" onclick="openInterestModal('RY-0089', 'Apex Logistics Group', 'Cross-Referral Pact: Mid-Market Salesforce Implementation', 'Reciprocal routing of 4-6 mid-market HubSpot accounts/mo')">
-<span>Express Interest</span>
-<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-</button>
-</div>
-</article>
-<!-- CARD 3: RY-0105 (Anonymous Verified Partner) -->
-<article class="bg-white border border-[#E2E8F0] hover:border-[#CBD5E1] rounded-xl p-5 md:p-6 transition-all duration-200 hover:shadow-sm flex flex-col gap-4 group">
-<div class="flex items-center justify-between gap-3 text-xs">
-<div class="flex items-center gap-2 flex-wrap">
-<span class="font-['JetBrains_Mono'] font-medium text-[#171F2C] bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-0.5 rounded">RY-0105</span>
-<span class="font-semibold text-[11px] text-[#171F2C] bg-[#F1F5F9] px-2 py-0.5 rounded uppercase tracking-wider">Partnership</span>
-<span class="text-[11px] font-medium text-[#64748B] bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-0.5 rounded flex items-center gap-1">
-<span class="material-symbols-outlined text-[13px]">visibility_off</span> Anonymous Partner
-              </span>
-</div>
-<div class="flex items-center gap-1.5 text-[#C2410C] font-medium">
-<span class="material-symbols-outlined text-[14px]">warning</span>
-<span>Expires in 48 hours</span>
-</div>
-</div>
-<div class="flex items-center justify-between gap-3">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-lg bg-[#F1F5F9] border border-[#E2E8F0] text-[#64748B] flex items-center justify-center font-bold text-xs font-['JetBrains_Mono'] shrink-0">
-                #ANON
-              </div>
-<div>
-<div class="flex items-center gap-1.5">
-<span class="font-semibold text-sm text-[#000000]">Anonymous Verified Enterprise</span>
-<span class="material-symbols-outlined text-[16px] text-[#059669]" title="Verified Business">check_circle</span>
-</div>
-<div class="text-xs text-[#64748B]">London, UK • FinTech &amp; Clearances</div>
-</div>
-</div>
-<div class="text-right hidden sm:block">
-<div class="text-xs font-semibold text-[#059669]">100% Parity Score</div>
-<div class="text-[11px] text-[#94A3B8]">61 Exchanges Completed</div>
-</div>
-</div>
-<div class="space-y-2">
-<h2 class="font-['Plus_Jakarta_Sans'] font-bold text-base md:text-lg text-[#000000] group-hover:text-[#171F2C] transition-colors leading-snug">
-              Strategic Co-Selling: HIPAA-Ready Healthcare Data Lake with B2B Telehealth Vendors
-            </h2>
-<p class="text-xs md:text-sm text-[#64748B] leading-relaxed">
-              We operate an FDA-vetted data aggregation warehouse servicing regional hospitals. Seeking mutual introduction covenants with remote clinic software providers to unlock joint RFPs across 14 state-level healthcare networks.
-            </p>
-</div>
-<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-3.5 text-xs md:text-sm">
-<div class="flex items-center gap-1.5 text-[#000000] font-semibold text-xs mb-1">
-<span class="material-symbols-outlined text-[16px] text-[#F97316]">swap_horiz</span>
-<span>What We Offer in Exchange:</span>
-</div>
-<p class="text-[#64748B] leading-relaxed">
-              Direct warm access to Procurement VP contacts across 22 multi-hospital regional networks, plus mutual OEM margin share on software bundles.
-            </p>
-</div>
-<div class="flex items-center justify-between gap-4 pt-2 border-t border-[#F1F5F9] text-xs">
-<div class="flex items-center gap-4 text-[#64748B]">
-<button class="bookmark-toggle inline-flex items-center gap-1 hover:text-[#000000] transition-colors">
-<span class="material-symbols-outlined text-[16px]">bookmark_border</span>
-<span>38 saves</span>
-</button>
-<div class="flex items-center gap-1">
-<span class="material-symbols-outlined text-[16px]">inbox</span>
-<span>14 pitches in review</span>
-</div>
-<div class="hidden sm:flex items-center gap-1 text-[#94A3B8]">
-<span class="material-symbols-outlined text-[15px]">lock</span>
-<span>Strict Bilateral Mask</span>
-</div>
-</div>
-<button class="inline-flex items-center gap-1.5 bg-[#000000] hover:bg-[#171F2C] text-white text-xs md:text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-xs" onclick="openInterestModal('RY-0105', 'Anonymous Verified Enterprise', 'Strategic Co-Selling: HIPAA-Ready Healthcare Data Lake', 'Warm Procurement VP intros across 22 regional hospital networks')">
-<span>Express Interest</span>
-<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-</button>
-</div>
-</article>
-<!-- CARD 4: RY-0027 -->
-<article class="bg-white border border-[#E2E8F0] hover:border-[#CBD5E1] rounded-xl p-5 md:p-6 transition-all duration-200 hover:shadow-sm flex flex-col gap-4 group">
-<div class="flex items-center justify-between gap-3 text-xs">
-<div class="flex items-center gap-2 flex-wrap">
-<span class="font-['JetBrains_Mono'] font-medium text-[#171F2C] bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-0.5 rounded">RY-0027</span>
-<span class="font-semibold text-[11px] text-[#171F2C] bg-[#F1F5F9] px-2 py-0.5 rounded uppercase tracking-wider">Vendor Agreement</span>
-</div>
-<div class="flex items-center gap-1.5 text-[#94A3B8]">
-<span class="material-symbols-outlined text-[14px]">schedule</span>
-<span>Expires in 18 days</span>
-</div>
-</div>
-<div class="flex items-center justify-between gap-3">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-lg bg-[#000000] text-white flex items-center justify-center font-bold text-sm font-['Plus_Jakarta_Sans'] shrink-0">
-                HC
-              </div>
-<div>
-<div class="flex items-center gap-1.5">
-<span class="font-semibold text-sm text-[#000000]">Hyperion Cloud</span>
-<span class="material-symbols-outlined text-[16px] text-[#059669]" title="Verified Business">check_circle</span>
-</div>
-<div class="text-xs text-[#64748B]">Austin, TX • Bare Metal &amp; GPU Infrastructure</div>
-</div>
-</div>
-<div class="text-right hidden sm:block">
-<div class="text-xs font-semibold text-[#059669]">92% Parity Score</div>
-<div class="text-[11px] text-[#94A3B8]">19 Exchanges Completed</div>
-</div>
-</div>
-<div class="space-y-2">
-<h2 class="font-['Plus_Jakarta_Sans'] font-bold text-base md:text-lg text-[#000000] group-hover:text-[#171F2C] transition-colors leading-snug">
-              Direct Compute Barter: High-Density H100 GPU Clusters for Certified Model Fine-Tuning Labs
-            </h2>
-<p class="text-xs md:text-sm text-[#64748B] leading-relaxed">
-              Offering reserved 128x NVIDIA H100 pods on dedicated dark fiber lines. Seeking an experienced foundation model post-training group to provide fine-tuning pipeline orchestration for our internal platform clients.
-            </p>
-</div>
-<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-3.5 text-xs md:text-sm">
-<div class="flex items-center gap-1.5 text-[#000000] font-semibold text-xs mb-1">
-<span class="material-symbols-outlined text-[16px] text-[#F97316]">swap_horiz</span>
-<span>What We Offer in Exchange:</span>
-</div>
-<p class="text-[#64748B] leading-relaxed">
-              Guaranteed 2,000 monthly GPU hours at zero cash cost in direct reciprocal exchange for 80 hours of Senior ML Engineering advisory and optimization weights.
-            </p>
-</div>
-<div class="flex items-center justify-between gap-4 pt-2 border-t border-[#F1F5F9] text-xs">
-<div class="flex items-center gap-4 text-[#64748B]">
-<button class="bookmark-toggle inline-flex items-center gap-1 hover:text-[#000000] transition-colors">
-<span class="material-symbols-outlined text-[16px]">bookmark_border</span>
-<span>49 saves</span>
-</button>
-<div class="flex items-center gap-1">
-<span class="material-symbols-outlined text-[16px]">inbox</span>
-<span>11 pitches in review</span>
-</div>
-<div class="hidden sm:flex items-center gap-1 text-[#94A3B8]">
-<span class="material-symbols-outlined text-[15px]">lock</span>
-<span>Stage 4 Reveal</span>
-</div>
-</div>
-<button class="inline-flex items-center gap-1.5 bg-[#000000] hover:bg-[#171F2C] text-white text-xs md:text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-xs" onclick="openInterestModal('RY-0027', 'Hyperion Cloud', 'Direct Compute Barter: High-Density H100 GPU Clusters', '2,000 monthly GPU hours at zero cost in exchange for ML engineering advisory')">
-<span>Express Interest</span>
-<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-</button>
-</div>
-</article>
-<!-- Clean Streamlined Pagination -->
-<div class="flex items-center justify-between bg-white border border-[#E2E8F0] rounded-xl px-5 py-3.5 text-xs text-[#64748B]">
-<div>
-            Showing <span class="font-semibold text-[#000000]">1 – 4</span> of <span class="font-semibold text-[#000000]">1,482</span> listings
-          </div>
-<div class="flex items-center gap-1">
-<button class="px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] hover:bg-[#F8FAFC] disabled:opacity-40" disabled="">Previous</button>
-<button class="px-3 py-1.5 rounded-lg bg-[#000000] text-white font-medium">1</button>
-<button class="px-3 py-1.5 rounded-lg border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#171F2C]">2</button>
-<button class="px-3 py-1.5 rounded-lg border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#171F2C]">3</button>
-<span class="px-1 text-[#94A3B8]">...</span>
-<button class="px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#171F2C]">Next</button>
-</div>
-</div>
-</div>
-<!-- Right Column: Secondary Sidebar (4 Cols) -->
-<aside class="lg:col-span-4 space-y-5">
-<!-- 1. 'How The Relay Works' - Simple 3-step vertical card -->
-<div class="bg-white border border-[#E2E8F0] rounded-xl p-5">
-<div class="flex items-center gap-2 mb-3">
-<span class="material-symbols-outlined text-[20px] text-[#000000]">sync_alt</span>
-<h3 class="font-['Plus_Jakarta_Sans'] font-bold text-sm text-[#000000]">How The Relay Works</h3>
-</div>
-<p class="text-xs text-[#64748B] mb-4 leading-relaxed">
-            The Relay connects verified enterprises on mutual reciprocity. Identity is strictly obscured until terms are agreed.
+<main class="w-full pt-20 pb-16 min-h-screen">
+<div class="max-w-[1600px] mx-auto px-6 sm:px-8 flex flex-col gap-6">
+<!-- Elegant Soft Dismissible Toast/Banner -->
+<div class="w-full bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all duration-300" id="publish-banner">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shrink-0">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<p class="text-sm text-[#475569]">
+            Listing <span class="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-[#171F2C] border border-slate-200/60">#RY-0098</span> successfully published in blinded mode • Matching verified counterparties.
           </p>
-<div class="space-y-3">
-<!-- Step 1 -->
-<div class="flex items-start gap-3">
-<div class="w-6 h-6 rounded-full bg-[#000000] text-white text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
-                1
-              </div>
-<div>
-<div class="text-xs font-semibold text-[#000000]">Blinded Discovery</div>
-<div class="text-[11px] text-[#64748B] mt-0.5">Browse listings and submit reciprocal value pitches without exposing contact data.</div>
 </div>
-</div>
-<!-- Step 2 -->
-<div class="flex items-start gap-3">
-<div class="w-6 h-6 rounded-full bg-[#F1F5F9] border border-[#CBD5E1] text-[#171F2C] text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
-                2
-              </div>
-<div>
-<div class="text-xs font-semibold text-[#000000]">Negotiate Terms</div>
-<div class="text-[11px] text-[#64748B] mt-0.5">Parties align on commercial exchange terms and verify parity inside the sandbox.</div>
-</div>
-</div>
-<!-- Step 3 -->
-<div class="flex items-start gap-3">
-<div class="w-6 h-6 rounded-full bg-[#059669] text-white text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
-                3
-              </div>
-<div>
-<div class="text-xs font-semibold text-[#000000]">Contact Unlock on Agreement</div>
-<div class="text-[11px] text-[#64748B] mt-0.5">Simultaneous release of executive contacts, calendars, and legal NDAs.</div>
-</div>
-</div>
-</div>
-</div>
-<!-- 2. 'Need a Custom Partner?' - Clean callout card -->
-<div class="bg-[#171F2C] text-white rounded-xl p-5 shadow-sm">
-<span class="text-[10px] font-semibold tracking-wider text-[#94A3B8] uppercase">Targeted Placement</span>
-<h4 class="font-['Plus_Jakarta_Sans'] font-bold text-base text-white mt-1">Need a Custom Partner?</h4>
-<p class="text-xs text-[#94A3B8] mt-1.5 leading-relaxed">
-            Broadcast what you need and what you offer in exchange. Your company identity remains completely confidential.
-          </p>
-<a class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-white hover:bg-[#F8FAFC] text-[#000000] text-xs font-semibold py-2.5 px-4 rounded-lg transition-colors" href="#">
-<span>Post Blinded Request</span>
-<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+<div class="flex items-center gap-4 self-end sm:self-center shrink-0">
+<a class="text-xs font-semibold text-[#171F2C] hover:text-slate-600 underline underline-offset-4 flex items-center gap-1 transition-colors" href="#">
+<span class="">View in My Listings</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
 </a>
+<button aria-label="Dismiss banner" class="text-slate-400 hover:text-slate-600 p-1 rounded-md transition-colors" onclick="document.getElementById('publish-banner').style.display='none'">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
 </div>
-<!-- 3. Simple Recent Exchange Activity Widget -->
-<div class="bg-white border border-[#E2E8F0] rounded-xl p-5">
-<div class="flex items-center justify-between mb-3">
-<h3 class="font-['Plus_Jakarta_Sans'] font-bold text-sm text-[#000000]">Recent Handshakes</h3>
-<span class="text-[10px] font-semibold text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded">LIVE</span>
 </div>
-<div class="space-y-3">
-<div class="pb-2.5 border-b border-[#F1F5F9] last:border-0 last:pb-0">
-<div class="flex items-center justify-between text-[11px] text-[#94A3B8]">
-<span class="font-['JetBrains_Mono'] text-[#171F2C] font-medium">[RY-0012] Handshake Sealed</span>
-<span>4m ago</span>
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-1">
+<div>
+<div class="flex items-center gap-2 text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">
+<span class="">Reciprocal Dealflow</span>
+<span class="">•</span>
+<span class="">Zero Cold Outreach</span>
+<span class="">•</span>
+<span class="text-slate-600 font-semibold">Bilateral Parity Protocol</span>
 </div>
-<p class="text-xs text-[#000000] font-medium mt-1">Payment Gateway ↔ ERP Migration Firm</p>
-<span class="inline-flex items-center gap-1 text-[11px] text-[#059669] mt-0.5">
-<span class="material-symbols-outlined text-[13px]">lock_open</span> Contacts released
-              </span>
+<h1 class="font-display font-bold text-2xl sm:text-3xl text-[#171F2C] tracking-tight">Commercial Opportunity Board</h1>
+<p class="text-sm text-[#64748B] mt-1 max-w-2xl">Discover high-intent B2B partnerships, distribution pacts, and reciprocal agreements. Blinded until mutual handshake.</p>
 </div>
-<div class="pb-2.5 border-b border-[#F1F5F9] last:border-0 last:pb-0">
-<div class="flex items-center justify-between text-[11px] text-[#94A3B8]">
-<span class="font-['JetBrains_Mono'] text-[#171F2C] font-medium">[RY-0188] Pitch Accepted</span>
-<span>21m ago</span>
+<div class="flex items-center gap-2 self-start md:self-end px-3 py-1.5 bg-white border border-slate-200/80 rounded-xl text-xs text-slate-500 shadow-xs">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="font-medium text-slate-700 uppercase tracking-wide text-[11px]">Realtime Bilateral Feed</span>
 </div>
-<p class="text-xs text-[#000000] font-medium mt-1">Autonomous Drone Fleet ↔ Defense Contractor</p>
-<span class="inline-flex items-center gap-1 text-[11px] text-[#64748B] mt-0.5">
-<span class="material-symbols-outlined text-[13px]">tune</span> Terms harmonization
-              </span>
 </div>
-<div class="last:pb-0">
-<div class="flex items-center justify-between text-[11px] text-[#94A3B8]">
-<span class="font-['JetBrains_Mono'] text-[#171F2C] font-medium">[RY-0204] Handshake Sealed</span>
-<span>54m ago</span>
+<!-- Executive Minimalist Metrics Strip -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bg-white p-5 rounded-2xl border border-slate-200/75 shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium uppercase tracking-wider text-[#64748B]">Active Deals</span>
+<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">+1 new</span>
 </div>
-<p class="text-xs text-[#000000] font-medium mt-1">B2B Telehealth ↔ HIPAA Cloud Provider</p>
-<span class="inline-flex items-center gap-1 text-[11px] text-[#059669] mt-0.5">
-<span class="material-symbols-outlined text-[13px]">lock_open</span> Contacts released
-              </span>
+<div class="mt-3">
+<div class="font-display font-bold text-2xl sm:text-3xl text-[#171F2C] tracking-tight">1,483</div>
+<div class="text-xs text-[#94A3B8] mt-0.5">+4.2% week-over-week</div>
 </div>
+</div>
+<div class="bg-white p-5 rounded-2xl border border-slate-200/75 shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium uppercase tracking-wider text-[#64748B]">Median Response</span>
+<span class="material-symbols-outlined text-[16px] text-slate-400">schedule</span>
+</div>
+<div class="mt-3">
+<div class="font-display font-bold text-2xl sm:text-3xl text-[#171F2C] tracking-tight">3.4<span class="font-sans text-base font-normal text-slate-400 ml-0.5">h</span></div>
+<div class="text-xs text-[#94A3B8] mt-0.5">Average counterpart turnaround</div>
+</div>
+</div>
+<div class="bg-white p-5 rounded-2xl border border-slate-200/75 shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium uppercase tracking-wider text-[#64748B]">Reciprocity Rate</span>
+<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">Bilateral</span>
+</div>
+<div class="mt-3">
+<div class="font-display font-bold text-2xl sm:text-3xl text-[#171F2C] tracking-tight">97%</div>
+<div class="text-xs text-[#94A3B8] mt-0.5">Submissions offer equal value</div>
+</div>
+</div>
+<div class="bg-white p-5 rounded-2xl border border-slate-200/75 shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium uppercase tracking-wider text-[#64748B]">Verified Network</span>
+<span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
+</div>
+<div class="mt-3">
+<div class="font-display font-bold text-2xl sm:text-3xl text-[#171F2C] tracking-tight">3,920</div>
+<div class="text-xs text-[#94A3B8] mt-0.5">Strict KYC &amp; revenue vetted</div>
+</div>
+</div>
+</div>
+<!-- Filter Tabs & Clean Search Row -->
+<div class="flex flex-col gap-3">
+<!-- Category Pill Tabs -->
+<div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+<button class="px-3.5 py-1.5 rounded-xl bg-[#171F2C] text-white text-xs font-medium shrink-0 flex items-center gap-2 shadow-xs">
+<span class="">All Deals</span>
+<span class="bg-white/20 text-white px-1.5 py-0.2 rounded-full text-[10px]">1,483</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-medium shrink-0 flex items-center gap-1.5 transition-colors">
+<span class="">Partnership</span>
+<span class="text-slate-400 text-[11px]">412</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-medium shrink-0 flex items-center gap-1.5 transition-colors">
+<span class="">Referral</span>
+<span class="text-slate-400 text-[11px]">320</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-medium shrink-0 flex items-center gap-1.5 transition-colors">
+<span class="">Distribution</span>
+<span class="text-slate-400 text-[11px]">216</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-medium shrink-0 flex items-center gap-1.5 transition-colors">
+<span class="">Vendor</span>
+<span class="text-slate-400 text-[11px]">198</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-medium shrink-0 flex items-center gap-1.5 transition-colors">
+<span class="">Strategic Advice</span>
+<span class="text-slate-400 text-[11px]">142</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-medium shrink-0 flex items-center gap-1.5 transition-colors">
+<span class="">Hiring</span>
+<span class="text-slate-400 text-[11px]">110</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-medium shrink-0 flex items-center gap-1.5 transition-colors">
+<span class="">Investment</span>
+<span class="text-slate-400 text-[11px]">85</span>
+</button>
+</div>
+<!-- Search, Sector & Sorting Bar -->
+<div class="bg-white p-2.5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
+<div class="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl flex-1">
+<span class="material-symbols-outlined text-[18px] text-slate-400">search</span>
+<input class="bg-transparent border-0 outline-none text-slate-800 text-xs sm:text-sm w-full placeholder:text-slate-400 focus:ring-0" placeholder="Search keywords, industries, reciprocal offers, or deal IDs..." type="text">
+<kbd class="hidden sm:inline-block font-mono text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded text-slate-400">⌘K</kbd>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<div class="relative">
+<select class="appearance-none bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium pl-3 pr-8 py-2 rounded-xl border border-slate-200/60 outline-none cursor-pointer transition-colors">
+<option>Industry: All Sectors</option>
+<option>SaaS &amp; Enterprise Cloud</option>
+<option>Supply Chain &amp; Logistics</option>
+<option>Fintech &amp; Capital Markets</option>
+<option>Healthcare &amp; AI</option>
+</select>
+<span class="material-symbols-outlined text-[16px] text-slate-400 absolute right-2.5 top-2.5 pointer-events-none">expand_more</span>
+</div>
+<div class="relative">
+<select class="appearance-none bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium pl-3 pr-8 py-2 rounded-xl border border-slate-200/60 outline-none cursor-pointer transition-colors">
+<option>Sort: Newest First</option>
+<option>Sort: Parity Score</option>
+<option>Sort: Expiry Soonest</option>
+</select>
+<span class="material-symbols-outlined text-[16px] text-slate-400 absolute right-2.5 top-2.5 pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Columns: Feed (8 cols) & Sidebar (4 cols) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- Opportunity Feed Column -->
+<div class="lg:col-span-8 flex flex-col gap-4"><!-- Feed Bulk Controls & Status Header -->
+<div class="flex items-center justify-between px-1 py-0.5 text-xs text-[#64748B]">
+  <div class="flex items-center gap-2">
+    <span class="font-medium text-[#171F2C]">Commercial Listings</span>
+    <span class="text-slate-300">•</span>
+    <span class="">Click any card header to expand or collapse details</span>
+  </div>
+  <div class="flex items-center gap-2">
+    
+  </div>
+</div>
+
+<!-- Listing 1: RY-0098 (Initial open preview for owner listing) -->
+<article class="listing-card bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(15,23,42,0.04)] overflow-hidden transition-all hover:border-slate-300" data-expanded="true" id="listing-ry-0098">
+  <!-- Collapsible Header Button -->
+  <div onclick="toggleListing('listing-ry-0098')" class="w-full p-5 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3.5 hover:bg-slate-50/50 transition-colors select-none text-left">
+    <div class="flex items-start md:items-center gap-3.5 min-w-0 flex-1">
+      <div class="w-9 h-9 rounded-xl bg-[#171F2C] text-white text-sm font-semibold flex items-center justify-center shrink-0">
+        A
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <span class="font-mono text-xs font-semibold px-2 py-0.5 rounded-lg bg-slate-100 text-[#171F2C] border border-slate-200/75">RY-0098</span>
+          <span class="text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600">Distribution &amp; Reseller</span>
+          <span class="text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-lg bg-[#171F2C] text-white flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            Your Listing
+          </span>
+        </div>
+        <h2 class="font-display font-semibold text-[15px] sm:text-[16px] text-[#171F2C] truncate tracking-tight">
+          European SOC-2 Compliant Enterprise Agent Platform &amp; Cross-Referral Pact
+        </h2>
+        <div class="flex items-center gap-2 text-xs text-[#64748B] mt-0.5 truncate">
+          <span class="font-medium text-[#171F2C]">Apex Logistics AG</span>
+          <span class="inline-flex items-center gap-0.5 text-emerald-700 text-[10px] font-medium">
+            <span class="material-symbols-outlined text-[12px]">verified</span> Verified
+          </span>
+          <span class="text-slate-300">•</span>
+          <span class="">Chicago, IL &amp; Zurich</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center justify-between md:justify-end gap-4 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+      <div class="flex items-center gap-3 text-right">
+        <div class="flex flex-col items-end">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Parity Match</span>
+          <span class="font-mono text-xs font-bold text-[#171F2C]">96% <span class="font-normal text-[11px] text-[#94A3B8]">(28)</span></span>
+        </div>
+        <div class="hidden sm:flex flex-col items-end">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Expires</span>
+          <span class="text-xs text-slate-600 font-medium">30 days</span>
+        </div>
+      </div>
+      <div class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200/80 border border-slate-200/60 flex items-center justify-center text-slate-700 transition-transform duration-300 shrink-0 chevron-indicator rotate-180">
+        <span class="material-symbols-outlined text-[18px]">expand_more</span>
+      </div>
+    </div>
+  </div>
+  <!-- Collapsible Details Body -->
+  <div class="collapsible-body border-t border-slate-100 p-6 flex flex-col gap-4 bg-white">
+    <!-- Counterparty Detail Strip -->
+    <div class="flex items-center justify-between gap-3 p-3 bg-slate-50/70 border border-slate-100 rounded-xl">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-[#171F2C] text-white text-xs font-semibold flex items-center justify-center">
+          A
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-semibold text-xs sm:text-sm text-[#171F2C]">Apex Logistics AG</span>
+            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-medium">
+              <span class="material-symbols-outlined text-[12px]">verified</span> Verified
+            </span>
+            <span class="text-slate-300">•</span>
+            <span class="text-xs text-[#64748B]">Blinded Mode Active</span>
+          </div>
+          <div class="text-xs text-[#64748B]">Chicago, IL &amp; Zurich • Supply Chain &amp; Logistics Infrastructure</div>
+        </div>
+      </div>
+      <div class="text-right text-xs text-[#64748B]">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8] block">Turnaround</span>
+        <span class="font-medium text-[#171F2C]">&lt; 2 hours</span>
+      </div>
+    </div>
+    <!-- Description -->
+    <div class="flex flex-col gap-1.5">
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">Opportunity Overview &amp; Requirements</span>
+      <p class="text-sm text-[#475569] leading-relaxed">
+        Seeking European SOC-2 certified systems integrators, enterprise AI distribution partners, and B2B cloud infrastructure providers for bilateral cross-referral routing and mid-market co-selling in DACH and UK.
+      </p>
+    </div>
+    <!-- Bilateral Value Proposition -->
+    <div class="bg-slate-50/70 border border-slate-100 rounded-xl p-4 flex flex-col gap-1.5">
+      <div class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#171F2C]">
+        <span class="material-symbols-outlined text-[16px] text-slate-500">swap_horiz</span>
+        <span class="">What We Offer in Bilateral Exchange</span>
+      </div>
+      <p class="text-xs sm:text-sm text-[#475569] leading-relaxed">
+        Direct reciprocal intro: 10 qualified enterprise intros / mo, 25% recurring rev-share, and mutual co-selling assistance under sovereign non-circumvention covenants.
+      </p>
+    </div>
+    <!-- Bottom Actions & Meta -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1">
+      <div class="flex items-center gap-3 text-xs text-[#64748B]">
+        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">visibility</span> 4 views</span>
+        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">send</span> 0 pitches received</span>
+        <span class="text-slate-300">•</span>
+        <span class="text-[11px] font-medium text-slate-500 uppercase">Stage 4 Reveal</span>
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <button class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[#171F2C] text-xs font-semibold transition-colors flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[16px]">edit_note</span>
+          <span class="">Manage Listing</span>
+        </button>
+        <button class="px-3.5 py-2 rounded-xl bg-[#171F2C] hover:bg-[#2C374A] text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs">
+          <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+          <span class="">View Full Listing</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- Listing 2: RY-8842 (Synthetix AI) -->
+<article class="listing-card bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(15,23,42,0.04)] overflow-hidden transition-all hover:border-slate-300" data-expanded="false" id="listing-ry-8842">
+  <div onclick="toggleListing('listing-ry-8842')" class="w-full p-5 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3.5 hover:bg-slate-50/50 transition-colors select-none text-left">
+    <div class="flex items-start md:items-center gap-3.5 min-w-0 flex-1">
+      <div class="w-9 h-9 rounded-xl bg-slate-200 text-slate-800 text-sm font-semibold flex items-center justify-center shrink-0">
+        S
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <span class="font-mono text-xs font-semibold px-2 py-0.5 rounded-lg bg-slate-100 text-[#171F2C] border border-slate-200/75">RY-8842</span>
+          <span class="text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600">Distribution</span>
+          <span class="text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700">Urgent</span>
+        </div>
+        <h2 class="font-display font-semibold text-[15px] sm:text-[16px] text-[#171F2C] truncate tracking-tight">
+          European Distribution Partner Needed for SOC-2 Compliant Enterprise Agent Platform
+        </h2>
+        <div class="flex items-center gap-2 text-xs text-[#64748B] mt-0.5 truncate">
+          <span class="font-medium text-[#171F2C]">Synthetix AI</span>
+          <span class="inline-flex items-center gap-0.5 text-emerald-700 text-[10px] font-medium">
+            <span class="material-symbols-outlined text-[12px]">verified</span> Verified
+          </span>
+          <span class="text-slate-300">•</span>
+          <span class="">San Francisco, CA</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center justify-between md:justify-end gap-4 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+      <div class="flex items-center gap-3 text-right">
+        <div class="flex flex-col items-end">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Parity Score</span>
+          <span class="font-mono text-xs font-bold text-[#171F2C]">98%</span>
+        </div>
+        <div class="hidden sm:flex flex-col items-end">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Expires</span>
+          <span class="text-xs text-slate-600 font-medium">6 days</span>
+        </div>
+      </div>
+      <div class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200/80 border border-slate-200/60 flex items-center justify-center text-slate-700 transition-transform duration-300 shrink-0 chevron-indicator">
+        <span class="material-symbols-outlined text-[18px]">expand_more</span>
+      </div>
+    </div>
+  </div>
+  <!-- Collapsible Details Body -->
+  <div class="collapsible-body border-t border-slate-100 p-6 flex flex-col gap-4 bg-white hidden">
+    <div class="flex items-center justify-between gap-3 p-3 bg-slate-50/70 border border-slate-100 rounded-xl">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-800 text-xs font-semibold flex items-center justify-center">
+          S
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-semibold text-xs sm:text-sm text-[#171F2C]">Synthetix AI</span>
+            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-medium">
+              <span class="material-symbols-outlined text-[12px]">verified</span> Verified
+            </span>
+            <span class="text-slate-300">•</span>
+            <span class="text-xs text-[#64748B]">San Francisco, CA</span>
+          </div>
+          <div class="text-xs text-[#64748B]">AI Infrastructure &amp; Enterprise Foundation Models</div>
+        </div>
+      </div>
+      <div class="text-right text-xs text-[#64748B]">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8] block">Network Tier</span>
+        <span class="font-medium text-[#171F2C]">Enterprise AI</span>
+      </div>
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">Detailed Requirements</span>
+      <p class="text-sm text-[#475569] leading-relaxed">
+        Seeking established DACH and Benelux software distributors with active enterprise contracts in Tier-1 banking, pharmaceuticals, and manufacturing. Must maintain localized on-prem or hybrid data jurisdiction capabilities.
+      </p>
+    </div>
+    <div class="bg-slate-50/70 border border-slate-100 rounded-xl p-4 flex flex-col gap-1.5">
+      <div class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#171F2C]">
+        <span class="material-symbols-outlined text-[16px] text-slate-500">currency_exchange</span>
+        <span class="">What We Offer in Bilateral Exchange</span>
+      </div>
+      <p class="text-xs sm:text-sm text-[#475569] leading-relaxed">
+        Direct reseller commission of 25% recurring for contract life + co-marketing budget allocation of $15,000 per enterprise account closed. Immediate lead handoff in target territories.
+      </p>
+    </div>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1">
+      <div class="flex items-center gap-3 text-xs text-[#64748B]">
+        <span class="">18 saves</span>
+        <span class="">7 pitches submitted</span>
+        <span class="text-slate-300">•</span>
+        <span class="text-[11px] font-medium text-slate-500 uppercase">Blinded Mask Active</span>
+      </div>
+      <button class="px-4 py-2 rounded-xl bg-[#171F2C] hover:bg-[#2C374A] text-white text-xs font-semibold transition-colors flex items-center gap-1.5 self-end sm:self-center shadow-xs cursor-pointer">
+        <span class="">Express Interest</span>
+        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+      </button>
+    </div>
+  </div>
+</article>
+
+<!-- Listing 3: RY-0089 (Apex Logistics Group) -->
+<article class="listing-card bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(15,23,42,0.04)] overflow-hidden transition-all hover:border-slate-300" data-expanded="false" id="listing-ry-0089">
+  <div onclick="toggleListing('listing-ry-0089')" class="w-full p-5 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3.5 hover:bg-slate-50/50 transition-colors select-none text-left">
+    <div class="flex items-start md:items-center gap-3.5 min-w-0 flex-1">
+      <div class="w-9 h-9 rounded-xl bg-slate-200 text-slate-800 text-sm font-semibold flex items-center justify-center shrink-0">
+        A
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <span class="font-mono text-xs font-semibold px-2 py-0.5 rounded-lg bg-slate-100 text-[#171F2C] border border-slate-200/75">RY-0089</span>
+          <span class="text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600">Referral</span>
+          <span class="text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700">Featured</span>
+        </div>
+        <h2 class="font-display font-semibold text-[15px] sm:text-[16px] text-[#171F2C] truncate tracking-tight">
+          Cross-Referral Pact: Mid-Market Salesforce Implementation for HubSpot Migration Agencies
+        </h2>
+        <div class="flex items-center gap-2 text-xs text-[#64748B] mt-0.5 truncate">
+          <span class="font-medium text-[#171F2C]">Apex Logistics Group</span>
+          <span class="inline-flex items-center gap-0.5 text-emerald-700 text-[10px] font-medium">
+            <span class="material-symbols-outlined text-[12px]">verified</span> Verified
+          </span>
+          <span class="text-slate-300">•</span>
+          <span class="">Chicago, IL</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center justify-between md:justify-end gap-4 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+      <div class="flex items-center gap-3 text-right">
+        <div class="flex flex-col items-end">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Parity Score</span>
+          <span class="font-mono text-xs font-bold text-[#171F2C]">95%</span>
+        </div>
+        <div class="hidden sm:flex flex-col items-end">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Expires</span>
+          <span class="text-xs text-slate-600 font-medium">11 days</span>
+        </div>
+      </div>
+      <div class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200/80 border border-slate-200/60 flex items-center justify-center text-slate-700 transition-transform duration-300 shrink-0 chevron-indicator">
+        <span class="material-symbols-outlined text-[18px]">expand_more</span>
+      </div>
+    </div>
+  </div>
+  <!-- Collapsible Details Body -->
+  <div class="collapsible-body border-t border-slate-100 p-6 flex flex-col gap-4 bg-white hidden">
+    <div class="flex items-center justify-between gap-3 p-3 bg-slate-50/70 border border-slate-100 rounded-xl">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-800 text-xs font-semibold flex items-center justify-center">
+          A
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-semibold text-xs sm:text-sm text-[#171F2C]">Apex Logistics Group</span>
+            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-medium">
+              <span class="material-symbols-outlined text-[12px]">verified</span> Verified
+            </span>
+            <span class="text-slate-300">•</span>
+            <span class="text-xs text-[#64748B]">Chicago, IL</span>
+          </div>
+          <div class="text-xs text-[#64748B]">Enterprise CRM Implementation &amp; Architecture</div>
+        </div>
+      </div>
+      <div class="text-right text-xs text-[#64748B]">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8] block">Deal Category</span>
+        <span class="font-medium text-[#171F2C]">Enterprise CPQ</span>
+      </div>
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">Opportunity Thesis</span>
+      <p class="text-sm text-[#475569] leading-relaxed">
+        We exclusively handle enterprise-grade Salesforce migrations and custom CPQ deployments. We consistently encounter inbound inquiries from SMB and mid-market accounts seeking pure-play HubSpot setups that fall below our engagement minimums.
+      </p>
+    </div>
+    <div class="bg-slate-50/70 border border-slate-100 rounded-xl p-4 flex flex-col gap-1.5">
+      <div class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#171F2C]">
+        <span class="material-symbols-outlined text-[16px] text-slate-500">swap_horiz</span>
+        <span class="">What We Offer in Bilateral Exchange</span>
+      </div>
+      <p class="text-xs sm:text-sm text-[#475569] leading-relaxed">
+        Direct reciprocal routing of 4–6 mid-market marketing automation setups per month ($45k average contract value) in exchange for exclusive Salesforce CPQ handoffs.
+      </p>
+    </div>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1">
+      <div class="flex items-center gap-3 text-xs text-[#64748B]">
+        <span class="">32 saves</span>
+        <span class="">12 pitches submitted</span>
+        <span class="text-slate-300">•</span>
+        <span class="text-[11px] font-medium text-slate-500 uppercase">Direct Escrow Terms</span>
+      </div>
+      <button class="px-4 py-2 rounded-xl bg-[#171F2C] hover:bg-[#2C374A] text-white text-xs font-semibold transition-colors flex items-center gap-1.5 self-end sm:self-center shadow-xs cursor-pointer">
+        <span class="">Express Interest</span>
+        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+      </button>
+    </div>
+  </div>
+</article>
+
+<!-- Listing 4: RY-0105 (Anonymous Verified Enterprise) -->
+<article class="listing-card bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(15,23,42,0.04)] overflow-hidden transition-all hover:border-slate-300" data-expanded="false" id="listing-ry-0105">
+  <div onclick="toggleListing('listing-ry-0105')" class="w-full p-5 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3.5 hover:bg-slate-50/50 transition-colors select-none text-left">
+    <div class="flex items-start md:items-center gap-3.5 min-w-0 flex-1">
+      <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-[18px]">lock</span>
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <span class="font-mono text-xs font-semibold px-2 py-0.5 rounded-lg bg-slate-100 text-[#171F2C] border border-slate-200/75">RY-0105</span>
+          <span class="text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600">Partnership</span>
+          <span class="text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700">Closing Soon</span>
+        </div>
+        <h2 class="font-display font-semibold text-[15px] sm:text-[16px] text-[#171F2C] truncate tracking-tight">
+          Strategic Co-Selling: HIPAA-Ready Healthcare Data Lake with B2B Telehealth Vendors
+        </h2>
+        <div class="flex items-center gap-2 text-xs text-[#64748B] mt-0.5 truncate">
+          <span class="font-medium text-[#171F2C]">Anonymous Verified Enterprise</span>
+          <span class="inline-flex items-center gap-0.5 text-emerald-700 text-[10px] font-medium">
+            <span class="material-symbols-outlined text-[12px]">verified</span> Verified
+          </span>
+          <span class="text-slate-300">•</span>
+          <span class="">Series B ($28M ARR)</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center justify-between md:justify-end gap-4 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+      <div class="flex items-center gap-3 text-right">
+        <div class="flex flex-col items-end">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Parity Score</span>
+          <span class="font-mono text-xs font-bold text-[#171F2C]">94%</span>
+        </div>
+        <div class="hidden sm:flex flex-col items-end">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Expires</span>
+          <span class="text-xs text-slate-600 font-medium">48 hours</span>
+        </div>
+      </div>
+      <div class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200/80 border border-slate-200/60 flex items-center justify-center text-slate-700 transition-transform duration-300 shrink-0 chevron-indicator">
+        <span class="material-symbols-outlined text-[18px]">expand_more</span>
+      </div>
+    </div>
+  </div>
+  <!-- Collapsible Details Body -->
+  <div class="collapsible-body border-t border-slate-100 p-6 flex flex-col gap-4 bg-white hidden">
+    <div class="flex items-center justify-between gap-3 p-3 bg-slate-50/70 border border-slate-100 rounded-xl">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[18px]">lock</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-semibold text-xs sm:text-sm text-[#171F2C]">Anonymous Verified Enterprise</span>
+            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-medium">
+              <span class="material-symbols-outlined text-[12px]">verified</span> Verified
+            </span>
+          </div>
+          <div class="text-xs text-[#64748B]">Series B ($28M ARR) • Healthcare Cloud Data Infrastructure</div>
+        </div>
+      </div>
+      <div class="text-right text-xs text-[#64748B]">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8] block">Status</span>
+        <span class="font-medium text-emerald-700">Stage 2 Blinded</span>
+      </div>
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">Opportunity Thesis</span>
+      <p class="text-sm text-[#475569] leading-relaxed">
+        Seeking certified telehealth applications, EHR integrators, and clinical analytics platforms seeking integrated data storage solutions. Opportunity to co-bid on multi-hospital system RFPs across 14 state networks.
+      </p>
+    </div>
+    <div class="bg-slate-50/70 border border-slate-100 rounded-xl p-4 flex flex-col gap-1.5">
+      <div class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#171F2C]">
+        <span class="material-symbols-outlined text-[16px] text-slate-500">swap_horiz</span>
+        <span class="">What We Offer in Bilateral Exchange</span>
+      </div>
+      <p class="text-xs sm:text-sm text-[#475569] leading-relaxed">
+        Direct vendor bundle pricing, shared security audit underwriting ($60k cost saved), and mutual non-compete distribution guarantee.
+      </p>
+    </div>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1">
+      <div class="flex items-center gap-3 text-xs text-[#64748B]">
+        <span class="">41 saves</span>
+        <span class="">19 pitches submitted</span>
+        <span class="text-slate-300">•</span>
+        <span class="text-[11px] font-medium text-slate-500 uppercase">Blinded Review</span>
+      </div>
+      <button class="px-4 py-2 rounded-xl bg-[#171F2C] hover:bg-[#2C374A] text-white text-xs font-semibold transition-colors flex items-center gap-1.5 self-end sm:self-center shadow-xs cursor-pointer">
+        <span class="">Express Interest</span>
+        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+      </button>
+    </div>
+  </div>
+</article>
+
+<!-- Minimalist Pagination -->
+<div class="flex items-center justify-between py-3 px-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+  <span class="text-xs text-[#64748B]">Showing 1–4 of 1,483 commercial listings</span>
+  <div class="flex items-center gap-1.5 text-xs">
+    <button class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-400 cursor-not-allowed" disabled="">Previous</button>
+    <button class="px-3 py-1.5 rounded-lg bg-[#171F2C] text-white font-medium">1</button>
+    <button class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium transition-colors cursor-pointer">2</button>
+    <button class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium transition-colors cursor-pointer">3</button>
+    <span class="text-slate-400 px-1">...</span>
+    <button class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium transition-colors cursor-pointer">149</button>
+    <button class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium transition-colors cursor-pointer">Next</button>
+  </div>
+</div>
+
+<script class="">
+function toggleListing(cardId) {
+  var card = document.getElementById(cardId);
+  if (!card) return;
+  var body = card.querySelector('.collapsible-body');
+  var chevron = card.querySelector('.chevron-indicator');
+  var isExpanded = card.getAttribute('data-expanded') === 'true';
+
+  if (isExpanded) {
+    body.classList.add('hidden');
+    card.setAttribute('data-expanded', 'false');
+    chevron.classList.remove('rotate-180');
+  } else {
+    body.classList.remove('hidden');
+    card.setAttribute('data-expanded', 'true');
+    chevron.classList.add('rotate-180');
+  }
+  updateBulkButtonState();
+}
+
+function toggleAllListings() {
+  var cards = document.querySelectorAll('.listing-card');
+  var anyCollapsed = Array.from(cards).some(function(c) { return c.getAttribute('data-expanded') !== 'true'; });
+
+  cards.forEach(function(card) {
+    var body = card.querySelector('.collapsible-body');
+    var chevron = card.querySelector('.chevron-indicator');
+    if (anyCollapsed) {
+      body.classList.remove('hidden');
+      card.setAttribute('data-expanded', 'true');
+      chevron.classList.add('rotate-180');
+    } else {
+      body.classList.add('hidden');
+      card.setAttribute('data-expanded', 'false');
+      chevron.classList.remove('rotate-180');
+    }
+  });
+  updateBulkButtonState();
+}
+
+function updateBulkButtonState() {
+  var cards = document.querySelectorAll('.listing-card');
+  var allExpanded = Array.from(cards).every(function(c) { return c.getAttribute('data-expanded') === 'true'; });
+  var btnText = document.getElementById('bulk-toggle-text');
+  var btnIcon = document.getElementById('bulk-toggle-icon');
+  if (!btnText || !btnIcon) return;
+  if (allExpanded) {
+    btnText.textContent = 'Collapse All';
+    btnIcon.textContent = 'unfold_less';
+  } else {
+    btnText.textContent = 'Expand All';
+    btnIcon.textContent = 'unfold_more';
+  }
+}
+</script></div>
+<!-- Refined Right Sidebar -->
+<aside class="lg:col-span-4 flex flex-col gap-4">
+<!-- How The Relay Works -->
+<div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#171F2C] text-[20px]">shield</span>
+<h3 class="font-display font-semibold text-base text-[#171F2C]">How The Relay Works</h3>
+</div>
+<p class="text-xs text-[#64748B] leading-relaxed">
+              Every transaction adheres strictly to Sovereign Reciprocal Architecture to ensure equal leverage and total confidentiality.
+            </p>
+<div class="flex flex-col gap-3.5 pt-1">
+<div class="flex items-start gap-3">
+<span class="w-6 h-6 rounded-lg bg-slate-100 text-[#171F2C] font-mono text-xs font-semibold flex items-center justify-center shrink-0 border border-slate-200/60">1</span>
+<div>
+<span class="text-xs font-semibold text-[#171F2C]">Blinded Discovery</span>
+<p class="text-xs text-[#64748B] mt-0.5 leading-relaxed">Listings display commercial terms and verified revenue tier without leaking corporate identity.</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<span class="w-6 h-6 rounded-lg bg-slate-100 text-[#171F2C] font-mono text-xs font-semibold flex items-center justify-center shrink-0 border border-slate-200/60">2</span>
+<div>
+<span class="text-xs font-semibold text-[#171F2C]">Negotiate Terms</span>
+<p class="text-xs text-[#64748B] mt-0.5 leading-relaxed">Submit reciprocal terms through blinded channels. Parity scores quantify bilateral commitment balance.</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<span class="w-6 h-6 rounded-lg bg-slate-100 text-[#171F2C] font-mono text-xs font-semibold flex items-center justify-center shrink-0 border border-slate-200/60">3</span>
+<div>
+<span class="text-xs font-semibold text-[#171F2C]">Contact Unlock on Mutual Agreement</span>
+<p class="text-xs text-[#64748B] mt-0.5 leading-relaxed">Direct sovereign executive contacts and deal rooms reveal only after mutual bilateral handshake.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Need a Custom Partner -->
+<div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Direct Procurement</span>
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+</div>
+<h3 class="font-display font-semibold text-base text-[#171F2C]">Need a Custom Partner?</h3>
+<p class="text-xs text-[#64748B] leading-relaxed">
+              Broadcast a bespoke request to our private syndicate network of 3,920+ verified B2B enterprises.
+            </p>
+<button class="mt-2 w-full py-2.5 rounded-xl bg-[#171F2C] hover:bg-[#2C374A] text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-xs">
+<span class="">Post Blinded Request</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<!-- Recent Handshakes Live Stream -->
+<div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-700 text-[18px]">handshake</span>
+<span class="font-display font-semibold text-sm text-[#171F2C]">Recent Handshakes</span>
+</div>
+<span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Live Feed</span>
+</div>
+<div class="flex flex-col gap-2.5">
+<!-- Item 1 -->
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-1">
+<div class="flex items-center justify-between text-xs">
+<span class="font-mono text-[11px] font-semibold text-[#171F2C]">RY-0012</span>
+<span class="text-[#94A3B8] text-[11px]">4m ago</span>
+</div>
+<span class="text-xs font-semibold text-[#171F2C]">Handshake Sealed</span>
+<p class="text-xs text-[#64748B]">Payment Gateway ↔ ERP Migration Firm</p>
+<div class="flex items-center gap-1 text-[11px] text-emerald-700 font-medium mt-0.5">
+<span class="material-symbols-outlined text-[13px]">lock_open</span>
+<span class="">Stage 4 Contact Revealed</span>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-1">
+<div class="flex items-center justify-between text-xs">
+<span class="font-mono text-[11px] font-semibold text-[#171F2C]">RY-0188</span>
+<span class="text-[#94A3B8] text-[11px]">21m ago</span>
+</div>
+<span class="text-xs font-semibold text-[#171F2C]">Pitch Accepted</span>
+<p class="text-xs text-[#64748B]">Autonomous Drone Fleet ↔ Defense Contractor</p>
+<div class="flex items-center gap-1 text-[11px] text-slate-500 font-medium mt-0.5">
+<span class="material-symbols-outlined text-[13px]">history_edu</span>
+<span class="">Terms in Escrow Review</span>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-1">
+<div class="flex items-center justify-between text-xs">
+<span class="font-mono text-[11px] font-semibold text-[#171F2C]">RY-0204</span>
+<span class="text-[#94A3B8] text-[11px]">54m ago</span>
+</div>
+<span class="text-xs font-semibold text-[#171F2C]">Handshake Sealed</span>
+<p class="text-xs text-[#64748B]">B2B Telehealth ↔ HIPAA Cloud Provider</p>
+<div class="flex items-center gap-1 text-[11px] text-emerald-700 font-medium mt-0.5">
+<span class="material-symbols-outlined text-[13px]">lock_open</span>
+<span class="">Stage 4 Contact Revealed</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Enforceable Covenants Notice -->
+<div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-start gap-3">
+<span class="material-symbols-outlined text-slate-600 text-[18px] shrink-0 mt-0.5">gavel</span>
+<div class="flex flex-col gap-0.5">
+<span class="text-xs font-semibold text-[#171F2C]">Enforceable Covenants</span>
+<p class="text-xs text-[#64748B] leading-relaxed">
+                All member participants are legally bound by reciprocal non-circumvention clauses prior to confidential disclosure.
+              </p>
 </div>
 </div>
 </aside>
 </div>
+</div>
 </main>
-<!-- Clean, Minimal Footer -->
-<footer class="w-full bg-white border-t border-[#E2E8F0] mt-12">
-<div class="max-w-[1400px] mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#64748B]">
+<!-- Clean Institutional Footer -->
+<footer class="w-full bg-white border-t border-slate-200/80 mt-12">
+<div class="max-w-[1600px] mx-auto px-6 sm:px-8 py-10">
+<div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-slate-100">
 <div class="flex items-center gap-3">
-<div class="w-6 h-6 rounded bg-[#000000] text-white flex items-center justify-center font-bold text-xs">R</div>
-<span class="font-semibold text-[#000000]">The Relay</span>
-<span class="text-[#CBD5E1]">|</span>
-<span>B2B Reciprocal Exchange Architecture</span>
+<div class="w-7 h-7 rounded-lg bg-[#171F2C] flex items-center justify-center text-white text-xs font-bold">
+<span class="material-symbols-outlined text-[16px]">swap_horiz</span>
 </div>
-<div class="flex items-center gap-6">
-<a class="hover:text-[#000000] transition-colors" href="#">Opportunity Board</a>
-<a class="hover:text-[#000000] transition-colors" href="#">Network Directory</a>
-<a class="hover:text-[#000000] transition-colors" href="#">Exchange Protocol</a>
-<a class="hover:text-[#000000] transition-colors" href="#">Privacy Framework</a>
+<span class="font-display font-bold text-sm text-[#171F2C]">The Relay</span>
+<span class="text-xs text-[#94A3B8] ml-2">B2B Reciprocal Exchange Architecture</span>
 </div>
-<div class="text-[#94A3B8]">
-        Privacy Guaranteed • Bilateral Release Only
-      </div>
+<div class="flex flex-wrap items-center gap-6 text-xs text-[#64748B]">
+<a class="hover:text-[#171F2C] transition-colors" href="#">Opportunity Board</a>
+<a class="hover:text-[#171F2C] transition-colors" href="#">Directory</a>
+<a class="hover:text-[#171F2C] transition-colors" href="#">Exchange Protocol</a>
+<a class="hover:text-[#171F2C] transition-colors" href="#">Privacy Framework</a>
+</div>
+</div>
+<div class="flex flex-col md:flex-row items-center justify-between gap-3 pt-6 text-xs text-[#94A3B8]">
+<p class="">Privacy by Default • Bilateral Contact Release in Stage 4 • Verified Enterprise Identity</p>
+<div class="flex items-center gap-2 font-mono text-[11px]">
+<span class="">SECURED PROTOCOL</span>
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span class="">STATUS 200 OK</span>
+</div>
+</div>
 </div>
 </footer>
-<!-- Clean Express Interest Modal Dialog -->
-<div aria-modal="true" class="fixed inset-0 z-50 hidden" id="expressInterestModal" role="dialog">
-<!-- Backdrop -->
-<div class="absolute inset-0 bg-[#000000]/50 backdrop-blur-xs transition-opacity" onclick="closeInterestModal()"></div>
-<!-- Modal Container -->
-<div class="relative min-h-screen flex items-center justify-center p-4">
-<div class="relative w-full max-w-xl bg-white border border-[#E2E8F0] rounded-xl shadow-xl overflow-hidden">
-<!-- Modal Top Bar -->
-<div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
-<div>
-<h3 class="font-['Plus_Jakarta_Sans'] font-bold text-base text-[#000000]" id="modalHeaderTitle">Express Commercial Interest</h3>
-<p class="text-xs text-[#64748B]">Stage 1: Blinded value proposition</p>
-</div>
-<button class="w-8 h-8 rounded-lg hover:bg-[#F8FAFC] text-[#64748B] hover:text-[#000000] flex items-center justify-center transition-colors" onclick="closeInterestModal()">
-<span class="material-symbols-outlined text-[18px]">close</span>
-</button>
-</div>
-<!-- Privacy Assurance Banner -->
-<div class="px-6 py-2.5 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center gap-2 text-xs text-[#64748B]">
-<span class="material-symbols-outlined text-[16px] text-[#000000]">lock</span>
-<span>Your corporate identity remains blinded until mutual Stage 3 agreement.</span>
-</div>
-<!-- Form Body -->
-<form class="p-6 space-y-4" id="interestForm" onsubmit="handleFormSubmit(event)">
-<!-- Deal Recap Box -->
-<div class="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg space-y-1 text-xs">
-<div class="flex items-center justify-between">
-<span class="font-['JetBrains_Mono'] font-medium text-[#000000]" id="modalListingCode">[RY-0042]</span>
-<span class="text-[#64748B]" id="modalTargetCompany">Target: Synthetix AI</span>
-</div>
-<div class="font-medium text-[#000000]" id="modalListingTitle">European Distribution Partner Needed</div>
-<div class="text-[#64748B]">They Offer: <span class="text-[#171F2C]" id="modalListingOffer">25% recurring margin</span></div>
-</div>
-<!-- Input: Reciprocal Offer -->
-<div class="space-y-1">
-<label class="block text-xs font-semibold text-[#000000]" for="proposedValue">
-              What do you offer in exchange? <span class="text-[#F97316]">*</span>
-</label>
-<textarea class="w-full text-xs md:text-sm p-3 bg-white border border-[#E2E8F0] rounded-lg focus:ring-1 focus:ring-[#000000] focus:border-[#000000] placeholder-[#94A3B8] resize-none" id="proposedValue" placeholder="Be specific: mutual client referrals, territory access, compute, engineering hours, or co-selling agreements..." required="" rows="3"></textarea>
-</div>
-<!-- Input: Capabilities -->
-<div class="space-y-1">
-<label class="block text-xs font-semibold text-[#000000]" for="synergyCapabilities">
-              Relevant Capability / Reach <span class="text-[#F97316]">*</span>
-</label>
-<input class="w-full h-10 px-3 text-xs md:text-sm bg-white border border-[#E2E8F0] rounded-lg focus:ring-1 focus:ring-[#000000] focus:border-[#000000] placeholder-[#94A3B8]" id="synergyCapabilities" placeholder="e.g. 15 Tier-1 Enterprise Banking clients in DACH, ISO27001 accredited" required="" type="text"/>
-</div>
-<!-- Bilateral Notice Checkbox -->
-<div class="flex items-start gap-2 pt-1">
-<input class="mt-0.5 rounded text-[#000000] focus:ring-0 cursor-pointer" id="bilateralConsent" required="" type="checkbox"/>
-<label class="text-xs text-[#64748B] cursor-pointer select-none" for="bilateralConsent">
-              I agree to The Relay Protocol. Direct corporate contacts are shared only after both parties accept commercial terms.
-            </label>
-</div>
-<!-- Modal Actions -->
-<div class="flex items-center justify-end gap-2 pt-3 border-t border-[#E2E8F0]">
-<button class="px-4 py-2 text-xs font-medium text-[#64748B] hover:text-[#000000] transition-colors" onclick="closeInterestModal()" type="button">
-              Cancel
-            </button>
-<button class="inline-flex items-center gap-1.5 bg-[#000000] hover:bg-[#171F2C] text-white text-xs md:text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-xs" type="submit">
-<span class="material-symbols-outlined text-[16px]">send</span>
-<span>Submit Interest Pitch</span>
-</button>
-</div>
-</form>
-</div>
-</div>
-</div>
-<!-- Minimal Toast -->
-<div class="fixed bottom-6 right-6 z-50 hidden bg-[#000000] text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 transition-all transform translate-y-2 text-xs" id="successToast">
-<span class="material-symbols-outlined text-[#059669] text-[20px]">check_circle</span>
-<div>
-<span class="font-semibold block">Interest Pitch Sent</span>
-<span class="text-[#94A3B8]">The partner has been notified. Check Exchanges for replies.</span>
-</div>
-</div>
-<!-- Interactive JavaScript -->
-<script>
-    function openInterestModal(code, company, title, offer) {
-      document.getElementById('modalListingCode').textContent = '[' + code + ']';
-      document.getElementById('modalTargetCompany').textContent = 'Target: ' + company;
-      document.getElementById('modalListingTitle').textContent = title;
-      document.getElementById('modalListingOffer').textContent = offer;
-      document.getElementById('modalHeaderTitle').textContent = 'Express Interest — ' + code;
-      
-      const modal = document.getElementById('expressInterestModal');
-      modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
 
-    function closeInterestModal() {
-      const modal = document.getElementById('expressInterestModal');
-      modal.classList.add('hidden');
-      document.body.style.overflow = '';
-    }
 
-    function handleFormSubmit(e) {
-      e.preventDefault();
-      closeInterestModal();
-      
-      const toast = document.getElementById('successToast');
-      toast.classList.remove('hidden');
-      toast.classList.remove('translate-y-2');
-      setTimeout(() => {
-        toast.classList.add('hidden');
-        toast.classList.add('translate-y-2');
-      }, 4000);
-
-      document.getElementById('interestForm').reset();
-    }
-
-    // Bookmark toggle interactivity
-    document.querySelectorAll('.bookmark-toggle').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const icon = this.querySelector('.material-symbols-outlined');
-        if (icon.textContent === 'bookmark_border') {
-          icon.textContent = 'bookmark';
-          icon.classList.add('text-[#000000]');
-        } else {
-          icon.textContent = 'bookmark_border';
-          icon.classList.remove('text-[#000000]');
-        }
-      });
-    });
-
-    // Category pills active state
-    document.querySelectorAll('.category-pill').forEach(pill => {
-      pill.addEventListener('click', function() {
-        document.querySelectorAll('.category-pill').forEach(p => {
-          p.classList.remove('bg-[#000000]', 'text-white');
-          p.classList.add('bg-white', 'text-[#64748B]', 'border', 'border-[#E2E8F0]');
-        });
-        this.classList.remove('bg-white', 'text-[#64748B]', 'border', 'border-[#E2E8F0]');
-        this.classList.add('bg-[#000000]', 'text-white');
-      });
-    });
-
-    // Simple Guide trigger
-    const guidedTourBtn = document.getElementById('guidedTourBtn');
-    if (guidedTourBtn) {
-      guidedTourBtn.addEventListener('click', () => {
-        alert("The Relay Bilateral Protocol:\n\n1. Browse high-intent listings.\n2. Submit a mutual value pitch (Stage 1).\n3. Reconcile terms inside the sandbox (Stage 2 & 3).\n4. Direct contacts unlock automatically once both agree (Stage 4).");
-      });
-    }
-  </script>
 </body></html>
 
 

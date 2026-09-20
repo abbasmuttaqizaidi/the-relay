@@ -5,19 +5,15 @@ import {
   ArrowLeft,
   ArrowRight,
   Briefcase,
-  CheckCircle2,
-  Clock,
-  HelpCircle,
-  Info,
   Loader2,
   MapPin,
-  Sparkles,
   Tag,
-  AlertTriangle,
+  AlertCircle,
   Eye,
   ShieldCheck,
-  Calendar,
   Globe,
+  Building2,
+  Zap,
 } from "lucide-react";
 import {
   Select,
@@ -25,9 +21,10 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { TooltipSimple } from "@/components/ui/tooltip";
+} from "@/design-system/select";
+import { Checkbox } from "@/design-system/checkbox";
+import { Input, Textarea } from "@/design-system/inputs";
+import { Button } from "@/design-system/button";
 import { createOpportunity } from "@/functions/createOpportunity";
 import { detectPostIntent } from "@/lib/offer-detector";
 import { OfferDetectionWarningDialog } from "./OfferDetectionWarningDialog";
@@ -63,23 +60,23 @@ const CATEGORIES: {
   },
   {
     value: "vendor",
-    label: "Vendor",
+    label: "Vendor Sourcing",
     description: "Scaling pipeline & service provider requirements",
   },
   {
     value: "hiring",
-    label: "Hiring",
-    description: "Recruitment, talent pipeline requests",
+    label: "Hiring & Talent",
+    description: "Recruitment, specialized engineering talent",
   },
   {
     value: "strategic_advice",
-    label: "Strategic Advice",
-    description: "Advisory, board positions, mentorship",
+    label: "Strategic Advisory",
+    description: "Board positions, industry advisory, mentorship",
   },
   {
     value: "investment",
     label: "Investment",
-    description: "Funding requests, capital raises",
+    description: "Syndicates, strategic capital, coinvestment",
   },
 ];
 
@@ -125,7 +122,7 @@ export function OpportunityFormFlow({
 }: OpportunityFormFlowProps) {
   const navigate = useNavigate();
 
-  // Unified Form State (Shared between Desktop & Mobile)
+  // Unified Form State
   const [title, setTitle] = useState(initialTitle);
   const [category, setCategory] = useState<OpportunityCategory>("partnership");
   const [industry, setIndustry] = useState<string>(business?.industry || "SaaS");
@@ -136,7 +133,7 @@ export function OpportunityFormFlow({
   const [hideCompanyName, setHideCompanyName] = useState(false);
   const [promote, setPromote] = useState(false);
 
-  // Mobile Step State (1: Start, 2: Context, 3: Details, 4: Review)
+  // Mobile Step State (1: Overview, 2: Scope & Context, 3: Terms & Privacy, 4: Review)
   const [mobileStep, setMobileStep] = useState<1 | 2 | 3 | 4>(1);
 
   // Submission & Warning State
@@ -269,407 +266,94 @@ export function OpportunityFormFlow({
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 font-sans">
       {/* Top Bar: Back Button & Context indicator */}
-      <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
-        <button
+      <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-4">
+        <Button
+          variant="ghost"
+          size="sm"
           type="button"
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
+          className="gap-1.5 font-mono text-[11px] uppercase tracking-[0.04em] text-[#64748B] hover:text-[#171F2C] px-2"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Change Post Type
-        </button>
-        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold">
-          Business Opportunity Brief
+          <ArrowLeft className="w-3.5 h-3.5 text-[#171F2C]" />
+          <span>Change Listing Type</span>
+        </Button>
+        <span className="text-[11px] font-mono uppercase tracking-[0.04em] text-[#64748B] font-semibold flex items-center gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#171F2C]" />
+          <span>Bilateral Opportunity Protocol</span>
         </span>
       </div>
 
       {/* Account / Approval Guard Notice if not approved */}
       {!isApproved && (
-        <div className="p-4 bg-amber-50/70 border border-amber-200/80 rounded-[2px] flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div className="space-y-1 text-xs text-amber-900 font-sans">
-            <span className="font-bold uppercase tracking-widest font-mono text-[10px] block">
-              Profile Approval Required
+        <div className="p-4 bg-[#FFFFFF] border border-[#171F2C] rounded-[4px] flex items-start gap-3.5">
+          <AlertCircle className="w-5 h-5 text-[#171F2C] shrink-0 mt-0.5" />
+          <div className="space-y-1 text-xs text-[#171F2C] font-sans">
+            <span className="font-semibold uppercase tracking-[0.04em] font-mono text-[11px] block">
+              Profile Verification Required
             </span>
-            <p className="text-amber-800 leading-relaxed font-sans text-xs">
+            <p className="text-[#64748B] leading-relaxed font-sans text-xs">
               {!isSignedIn
-                ? "You must sign in with an approved business profile to publish opportunities to the network."
-                : `Your business profile status is currently "${business?.status || "pending"}". Only approved operator profiles can publish live listings.`}
+                ? "You must sign in with an approved business profile to publish live opportunities to the bilateral network."
+                : `Your business profile status is currently "${business?.status || "pending"}". Only approved operators can publish live marketplace listings.`}
             </p>
           </div>
         </div>
       )}
 
       {/* =========================================================================
-          MOBILE-FIRST 4-STEP WIZARD (Visible on mobile < md)
+          DESKTOP 2-COLUMN VIEW: FORM (LEFT) + LIVE PREVIEW (RIGHT)
           ========================================================================= */}
-      <div className="block md:hidden space-y-5">
-        {/* Header */}
-        <div>
-          <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-slate-900">
-            Post Opportunity Brief
-          </h1>
-          <p className="text-slate-500 text-xs leading-relaxed font-sans mt-1">
-            Outline your requirements. Memos are vetted and distributed to verified operators.
-          </p>
-        </div>
-
-        {/* Progress Bar & Header */}
-        <div className="space-y-2 bg-slate-50 p-3.5 border border-slate-200 rounded-[2px]">
-          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold">
-            <span className="text-slate-500">Step {mobileStep} of 4</span>
-            <span className="text-slate-900">
-              {mobileStep === 1 && "Start with the opportunity"}
-              {mobileStep === 2 && "Add the context"}
-              {mobileStep === 3 && "Set the details"}
-              {mobileStep === 4 && "Review & submit"}
-            </span>
+      <div className="hidden md:grid grid-cols-12 gap-8 items-start">
+        {/* Form Column (Left 7 Cols) */}
+        <div className="col-span-7 space-y-6">
+          <div className="space-y-1.5">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-[#171F2C]">
+              Post Opportunity Brief
+            </h1>
+            <p className="text-[#64748B] text-xs sm:text-sm leading-relaxed font-sans">
+              Specify your commercial requirement. Opportunities are blinded by default to protect proprietary identity until bilateral consent is established.
+            </p>
           </div>
-          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-            <div
-              className="bg-slate-900 h-full transition-all duration-300 rounded-full"
-              style={{ width: `${(mobileStep / 4) * 100}%` }}
-            />
-          </div>
-        </div>
 
-        {/* STEP 1: Start with the opportunity */}
-        {mobileStep === 1 && (
-          <div className="bg-white border border-slate-200 rounded-[2px] p-5 space-y-4 shadow-xs">
-            <div className="space-y-1">
-              <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-slate-400" />
-                Opportunity Title *
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Looking for SEO Agency / Shopify Dev Shop"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary text-sm rounded-[2px] font-mono outline-hidden"
-              />
-              <span className="text-[9px] text-slate-400 font-mono block">
-                Clear summary of what you are looking for.
-              </span>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-                Exchange Category *
-              </label>
-              <Select value={category} onValueChange={(val) => setCategory(val as OpportunityCategory)}>
-                <SelectTrigger className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white text-sm rounded-[2px] font-mono">
-                  <SelectValue placeholder="Select Category" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {CATEGORIES.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
-                      {c.label} ({c.description})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 2: Add the context */}
-        {mobileStep === 2 && (
-          <div className="bg-white border border-slate-200 rounded-[2px] p-5 space-y-4 shadow-xs">
-            <div className="space-y-1">
-              <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-slate-400" />
-                Industry Type *
-              </label>
-              <Select value={industry} onValueChange={setIndustry}>
-                <SelectTrigger className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white text-sm rounded-[2px] font-mono">
-                  <SelectValue placeholder="Select Industry" />
-                </SelectTrigger>
-                <SelectContent className="bg-white max-h-60 overflow-y-auto">
-                  {INDUSTRIES.map((ind) => (
-                    <SelectItem key={ind} value={ind}>
-                      {ind}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-slate-400" />
-                  Brief Description *
+          <form onSubmit={handleInitiateSubmit} className="space-y-6">
+            {/* Section 1: Overview & Categorization */}
+            <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[4px] p-6 space-y-5">
+              <div className="border-b border-[#E2E8F0] pb-3 flex items-center justify-between">
+                <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.04em] text-[#171F2C] flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5 text-[#171F2C]" />
+                  01. Overview &amp; Type
                 </span>
-                <span className="text-[9px] text-slate-400 font-mono">
-                  {description.length} / 50 min
-                </span>
-              </label>
-              <textarea
-                rows={5}
-                maxLength={3000}
-                placeholder="Describe your request in detail. Provide background context, scope, timeline, and expectations (min 50 chars)."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-3 border border-border bg-slate-50 focus:bg-white text-sm rounded-[2px] font-mono resize-y outline-hidden"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Set the details */}
-        {mobileStep === 3 && (
-          <div className="bg-white border border-slate-200 rounded-[2px] p-5 space-y-4 shadow-xs">
-            <div className="space-y-1">
-              <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                Location Target (Optional)
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. India, USA, Global, Remote"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white text-sm rounded-[2px] font-mono outline-hidden"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                Expiry Period (Optional)
-              </label>
-              <Select value={expiryDays} onValueChange={setExpiryDays}>
-                <SelectTrigger className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white text-sm rounded-[2px] font-mono">
-                  <SelectValue placeholder="Select Expiry" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="30">30 Days</SelectItem>
-                  <SelectItem value="60">60 Days</SelectItem>
-                  <SelectItem value="90">90 Days</SelectItem>
-                  <SelectItem value="never">No Expiry</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1 pt-1">
-              <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-slate-400" />
-                What Can You Offer in Return? (Optional)
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Can introduce D2C brands / Recurring referrals"
-                value={offerText}
-                onChange={(e) => setOfferText(e.target.value)}
-                className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white text-sm rounded-[2px] font-mono outline-hidden"
-              />
-            </div>
-
-            <div className="pt-2 space-y-3 border-t border-slate-100">
-              <div className="flex items-start space-x-2.5">
-                <Checkbox
-                  id="mobile_hide_company"
-                  checked={hideCompanyName}
-                  onCheckedChange={(checked) => setHideCompanyName(!!checked)}
-                  disabled={promote}
-                  className="mt-0.5"
-                />
-                <label
-                  htmlFor="mobile_hide_company"
-                  className={`text-xs font-mono font-semibold uppercase tracking-wider cursor-pointer ${
-                    promote ? "text-slate-400 cursor-not-allowed" : "text-slate-700"
-                  }`}
-                >
-                  Post anonymously (Hide company name)
-                </label>
+                <span className="text-[11px] font-mono text-[#94A3B8] font-medium">Required</span>
               </div>
 
-              <div className="flex items-start space-x-2.5">
-                <Checkbox
-                  id="mobile_promote"
-                  checked={promote}
-                  onCheckedChange={(checked) => setPromote(!!checked)}
-                  disabled={hideCompanyName}
-                  className="mt-0.5"
-                />
-                <label
-                  htmlFor="mobile_promote"
-                  className={`text-xs font-mono font-semibold uppercase tracking-wider cursor-pointer ${
-                    hideCompanyName ? "text-slate-400 cursor-not-allowed" : "text-slate-700"
-                  }`}
-                >
-                  Promote listing across network
-                </label>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4: Review & submit */}
-        {mobileStep === 4 && (
-          <div className="bg-white border border-slate-200 rounded-[2px] p-5 space-y-5 shadow-xs">
-            <div className="border-b border-slate-100 pb-3">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold">
-                Summary Review
-              </span>
-              <h2 className="font-display text-lg font-bold uppercase text-slate-900 mt-1">
-                {title || "(No title provided)"}
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-              <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-[2px]">
-                <div className="text-[9px] uppercase text-slate-400 font-bold">Category</div>
-                <div className="text-slate-800 font-semibold uppercase mt-0.5">{category}</div>
-              </div>
-              <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-[2px]">
-                <div className="text-[9px] uppercase text-slate-400 font-bold">Industry</div>
-                <div className="text-slate-800 font-semibold mt-0.5">{industry}</div>
-              </div>
-              <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-[2px]">
-                <div className="text-[9px] uppercase text-slate-400 font-bold">Target Location</div>
-                <div className="text-slate-800 font-semibold mt-0.5">{location || "Global / Remote"}</div>
-              </div>
-              <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-[2px]">
-                <div className="text-[9px] uppercase text-slate-400 font-bold">Expiry</div>
-                <div className="text-slate-800 font-semibold mt-0.5">
-                  {expiryDays === "never" ? "No Expiry" : `${expiryDays} Days`}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono uppercase text-slate-400 font-bold block">
-                Description
-              </span>
-              <p className="p-3 bg-slate-50 border border-slate-200 rounded-[2px] text-xs text-slate-700 leading-relaxed whitespace-pre-wrap font-mono">
-                {description}
-              </p>
-            </div>
-
-            {offerText && (
-              <div className="space-y-1">
-                <span className="text-[10px] font-mono uppercase text-slate-400 font-bold block">
-                  Offered in Return
-                </span>
-                <p className="p-2.5 bg-slate-50 border border-slate-200 rounded-[2px] text-xs text-slate-700 font-mono">
-                  {offerText}
-                </p>
-              </div>
-            )}
-
-            <div className="flex items-center gap-4 text-xs font-mono text-slate-600 pt-1">
-              <span>{hideCompanyName ? "🔒 Confidential" : "🏢 Public Company Name"}</span>
-              <span>{promote ? "⭐ Promoted" : "Standard"}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Mobile Navigation Buttons */}
-        <div className="flex items-center justify-between pt-2">
-          <button
-            type="button"
-            onClick={handleMobilePrev}
-            className="border border-slate-300 text-slate-700 text-xs font-mono uppercase tracking-wider px-4 py-2.5 rounded-[2px] font-bold"
-          >
-            {mobileStep === 1 ? "Cancel" : "Back"}
-          </button>
-
-          {mobileStep < 4 ? (
-            <button
-              type="button"
-              onClick={handleMobileNext}
-              className="bg-slate-900 text-white text-xs font-mono uppercase tracking-wider px-6 py-2.5 rounded-[2px] font-bold flex items-center gap-1.5"
-            >
-              Continue
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setMobileStep(1)}
-                className="border border-slate-300 text-slate-700 text-xs font-mono uppercase tracking-wider px-4 py-2.5 rounded-[2px] font-bold"
-              >
-                Edit
-              </button>
-              <button
-                type="button"
-                onClick={() => handleInitiateSubmit()}
-                disabled={submitting || !isApproved}
-                className="bg-slate-900 text-white text-xs font-mono uppercase tracking-wider px-6 py-2.5 rounded-[2px] font-bold flex items-center gap-2 disabled:opacity-50"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit for Review"
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* =========================================================================
-          DESKTOP FULL WIDTH 2-COLUMN LAYOUT (Visible on desktop md+)
-          Covers full desktop width (max-w-7xl) with live preview on the right
-          ========================================================================= */}
-      <form onSubmit={handleInitiateSubmit} className="hidden md:block">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Main Form Fields (Col 7 / 8) */}
-          <div className="lg:col-span-7 xl:col-span-8 bg-white border border-slate-200/80 rounded-[2px] shadow-xs p-6 sm:p-8 space-y-6">
-            <div className="border-b border-slate-100 pb-4">
-              <h1 className="font-display text-2xl sm:text-3xl font-extrabold uppercase tracking-tight text-slate-900">
-                Post Opportunity Brief
-              </h1>
-              <p className="text-slate-500 text-xs md:text-[13px] leading-relaxed font-sans mt-1">
-                Outline your requirements. Memos are vetted and distributed to verified operator matches.
-              </p>
-            </div>
-
-            {/* Section 1: Core Opportunity */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                <span className="text-[9.5px] font-mono uppercase tracking-widest text-slate-400 font-bold">
-                  01. Core Opportunity
-                </span>
-              </div>
-
+              {/* Title */}
               <div className="space-y-1.5">
-                <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                  <Tag className="w-3.5 h-3.5 text-slate-400" />
+                <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C] block">
                   Opportunity Title *
-                  <TooltipSimple content="Write a short, clear summary of what you are looking for (e.g. 'Looking for SEO Agency').">
-                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer" />
-                  </TooltipSimple>
                 </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Looking for SEO Agency / Shopify Dev Shop"
+                <Input
+                  focusAccent="black"
+                  placeholder="e.g. Scaling enterprise pipeline: Seeking certified AWS DevOps co-seller"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary text-sm rounded-[2px] font-mono outline-hidden"
+                  required
                 />
+                <span className="text-[11px] text-[#64748B] font-sans block leading-tight">
+                  Concise summary of the situation or counterparty capability you need.
+                </span>
               </div>
 
+              {/* Category & Industry */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                    <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-                    Exchange Category *
+                  <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C] block">
+                    Category *
                   </label>
                   <Select value={category} onValueChange={(val) => setCategory(val as OpportunityCategory)}>
-                    <SelectTrigger className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white text-sm rounded-[2px] font-mono">
+                    <SelectTrigger focusAccent="black" className="w-full">
                       <SelectValue placeholder="Select Category" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white">
+                    <SelectContent>
                       {CATEGORIES.map((c) => (
                         <SelectItem key={c.value} value={c.value}>
                           {c.label} ({c.description})
@@ -680,15 +364,14 @@ export function OpportunityFormFlow({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                    <Tag className="w-3.5 h-3.5 text-slate-400" />
-                    Industry Type *
+                  <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C] block">
+                    Industry Domain *
                   </label>
                   <Select value={industry} onValueChange={setIndustry}>
-                    <SelectTrigger className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white text-sm rounded-[2px] font-mono">
+                    <SelectTrigger focusAccent="black" className="w-full">
                       <SelectValue placeholder="Select Industry" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white max-h-60 overflow-y-auto">
+                    <SelectContent>
                       {INDUSTRIES.map((ind) => (
                         <SelectItem key={ind} value={ind}>
                           {ind}
@@ -700,281 +383,496 @@ export function OpportunityFormFlow({
               </div>
             </div>
 
-            {/* Section 2: Context & Requirements */}
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                <span className="text-[9.5px] font-mono uppercase tracking-widest text-slate-400 font-bold">
-                  02. Context & Requirements
+            {/* Section 2: Scope & Requirements */}
+            <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[4px] p-6 space-y-5">
+              <div className="border-b border-[#E2E8F0] pb-3 flex items-center justify-between">
+                <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.04em] text-[#171F2C] flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-[#171F2C]" />
+                  02. Commercial Context &amp; Scope
                 </span>
+                <span className="text-[11px] font-mono text-[#94A3B8] font-medium">50–3000 chars</span>
               </div>
 
+              {/* Description */}
               <div className="space-y-1.5">
-                <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center justify-between">
-                  <span className="flex items-center gap-1.5">
-                    <Info className="w-3.5 h-3.5 text-slate-400" />
-                    Brief Description *
-                    <TooltipSimple content="Provide detailed context, scope, requirements, and target timeline for this growth request (50 to 3000 chars).">
-                      <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer" />
-                    </TooltipSimple>
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C]">
+                    Brief Specification *
+                  </label>
+                  <span
+                    className={`font-mono text-[11px] ${
+                      description.trim().length >= 50 ? "text-[#171F2C] font-semibold" : "text-[#94A3B8]"
+                    }`}
+                  >
+                    {description.trim().length} / 50 min
                   </span>
-                  <span className="text-[9px] text-slate-400 font-mono">
-                    {description.length} / 50 min chars
-                  </span>
-                </label>
-                <textarea
-                  required
-                  rows={5}
+                </div>
+                <Textarea
+                  focusAccent="black"
+                  rows={6}
                   maxLength={3000}
-                  placeholder="Describe your request in detail. Provide background context, scope of work, timeline, and expectations. Min 50 characters required."
+                  placeholder="Detail the background context, client requirements, commercial structure (e.g. rev share, fee split, referral terms), and ideal counterparty criteria..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full p-3 border border-border bg-slate-50 focus:bg-white focus:border-primary focus:ring-1 focus:ring-primary text-sm rounded-[2px] font-mono resize-y outline-hidden"
+                  required
                 />
+              </div>
+
+              {/* Seeking in Exchange */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C] block">
+                  Seeking in Exchange (Optional Reciprocity)
+                </label>
+                <Input
+                  focusAccent="black"
+                  placeholder="e.g. 20% ongoing revenue share on signed contract, or reciprocal enterprise lead exchange"
+                  value={offerText}
+                  onChange={(e) => setOfferText(e.target.value)}
+                />
+                <span className="text-[11px] text-[#64748B] font-sans block leading-tight">
+                  State what you are seeking or expecting from the counterparty in exchange.
+                </span>
               </div>
             </div>
 
-            {/* Section 3: Terms & Visibility */}
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                <span className="text-[9.5px] font-mono uppercase tracking-widest text-slate-400 font-bold">
-                  03. Terms & Visibility
+            {/* Section 3: Targeting, Expiry & Privacy */}
+            <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[4px] p-6 space-y-5">
+              <div className="border-b border-[#E2E8F0] pb-3 flex items-center justify-between">
+                <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.04em] text-[#171F2C] flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-[#171F2C]" />
+                  03. Parameters &amp; Discretion Settings
                 </span>
+                <span className="text-[11px] font-mono text-[#94A3B8] font-medium">Controls</span>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                    Location Target (Optional)
+                  <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C] block">
+                    Target Geography
                   </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. India, USA, Global, Remote"
+                  <Input
+                    focusAccent="black"
+                    placeholder="e.g. Global, North America, India, Remote"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white text-sm rounded-[2px] font-mono outline-hidden"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    Expiry Period (Optional)
+                  <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C] block">
+                    Listing Expiry
                   </label>
                   <Select value={expiryDays} onValueChange={setExpiryDays}>
-                    <SelectTrigger className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white text-sm rounded-[2px] font-mono">
+                    <SelectTrigger focusAccent="black" className="w-full">
                       <SelectValue placeholder="Select Expiry" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="30">30 Days</SelectItem>
+                    <SelectContent>
+                      <SelectItem value="15">15 Days</SelectItem>
+                      <SelectItem value="30">30 Days (Standard)</SelectItem>
                       <SelectItem value="60">60 Days</SelectItem>
                       <SelectItem value="90">90 Days</SelectItem>
-                      <SelectItem value="never">No Expiry</SelectItem>
+                      <SelectItem value="never">Never (Persistent)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[9.5px] font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-slate-400" />
-                  What Can You Offer in Return? (Optional)
-                  <TooltipSimple content="Explain what value, referral pipeline, or resources you can provide to the partner in return.">
-                    <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-slate-900 cursor-pointer" />
-                  </TooltipSimple>
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Can introduce D2C brands / Provide recurring referrals"
-                  value={offerText}
-                  onChange={(e) => setOfferText(e.target.value)}
-                  className="w-full h-11 px-3 border border-border bg-slate-50 focus:bg-white text-sm rounded-[2px] font-mono outline-hidden"
-                />
-              </div>
-
-              <div className="space-y-3 pt-2">
-                <div className="flex items-start space-x-2.5">
+              {/* Privacy Checkboxes */}
+              <div className="pt-3 border-t border-[#E2E8F0] space-y-3">
+                <label className="flex items-start gap-3 p-3.5 rounded-[4px] border border-[#E2E8F0] bg-[#F8FAFC] cursor-pointer hover:border-[#171F2C] transition-colors">
                   <Checkbox
-                    id="desktop_hide_company"
                     checked={hideCompanyName}
                     onCheckedChange={(checked) => setHideCompanyName(!!checked)}
-                    disabled={promote}
+                    accent="black"
                     className="mt-0.5"
                   />
-                  <label
-                    htmlFor="desktop_hide_company"
-                    className={`text-xs font-mono font-semibold uppercase tracking-wider cursor-pointer select-none ${
-                      promote ? "text-slate-400 cursor-not-allowed" : "text-slate-700"
-                    }`}
-                  >
-                    Post anonymously (Hide company name from public feed)
-                  </label>
-                </div>
-
-                <div
-                  className={`p-3.5 border rounded-[2px] transition-all flex items-start space-x-3 ${
-                    hideCompanyName
-                      ? "bg-slate-50 border-slate-200/60 opacity-60 cursor-not-allowed"
-                      : promote
-                        ? "bg-amber-50/50 border-amber-200"
-                        : "bg-white border-slate-200 hover:border-slate-300"
-                  }`}
-                >
-                  <Checkbox
-                    id="desktop_promote"
-                    checked={promote}
-                    onCheckedChange={(checked) => setPromote(!!checked)}
-                    disabled={hideCompanyName}
-                    className="mt-1 cursor-pointer"
-                  />
-                  <div className="space-y-0.5">
-                    <label
-                      htmlFor="desktop_promote"
-                      className={`text-xs font-mono font-bold uppercase tracking-wider cursor-pointer flex items-center gap-1.5 select-none ${
-                        hideCompanyName ? "text-slate-400 cursor-not-allowed" : "text-slate-900"
-                      }`}
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                      Promote this Opportunity across the Relay Network
-                    </label>
-                    <p className="text-slate-500 text-[11px] leading-relaxed">
-                      Featured placement at top of feed and included in email digests to verified operators.
+                  <div className="space-y-0.5 text-xs">
+                    <span className="font-semibold text-[#171F2C] font-mono text-[11px] block">
+                      Blinded Listing (Mask Business Name)
+                    </span>
+                    <p className="text-[#64748B] leading-relaxed font-sans text-xs">
+                      Displays your business as a verified anonymous peer until bilateral consent is exchanged.
                     </p>
                   </div>
-                </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3.5 rounded-[4px] border border-[#E2E8F0] bg-[#F8FAFC] cursor-pointer hover:border-[#171F2C] transition-colors">
+                  <Checkbox
+                    checked={promote}
+                    onCheckedChange={(checked) => {
+                      if (checked) setHideCompanyName(false);
+                      setPromote(!!checked);
+                    }}
+                    accent="black"
+                    className="mt-0.5"
+                  />
+                  <div className="space-y-0.5 text-xs">
+                    <span className="font-semibold text-[#171F2C] font-mono text-[11px] block flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-[#171F2C]" />
+                      Promote Listing Across Verified Feed
+                    </span>
+                    <p className="text-[#64748B] leading-relaxed font-sans text-xs">
+                      Pins listing to top of discovery board. Requires unmasked company identity.
+                    </p>
+                  </div>
+                </label>
               </div>
             </div>
 
-            {/* Desktop Submission Controls */}
-            <div className="pt-4 flex items-center justify-between border-t border-slate-100">
-              <button
+            {/* Action Bar */}
+            <div className="pt-2 flex items-center justify-between gap-4">
+              <Button
+                variant="outline"
                 type="button"
                 onClick={onBack}
-                className="text-xs font-mono uppercase tracking-widest text-slate-400 hover:text-slate-800 transition-colors"
+                disabled={submitting}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+
+              <Button
+                variant="authoritative"
                 type="submit"
-                disabled={submitting || !isApproved}
-                className="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest px-8 py-3 rounded-[2px] font-bold transition-all shadow-sm hover:shadow disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                disabled={submitting}
+                className="gap-2 px-6"
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Submitting Brief...
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <span>Publishing Opportunity...</span>
                   </>
                 ) : (
-                  "Submit Opportunity Brief"
+                  <>
+                    <span>Publish Opportunity</span>
+                    <ArrowRight className="w-4 h-4 text-white" />
+                  </>
                 )}
-              </button>
+              </Button>
+            </div>
+          </form>
+        </div>
+
+        {/* Live Preview Column (Right 5 Cols Sticky) */}
+        <div className="col-span-5 sticky top-20 space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.04em] text-[#64748B] flex items-center gap-1.5">
+              <Eye className="w-3.5 h-3.5 text-[#171F2C]" />
+              Live Marketplace Preview
+            </span>
+            <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] px-2 py-0.5 rounded-[4px] bg-[#FFFFFF] text-[#171F2C] border border-[#E2E8F0]">
+              {hideCompanyName ? "Masked Mode" : "Public Mode"}
+            </span>
+          </div>
+
+          {/* Live Preview Card */}
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[4px] p-5 space-y-4">
+            {/* Top Meta */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] px-2 py-0.5 rounded-[4px] bg-[#F8FAFC] text-[#171F2C] border border-[#E2E8F0]">
+                  {selectedCategoryObj?.label || "Partnership"}
+                </span>
+                <span className="text-[11px] font-mono font-medium text-[#64748B]">
+                  {industry}
+                </span>
+              </div>
+              <span className="text-[11px] font-mono text-[#94A3B8]">
+                Just Now
+              </span>
+            </div>
+
+            {/* Title */}
+            <div>
+              <h3 className="font-display text-base font-bold text-[#171F2C] line-clamp-2">
+                {title.trim() || "Your Opportunity Headline Will Appear Here..."}
+              </h3>
+            </div>
+
+            {/* Description Preview */}
+            <p className="text-xs text-[#64748B] line-clamp-3 leading-relaxed font-sans">
+              {description.trim() ||
+                "As you type your description, a live simulation of how operators will see your deal card in the bilateral marketplace is displayed here."}
+            </p>
+
+            {/* Seeking in exchange tag if set */}
+            {offerText.trim() && (
+              <div className="p-3 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] text-xs">
+                <span className="text-[10px] font-mono font-semibold uppercase tracking-[0.04em] text-[#94A3B8] block mb-0.5">
+                  Seeking in Exchange
+                </span>
+                <p className="text-[#171F2C] font-sans line-clamp-1">{offerText}</p>
+              </div>
+            )}
+
+            {/* Footer Row */}
+            <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between text-[11px] font-mono">
+              <div className="flex items-center gap-1.5 text-[#171F2C] font-semibold">
+                <Building2 className="w-3.5 h-3.5 text-[#171F2C]" />
+                <span>{hideCompanyName ? "Verified Operator" : business?.company_name || "Your Company"}</span>
+              </div>
+              <span className="text-[#64748B] flex items-center gap-1 text-[11px]">
+                <MapPin className="w-3.5 h-3.5 text-[#171F2C]" />
+                {location.trim() || "Global"}
+              </span>
             </div>
           </div>
 
-          {/* Right Column: Real-time Opportunity Feed Preview & Standards (Col 5 / 4) */}
-          <div className="lg:col-span-5 xl:col-span-4 space-y-5 sticky top-24">
-            {/* Live Card Preview */}
-            <div className="bg-white border border-slate-200/80 rounded-[2px] shadow-xs p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                <span className="flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-widest text-slate-400 font-bold">
-                  <Eye className="w-3.5 h-3.5 text-slate-500" />
-                  Live Feed Preview
-                </span>
-                <span className="font-mono text-[8.5px] uppercase tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-[2px]">
-                  #DRAFT
-                </span>
-              </div>
-
-              {/* Card visual mock identical to Relay board card */}
-              <div className={`p-4 border rounded-[2px] space-y-3 transition-all ${
-                promote
-                  ? "bg-slate-950 text-white border-slate-900 shadow-md"
-                  : "bg-white border-slate-200"
-              }`}>
-                {/* Header row */}
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-1.5">
-                    <span className={`px-2 py-0.5 text-[8px] font-mono font-bold uppercase tracking-wider rounded-[2px] ${
-                      promote ? "bg-orange-500/20 text-orange-400" : "bg-slate-100 text-slate-700"
-                    }`}>
-                      {selectedCategoryObj?.label || "Partnership"}
-                    </span>
-                    {promote && (
-                      <span className="px-2 py-0.5 text-[8px] font-mono font-bold uppercase tracking-wider rounded-[2px] bg-gradient-to-r from-orange-600 to-amber-500 text-white">
-                        Featured
-                      </span>
-                    )}
-                  </div>
-                  <span className={`font-mono text-[8.5px] uppercase tracking-widest flex items-center gap-1 ${
-                    promote ? "text-slate-400" : "text-slate-400"
-                  }`}>
-                    <Calendar className="w-3 h-3" />
-                    Today
-                  </span>
-                </div>
-
-                {/* Title */}
-                <div>
-                  <h4 className={`font-display text-sm sm:text-base font-bold leading-snug ${
-                    promote ? "text-white" : "text-slate-900"
-                  }`}>
-                    {title.trim() || "Your Opportunity Title will appear here..."}
-                  </h4>
-                </div>
-
-                {/* Description snippet */}
-                <div>
-                  <p className={`text-xs leading-relaxed line-clamp-3 font-sans ${
-                    promote ? "text-slate-300" : "text-slate-600"
-                  }`}>
-                    {description.trim() || "Detailed brief description, requirements, scope of work, and timelines will be displayed to matching operators in this section."}
-                  </p>
-                </div>
-
-                {/* Meta details footer */}
-                <div className={`pt-2.5 border-t font-mono text-[9px] flex items-center justify-between gap-2 flex-wrap ${
-                  promote ? "border-slate-800 text-slate-400" : "border-slate-100 text-slate-500"
-                }`}>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-slate-700">
-                      {hideCompanyName ? "🔒 Confidential" : (business?.company_name || "Your Company")}
-                    </span>
-                    <span>• {industry}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Globe className="w-3 h-3 text-slate-400" />
-                    <span>{location.trim() || "Remote / Global"}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Opportunity Protocol & Standards Card */}
-            <div className="bg-white border border-slate-200/80 rounded-[2px] shadow-xs p-5 space-y-3">
-              <div className="flex items-center gap-2 text-[9.5px] font-mono uppercase tracking-widest text-slate-500 font-bold border-b border-slate-100 pb-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                Relay Exchange Protocol
-              </div>
-              <ul className="space-y-2 text-xs font-sans text-slate-600 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <span className="text-emerald-600 font-bold">•</span>
-                  <span><strong>Collaboration focus:</strong> State what partner you seek, not just what you sell.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-emerald-600 font-bold">•</span>
-                  <span><strong>Double Opt-In:</strong> Both parties must agree before direct contact details are unlocked.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-emerald-600 font-bold">•</span>
-                  <span><strong>Manual review:</strong> Briefs are vetted by operators before being distributed to feed.</span>
-                </li>
-              </ul>
-            </div>
+          <div className="p-4 rounded-[4px] bg-[#FFFFFF] border border-[#E2E8F0] text-xs text-[#64748B] space-y-1.5">
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.04em] text-[#171F2C] block flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#171F2C]" />
+              CDOES Bilateral Shield
+            </span>
+            <p className="leading-relaxed font-sans">
+              Counterparties cannot message, pitch, or reveal identities without mutual consent through the 8-step protocol.
+            </p>
           </div>
         </div>
-      </form>
+      </div>
 
-      {/* Offer Detection Pre-Submission Warning Modal */}
+      {/* =========================================================================
+          MOBILE 4-STEP WIZARD (Visible on mobile < md)
+          ========================================================================= */}
+      <div className="block md:hidden space-y-5">
+        <div className="space-y-1">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-[#171F2C]">
+            Post Opportunity
+          </h1>
+          <p className="text-[#64748B] text-xs leading-relaxed font-sans">
+            Specify your requirements in 4 streamlined steps.
+          </p>
+        </div>
+
+        {/* Progress Bar & Header */}
+        <div className="space-y-2 bg-[#FFFFFF] p-4 border border-[#E2E8F0] rounded-[4px]">
+          <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-[0.04em] font-semibold">
+            <span className="text-[#171F2C]">Step {mobileStep} of 4</span>
+            <span className="text-[#64748B]">
+              {mobileStep === 1 && "Overview"}
+              {mobileStep === 2 && "Scope & Context"}
+              {mobileStep === 3 && "Settings & Privacy"}
+              {mobileStep === 4 && "Review & Submit"}
+            </span>
+          </div>
+          <div className="w-full bg-[#F8FAFC] h-1.5 rounded-[2px] overflow-hidden border border-[#E2E8F0]">
+            <div
+              className="bg-[#171F2C] h-full transition-all duration-200"
+              style={{ width: `${(mobileStep / 4) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* STEP 1: Overview */}
+        {mobileStep === 1 && (
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[4px] p-5 space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C] block">
+                Opportunity Title *
+              </label>
+              <Input
+                focusAccent="black"
+                placeholder="e.g. Scaling enterprise pipeline: Seeking certified AWS DevOps co-seller"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C] block">
+                Exchange Category *
+              </label>
+              <Select value={category} onValueChange={(val) => setCategory(val as OpportunityCategory)}>
+                <SelectTrigger focusAccent="black" className="w-full">
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.label} ({c.description})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 2: Scope & Context */}
+        {mobileStep === 2 && (
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[4px] p-5 space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C] block">
+                Industry Domain *
+              </label>
+              <Select value={industry} onValueChange={setIndustry}>
+                <SelectTrigger focusAccent="black" className="w-full">
+                  <SelectValue placeholder="Select Industry" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDUSTRIES.map((ind) => (
+                    <SelectItem key={ind} value={ind}>
+                      {ind}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C]">
+                  Brief Specification *
+                </label>
+                <span
+                  className={`font-mono text-[11px] ${
+                    description.trim().length >= 50 ? "text-[#171F2C] font-semibold" : "text-[#94A3B8]"
+                  }`}
+                >
+                  {description.trim().length} / 50 min
+                </span>
+              </div>
+              <Textarea
+                focusAccent="black"
+                rows={5}
+                maxLength={3000}
+                placeholder="Describe your request in detail. Provide background context, scope, timeline, and expectations (min 50 chars)."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: Settings & Privacy */}
+        {mobileStep === 3 && (
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[4px] p-5 space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C] block">
+                Target Geography
+              </label>
+              <Input
+                focusAccent="black"
+                placeholder="e.g. India, USA, Global, Remote"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#171F2C] block">
+                Listing Expiry
+              </label>
+              <Select value={expiryDays} onValueChange={setExpiryDays}>
+                <SelectTrigger focusAccent="black" className="w-full">
+                  <SelectValue placeholder="Select Expiry" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15">15 Days</SelectItem>
+                  <SelectItem value="30">30 Days</SelectItem>
+                  <SelectItem value="60">60 Days</SelectItem>
+                  <SelectItem value="never">Never</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="pt-2 border-t border-[#E2E8F0] space-y-2.5">
+              <label className="flex items-start gap-3 p-3 rounded-[4px] border border-[#E2E8F0] bg-[#F8FAFC]">
+                <Checkbox
+                  checked={hideCompanyName}
+                  onCheckedChange={(checked) => setHideCompanyName(!!checked)}
+                  accent="black"
+                  className="mt-0.5"
+                />
+                <div className="space-y-0.5 text-xs">
+                  <span className="font-semibold text-[#171F2C] font-mono text-[11px] block">
+                    Blinded Listing (Mask Name)
+                  </span>
+                  <p className="text-[#64748B] font-sans text-xs">
+                    Shield identity until bilateral mutual consent.
+                  </p>
+                </div>
+              </label>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 4: Review & Submit */}
+        {mobileStep === 4 && (
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[4px] p-5 space-y-4">
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.04em] text-[#64748B] block border-b border-[#E2E8F0] pb-2">
+              Summary Confirmation
+            </span>
+
+            <div className="space-y-2">
+              <h3 className="font-display text-base font-bold text-[#171F2C]">
+                {title}
+              </h3>
+              <p className="text-xs text-[#64748B] font-sans leading-relaxed">
+                {description}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-[#E2E8F0] text-[11px] font-mono">
+              <span className="px-2 py-0.5 rounded-[4px] bg-[#F8FAFC] text-[#171F2C] border border-[#E2E8F0]">
+                {selectedCategoryObj?.label}
+              </span>
+              <span className="px-2 py-0.5 rounded-[4px] bg-[#F8FAFC] text-[#171F2C] border border-[#E2E8F0]">
+                {industry}
+              </span>
+              <span className="px-2 py-0.5 rounded-[4px] bg-[#F8FAFC] text-[#171F2C] border border-[#E2E8F0]">
+                {location || "Global"}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Navigation Buttons */}
+        <div className="flex items-center justify-between gap-3 pt-2">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={handleMobilePrev}
+            className="flex-1"
+          >
+            {mobileStep === 1 ? "Change Type" : "Back"}
+          </Button>
+
+          {mobileStep < 4 ? (
+            <Button
+              variant="authoritative"
+              type="button"
+              onClick={handleMobileNext}
+              className="flex-1"
+            >
+              <span>Next</span>
+              <ArrowRight className="w-4 h-4 ml-1 text-white" />
+            </Button>
+          ) : (
+            <Button
+              variant="authoritative"
+              type="button"
+              onClick={handleInitiateSubmit}
+              disabled={submitting}
+              className="flex-1"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                <>
+                  <span>Publish</span>
+                  <ArrowRight className="w-4 h-4 ml-1 text-white" />
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Offer Warning Modal */}
       <OfferDetectionWarningDialog
         open={warningOpen}
         onOpenChange={setWarningOpen}

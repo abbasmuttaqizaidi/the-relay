@@ -103,7 +103,7 @@ function PostPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-slate-50/40 text-slate-900 flex flex-col font-sans antialiased">
+    <div className="min-h-[calc(100vh-4rem)] bg-[#F8FAFC] text-[#171F2C] flex flex-col font-sans antialiased">
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
         {activeType === "selection" && (
           <PostTypeSelection onSelect={handleSelectType} />
