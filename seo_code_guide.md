@@ -1,49 +1,45 @@
 When designing the page use the color scheme present in color_scheme.md
 
-Yes. **Cluster 2 is officially next**, and I audited the three routes before deciding how to structure it.
+Yes. We’ve audited the parent, and now we move to the **specialized channel page**.
 
-The three pages are:
+I also checked current 2026 search results. The terminology is fairly consistent: channel partners can include resellers, VARs, MSPs, systems integrators and other third parties that help market, sell, implement or deliver an offering. Current channel guidance also separates partner recruitment from ongoing partner management/PRM. :chatgpt-content-reference{index="0"}
+
+That gives us a very clear intent for:
+
+## `/channel-partnerships`
+
+This page should answer:
+
+> **“How can I use channel partners to reach, sell to, or serve customers?”**
+
+It should **not** become a general partnership page. That belongs to `/b2b-partnership-network`.
+
+It should also **not** become a distributor page. That's `/distribution-partners`.
+
+### The distinction
 
 ```text
-/b2b-partnership-network
-/channel-partnerships
-/distribution-partners
+B2B Partnership Network
+        ↓
+Broad commercial collaboration
+        │
+        ├── Referral
+        │
+        ├── Technology / Integration
+        │
+        ├── Co-selling
+        │
+        └── Channel
+              ↓
+      Channel Partnerships
+              ↓
+       Resellers / VARs /
+       SIs / MSPs / etc.
+              ↓
+       Distribution Partners
 ```
 
-The key is to prevent these from becoming three versions of “find partners.”
-
-### Cluster 2 architecture
-
-| Page | What it should own |
-|---|---|
-| `/b2b-partnership-network` | Broad B2B partnership discovery |
-| `/channel-partnerships` | Partners involved in selling/reaching customers through a channel |
-| `/distribution-partners` | Partners responsible for getting products/services into markets, territories, reseller networks or distribution infrastructure |
-
-That distinction is supported by current B2B partnership terminology: channel partnerships can involve marketing/selling through another business, while distribution partners occupy a more specific intermediary/supply-chain role. :chatgpt-content-reference{index="0"}
-
-## First page: `/b2b-partnership-network`
-
-This should be the **parent of Cluster 2**.
-
-Its search intent is broader than referral partnerships:
-
-> **“I want to find another business to collaborate with commercially.”**
-
-The page can cover:
-
-**Referral partnerships**  
-**Technology/integration partnerships**  
-**Co-selling**  
-**Bundling**  
-**Implementation partnerships**  
-**Channel partnerships**  
-**Distribution**  
-**Strategic alliances**
-
-But it shouldn't go deeply into any one of those. Those have dedicated pages.
-
-Current B2B partnership models commonly distinguish referral, reseller/channel, co-sell, technology integration and strategic alliances as different relationship structures. :chatgpt-content-reference{index="1"}
+There can be overlap between channel and distribution terminology in the real world, but for **our site architecture**, we need a practical distinction so the pages don't compete. Current industry sources similarly distinguish channel partners as the broader go-to-market intermediary concept and distributors as one specific type of channel relationship. :chatgpt-content-reference{index="1"}
 
 ---
 
@@ -51,504 +47,535 @@ Current B2B partnership models commonly distinguish referral, reseller/channel, 
 
 ### Primary
 
-**B2B partnership network**
+**B2B channel partnerships**
 
 ### Secondary
 
-`B2B partnerships`  
-`B2B partner network`  
-`business partnership network`  
-`B2B strategic partnerships`  
-`B2B business partnerships`  
-`commercial partnerships`  
-`strategic business partners`  
-`B2B partnership opportunities`  
-`find business partners`  
-`B2B collaboration`
+`channel partnerships`  
+`B2B channel partners`  
+`channel partner`  
+`channel sales partners`  
+`B2B channel sales`  
+`reseller partners`  
+`value added reseller`  
+`VAR partners`  
+`systems integrator partners`  
+`MSP partners`  
+`co-selling partners`
 
-### We should NOT own
+### Supporting
 
-`B2B referral network` → `/b2b-referral-network`
+`indirect sales channel`  
+`partner sales channel`  
+`channel strategy`  
+`channel partner program`  
+`channel partner network`  
+`find channel partners`
 
-`B2B referral partnerships` → `/referral-partnerships`
+One important thing: **“channel partner management software” should NOT be a primary target for Relay.** Current SERPs for that query are heavily about PRM/channel-management platforms, which is a different product category. :chatgpt-content-reference{index="2"}
 
-`B2B channel partnerships` → `/channel-partnerships`
-
-`B2B distribution partners` → `/distribution-partners`
-
-That's the critical boundary.
-
----
-
-# Current page problems
-
-The existing page has good bones, but it still contains some language that is too aggressive:
-
-> “Cryptographic covenants”
-
-> “Institutional NCND covenants”
-
-> “Zero partner circumvention”
-
-Those should not be presented as established Relay capabilities unless the actual product implements them.
-
-It also has “revenue share percentages” and “Operational SLA” in its partner evaluation framework. Those are legitimate concepts, but we should explain them as **things businesses may evaluate**, not Relay-mandated standards.
-
-And the page currently says:
-
-> “Most B2B partnerships fail…”
-
-That's an empirical claim. We should either substantiate it or remove it.
+Your existing FAQ asking whether Relay is PRM is therefore actually useful—but we should answer that **without turning the page into a PRM comparison page**.
 
 ---
 
-# New positioning
+# Problems in the current route
 
-The page should answer:
+I inspected the current `channel-partnerships.tsx`.
 
-> **What is a B2B partnership network, what types of partnerships exist, and how can businesses find commercial opportunities with other businesses?**
+It still contains claims like:
 
-The strongest conceptual distinction becomes:
+> “binding Master NCND covenants”
 
-### Partnership network
+> “Cryptographic reveal”
 
-**The ecosystem of businesses you can collaborate with.**
+> “formal channel agreement launch”
 
-### Referral network
+and phrases such as:
 
-**Businesses that exchange referrals.**
+> “Accelerated win rates”
 
-### Channel partnership
+Those need to go.
 
-**A partner helps you sell/reach customers through a commercial channel.**
+Also, the current H1:
 
-### Distribution partnership
+> **Find businesses that can extend your commercial reach.**
 
-**A partner helps move your product/service through a distribution structure or into a market.**
+isn't bad, but it's too generic.
 
-This creates a clean semantic hierarchy.
+I would change it to:
 
----
+# **Build B2B Channel Partnerships That Extend Your Reach**
 
-# Recommended SEO package
-
-### Title
-
-**B2B Partnership Network — Find Commercial Partners | The Relay**
-
-Your existing title is already good.
-
-### Meta description
-
-**Find B2B partnership opportunities with businesses that complement your capabilities. Explore referrals, co-selling, integrations, channel relationships and commercial collaborations on The Relay.**
-
-### H1
-
-**Find B2B Partners for Commercial Growth and Collaboration**
-
-I prefer this over the current:
-
-> “Find businesses to build commercial partnerships with.”
-
-It communicates the user problem more directly while still allowing the page to target the broader concept.
+That immediately establishes the page's topic and differentiates it from generic partnership discovery.
 
 ---
 
-# Content architecture
+# New SEO package
+
+**Title**
+
+`B2B Channel Partnerships — Find Channel Partners | The Relay`
+
+**Meta description**
+
+`Build B2B channel partnerships with resellers, VARs, systems integrators and other partners that can help you reach and serve new customers and markets.`
+
+**H1**
+
+`Build B2B Channel Partnerships That Extend Your Reach`
+
+---
+
+# Recommended content
 
 ## 1. Hero
 
-Define the concept immediately.
+A channel partnership is a relationship where another business helps you reach, sell to, implement for or support customers through its existing market access.
 
-> Businesses often have capabilities, customers and opportunities that another business can complement.
+Then immediately explain who this is for:
 
-Then position Relay as an opportunity-led environment for discovering those relationships.
-
----
-
-## 2. What is a B2B partnership network?
-
-Explain that a B2B partnership network connects businesses that can create value together through complementary capabilities, customer access, technology, distribution, referrals or joint offerings.
-
-Do **not** equate partnership with referral.
+> vendors, SaaS companies, agencies, manufacturers and service providers looking to extend their go-to-market reach through partners.
 
 ---
 
-## 3. Why businesses build partnerships
+## 2. What is a B2B channel partnership?
 
-Cover:
+Define it simply.
 
-**Reach customers they don't currently reach**
+A channel partner can contribute:
 
-**Add complementary capabilities**
+**customer access**
 
-**Create combined offerings**
+**sales capability**
 
-**Enter markets**
+**implementation**
 
-**Improve delivery capacity**
+**local expertise**
 
-**Generate opportunities through partners**
+**industry relationships**
 
----
+**distribution access**
 
-## 4. Types of B2B partnerships
-
-This becomes a high-value overview.
-
-### Referral partnership
-
-One business introduces relevant opportunities to another.
-
-→ `/b2b-referral-network`
-
-### Technology partnership
-
-Two products/services integrate or complement one another.
-
-### Co-selling partnership
-
-Two businesses work together around a customer opportunity.
-
-### Channel partnership
-
-A business uses another company's sales/channel infrastructure.
-
-→ `/channel-partnerships`
-
-### Distribution partnership
-
-A business uses a distributor or intermediary to reach markets/reseller networks.
-
-→ `/distribution-partners`
-
-### Strategic alliance
-
-A deeper collaboration involving broader commercial objectives, joint solutions or market development.
-
-This taxonomy is consistent with current B2B partnership frameworks. :chatgpt-content-reference{index="2"}
+Current channel sources explicitly describe resellers, VARs, SIs, MSPs and similar firms as different channel-partner types with different commercial roles. :chatgpt-content-reference{index="3"}
 
 ---
 
-## 5. What makes a good B2B partner?
+## 3. Why businesses use channel partners
 
-Keep it high level:
+This should cover:
 
-**Customer overlap**
+**Reach new customer segments**
 
-**Complementary capabilities**
+**Enter new markets**
 
-**Clear commercial reason**
+**Add implementation capacity**
 
-**Compatible operating model**
+**Sell through established relationships**
 
-**Capacity**
+**Bundle complementary offerings**
 
-**Trust/reputation**
+**Provide local expertise**
 
-**Defined expectations**
-
-Don't turn this into the detailed referral-partner checklist; that belongs to the referral cluster.
+Don't say channel partnerships automatically produce higher conversion or lower CAC unless we have evidence.
 
 ---
 
-## 6. Partnership vs referral vs channel vs distribution
+# 4. Types of channel partners
 
-This should be one of the strongest sections.
+This should be a major SEO section.
 
-A simple table:
+### Resellers
 
-| Relationship | Main purpose |
-|---|---|
-| Referral | Introduce an opportunity |
-| Partnership | Collaborate commercially |
-| Channel | Help sell/reach customers |
-| Distribution | Move products/services through a distribution structure |
+Sell your offering to their customers, often as part of their existing sales motion.
 
-The exact boundaries can vary by industry, so we should present this as a practical distinction rather than an absolute legal taxonomy. Current industry sources explicitly note that channel and distribution terminology is sometimes used interchangeably. :chatgpt-content-reference{index="3"}
+### Value-added resellers (VARs)
+
+Sell the product alongside implementation, consulting, configuration or other services.
+
+### Systems integrators
+
+Connect your product/service into broader technical environments and customer projects.
+
+### Managed service providers
+
+Operate or manage solutions for customers as part of an ongoing service relationship.
+
+### Regional/channel distributors
+
+Provide intermediary access to markets, reseller ecosystems or territories.
+
+### Co-selling partners
+
+Work jointly on customer opportunities without necessarily taking ownership of the entire sales transaction.
+
+This is especially worth doing because current 2026 channel content explicitly treats these partner categories as different operating models rather than treating “channel partner” as one homogeneous type. :chatgpt-content-reference{index="4"}
 
 ---
 
-## 7. How a partnership opportunity can begin
+# 5. Channel partner vs referral partner
 
-This is where Relay comes in:
+This is critical because of Cluster 1.
 
-**Opportunity appears**
+### Referral partner
+
+> “I know a customer who needs what you provide.”
+
+### Channel partner
+
+> “I can help you reach/sell to/serve customers through my commercial channel.”
+
+Then link to:
+
+`/b2b-referral-network`
+
+---
+
+# 6. Channel partner vs distributor
+
+This protects against cannibalization with the next page.
+
+### Channel partner
+
+Broadly helps with selling, marketing, implementation or customer access.
+
+### Distributor
+
+Typically occupies an intermediary distribution role involving territory/market access, reseller networks, logistics or related commercial infrastructure.
+
+We should explicitly say that terminology can vary across industries.
+
+Then link to:
+
+`/distribution-partners`
+
+Current industry sources themselves note that channel terminology is not perfectly standardized. :chatgpt-content-reference{index="5"}
+
+---
+
+# 7. How to choose a channel partner
+
+Use a practical evaluation framework:
+
+### Customer overlap
+
+Does the partner already reach your intended buyers?
+
+### Sales motion
+
+Does your offering fit how they actually sell?
+
+### Capability
+
+Can they explain, implement, support or otherwise deliver what customers need?
+
+### Market coverage
+
+Do they provide meaningful access to the geography or vertical you care about?
+
+### Economics
+
+Can both businesses make the relationship commercially viable?
+
+### Commitment
+
+Are they actually willing to put your offering into their operating process?
+
+Current channel-partner recruitment guidance similarly emphasizes defining the ideal partner profile before recruiting and evaluating fit against the actual business model. :chatgpt-content-reference{index="6"}
+
+---
+
+# 8. What a channel partnership should define
+
+Useful commercial topics:
+
+**Who sells**
+
+**Who owns the customer relationship**
+
+**Who delivers implementation**
+
+**Who handles support**
+
+**Pricing/margins**
+
+**Referral or commission arrangements where applicable**
+
+**Territory**
+
+**Lead/account attribution**
+
+**Marketing responsibilities**
+
+**Training/enablement**
+
+**What happens after the first deal**
+
+This is a good area for genuinely useful B2B information.
+
+---
+
+# 9. Common channel partnership models
+
+Examples:
+
+**Referral + sales support**
+
+**Reseller**
+
+**VAR**
+
+**Systems integration**
+
+**Managed services**
+
+**Co-selling**
+
+**Regional/channel representation**
+
+Don't claim one model is universally superior.
+
+---
+
+# 10. How a channel opportunity can start on Relay
+
+This is where Relay should appear:
+
+**Requirement appears**
 
 ↓
 
-**Potential partner discovers it**
+**Potential channel partner discovers it**
 
 ↓
 
-**Interest**
+**Partner expresses interest**
 
 ↓
 
-**Commercial discussion**
+**Commercial fit is discussed**
 
 ↓
 
-**Agreement**
+**Terms are agreed**
 
 ↓
 
-**Direct relationship**
+**Businesses proceed directly**
 
-Keep this aligned with the actual product rather than inventing governance mechanisms.
+This keeps the product positioning grounded in the real Relay workflow.
 
 ---
 
-## 8. Examples
+# 11. Relay is not PRM software
 
-Examples should cover several partnership types:
+Keep this FAQ/concept because it's useful.
 
-**SaaS + implementation firm**
+Something like:
 
-**Agency + technology provider**
+> The Relay is not a full Partner Relationship Management system. It is an opportunity exchange where businesses can discover commercial requirements and potential counterparties. Ongoing CRM, partner onboarding, training, incentive administration and other PRM functions remain separate operational activities.
 
-**Software + integration partner**
-
-**Product company + regional channel**
-
-**Manufacturer + distributor**
-
-**Consulting firm + specialist provider**
-
-That demonstrates breadth without competing with individual pages.
+That is much more credible than trying to pretend Relay is a full channel-management platform.
 
 ---
 
-## 9. How businesses evaluate partnership opportunities
+# 12. Examples
 
-Questions such as:
+Use:
 
-> Does the partner reach the right customers?
+**SaaS vendor + systems integrator**
 
-> Do the capabilities complement each other?
+**Software company + VAR**
 
-> Is there a real opportunity?
+**Cybersecurity company + MSP**
 
-> Who owns the customer relationship?
+**Enterprise platform + regional partner**
 
-> What does each business contribute?
+**Technology vendor + consulting firm**
 
-> How will success be measured?
-
-> What happens after the introduction?
-
-That is much more useful than vague “strategic alignment” language.
-
----
-
-## 10. Where Relay fits
-
-Only near the end.
-
-The positioning:
-
-> Traditional partnership discovery often begins with a broad search for companies and then tries to find a reason to work together. Relay starts from the other direction: a real commercial opportunity can reveal why two businesses should talk.
-
-That is a **genuinely differentiated product story**.
+These demonstrate channel mechanics without inventing success rates.
 
 ---
 
 # FAQ
 
-Questions should include:
+Include:
 
-**What is a B2B partnership network?**
-
-**What types of B2B partnerships exist?**
-
-**What is the difference between a partnership and a referral?**
-
-**What is the difference between a channel partner and a distributor?**
-
-**How do businesses find potential partners?**
-
-**What makes a good B2B partner?**
-
-**Can technology companies form partnerships with service businesses?**
-
-**How does Relay help businesses discover partnerships?**
-
-Again, no invented percentages or legal guarantees.
+- What is a B2B channel partnership?
+- What types of channel partners exist?
+- What is the difference between a channel partner and a referral partner?
+- What is the difference between a channel partner and a distributor?
+- What is a VAR?
+- What is a systems integrator?
+- How do businesses find channel partners?
+- Is Relay a PRM platform?
+- What should a channel partnership agreement define?
 
 ---
 
-# Internal-link architecture
+# Agent prompt
 
-This page becomes the parent for:
+Give your agent this:
 
-`/b2b-referral-network`
+```text id="qn5tut"
+Rewrite /channel-partnerships.tsx as the specialized CHANNEL PARTNERSHIP page in Cluster 2.
 
-`/referral-partnerships`
-
-`/channel-partnerships`
-
-`/distribution-partners`
-
-And it can also link to:
-
-`/b2b-opportunity-exchange`
-
-`/8-step-journey`
-
-This gives us:
-
-```text
-                 B2B Partnership Network
-                         │
-       ┌─────────────────┼─────────────────┐
-       ↓                 ↓                 ↓
-   Referrals          Channels       Distribution
-       │                 │                 │
-       ↓                 ↓                 ↓
-Referral Network   Channel Partners   Distribution Partners
-       │
-       ↓
-Referral Partnerships
-```
-
-Notice that **Referral Partnerships remains under the referral branch**, not directly competing with the broad partnership page.
-
----
-
-# Give this to your agent
-
-```text
-Rewrite /b2b-partnership-network.tsx as the PARENT PAGE for Cluster 2.
-
-CLUSTER 2 ARCHITECTURE:
+CLUSTER ARCHITECTURE:
 
 /b2b-partnership-network
 = broad B2B partnership discovery and commercial collaboration
 
 /channel-partnerships
-= channel relationships where partners help sell/reach customers
+= channel relationships where another business helps sell, reach, implement for, or serve customers
 
 /distribution-partners
-= distribution relationships involving markets, territories, distributors, resellers or distribution infrastructure
+= distribution relationships involving distributors, territories, reseller networks, market access and distribution infrastructure
 
-DO NOT let this page compete with:
+DO NOT allow this page to compete with:
+/b2b-partnership-network
+/distribution-partners
 /b2b-referral-network
 /referral-partnerships
-/channel-partnerships
-/distribution-partners
 
 PRIMARY KEYWORD:
-B2B partnership network
+B2B channel partnerships
 
 SECONDARY KEYWORDS:
-B2B partnerships
-B2B partner network
-business partnership network
-B2B strategic partnerships
-B2B business partnerships
-commercial partnerships
-strategic business partners
-B2B partnership opportunities
-find business partners
-B2B collaboration
+channel partnerships
+B2B channel partners
+channel partner
+channel sales partners
+B2B channel sales
+reseller partners
+value added reseller
+VAR partners
+systems integrator partners
+MSP partners
+co-selling partners
+indirect sales channel
+partner sales channel
+channel strategy
+channel partner program
+channel partner network
+find channel partners
 
-TITLE:
-B2B Partnership Network — Find Commercial Partners | The Relay
+DO NOT target "channel partner management software" as a primary keyword. Relay is not a PRM/channel-management software platform.
+
+SEO TITLE:
+B2B Channel Partnerships — Find Channel Partners | The Relay
 
 META DESCRIPTION:
-Find B2B partnership opportunities with businesses that complement your capabilities. Explore referrals, co-selling, integrations, channel relationships and commercial collaborations on The Relay.
+Build B2B channel partnerships with resellers, VARs, systems integrators and other partners that can help you reach and serve new customers and markets.
 
 H1:
-Find B2B Partners for Commercial Growth and Collaboration
+Build B2B Channel Partnerships That Extend Your Reach
 
 PAGE PURPOSE:
-Explain what a B2B partnership network is, why businesses form partnerships, the major partnership models, how to evaluate potential partners, and where The Relay fits.
+Explain what B2B channel partnerships are, why businesses use them, the major channel partner types, how to evaluate them, what commercial terms should be defined, and where The Relay fits.
 
-IMPORTANT POSITIONING:
-A partnership network is broader than a referral network.
+CONTENT POSITIONING:
+A channel partner is an external business that helps a company reach, sell to, implement for, or support customers through an indirect commercial route.
 
-Referral:
-Introduces an opportunity.
-
-Partnership:
-Creates a broader commercial collaboration.
-
-Channel:
-Helps sell/reach customers through another business's channel.
-
-Distribution:
-Moves products/services through a distribution structure or into markets/reseller networks.
-
-Use these distinctions throughout the page.
+Important:
+Channel partnerships are broader than simple referrals.
+Channel partnerships should not be presented as identical to distribution.
+Terminology can vary by industry, so make practical distinctions without presenting them as universal legal definitions.
 
 RECOMMENDED SECTIONS:
 
 1. Hero
-2. What is a B2B partnership network?
-3. Why businesses build partnerships
-4. Types of B2B partnerships
-5. What makes a good B2B partner?
-6. Partnership vs referral vs channel vs distribution
-7. How a partnership opportunity can begin
-8. Examples of B2B partnership models
-9. How businesses evaluate partnership opportunities
-10. Where The Relay fits
-11. FAQ
-12. Final CTA
+2. What is a B2B channel partnership?
+3. Why businesses use channel partners
+4. Types of channel partners
+5. Channel partner vs referral partner
+6. Channel partner vs distributor
+7. How to choose a channel partner
+8. What a channel partnership should define
+9. Common channel partnership models
+10. How a channel opportunity can start on Relay
+11. Relay is not PRM software
+12. B2B channel partnership examples
+13. FAQ
+14. Final CTA
 
-PARTNERSHIP TYPES TO EXPLAIN:
+CHANNEL PARTNER TYPES TO EXPLAIN:
+- Resellers
+- Value-added resellers (VARs)
+- Systems integrators
+- Managed service providers
+- Regional/channel distributors
+- Co-selling partners
 
-- Referral partnerships
-- Technology/integration partnerships
-- Co-selling partnerships
-- Channel partnerships
-- Distribution partnerships
-- Strategic alliances
-- Complementary service partnerships
+EXPLAIN THE DIFFERENCE:
 
-Link naturally to the dedicated Relay pages when appropriate.
+Referral:
+"I know a customer who needs what you provide."
+
+Channel:
+"I can help you reach, sell to, implement for, or serve customers through my commercial channel."
+
+Distribution:
+"I provide intermediary market/territory/distribution infrastructure."
 
 INTERNAL LINKS:
+- /b2b-partnership-network
 - /b2b-opportunity-exchange
 - /b2b-referral-network
 - /referral-partnerships
-- /channel-partnerships
 - /distribution-partners
 - /8-step-journey
 
 CLAIM RULES:
-Remove or rewrite unsupported claims about:
-- cryptographic covenants
-- mandatory NCND
-- guaranteed prevention of partner circumvention
+Remove unsupported claims about:
+- binding Master NCND
+- cryptographic reveal
+- legal enforcement
+- guaranteed partner protection
+- guaranteed win/conversion rates
+- "accelerated win rates"
 - guaranteed revenue
-- guaranteed conversion
-- industry-standard commission percentages
 - Relay-enforced SLAs
-- unsupported statistics such as "most partnerships fail"
+- mandatory legal agreements
+- invented statistics
 
-Do not invent statistics.
+Do not invent commission percentages.
 
-When discussing commercial terms, explain that businesses may agree on referral fees, margins, revenue shares, territory rights, support responsibilities, etc., but these vary by relationship.
+When discussing commercial economics, explain that margins, commissions, territory rights, account attribution and support responsibilities are negotiated between the participating businesses.
 
-Do not claim Relay legally enforces commercial agreements unless the actual product implementation supports this.
+PRM:
+Keep the FAQ explaining that Relay is not a full Partner Relationship Management platform.
+Do not position Relay as PRM software.
 
-The Relay should be positioned as an opportunity-led discovery layer:
-real commercial opportunities can create the reason for two businesses to explore a partnership.
+RELAY POSITIONING:
+Relay is an opportunity-led discovery layer.
+A commercial requirement can create the reason for two businesses to explore a channel relationship.
+Relay can facilitate discovery, interest, discussion and progression toward a direct business relationship.
 
 STRUCTURED DATA:
 Keep WebPage/Breadcrumb/Organization structured data.
-Do not put unsupported claims into schema.
+Do not put unsupported commercial/legal claims into schema.
 
 FAQ:
-FAQ answers should exist in the rendered HTML even when visually collapsed.
+Ensure FAQ answers are present in the rendered HTML even when the accordion is visually collapsed.
 
-Keep canonical:
-https://www.usetherelay.com/b2b-partnership-network
+CANONICAL:
+https://www.usetherelay.com/channel-partnerships
 
-Keep the existing Relay design language.
+Keep existing visual design language and responsive behavior.
 
-Run typecheck/build and fix any errors.
+Run typecheck/build and fix errors.
 
-Commit and push the completed page.
+Commit and push.
 ```
+
+## What we're doing after this
+
+Once the agent pushes `/channel-partnerships`, **I'll audit these two together**:
+
+`/b2b-partnership-network`  
+`/channel-partnerships`
+
+and then we'll establish the exact boundary for `/distribution-partners`.
+
+Only after that do we rewrite the distribution page.
+
+That is the safest way to finish Cluster 2 without creating three competing pages around “find B2B partners.”
