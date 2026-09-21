@@ -359,10 +359,10 @@ export function DistributionPartnersPage() {
               </h2>
               <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
                 A B2B distribution partner acts as an intermediary commercial organization that
-                facilitates the sale, movement, and market penetration of products or services into
-                defined geographic territories or vertical segments. Unlike single resellers,
-                distributors typically aggregate demand, support downstream reseller networks, and
-                provide operational infrastructure:
+                facilitates the sale, movement, or market penetration of products or services into
+                defined geographic territories or vertical segments. Depending on the industry,
+                territory, and commercial model, a distributor may provide downstream reseller
+                access, ordering infrastructure, or regional commercial support:
               </p>
             </div>
 
@@ -370,32 +370,32 @@ export function DistributionPartnersPage() {
               {[
                 {
                   title: "Downstream Reseller Network",
-                  desc: "Established relationships with dozens or hundreds of local VARs, MSPs, system integrators, and independent software vendors.",
+                  desc: "Established trade relationships with regional VARs, MSPs, system integrators, or independent software dealers.",
                   icon: Network,
                 },
                 {
                   title: "Territory Market Access",
-                  desc: "Deep commercial standing, regulatory compliance clearances, and localized buyer trust across specific regional markets.",
+                  desc: "Regional commercial presence, market standing, and localized buyer trust across specific target territories.",
                   icon: Globe,
                 },
                 {
                   title: "Commercial Order Infrastructure",
-                  desc: "Streamlined procurement systems handling centralized billing, currency settlement, order routing, and subscription management.",
+                  desc: "Procurement channels handling centralized ordering, billing aggregation, and subscription or wholesale provisioning where applicable.",
                   icon: Warehouse,
                 },
                 {
                   title: "Credit & Financing Facilities",
-                  desc: "Providing working capital credit lines and flexible payment terms to downstream resellers, reducing vendor credit risk.",
+                  desc: "Working capital credit terms or financing options for downstream accounts in markets where two-tier credit is standard.",
                   icon: Coins,
                 },
                 {
                   title: "Logistics & Physical Supply",
-                  desc: "Warehousing, inventory staging, regional dispatch, and customs clearance for hardware, equipment, and packaged goods.",
+                  desc: "Warehousing, inventory staging, regional dispatch, and fulfillment support for physical equipment and packaged goods.",
                   icon: Truck,
                 },
                 {
                   title: "Partner Enablement & Training",
-                  desc: "Conducting technical pre-sales briefings, product certifications, and sales training for downstream channel teams.",
+                  desc: "Technical briefings, product certifications, and sales training for regional downstream channel partners.",
                   icon: Workflow,
                 },
               ].map((item, idx) => {
@@ -916,7 +916,7 @@ export function DistributionPartnersPage() {
               {[
                 {
                   title: "You Need a Discrete Opportunity Introduction",
-                  desc: "If your goal is simply connecting with a specific target enterprise buyer for a single deal, an introduction via a referral partner is far more direct and cost-effective than a formal distribution agreement.",
+                  desc: "If your goal is simply connecting with a specific target enterprise buyer for a single deal, an introduction via a referral partner may be more appropriate for a single customer introduction than establishing a formal distribution agreement.",
                   alt: "Better Model: B2B Referral Partner",
                   link: "/referral-partnerships",
                 },
@@ -1038,19 +1038,19 @@ export function DistributionPartnersPage() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 11: REAL-WORLD DISTRIBUTION EXAMPLES
+              SECTION 11: ILLUSTRATIVE B2B DISTRIBUTION SCENARIOS
               ═══════════════════════════════════════════════════════════════════ */}
           <section className="border-b border-[#E2E8F0] pb-14">
             <div className="max-w-3xl mb-8">
               <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
-                Real-World Scenarios
+                Illustrative Scenarios
               </div>
               <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
-                Examples of B2B Distribution Partnerships
+                Illustrative B2B Distribution Scenarios
               </h2>
               <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
-                Concrete collaboration models illustrating how companies scale through specialized
-                distribution channels:
+                Hypothetical examples illustrating how different distribution models operate in
+                practice:
               </p>
             </div>
 
@@ -1059,22 +1059,22 @@ export function DistributionPartnersPage() {
                 {
                   type: "SaaS Vendor + Regional Technology Distributor",
                   scenario:
-                    "A North American cybersecurity SaaS company partners with an established DACH-region technology distributor. The distributor manages local currency billing, GDPR compliance verification, and provisions cloud licenses through its existing network of 300+ regional MSPs.",
+                    "A cybersecurity SaaS company partners with an established regional technology distributor. The distributor manages local currency billing, regional compliance alignment, and provisions cloud licenses through its existing network of regional MSPs.",
                 },
                 {
                   type: "Hardware Manufacturer + Wholesale Distributor",
                   scenario:
-                    "An industrial sensor manufacturer partners with a national wholesale electrical distributor. The distributor maintains physical inventory across 12 regional warehouses, managing next-day delivery to local commercial contractors and industrial automation dealers.",
+                    "An industrial equipment manufacturer partners with a wholesale distributor. The distributor maintains regional inventory and handles localized delivery to commercial contractors and automation dealers.",
                 },
                 {
                   type: "Specialized Software + Vertical Reseller Distributor",
                   scenario:
-                    "A dental practice management software company partners with a specialized healthcare supply distributor. The distributor bundles the software alongside clinical equipment, selling the unified package to newly opening dental clinics across the country.",
+                    "A practice management software company partners with a specialized healthcare supply distributor. The distributor bundles the software alongside clinical equipment, offering an integrated solution to new clinics.",
                 },
                 {
                   type: "B2B Product Company + Regional Master Channel",
                   scenario:
-                    "A clean-tech industrial filtration manufacturer grants master distribution rights to an established APAC engineering group. The master distributor recruits, trains, and certifies sub-dealers across Japan, South Korea, and Australia.",
+                    "An industrial hardware manufacturer grants master distribution rights to an established regional engineering group. The master distributor recruits, trains, and coordinates authorized sub-dealers across the territory.",
                 },
               ].map((ex, idx) => (
                 <div

@@ -740,8 +740,8 @@ export function B2BPartnershipNetworkPage() {
                 How a B2B Partnership Opportunity Begins
               </h2>
               <p className="text-sm text-[#64748B] max-w-2xl">
-                High-converting partnerships originate from active client demand rather than
-                theoretical networking conversations.
+                Partnership opportunities can originate from active client demand rather than
+                unsolicited outreach.
               </p>
             </div>
 
