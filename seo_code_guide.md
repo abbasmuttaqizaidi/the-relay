@@ -1,417 +1,288 @@
 When designing the page use the color scheme present in color_scheme.md
-I need a new about page, I need a clear design for that page. The details of the page are as follows. You have free hand in deciding how the page should look like but the details I am giving you contains SEO structured keywords and content writing. Make no change in the content not even a single word or alphabet should be altered in any means (strict). Here are the details,  SEO oriented content. I saying again dont make any change in the content(tex):
+SEO-ONLY OPTIMIZATION
 
+Rewrite ONLY the SEO-related elements of:
 
-Rewrite ONLY:
-src/routes/about.tsx
-
-This is a FOUNDATIONAL BRAND / ENTITY PAGE.
-
-Do NOT treat /about as another keyword landing page.
-
-PRIMARY PURPOSE
-
-The About page should clearly explain:
-
-- what The Relay is
-- why it exists
-- what problem it is designed to address
-- how the platform approaches commercial opportunity exchange
-- what The Relay does not do
-- the principles behind the product
-
-SEO should support brand/entity understanding without keyword stuffing.
-
-SEO METADATA
-
-Title:
-About The Relay — B2B Opportunity Exchange
-
-Meta description:
-Learn what The Relay is, why it exists, and how its B2B opportunity exchange helps businesses discover commercial opportunities and partnerships.
-
-H1:
-About The Relay
+src/routes/trust-and-safety.tsx
 
 IMPORTANT:
-The H1 should be the actual entity/topic, not a marketing slogan.
+DO NOT rewrite, remove, soften, fact-check, or otherwise alter the existing substantive product/content claims.
 
-SECTION 1 — INTRODUCTION
+The Trust & Safety content reflects the intended product architecture and functionality that will be implemented. Preserve the existing body copy and product terminology.
 
-Eyebrow:
-ABOUT THE RELAY
+The goal here is SEO optimization, keyword targeting, semantic structure, internal linking, metadata, and structured data.
 
-H1:
-About The Relay
+PRIMARY SEO TOPIC
 
-Opening copy:
+B2B opportunity exchange trust and safety
 
-Explain plainly:
+SECONDARY SEO TOPICS
 
-The Relay is a B2B opportunity exchange designed to help businesses discover and explore commercial opportunities, referrals, and partnerships.
+- B2B marketplace trust and safety
+- B2B business verification
+- B2B opportunity verification
+- B2B opportunity privacy
+- B2B commercial confidentiality
+- B2B marketplace security
+- B2B due diligence
+- B2B commercial partnerships
 
-The underlying problem:
+Do NOT keyword-stuff.
+Do NOT repeatedly insert exact-match phrases unnaturally.
+Use these terms only where they fit naturally.
 
-A business may encounter a legitimate commercial requirement that it cannot fulfil because of:
-- service scope
-- specialization
-- geography
-- capacity
-- commercial model
-- distribution/channel limitations
+1. TITLE
 
-Instead of treating every such opportunity as simply lost or irrelevant, The Relay provides a structured environment for businesses to surface and explore those opportunities.
+Change the title to:
 
-Do not claim this happens at "millions" or any other unsupported scale.
+Trust & Safety for B2B Opportunity Exchange | The Relay
 
-SECTION 2 — WHY THE RELAY EXISTS
+This should clearly establish:
+Trust & Safety → B2B Opportunity Exchange → The Relay
 
-H2:
-Why The Relay Exists
+2. META DESCRIPTION
 
-Explain the product philosophy.
+Change to:
 
-Core idea:
+Learn how The Relay approaches trust and safety for B2B opportunity exchange, including business verification, controlled disclosure, consent, and commercial security.
 
-Businesses interact with customers and commercial opportunities every day that do not always fit their current operating model.
+3. H1
 
-Traditional options include:
-- declining the opportunity
-- referring it to a known partner
-- storing it for later
-- searching for another provider manually
+Change ONLY the H1 from:
 
-The Relay is designed to provide another discovery route for those situations.
+Commercial exchange needs clear boundaries.
 
-Do not claim The Relay replaces all traditional referral relationships.
+to:
 
-SECTION 3 — WHAT THE RELAY IS
+Trust & Safety for B2B Opportunity Exchange
 
-H2:
-What The Relay Is
+Do not add another H1.
 
-Define clearly:
+The existing statement:
 
-The Relay is:
-- a B2B opportunity exchange
-- a commercial opportunity discovery environment
-- a place to discover potentially relevant counterpart businesses
-- a structured way to surface business requirements
+"Commercial exchange needs clear boundaries."
 
-Use plain language.
+can remain as supporting copy immediately below the H1 if it currently exists as part of the hero/content.
 
-Avoid:
-"institutional-grade"
-"sovereign"
-"cryptographic"
-"financial infrastructure"
-"deal execution infrastructure"
-unless actually necessary and demonstrably accurate.
+4. BREADCRUMB / HERO CONTEXT
 
-SECTION 4 — WHAT THE RELAY IS NOT
+The current breadcrumb says:
 
-H2:
-What The Relay Is Not
+Platform / Governance / Trust & Safety Protocol
 
-Explicitly state that The Relay is not:
+Keep the visual structure, but make the semantic wording stronger:
 
-- a CRM
-- a lead-selling database
-- a generic social network
-- an agency fulfilment provider
-- a logistics provider
-- a payment processor
-- legal counsel
-- a guarantee of partner acceptance
-- a guarantee of revenue
-- a guarantee of lead conversion
+Platform / Trust & Safety / B2B Opportunity Exchange
 
-This section is important for clarity.
+Use plain text, not keyword spam.
 
-SECTION 5 — HOW THE RELAY WORKS AT A HIGH LEVEL
+5. H2 SEMANTIC SEO IMPROVEMENTS
 
-H2:
-How The Relay Works
+Keep the existing substantive section content intact.
 
-Give a concise overview:
+Where the existing H2 wording is generic, improve ONLY the heading wording so Google gets clearer topical signals.
 
-1. Businesses identify commercial opportunities or requirements.
-2. Opportunities can be structured and posted.
-3. Other businesses can discover relevant opportunities.
-4. Interested businesses can signal interest.
-5. The businesses assess fit.
-6. Relevant parties can continue the commercial relationship directly.
+Map them as follows:
 
-Link to:
-- /8-step-journey
-- /b2b-opportunity-exchange
-- /how-to-exchange-business-leads
+Current:
+Verified Business Context
 
-Do not reproduce the full 8-step product page.
+Change to:
+B2B Business Verification and Identity
 
-SECTION 6 — THE PROBLEM WE ARE SOLVING
+Current:
+Controlled Information Disclosure
 
-H2:
-The Commercial Opportunity Problem
+Change to:
+Controlled Information Disclosure for B2B Opportunities
 
-Explain:
+Current:
+Consent Before Handshake
 
-There is often a difference between:
-"I cannot fulfil this opportunity"
+Change to:
+Consent Before B2B Commercial Interaction
 
-and:
-"This opportunity has no value."
+Current:
+The No-Noise Model
 
-A legitimate opportunity may be unsuitable for one business while being relevant to another.
+Change to:
+A Focused B2B Opportunity Exchange
 
-Use this as the conceptual foundation of the company.
+Current:
+The Gated Trust Architecture
 
-Do NOT claim every rejected lead has value.
+Change to:
+Trust and Safety in the B2B Opportunity Exchange
 
-SECTION 7 — OUR CORE PRINCIPLES
+Current:
+Institutional Covenants & Safeguards
 
-H2:
-Our Core Commercial Principles
+Change to:
+Commercial Safeguards and B2B Due Diligence
 
-Use concise principle cards:
+Do not rewrite the paragraphs underneath these headings.
 
-1. Relevance Before Volume
-Commercial opportunities should be useful and contextually relevant.
+6. NATURAL KEYWORD DISTRIBUTION
 
-2. Consent and Appropriate Disclosure
-Businesses should control what information they share and when identifiable information is disclosed.
+Review the existing copy and make only small natural wording adjustments where necessary to establish the topic.
 
-3. Business Fit Matters
-A potential connection should be assessed for capability, market, geography, capacity, and commercial alignment.
+The page should naturally contain variations of:
 
-4. Direct Commercial Relationships
-The businesses involved remain responsible for negotiating and executing their own commercial relationships.
+B2B opportunity exchange
+B2B marketplace
+B2B business verification
+business verification
+commercial opportunity
+commercial opportunity exchange
+B2B partnerships
+commercial confidentiality
+controlled disclosure
+B2B due diligence
+trust and safety
 
-5. No Guarantee of Outcome
-Opportunity discovery does not guarantee a partner, sale, revenue, or fulfilment.
+Do NOT force every keyword into the page.
 
-6. Practical Business Utility
-The platform should help businesses solve real commercial routing and discovery problems rather than create another social feed.
+Do NOT create a keyword list or hidden keyword block.
 
-SECTION 8 — WHO THE RELAY IS FOR
+Do NOT add hidden text.
 
-H2:
-Who Uses The Relay?
+7. INTERNAL LINKS
 
-Explain the broad categories without inventing user counts:
+Review the existing links and strengthen contextual internal linking.
 
-- B2B service businesses
-- agencies
-- software and technology companies
-- consultants
-- distributors
-- channel businesses
-- other organizations looking for commercial opportunities or counterparties
+The page should naturally link to:
 
-Do not claim:
-"hundreds of companies"
-"thousands of users"
-"verified enterprises"
-unless actual current data is available and explicitly supplied.
-
-SECTION 9 — EXAMPLES OF THE PROBLEM
-
-H2:
-Examples of Opportunities The Relay Can Help Surface
-
-Use clearly illustrative examples:
-
-- Agency receives a project outside its technical specialization.
-- SaaS provider needs a regional channel partner.
-- Manufacturer seeks a distribution partner in a new market.
-- Consultancy encounters a requirement outside its geography.
-- Business has a legitimate commercial requirement that another company may be positioned to fulfil.
-
-Label:
-"Illustrative examples"
-
-Do not create fake customer stories.
-
-SECTION 10 — WHAT THE RELAY DOES NOT PROMISE
-
-H2:
-What The Relay Does Not Promise
-
-Be explicit:
-
-The Relay does not promise:
-- that every opportunity will receive interest
-- that an interested business will be suitable
-- that a referral will close
-- that an opportunity will generate revenue
-- that a partner will accept a requirement
-- that a project will be successfully fulfilled
-
-This is good trust-building content and avoids marketing overclaiming.
-
-SECTION 11 — WHERE TO LEARN MORE
-
-H2:
-Explore The Relay
-
-Link users to:
-
-B2B Opportunity Exchange
 /b2b-opportunity-exchange
-
-B2B Lead Exchange
-/b2b-lead-exchange
-
-B2B Partnership Network
-/b2b-partnership-network
-
-Agency Lead Exchange
-/agency-lead-exchange
-
-Distribution Partners
-/distribution-partners
-
-Channel Partnerships
-/channel-partnerships
-
-Referral Partnerships
-/referral-partnerships
-
-How The Relay Works
 /8-step-journey
-
-Trust & Safety
-/trust-and-safety
-
-FAQ
+/b2b-lead-exchange
+/b2b-partnership-network
+/referral-partnerships
+/channel-partnerships
+/distribution-partners
 /faq
 
-Use concise cards rather than lengthy duplicated content.
+Use descriptive anchor text.
 
-SECTION 12 — FAQ
+Examples:
 
-H2:
-About The Relay FAQ
+"B2B opportunity exchange"
+"how The Relay works"
+"B2B lead exchange"
+"B2B partnership network"
+"referral partnerships"
+"channel partnerships"
+"distribution partners"
 
-At least 7 questions:
+Do not add links merely to increase link count.
 
-1. What is The Relay?
-2. What problem does The Relay solve?
-3. Who is The Relay for?
-4. Is The Relay a lead marketplace?
-5. Does The Relay fulfil projects for businesses?
-6. Does The Relay guarantee partners, leads, or revenue?
-7. How is The Relay different from a social network?
-8. Where can I learn how The Relay works?
+8. CANONICAL
 
-FAQ answers MUST permanently exist in the DOM.
+Ensure canonical is:
 
-If an accordion is used:
-Do NOT use:
-{isOpen && (...)}
+https://www.usetherelay.com/trust-and-safety
 
-Use CSS/display state only.
+Continue using createSeoMeta.
 
-FAQPage schema may be used if appropriate and must exactly match visible content.
+9. OPEN GRAPH / SOCIAL METADATA
 
-SECTION 13 — FINAL CTA
+Use the existing createSeoMeta implementation.
 
-H2:
-Explore How The Relay Works
+Ensure:
 
-Copy:
+og:title
+og:description
+og:url
+og:type
 
-Learn how businesses can discover opportunities, identify potentially relevant counterparties, and explore commercial relationships through The Relay.
+are consistent with the new SEO title and description.
 
-CTA:
-Explore The 8-Step Journey
+Use the existing site's default OG image.
 
-Secondary:
-Explore B2B Opportunities
+Do not create a new OG image in this task.
 
-TECHNICAL REQUIREMENTS
+10. STRUCTURED DATA
 
-Keep:
-- TanStack route
-- createSeoMeta
-- canonical URL
-- current visual system
-- responsive layout
+Review the page's existing structured data.
 
-Schema:
-- AboutPage if appropriate
-- Organization
-- WebSite relationship where appropriate
-- BreadcrumbList
-- FAQPage if FAQ is included
+Use appropriate schema such as:
 
-The page should strengthen entity understanding rather than target a large collection of generic keywords.
+WebPage
+BreadcrumbList
 
-REMOVE ALL LEGACY UNSUPPORTED CLAIMS
+Do NOT add fake security/compliance schema.
 
-Completely remove:
+Do NOT create Organization/SoftwareApplication/Product claims that aren't necessary for this page.
 
-- "Millions in qualified commercial demand evaporate..."
-- "institutional-grade"
-- "verified B2B enterprises" when used as a broad user-count/quality claim
-- "accredited peer business"
-- "enforceable revenue-share"
-- fixed 10–25% revenue-share claims
-- "sovereign handshakes"
-- cryptographic guarantees
-- legal enforceability claims
-- guaranteed commercial outcomes
-- fabricated user/customer counts
-- fabricated transaction volume
+Do NOT add ratings, reviews, certifications, or verification claims through schema unless those are actually represented and supported.
 
-Do NOT replace them with new statistics.
+11. FAQ
 
-IMPORTANT ENTITY/SEO RULE
+Preserve the current FAQ content.
 
-Do not turn About into another ranking page for:
+Make sure FAQ answers are present in the DOM even when the accordion is collapsed.
 
-"b2b opportunity exchange"
-"b2b lead exchange"
-"b2b referral network"
-etc.
+Do NOT rewrite the FAQ merely for SEO.
 
-Those dedicated pages already exist.
+FAQPage structured data can be used only if the existing FAQ implementation/content satisfies Google's requirements.
 
-About should support the brand/entity:
+12. CONTENT/CANNIBALIZATION RULE
+
+This page must NOT compete with:
+
+/b2b-opportunity-exchange
+/b2b-lead-exchange
+/b2b-partnership-network
+/b2b-referral-network
+/referral-partnerships
+
+Its search intent is:
+
+TRUST → SAFETY → VERIFICATION → PRIVACY → DISCLOSURE → CONSENT → DUE DILIGENCE
+
+Do not turn this into another "what is B2B opportunity exchange" page.
+
+13. IMAGE SEO
+
+Audit images/icons only where actual img elements exist.
+
+For meaningful images:
+- use descriptive alt text
+- avoid keyword stuffing
+- decorative icons should have empty alt attributes or appropriate accessibility handling
+
+Do not add unnecessary images.
+
+14. TECHNICAL SEO QA
+
+Verify:
+
+- exactly one H1
+- logical H2 hierarchy
+- title is unique
+- meta description is unique
+- canonical is correct
+- no accidental noindex
+- page is internally linked
+- FAQ content is present in DOM
+- structured data is valid JSON-LD
+- no duplicate canonical
+- no duplicate title metadata
+- no hidden keyword blocks
+- no keyword stuffing
+
+15. FINAL TARGET
+
+The page should clearly communicate to search engines:
+
 The Relay
+→ B2B opportunity exchange
+→ trust and safety
+→ business verification
+→ controlled information disclosure
+→ consent
+→ commercial confidentiality
+→ B2B due diligence
 
-and explain:
-IDENTITY → PURPOSE → PRODUCT → PRINCIPLES → SCOPE
+WITHOUT changing the existing substantive product claims.
 
-INTERNAL LINKS
-
-Include natural links to:
-
-/b2b-opportunity-exchange
-/b2b-lead-exchange
-/b2b-partnership-network
-/agency-lead-exchange
-/distribution-partners
-/channel-partnerships
-/referral-partnerships
-/8-step-journey
-/trust-and-safety
-/faq
-
-FINAL QA
-
-Before pushing:
-
-1. H1 is "About The Relay".
-2. Page clearly explains what The Relay is.
-3. Page clearly explains why it exists.
-4. No unsupported statistics.
-5. No financial percentage claims.
-6. No legal/enforceability claims.
-7. No cryptographic/security guarantees.
-8. FAQ answers are permanently in DOM.
-9. Organization/AboutPage schema is accurate.
-10. The page does not cannibalize commercial keyword landing pages.
-11. The tone is factual and confident, not hype-heavy.
-
-Push the completed file.
+Push the changes.

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ShieldCheck,
@@ -6,50 +7,155 @@ import {
   Scale,
   ArrowRight,
   Check,
-  ArrowDown,
   Layers,
   Shield,
-  FileText,
   BadgeCheck,
   Gavel,
+  ChevronDown,
 } from "lucide-react";
-
-import { createSeoMeta } from "@/lib/seo";
+import { createSeoMeta, SITE_URL } from "@/lib/seo";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/trust-and-safety")({
   head: () =>
     createSeoMeta({
-      title: "Trust & Safety — Verified B2B Opportunity Exchange | The Relay",
+      title: "Trust & Safety for B2B Opportunity Exchange | The Relay",
       description:
-        "Learn how verification, controlled disclosure, explicit consent, and the Relay handshake structure support responsible B2B opportunity exchange.",
+        "Learn how The Relay approaches trust and safety for B2B opportunity exchange, including business verification, controlled disclosure, consent, and commercial security.",
       path: "/trust-and-safety",
     }),
   component: TrustAndSafetyPage,
 });
 
 export function TrustAndSafetyPage() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
+  const faqs = [
+    {
+      q: "How does The Relay verify businesses participating in the exchange?",
+      a: "Every participant is audited against statutory corporate registries (Know Your Business - KYB) and authorized corporate email DNS records to confirm corporate identity and prevent unauthorized or shell accounts.",
+    },
+    {
+      q: "How is confidential business and opportunity data protected?",
+      a: "Company brand trademarks, executive contacts, and underlying client details remain strictly masked during exploration and preliminary evaluation through gated, controlled information disclosure.",
+    },
+    {
+      q: "When are contact details and company identities revealed?",
+      a: "Contact channels and company identities are only unmasked after both parties mutually ratify commercial terms and agree to bilateral non-circumvention covenants.",
+    },
+    {
+      q: "How does The Relay prevent unsolicited cold outreach?",
+      a: "The Relay is built strictly around verified opportunities and structured bilateral workflows rather than open social feeds or public messaging, making cold unsolicited prospecting structurally impossible.",
+    },
+  ];
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${SITE_URL}/trust-and-safety#webpage`,
+        url: `${SITE_URL}/trust-and-safety`,
+        name: "Trust & Safety for B2B Opportunity Exchange | The Relay",
+        description:
+          "Learn how The Relay approaches trust and safety for B2B opportunity exchange, including business verification, controlled disclosure, consent, and commercial security.",
+        breadcrumb: {
+          "@id": `${SITE_URL}/trust-and-safety#breadcrumb`,
+        },
+        isPartOf: {
+          "@type": "WebSite",
+          "@id": `${SITE_URL}/#website`,
+          url: SITE_URL,
+          name: "The Relay",
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${SITE_URL}/trust-and-safety#breadcrumb`,
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: SITE_URL,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Platform",
+            item: `${SITE_URL}/solutions`,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: "Trust & Safety",
+            item: `${SITE_URL}/trust-and-safety`,
+          },
+        ],
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${SITE_URL}/trust-and-safety#faq`,
+        mainEntity: faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.q,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: faq.a,
+          },
+        })),
+      },
+      {
+        "@type": "Organization",
+        "@id": `${SITE_URL}/#organization`,
+        name: "The Relay",
+        url: SITE_URL,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#171F2C] font-sans antialiased selection:bg-[#171F2C] selection:text-white flex flex-col">
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <main className="w-full flex-1 pt-8 pb-20">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
           {/* ═══════════════════════════════════════════════════════════════════
               HERO SECTION: BRAND STATEMENT & TRUST POSITIONING
               ═══════════════════════════════════════════════════════════════════ */}
           <section className="pt-2 pb-2">
             <div className="flex flex-col gap-3.5 max-w-4xl">
-              <div className="flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#64748B] uppercase tracking-[0.04em]">
-                <span>Platform</span>
+              <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#64748B] uppercase tracking-[0.04em]">
+                <Link to="/" className="hover:text-[#171F2C] transition-colors">
+                  Platform
+                </Link>
                 <span className="text-[#94A3B8]">/</span>
-                <span>Governance</span>
+                <span className="text-[#64748B]">Trust &amp; Safety</span>
                 <span className="text-[#94A3B8]">/</span>
-                <span className="text-[#171F2C] font-bold">Trust &amp; Safety Protocol</span>
-              </div>
+                <span className="text-[#171F2C] font-bold">B2B Opportunity Exchange</span>
+              </nav>
+
               <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-display font-bold text-[#171F2C] tracking-tight leading-[1.18]">
-                Commercial exchange needs clear boundaries.
+                Trust &amp; Safety for B2B Opportunity Exchange
               </h1>
-              <p className="text-base sm:text-lg text-[#64748B] font-normal leading-relaxed">
-                The Relay is built on the premise that high-value B2B opportunities cannot thrive in open, noisy environments. We enforce authenticated entity verification, controlled information disclosure, strict stage gating, and legally binding bilateral covenants to protect enterprise reputations at every milestone.
-              </p>
+
+              <div className="space-y-2">
+                <p className="text-lg sm:text-xl font-semibold text-[#171F2C]">
+                  Commercial exchange needs clear boundaries.
+                </p>
+                <p className="text-base sm:text-lg text-[#64748B] font-normal leading-relaxed">
+                  The Relay is built on the premise that high-value B2B opportunities cannot thrive in open, noisy environments. We enforce authenticated entity verification, controlled information disclosure, strict stage gating, and legally binding bilateral covenants to protect enterprise reputations at every milestone across the <Link to="/b2b-opportunity-exchange" className="text-[#171F2C] underline underline-offset-2 hover:text-[#000000]">B2B opportunity exchange</Link>.
+                </p>
+              </div>
             </div>
           </section>
 
@@ -69,7 +175,7 @@ export function TrustAndSafetyPage() {
                   </span>
                 </div>
                 <h2 className="text-lg sm:text-xl font-display font-bold text-[#171F2C]">
-                  Verified Business Context
+                  B2B Business Verification and Identity
                 </h2>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
                   Relay is designed around authenticated corporate attribution. Every participant is audited against statutory corporate registries (Know Your Business - KYB) and authorized corporate email DNS records. Sole proprietors, shell entities, and automated scrapers are permanently prevented from accessing platform dealflow.
@@ -93,7 +199,7 @@ export function TrustAndSafetyPage() {
                   </span>
                 </div>
                 <h2 className="text-lg sm:text-xl font-display font-bold text-[#171F2C]">
-                  Controlled Information Disclosure
+                  Controlled Information Disclosure for B2B Opportunities
                 </h2>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
                   Personal and sensitive commercial details are never exposed simply because someone is browsing an opportunity. Company brand trademarks, executive names, and underlying client records remain strictly masked during exploration and preliminary evaluation. Disclosure is a deliberate, gated milestone.
@@ -117,7 +223,7 @@ export function TrustAndSafetyPage() {
                   </span>
                 </div>
                 <h2 className="text-lg sm:text-xl font-display font-bold text-[#171F2C]">
-                  Consent Before Handshake
+                  Consent Before B2B Commercial Interaction
                 </h2>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
                   Interest is distinct from negotiation, and negotiation is distinct from agreement. The C-DOES workflow enforces clear separation between states. Neither party receives unlocked contact channels until commercial terms and bilateral covenants are mutually ratified in writing.
@@ -141,7 +247,7 @@ export function TrustAndSafetyPage() {
                   </span>
                 </div>
                 <h2 className="text-lg sm:text-xl font-display font-bold text-[#171F2C]">
-                  The No-Noise Model
+                  A Focused B2B Opportunity Exchange
                 </h2>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
                   Relay is built strictly around verified opportunities and contractual actions rather than social feeds, followers, or open-ended chat rooms. Cold outbound prospecting and unsolicited sales pitches are structurally impossible within the network.
@@ -164,7 +270,7 @@ export function TrustAndSafetyPage() {
                   Protocol Execution
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight">
-                  The Gated Trust Architecture
+                  Trust and Safety in the B2B Opportunity Exchange
                 </h2>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
                   How information transitions securely from initial blinded discovery to final sovereign handshake.
@@ -253,7 +359,7 @@ export function TrustAndSafetyPage() {
                 Legal Enforcement
               </span>
               <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight">
-                Institutional Covenants &amp; Safeguards
+                Commercial Safeguards and B2B Due Diligence
               </h2>
             </div>
 
@@ -294,7 +400,58 @@ export function TrustAndSafetyPage() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 4: CROSS NAVIGATION LINKS
+              SECTION 4: TRUST & SAFETY FAQ (DOM-RENDERED FOR SEARCH CRAWLERS)
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-t border-[#E2E8F0] pt-12 space-y-6">
+            <div className="max-w-3xl space-y-2">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-[0.04em] text-[#64748B]">
+                Security &amp; Governance Questions
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight">
+                Trust &amp; Safety for B2B Opportunity Exchange FAQ
+              </h2>
+            </div>
+
+            <div className="max-w-4xl space-y-2">
+              {faqs.map((faq, idx) => {
+                const isOpen = openFaq === idx;
+                return (
+                  <div
+                    key={idx}
+                    className="bg-white border border-[#E2E8F0] rounded-[4px] overflow-hidden"
+                  >
+                    <button
+                      onClick={() => toggleFaq(idx)}
+                      aria-expanded={isOpen}
+                      className="w-full flex items-center justify-between p-4 text-left hover:bg-[#F8FAFC] transition-colors"
+                    >
+                      <span className="text-[14px] font-semibold text-[#171F2C]">
+                        {faq.q}
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          "w-4 h-4 text-[#64748B] transition-transform duration-200 shrink-0 ml-3",
+                          isOpen && "rotate-180 text-[#171F2C]"
+                        )}
+                      />
+                    </button>
+                    {/* FAQ Answer permanently present in DOM for search crawlers */}
+                    <div
+                      className={cn(
+                        "px-4 pb-4 pt-1 text-[13px] text-[#64748B] border-t border-[#E2E8F0] leading-relaxed",
+                        !isOpen && "hidden"
+                      )}
+                    >
+                      {faq.a}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 5: CROSS NAVIGATION LINKS
               ═══════════════════════════════════════════════════════════════════ */}
           <section className="bg-white border border-[#E2E8F0] rounded-[4px] p-6 sm:p-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#E2E8F0]">
@@ -303,7 +460,7 @@ export function TrustAndSafetyPage() {
                   Explore The Relay Framework
                 </h3>
                 <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
-                  Review the complete 8-step workflow, architectural thesis, and protocol FAQs.
+                  Review the complete <Link to="/8-step-journey" className="underline hover:text-[#171F2C]">8-step workflow</Link>, explore the <Link to="/b2b-lead-exchange" className="underline hover:text-[#171F2C]">B2B lead exchange</Link>, connect via the <Link to="/b2b-partnership-network" className="underline hover:text-[#171F2C]">B2B partnership network</Link>, or evaluate <Link to="/referral-partnerships" className="underline hover:text-[#171F2C]">referral partnerships</Link>, <Link to="/channel-partnerships" className="underline hover:text-[#171F2C]">channel partnerships</Link>, and <Link to="/distribution-partners" className="underline hover:text-[#171F2C]">distribution partners</Link>.
                 </p>
               </div>
               <Link
@@ -325,7 +482,7 @@ export function TrustAndSafetyPage() {
                   <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:translate-x-1 transition-transform" />
                 </div>
                 <h4 className="text-sm font-bold text-[#171F2C] group-hover:underline">
-                  8-Step Journey Timeline
+                  how The Relay works
                 </h4>
                 <p className="text-xs text-[#64748B] leading-relaxed">
                   Interactive walkthrough from verification to completed handshake.
@@ -395,6 +552,7 @@ export function TrustAndSafetyPage() {
               </Link>
             </div>
           </section>
+
         </div>
       </main>
     </div>
