@@ -210,7 +210,7 @@ export function AgencyLeadExchangePage() {
                     Agencies regularly encounter genuine commercial enquiries they cannot fulfil due to service scope, technical stack, geography, or current team capacity.
                   </p>
                   <p className="text-[#334155]">
-                    The Relay provides a structured environment where agencies can discover qualified counterpart businesses capable of fulfilling out-of-scope opportunities—turning unserviceable enquiries into collaborative business relationships.
+                    The Relay provides a structured environment where agencies can discover potentially suitable counterpart businesses for out-of-scope opportunities and explore collaborative business relationships.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 mb-4 w-full sm:w-auto">
@@ -713,7 +713,7 @@ export function AgencyLeadExchangePage() {
                   Publish to The Relay
                 </h3>
                 <p className="text-[13px] text-[#64748B] leading-relaxed">
-                  List the structured opportunity on The Relay's B2B exchange for verified service providers to discover.
+                  List the structured opportunity on The Relay's B2B exchange for relevant businesses to discover.
                 </p>
               </div>
 
@@ -737,7 +737,7 @@ export function AgencyLeadExchangePage() {
                   Evaluate Capabilities
                 </h3>
                 <p className="text-[13px] text-[#64748B] leading-relaxed">
-                  Both agencies review track records, technical alignment, and commercial terms to ensure high delivery compatibility.
+                  Both agencies review capabilities, technical alignment, and commercial terms to assess whether the opportunity is a suitable fit.
                 </p>
               </div>
 
