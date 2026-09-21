@@ -1,544 +1,432 @@
 When designing the page use the color scheme present in color_scheme.md
 
-I checked the pushed `/how-to-find-distribution-partners` directly in the repo.
+I audited the latest push directly in GitHub.
 
-### Cluster 4, Page 1: approved
+### Cluster 4 is complete
 
-It now has the correct **“how do I find/evaluate distributors?”** intent and is clearly separated from `/distribution-partners`.
+We now have:
 
-One important issue remains elsewhere before we proceed: the next page, **`/how-to-find-b2b-referral-partners`**, still contains several legacy claims that we should remove rather than carry forward:
+- `/how-to-find-distribution-partners` → distribution partner discovery
+- `/how-to-find-b2b-referral-partners` → referral partner discovery
 
-- “Most B2B organizations” should have a 3–7 partner optimum
-- “high-performing” partner claims
-- 24–48 hour response expectations presented as a standard
-- “pre-vetted” ecosystem-directory language
-- “zero deal flow” claims about large brands
-- conversion-rate / win-rate framing
-- “verified client references”
-- some terminology that makes the page sound like a performance guarantee rather than a sourcing guide
+Both are properly separated from their parent/category pages.
 
-The underlying structure is actually good. Current 2026 referral-partner guidance also emphasizes **starting with complementary businesses serving the same customer, defining an ideal partner profile, researching candidates, validating fit, and then building the relationship**. :chatgpt-content-reference{index="0"}
+The referral guide is now clean: no arbitrary partner-count claims, commission percentages, “pre-vetted” claims, fake performance benchmarks, or legal/security promises. FAQ content is also crawlable.
 
-So we should **polish/rewrite the existing referral-partner guide**, not redesign its architecture.
+---
 
-### Next step: `/how-to-find-b2b-referral-partners`
+## Next: the `/solutions` page
+
+This is different from the previous clusters. It should function as a **hub/navigation page**, not as another keyword-heavy article.
+
+I checked the current implementation. It still has several legacy claims that should be removed:
+
+- “Double-Blind Platform Governance”
+- “verified handshakes”
+- “non-circumvention rules”
+- “cryptographically protected”
+- “Join hundreds of verified B2B enterprises...”
+- “monetize ... dealflow” as though monetization is universally available
+- category descriptions that are too promotional
+
+The important SEO goal here is **topical consolidation**: this page should help search engines and users understand the relationships among the site's commercial pages without competing directly with those pages.
 
 Send this to the agent:
 
-```text id="cluster4-referral-guide"
+```text id="solutions-hub"
 Rewrite ONLY:
-src/routes/how-to-find-b2b-referral-partners.tsx
+src/routes/solutions.tsx
 
-This is Cluster 4 — Partner Discovery Guides, page #2.
+This is a SITE-WIDE SEO HUB PAGE.
 
-IMPORTANT:
-Preserve the existing overall page structure and visual design where practical.
-This is a content/SEO quality rewrite, not a visual redesign.
+Do not turn this into another long-form article.
+Do not create new keyword-targeted sections that cannibalize existing pages.
 
-PRIMARY SEARCH INTENT
+PRIMARY PURPOSE
 
-Target:
-how to find B2B referral partners
+The /solutions page should act as a navigational and topical hub connecting the major commercial solution categories on The Relay.
 
-SECONDARY / SEMANTIC TERMS
+It should help users understand:
+- what problems The Relay addresses
+- which solution page is relevant
+- how the pages relate to one another
 
-- how to find B2B referral partners
-- how to find referral partners
-- B2B referral partners
-- referral partner network
-- find referral partners
-- B2B partner discovery
-- referral partner sourcing
-- referral partner outreach
-- referral partnership
-- complementary business partners
-- referral partner evaluation
+It should NOT attempt to rank instead of the dedicated solution pages.
 
 SEO METADATA
 
 Title:
-How to Find B2B Referral Partners | The Relay
+B2B Opportunity Exchange Solutions | The Relay
 
 Meta description:
-Learn how to find B2B referral partners by defining the right partner profile, sourcing candidates, evaluating fit, and building a practical referral relationship.
+Explore The Relay's B2B opportunity exchange solutions for lead exchange, referral partnerships, agency opportunities, channel relationships, distribution, and commercial dealflow discovery.
 
 H1:
-How to Find B2B Referral Partners
+B2B Opportunity Exchange Solutions
 
 CORE POSITIONING
 
-This is a practical partner-discovery guide.
+The page should explain that businesses come to The Relay for several related commercial problems:
 
-It should answer:
+- opportunities they cannot fulfil themselves
+- referral partner discovery
+- commercial partnership discovery
+- agency opportunity exchange
+- channel partner discovery
+- distribution partner discovery
+- structured business lead exchange
 
-"How does a business identify, evaluate, approach, and start working with the right referral partners?"
+The page is a DIRECTORY / HUB.
 
-The fundamental model:
-
-Your ideal referral partner often:
-- serves a similar customer
-- offers a complementary product or service
-- does not directly compete with you
-- encounters customer needs adjacent to yours
-- has a reason to make relevant introductions
-- is capable of delivering a good customer experience
-
-Do not imply that every complementary company will become a referral partner.
-
-SECTION 1 — START WITH THE CUSTOMER
-
-H2:
-Start With the Customer, Not the Partner List
-
-Explain that partner discovery should start with the customer journey.
-
-Ask:
-- Who does the customer speak to before us?
-- Who do they need after us?
-- Which services are adjacent to ours?
-- Which businesses already work with our target customer?
-- Where do customer needs overlap without direct competition?
-
-Give one or two illustrative examples.
-
-Example:
-A B2B software implementation company may identify cybersecurity consultants, cloud consultants, or ERP specialists as adjacent businesses depending on its customer journey.
-
-Do not claim any category is universally ideal.
-
-SECTION 2 — DEFINE THE IDEAL REFERRAL PARTNER
-
-H2:
-Define Your Ideal Referral Partner Profile
-
-Create a framework around:
-
-- customer overlap
-- service complementarity
-- industry expertise
-- geography
-- company size
-- target buyer
-- delivery quality
-- capacity
-- willingness to collaborate
-- commercial compatibility
-
-Explain that a partner profile makes research more focused.
-
-Do not use a numerical "ideal score."
-
-SECTION 3 — WHERE TO FIND THEM
-
-H2:
-Where to Find B2B Referral Partners
-
-Cover practical sourcing channels:
-
-1. Existing client relationships
-2. Suppliers and vendors
-3. Professional networks
-4. LinkedIn
-5. Industry associations
-6. Trade groups and events
-7. Technology/ecosystem directories
-8. Search engines and niche directories
-9. Partner communities
-10. Structured opportunity/discovery platforms
-
-Explain the trade-off between:
-- warm existing relationships
-- researched cold candidates
-- structured discovery platforms
-
-Do not claim one channel is universally best.
-
-Current 2026 referral-partner guidance commonly emphasizes complementary businesses, customer overlap, systematic candidate research, and relationship development. :chatgpt-content-reference{index="1"}
-
-SECTION 4 — RESEARCH THE CANDIDATE
-
-H2:
-How to Research a Potential Referral Partner
-
-Look for evidence such as:
-
-- services offered
-- target industries
-- target customers
-- geographic coverage
-- existing partnerships
-- ecosystem participation
-- case studies/work examples
-- customer reviews where relevant
-- leadership/contact information
-- signs that they actually collaborate with outside businesses
-
-Important:
-Research evidence is not proof that a company will refer business.
-
-Do NOT say directories are "pre-vetted" unless the specific directory's verification process is actually known.
-
-Do not claim reviews are definitive evidence of quality.
-
-SECTION 5 — CHECK FOR REFERRAL SIGNALS
-
-H2:
-What Signals Suggest a Business Could Be a Good Referral Partner?
-
-Useful signals:
-
-- complementary offering
-- shared customer base
-- visible partner ecosystem
-- existing strategic partnerships
-- content discussing adjacent services
-- repeat exposure to the same customer problems
-- clear reason for both businesses to collaborate
+Use:
+"Explore the solution that matches your situation."
 
 Avoid:
-"signals that predict referrals."
+"Complete Network Solutions Directory"
+"Architecture"
+"ecosystem" unless genuinely useful.
 
-We are identifying plausible fit, not predicting outcomes.
+SECTION 1 — HERO
 
-SECTION 6 — QUALIFY THE PARTNER
+Eyebrow:
+B2B COMMERCIAL SOLUTIONS
 
-H2:
-How to Evaluate a Referral Partner
+H1:
+B2B Opportunity Exchange Solutions
 
-Use a practical evaluation framework:
+Opening copy:
 
-1. Customer overlap
-2. Service complementarity
-3. Reputation and delivery quality
-4. Relevant experience
-5. Geographic fit
-6. Capacity
-7. Communication
-8. Commercial alignment
+The Relay provides several related ways for businesses to discover and explore commercial opportunities and partnerships.
 
-For each, provide:
-- the question to ask
-- why it matters
-- what evidence might help
+Whether a business needs to route an opportunity it cannot fulfil, find a referral relationship, explore channel or distribution partners, or understand how business lead exchange works, the relevant solution begins with the business problem.
 
-Do not turn this into a ranking or scorecard with arbitrary numbers.
+CTA:
+Explore B2B Opportunities
 
-SECTION 7 — CHECK FOR COMPETITION
+Secondary:
+How The Relay Works
+
+SECTION 2 — CHOOSE YOUR SOLUTION
 
 H2:
-How to Identify Referral vs Competitor Relationships
+Choose the Solution That Matches Your Business Need
 
-Explain that not all overlap means direct competition.
+Preserve the existing SOLUTIONS_DATA-driven architecture.
 
-Check:
-- core services
-- target buyer
-- customer segment
-- geographic market
-- adjacent services
-- potential scope conflicts
+Keep the four broad categories where they already exist:
 
-A company can be partially overlapping and still have a useful complementary relationship.
+Exchange
+Partnerships
+For Businesses
+Resources
 
-Do not claim large companies or small firms are inherently better partners.
+BUT rewrite the category descriptions to be factual.
 
-SECTION 8 — DECIDE WHETHER THE RELATIONSHIP CAN BE RECIPROCAL
+Suggested descriptions:
 
-H2:
-Can the Referral Relationship Be Reciprocal?
+Exchange:
+"Explore B2B opportunity and lead exchange workflows."
 
-Explain two models:
+Partnerships:
+"Discover referral, channel, distribution, and broader commercial partnership models."
 
-One-way:
-A partner primarily refers opportunities to you.
+For Businesses:
+"Explore business-specific routes for agency and service-provider opportunities."
 
-Reciprocal:
-Both businesses can identify relevant opportunities for one another.
+Resources:
+"Learn how to evaluate, route, and exchange commercial opportunities."
 
-Explain that reciprocity is useful only when customer journeys naturally overlap.
+Do NOT use:
+"monetize" as the universal description of Exchange.
 
-Do not imply every partnership should produce equal volumes of referrals.
+Keep all solution cards and links generated from SOLUTIONS_DATA.
 
-SECTION 9 — HOW TO APPROACH A REFERRAL PARTNER
+For each solution card:
+- retain the existing destination
+- use the existing item title
+- do not add keyword stuffing
+- make the card description if the data structure permits it factual and concise
 
-H2:
-How to Approach a Potential Referral Partner
-
-Give an actual practical process:
-
-1. Research the business.
-2. Identify the shared customer problem.
-3. Explain why the relationship makes sense.
-4. Offer a concrete referral scenario.
-5. Suggest a short exploratory conversation.
-6. Avoid asking for client leads immediately.
-7. Give the relationship a chance to develop.
-
-Include a short example outreach structure, but do not write spammy mass-outreach copy.
-
-Example:
-
-"Hi [Name], we work with [customer type] on [specific problem]. I noticed your team helps those same businesses with [adjacent need]. There may be situations where our clients need each other's services. Would you be open to a short conversation about whether a referral relationship makes sense?"
-
-SECTION 10 — DEFINE THE FIRST REFERRAL
+SECTION 3 — HOW TO CHOOSE
 
 H2:
-Define What a Referral Means Before Sending One
+Which The Relay Solution Fits Your Situation?
 
-Explain that businesses may want to clarify:
+Create a simple decision framework.
 
-- what qualifies as a referral
-- how introductions happen
-- who communicates with the client
-- attribution
-- whether compensation exists
-- payment timing if compensation exists
-- what happens with duplicate leads
-- customer ownership expectations
+Situation | Relevant solution
 
-Do not prescribe commission percentages.
+"I have a legitimate business opportunity my company cannot fulfil"
+→ B2B Lead Exchange
+→ What To Do With Unqualified Leads
+→ Agency Lead Exchange where relevant
 
-Do not claim these terms are automatically enforced by Relay.
+"I want to find businesses that can refer complementary opportunities"
+→ B2B Referral Network
+→ How to Find B2B Referral Partners
 
-Do not use NCND or cryptographic/legal-enforcement language.
+"I want to structure a referral relationship"
+→ Referral Partnerships
 
-SECTION 11 — START SMALL
+"I want to find broader commercial partners"
+→ B2B Partnership Network
 
-H2:
-Start With a Small Referral Pilot
+"I need channel partners"
+→ Channel Partnerships
 
-The existing page contains "3 to 5" and "2 to 4" partner recommendations. Remove arbitrary numeric prescriptions.
+"I need distributors"
+→ Distribution Partners
+→ How to Find Distribution Partners
 
-Instead say:
+"I want to understand the mechanics of exchanging leads"
+→ How to Exchange Business Leads
 
-"Start with a small number of highly relevant businesses."
+Use internal links.
 
-Explain:
-- test one or a few real introductions
-- observe communication
-- gather feedback
-- assess customer fit
-- improve the process
-- expand only when the relationship is working
+Do not make the framework a ranking.
+Do not say one solution is "best."
 
-Do not claim a pilot guarantees better results.
-
-SECTION 12 — TRACK THE RELATIONSHIP
+SECTION 4 — CORE BUSINESS PROBLEMS
 
 H2:
-Track Referral Activity and Relationship Health
+Business Problems The Relay Helps Address
 
-Useful metrics:
+Use 4–6 concise cards:
 
-- referrals sent
-- referrals received
-- accepted introductions
-- response time
-- qualified opportunities
-- closed opportunities
-- commercial value generated
-- qualitative partner/client feedback
+1. Unfulfilled business opportunities
+Explain that some legitimate opportunities fall outside current capabilities.
 
-Important:
-Do not present "win rate" or conversion rate as evidence that a partner will perform in the future.
+2. Referral partner discovery
+Businesses may need to find complementary businesses serving similar customers.
 
-Avoid arbitrary benchmarks.
+3. Commercial partnership discovery
+Businesses may need channel, integration, co-selling, or strategic partners.
 
-"Response SLA" should be replaced with:
-"response time" or "agreed response expectations."
+4. Distribution expansion
+Businesses may need access to new territories or downstream channels.
 
-SECTION 13 — COMMON MISTAKES
+5. Agency opportunity routing
+Agencies may receive legitimate work outside their scope or capacity.
 
-H2:
-Common Mistakes When Finding Referral Partners
+6. Lead exchange education
+Businesses may need to understand how qualification, referral, and exchange processes differ.
 
-Cover:
+Do not make outcome guarantees.
 
-1. Choosing businesses simply because they are well known.
-2. Ignoring customer overlap.
-3. Treating every complementary business as a potential partner.
-4. Asking for referrals before establishing value.
-5. Ignoring competitive overlap.
-6. Failing to define what a referral actually means.
-7. Sharing too much client information too early.
-8. Never following up after an introduction.
-9. Expecting equal referral volume from both sides.
-
-Remove absolute statements such as:
-- "giant enterprise brands result in zero deal flow"
-- "high-performing networks are..."
-- "the best partners always..."
-
-Use evidence-based, conditional language.
-
-SECTION 14 — WHERE THE RELAY FITS
+SECTION 5 — SOLUTION RELATIONSHIPS
 
 H2:
-Where The Relay Fits in Referral Partner Discovery
+How The Relay's Solutions Relate
 
-Explain:
+Create a simple visual/text hierarchy:
 
-Businesses can traditionally find referral partners through:
-- existing relationships
-- associations
-- professional networks
-- directories
-- LinkedIn
-- direct outreach
-- events
+B2B Opportunity Exchange
+→ B2B Lead Exchange
+→ Agency Lead Exchange
 
-The Relay provides another discovery route:
-businesses can discover structured commercial opportunities and potentially identify businesses with complementary capabilities.
+B2B Partnership Network
+→ Referral Partnerships
+→ Channel Partnerships
+→ Distribution Partners
 
-The Relay does NOT:
-- guarantee a referral partner
-- guarantee referrals
-- guarantee lead volume
-- guarantee revenue
-- guarantee partner quality
-- guarantee conversion
+Supporting guides:
+→ What To Do With Unqualified Leads
+→ How To Monetize Unqualified Leads
+→ How To Exchange Business Leads
+→ How To Find B2B Referral Partners
+→ How To Find Distribution Partners
 
-Position Relay as a discovery layer, not a referral-performance guarantee.
+Explain that these are related pages with different purposes.
 
-Internal links:
-- /b2b-referral-network
-- /referral-partnerships
-- /b2b-partnership-network
-- /b2b-opportunity-exchange
-- /agency-lead-exchange
-- /8-step-journey
+This section is primarily for information architecture and internal linking.
 
-SECTION 15 — ILLUSTRATIVE EXAMPLES
+SECTION 6 — WHERE TO START
 
 H2:
-Illustrative B2B Referral Partner Examples
+Where Should You Start?
 
-Use 5 hypothetical examples:
+Create three entry points:
 
-1. Web development company + branding studio
-2. ERP consultancy + cybersecurity specialist
-3. SaaS implementation firm + managed IT provider
-4. B2B marketing agency + specialist video/creative agency
-5. Compliance consultancy + technology implementation firm
+For businesses with an opportunity:
+"Explore B2B Opportunities"
 
-For each:
-- shared customer
-- complementary need
-- why the relationship could make sense
+For businesses looking for partners:
+"Explore Partnership Solutions"
 
-Clearly label:
-"Illustrative example"
+For businesses learning the process:
+"Read the B2B Guides"
 
-Do not fabricate results or revenue.
+Link appropriately.
 
-SECTION 16 — REFERRAL PARTNER CHECKLIST
+SECTION 7 — THE RELAY'S ROLE
 
 H2:
-B2B Referral Partner Checklist
+What The Relay Does
 
-Create:
+Keep this short and factual.
 
-□ Shared target customer
-□ Complementary offering
-□ Clear reason to collaborate
-□ Relevant expertise
-□ No unacceptable conflict
-□ Geographic fit
-□ Capacity considered
-□ Communication expectations discussed
-□ Referral definition understood
-□ Commercial terms discussed where relevant
-□ Client information handled appropriately
+Explain that The Relay provides an environment for:
+- structured opportunity discovery
+- business counterpart discovery
+- interest signalling
+- exploring commercial relationships
 
-SECTION 17 — FAQ
+Explicitly state:
+
+The Relay does not guarantee:
+- a referral
+- a partner
+- a closed deal
+- revenue
+- lead acceptance
+- successful fulfilment
+
+The Relay does not replace:
+- internal sales qualification
+- CRM
+- client consent
+- legal review
+- commercial negotiation
+
+SECTION 8 — FAQ
 
 H2:
-Referral Partner Sourcing FAQ
+B2B Opportunity Exchange Solutions FAQ
 
-At least 9 questions:
+At least 7 questions:
 
-1. How do I find B2B referral partners?
-2. What makes a good referral partner?
-3. Where can I find referral partners?
-4. Should a referral partner serve the same customers as me?
-5. Should referral partners be non-competing?
-6. How do I approach a potential referral partner?
-7. Should referral partnerships involve commissions?
-8. How many referral partners should a business have?
-9. How should referral relationships be tracked?
-10. Can The Relay help businesses discover referral partners?
+1. What solutions does The Relay provide?
+2. What is the difference between B2B lead exchange and referral partnerships?
+3. Which solution is relevant if my business cannot fulfil a lead?
+4. Which solution is relevant for agency opportunities?
+5. How is a channel partnership different from distribution?
+6. Where can I learn how to exchange business leads?
+7. Can The Relay guarantee a business opportunity or partner?
 
-FAQ answers MUST ALWAYS exist in the DOM.
+FAQ answers MUST be permanently rendered in the DOM.
 
 Do NOT use:
 {isOpen && (...)}
 
-Use CSS/display state only.
+If an FAQ accordion exists, use CSS/display state only.
 
-FAQPage JSON-LD must match visible FAQ questions and answers exactly.
+FAQPage schema is optional for this hub.
+If included, make it match the visible FAQ exactly.
+
+SECTION 9 — FINAL CTA
+
+H2:
+Find the Right Starting Point for Your Business
+
+Copy:
+Explore the solution that matches the commercial opportunity, partnership, or business problem you are trying to solve.
+
+Primary CTA:
+Explore B2B Opportunities
+
+Secondary:
+Review the 8-Step Journey
 
 TECHNICAL REQUIREMENTS
 
 Keep:
 - TanStack route
+- SOLUTIONS_DATA architecture
+- current visual design
+- responsive design
 - createSeoMeta
 - canonical URL
-- responsive design
-- existing visual system
 
 Schema:
-- WebPage
-- BreadcrumbList
-- FAQPage
-- Article if appropriate
+Use CollectionPage or WebPage/CollectionPage appropriately.
 
-REMOVE / REWRITE LEGACY CLAIMS
+The page is fundamentally a collection/hub, so CollectionPage is appropriate.
+
+Keep organization/site relationships if currently implemented.
+
+REMOVE ALL LEGACY UNSUPPORTED CLAIMS
 
 Remove:
-- arbitrary "3 to 7" optimal partner claims
-- arbitrary "2 to 4" or "3 to 5" partner prescriptions
-- 24–48 hour universal response claims
-- "pre-vetted" directory claims
-- "zero deal flow" claims
-- conversion-rate promises
-- high-performing partner guarantees
-- high-intent outcome promises
-- claims that specific partner types are inherently better
-- any legal enforcement/NCND/cryptographic language if present
+- Double-Blind Platform Governance
+- verified handshakes
+- non-circumvention rules
+- cryptographic protection claims
+- cryptographically protected claims
+- "hundreds of verified B2B enterprises"
+- guaranteed dealflow
+- guaranteed monetization
+- guaranteed partner discovery
+- "complete network" claims unless literally supported
+- any fabricated user/customer counts
 
-Do not introduce replacement statistics.
+Do not replace them with new statistics.
 
-CANNIBALIZATION RULE
+IMPORTANT INFORMATION ARCHITECTURE RULE
 
-This page owns:
-"How do I find B2B referral partners?"
+Do NOT attempt to make /solutions compete with:
 
-It must remain distinct from:
+/b2b-opportunity-exchange
+= main B2B opportunity exchange category
 
-/b2b-referral-network
-= what a B2B referral network is / finding referral relationships
-
-/referral-partnerships
-= how to structure and govern referral partnerships
+/b2b-lead-exchange
+= lead exchange category
 
 /b2b-partnership-network
-= broad commercial partnership discovery
+= partnership category
 
-/how-to-exchange-business-leads
-= mechanics of exchanging a business opportunity
+/distribution-partners
+= distribution category
+
+/channel-partnerships
+= channel category
+
+/b2b-referral-network
+= referral network category
 
 /agency-lead-exchange
-= agency-specific lead exchange
+= agency-specific category
 
-Keep this page focused on:
-DISCOVERY → RESEARCH → EVALUATION → OUTREACH → PILOT
+The /solutions page should primarily:
+DISCOVER → ORIENT → NAVIGATE
+
+It should not become another 1,500-word SEO article.
+
+INTERNAL LINKS
+
+Make sure the hub links prominently to:
+
+/b2b-opportunity-exchange
+/b2b-lead-exchange
+/b2b-referral-network
+/referral-partnerships
+/b2b-partnership-network
+/channel-partnerships
+/distribution-partners
+/agency-lead-exchange
+/how-to-find-b2b-referral-partners
+/how-to-find-distribution-partners
+/what-to-do-with-unqualified-leads
+/how-to-monetize-unqualified-leads
+/how-to-exchange-business-leads
+/8-step-journey
+/trust-and-safety
+
+FINAL QA
+
+Before pushing:
+
+1. H1 is "B2B Opportunity Exchange Solutions".
+2. Page works as a hub, not a long-form article.
+3. All important solution destinations are internally linked.
+4. No unsupported platform guarantees.
+5. No fake customer counts/statistics.
+6. No legal/security claims.
+7. No keyword-stuffed card titles.
+8. FAQ answers are in the DOM if FAQ is retained.
+9. CollectionPage schema accurately describes the page.
+10. Existing solution destinations remain unchanged.
 
 Push the completed file.
 ```
 
-After this page is pushed and audited, **Cluster 4 will be complete** because its two guides will have clear ownership:
-
-`/how-to-find-distribution-partners` → finding/evaluating distributors  
-`/how-to-find-b2b-referral-partners` → finding/evaluating referral partners
-
-That distinction is also consistent with current referral-partner guidance, which centers on customer overlap, complementary capabilities, partner research, and deliberate relationship building.
+Once this is pushed, we'll audit it and then move into the **remaining foundational pages**: `/about`, `/trust-and-safety`, `/core-pillars`, `/8-step-journey`, and `/faq`. Those need a different approach from the commercial keyword pages because they are primarily **entity, trust, product-understanding, and supporting-information pages**, not separate search-intent landing pages.
