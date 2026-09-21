@@ -19,7 +19,12 @@ import { getVerifiedBusinessCount } from "../functions/getVerifiedBusinessCount"
 import { recordOpportunityView } from "../functions/recordOpportunityView";
 import { getOpportunityViews } from "../functions/getOpportunityViews";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
-import { cn, getCompanyInitials, calculateBaseViews, getDynamicMedianResponseTime } from "../lib/utils";
+import {
+  cn,
+  getCompanyInitials,
+  calculateBaseViews,
+  getDynamicMedianResponseTime,
+} from "../lib/utils";
 import { CompanyLogo } from "../components/company-logo";
 import { ProposalConfirmationModal } from "@/components/ProposalConfirmationModal";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
@@ -55,6 +60,7 @@ import {
   EyeOff,
   Radio,
   CheckCircle,
+  BarChart3,
 } from "lucide-react";
 import {
   Dialog,
@@ -364,12 +370,15 @@ export function OpportunitiesPage() {
   const [pitchInput, setPitchInput] = useState("");
   const [splitVal, setSplitVal] = useState("27.5%");
   const [duration, setDuration] = useState("12 Mo (Standard)");
-  const [guaranteedIntros, setGuaranteedIntros] = useState("3 Tier-1 Enterprise Intros within 60 days");
+  const [guaranteedIntros, setGuaranteedIntros] = useState(
+    "3 Tier-1 Enterprise Intros within 60 days",
+  );
   const [hideCompanyUntilStage4, setHideCompanyUntilStage4] = useState(true);
   const [includeMutualNDA, setIncludeMutualNDA] = useState(true);
   const [bilateralAgreement, setBilateralAgreement] = useState(true);
   const [submittingInterest, setSubmittingInterest] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [mobileMetricsOpen, setMobileMetricsOpen] = useState(false);
   const [submittedTargetCompany, setSubmittedTargetCompany] = useState("");
   const [submittedOppTitle, setSubmittedOppTitle] = useState("");
 
@@ -415,7 +424,9 @@ export function OpportunitiesPage() {
   const business = onboardingData?.business || null;
   const myBusinessId = business?.id || null;
   const myBusinessStatus = business
-    ? (business.status === "pending" || business.status === "applied" ? "applied" : business.status)
+    ? business.status === "pending" || business.status === "applied"
+      ? "applied"
+      : business.status
     : null;
 
   // Onboarding route check (Only redirect if logged in but has no business)
@@ -446,7 +457,10 @@ export function OpportunitiesPage() {
             geo: opp.geo || opp.location || "Remote / Global",
             location: opp.location || opp.geo || "Remote / Global",
             offer_text: opp.offer_text || "Direct reciprocal margin & revenue split.",
-            company: opp.business?.company_name || opp.business?.name || (opp.hide_company_name ? "Anonymous Venture" : "Verified Company"),
+            company:
+              opp.business?.company_name ||
+              opp.business?.name ||
+              (opp.hide_company_name ? "Anonymous Venture" : "Verified Company"),
             title: opp.title,
             description: opp.description,
             trustLevel: opp.business?.status === "approved" ? "Approved" : "Applied",
@@ -490,11 +504,11 @@ export function OpportunitiesPage() {
           promotion_status: m.promotion_status || "none",
           logo_url: m.logo_url || null,
           parityScore: 94 + ((m.interested || 0) % 6),
-          exchangesCompleted: 20 + ((m.interested || 0) * 2),
+          exchangesCompleted: 20 + (m.interested || 0) * 2,
         }));
 
-      return [...mapped, ...mockMapped].filter(
-        (item): item is Opportunity => Boolean(item && typeof item === "object" && item.id && item.type)
+      return [...mapped, ...mockMapped].filter((item): item is Opportunity =>
+        Boolean(item && typeof item === "object" && item.id && item.type),
       );
     },
     staleTime: 1000 * 60 * 2, // 2 minutes
@@ -582,7 +596,8 @@ export function OpportunitiesPage() {
     },
     onMutate: async ({ oppId, shouldSave }) => {
       await queryClient.cancelQueries({ queryKey: ["saved-opportunities", userId] });
-      const previous = queryClient.getQueryData<Set<string>>(["saved-opportunities", userId]) || new Set<string>();
+      const previous =
+        queryClient.getQueryData<Set<string>>(["saved-opportunities", userId]) || new Set<string>();
       const next = new Set(previous);
       if (shouldSave) next.add(oppId);
       else next.delete(oppId);
@@ -596,7 +611,9 @@ export function OpportunitiesPage() {
       toast.error(shouldSave ? "Failed to save opportunity." : "Failed to remove bookmark.");
     },
     onSuccess: (_data, { shouldSave }) => {
-      toast.success(shouldSave ? "Opportunity saved to bookmarks." : "Opportunity removed from bookmarks.");
+      toast.success(
+        shouldSave ? "Opportunity saved to bookmarks." : "Opportunity removed from bookmarks.",
+      );
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["saved-opportunities", userId] });
@@ -619,12 +636,14 @@ export function OpportunitiesPage() {
       (prev = {}) => ({
         ...prev,
         [oppId]: totalViews,
-      })
+      }),
     );
   };
 
   // Dynamic 2-Hour Median Response Time Generator
-  const [medianResponseTime, setMedianResponseTime] = useState(() => getDynamicMedianResponseTime());
+  const [medianResponseTime, setMedianResponseTime] = useState(() =>
+    getDynamicMedianResponseTime(),
+  );
 
   useEffect(() => {
     const updateResponseTime = () => {
@@ -667,7 +686,9 @@ export function OpportunitiesPage() {
       return;
     }
     setSelectedOppForInterest(opp);
-    setPitchInput("We manage enterprise client relationships and will bundle your offering into our client migration framework.");
+    setPitchInput(
+      "We manage enterprise client relationships and will bundle your offering into our client migration framework.",
+    );
     setSplitVal("27.5%");
     setDuration("12 Mo (Standard)");
     setGuaranteedIntros("3 Tier-1 Enterprise Intros within 60 days");
@@ -841,7 +862,8 @@ export function OpportunitiesPage() {
       if (query) {
         const oppNum = o.opportunity_number || "";
         const shortId = o.id ? o.id.substring(0, 8) : "";
-        const hay = `${o.company || ""} ${o.title || ""} ${o.description || ""} ${o.offer_text || ""} ${oppNum} ${shortId}`.toLowerCase();
+        const hay =
+          `${o.company || ""} ${o.title || ""} ${o.description || ""} ${o.offer_text || ""} ${oppNum} ${shortId}`.toLowerCase();
         if (!hay.includes(query)) return false;
       }
       return true;
@@ -883,10 +905,12 @@ export function OpportunitiesPage() {
   }
 
   return (
-    <div className={cn(
-      "min-h-screen bg-white text-[#171F2C] flex flex-col font-sans antialiased selection:bg-[#000000] selection:text-white overflow-x-hidden w-full max-w-full",
-      isSignedIn ? "pb-16" : "pb-4"
-    )}>
+    <div
+      className={cn(
+        "min-h-screen bg-white text-[#171F2C] flex flex-col font-sans antialiased selection:bg-[#000000] selection:text-white overflow-x-hidden w-full max-w-full",
+        isSignedIn ? "pb-16" : "pb-4",
+      )}
+    >
       {/* ═══════════════════════════════════════════════════════════════════
           MAIN WRAPPER (MAX-W-7XL / 12-COL GRID)
           ═══════════════════════════════════════════════════════════════════ */}
@@ -912,80 +936,99 @@ export function OpportunitiesPage() {
             </p>
           </div>
 
-          {/* Quick Action Pill / Help */}
-          <div className="flex items-center gap-3 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={startTour}
-              className="gap-1.5"
-            >
-              <HelpCircle className="w-4 h-4 text-[#64748B]" />
-              <span>How It Works</span>
-            </Button>
-
-            {isSignedIn ? (
-              <Link
-                to="/post"
-                id="post-opportunity-top-btn"
-                className="inline-flex items-center gap-1.5 bg-[#000000] hover:bg-[#171F2C] text-white font-medium text-xs md:text-sm px-4 py-2 rounded-[4px] transition-all shadow-xs cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Post Opportunity</span>
-              </Link>
-            ) : (
-              <button
-                type="button"
-                disabled
-                id="post-opportunity-top-btn"
-                className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-400 border border-slate-200 font-medium text-xs md:text-sm px-4 py-2 rounded-[4px] cursor-not-allowed select-none transition-all"
-                title="Sign in required to post an opportunity"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Post Opportunity</span>
-              </button>
+          {/* Quick Action Pill / Help + Top-Right Micro Metrics */}
+          <div className="flex flex-col items-start md:items-end gap-2.5 shrink-0">
+            {/* Desktop-Only Compact Micro Metrics (Positioned above How It Works & Post Opportunity) */}
+            {isSignedIn && (
+              <div className="hidden md:flex items-center gap-2">
+                <div className="px-2.5 py-1 rounded-[4px] border border-[#E2E8F0] bg-[#F8FAFC] flex items-center gap-2 shadow-2xs">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#64748B]">
+                    Active
+                  </span>
+                  <span className="text-xs font-bold text-[#171F2C] font-display">
+                    {dbOpps.length.toLocaleString()}
+                  </span>
+                </div>
+                <div className="px-2.5 py-1 rounded-[4px] border border-[#E2E8F0] bg-[#F8FAFC] flex items-center gap-2 shadow-2xs">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#64748B]">
+                    Response
+                  </span>
+                  <span className="text-xs font-bold text-[#171F2C] font-display">
+                    {medianResponseTime}
+                  </span>
+                </div>
+                <div className="px-2.5 py-1 rounded-[4px] border border-[#E2E8F0] bg-[#F8FAFC] flex items-center gap-2 shadow-2xs">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#64748B]">
+                    Parity
+                  </span>
+                  <span className="text-xs font-bold text-[#059669] font-display">97%</span>
+                </div>
+                <div className="px-2.5 py-1 rounded-[4px] border border-[#E2E8F0] bg-[#F8FAFC] flex items-center gap-2 shadow-2xs">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#64748B]">
+                    Verified
+                  </span>
+                  <span className="text-xs font-bold text-[#171F2C] font-display">
+                    {verifiedBizCount.toLocaleString()}
+                  </span>
+                </div>
+              </div>
             )}
+
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 w-full sm:w-auto flex-nowrap overflow-x-auto sm:overflow-visible scrollbar-none">
+              {/* Mobile-Only Metrics Trigger Button (Left of How It Works) */}
+              {isSignedIn && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMobileMetricsOpen(true)}
+                  className="md:hidden gap-1 px-2 sm:px-3 text-xs shrink-0 flex-1 sm:flex-initial whitespace-nowrap"
+                >
+                  <BarChart3 className="w-3.5 h-3.5 text-[#64748B]" />
+                  <span>Metrics</span>
+                </Button>
+              )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={startTour}
+                className="gap-1 px-2 sm:px-3 text-xs shrink-0 flex-1 sm:flex-initial whitespace-nowrap"
+              >
+                <HelpCircle className="w-3.5 h-3.5 text-[#64748B]" />
+                <span>How It Works</span>
+              </Button>
+
+              {isSignedIn ? (
+                <Link
+                  to="/post"
+                  id="post-opportunity-top-btn"
+                  className="inline-flex items-center justify-center gap-1 bg-[#000000] hover:bg-[#171F2C] text-white font-medium text-xs px-2.5 sm:px-4 py-2 rounded-[4px] transition-all shadow-xs cursor-pointer shrink-0 whitespace-nowrap flex-1 sm:flex-initial"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Post Opportunity</span>
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  id="post-opportunity-top-btn"
+                  className="inline-flex items-center justify-center gap-1 bg-slate-100 text-slate-400 border border-slate-200 font-medium text-xs px-2.5 sm:px-4 py-2 rounded-[4px] cursor-not-allowed select-none transition-all shrink-0 whitespace-nowrap flex-1 sm:flex-initial"
+                  title="Sign in required to post an opportunity"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Post Opportunity</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
-
-        {/* ═══════════════════════════════════════════════════════════════════
-            STREAMLINED METRICS STRIP (4 DESIGN SYSTEM METRIC CARDS) - ONLY FOR SIGNED-IN USERS
-            ═══════════════════════════════════════════════════════════════════ */}
-        {isSignedIn && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6">
-            <MetricCard
-              label="Active Deals"
-              value={dbOpps.length.toLocaleString()}
-              subLabel="verified"
-            />
-            <MetricCard
-              label="Median Response"
-              value={medianResponseTime}
-              subLabel="avg pitch turn"
-            />
-            <MetricCard
-              label="Reciprocity Rate"
-              value="97%"
-              subLabel="Bilateral"
-              subLabelColor="text-[#059669] font-medium"
-            />
-            <MetricCard
-              label="Verified Businesses"
-              value={verifiedBizCount.toLocaleString()}
-              subLabel="members"
-            />
-          </div>
-        )}
 
         {/* ═══════════════════════════════════════════════════════════════════
             CATEGORY TABS FILTER
             ═══════════════════════════════════════════════════════════════════ */}
         <div
           id="category-tabs-filter"
-          className={cn(
-            "flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none",
-            !isSignedIn ? "pt-6" : "",
-          )}
+          className={cn("flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none pt-4")}
         >
           {TYPES.map((t) => {
             const isActive = type === t;
@@ -1003,18 +1046,18 @@ export function OpportunitiesPage() {
                   })
                 }
                 type="button"
-                className={`shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5 ${
+                className={`shrink-0 px-3.5 py-1.5 rounded-[4px] text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5 ${
                   isActive
-                    ? "bg-[#171F2C] text-white shadow-xs"
-                    : "bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-100"
+                    ? "bg-[#171F2C] text-white border border-[#171F2C] shadow-2xs"
+                    : "bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#171F2C] hover:bg-[#F8FAFC] hover:border-[#CBD5E1]"
                 }`}
               >
                 <span>{t === "All" ? "All Deals" : t}</span>
                 <span
                   className={
                     isActive
-                      ? "bg-white/20 text-white px-1.5 py-0.2 rounded-full text-[10px]"
-                      : "text-slate-400 text-[11px]"
+                      ? "bg-white/20 text-white px-1.5 py-0.5 rounded-[2px] font-mono text-[10px]"
+                      : "text-[#94A3B8] font-mono text-[10px]"
                   }
                 >
                   {count}
@@ -1029,11 +1072,11 @@ export function OpportunitiesPage() {
             ═══════════════════════════════════════════════════════════════════ */}
         <div
           id="search-and-filters-bar"
-          className="mt-3 mb-6 bg-white border border-slate-200/80 rounded-2xl p-2.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 shadow-sm"
+          className="mt-3 mb-6 bg-white border border-[#E2E8F0] rounded-[4px] p-2.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 shadow-2xs"
         >
           {/* Search Input */}
-          <div className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-xl flex-1">
-            <Search className="w-4 h-4 text-slate-400 shrink-0" />
+          <div className="flex items-center gap-2.5 px-3 py-1.5 bg-[#F8FAFC] border border-[#E2E8F0] focus-within:border-[#171F2C] rounded-[4px] flex-1 transition-colors">
+            <Search className="w-4 h-4 text-[#94A3B8] shrink-0" />
             <input
               type="text"
               placeholder="Search keywords, industries, reciprocal offers, or deal IDs..."
@@ -1050,7 +1093,7 @@ export function OpportunitiesPage() {
                   });
                 }
               }}
-              className="bg-transparent border-0 outline-none text-slate-800 text-xs sm:text-sm w-full placeholder:text-slate-400 focus:ring-0"
+              className="bg-transparent border-0 outline-none text-[#171F2C] text-xs sm:text-sm w-full placeholder:text-[#94A3B8] focus:ring-0"
             />
             {searchInputVal && (
               <button
@@ -1065,12 +1108,12 @@ export function OpportunitiesPage() {
                     }),
                   });
                 }}
-                className="text-slate-400 hover:text-slate-600 p-0.5"
+                className="text-[#94A3B8] hover:text-[#171F2C] p-0.5"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
-            <kbd className="hidden sm:inline-block font-mono text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded text-slate-400">
+            <kbd className="hidden sm:inline-block font-mono text-[10px] bg-white border border-[#E2E8F0] px-1.5 py-0.5 rounded-[2px] text-[#64748B]">
               ⌘K
             </kbd>
           </div>
@@ -1089,7 +1132,7 @@ export function OpportunitiesPage() {
                   }),
                 })
               }
-              className="appearance-none bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium pl-3 pr-7 py-2 rounded-xl border border-slate-200/60 outline-none cursor-pointer transition-colors"
+              className="appearance-none bg-[#F8FAFC] hover:bg-white text-[#171F2C] text-xs font-medium pl-3 pr-7 py-2 rounded-[4px] border border-[#E2E8F0] hover:border-[#CBD5E1] focus:border-[#171F2C] outline-none cursor-pointer transition-colors"
             >
               {INDUSTRIES.map((ind) => (
                 <option key={ind} value={ind}>
@@ -1110,7 +1153,7 @@ export function OpportunitiesPage() {
                   }),
                 })
               }
-              className="appearance-none bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium pl-3 pr-7 py-2 rounded-xl border border-slate-200/60 outline-none cursor-pointer transition-colors"
+              className="appearance-none bg-[#F8FAFC] hover:bg-white text-[#171F2C] text-xs font-medium pl-3 pr-7 py-2 rounded-[4px] border border-[#E2E8F0] hover:border-[#CBD5E1] focus:border-[#171F2C] outline-none cursor-pointer transition-colors"
             >
               {GEOGRAPHIES.map((g) => (
                 <option key={g} value={g}>
@@ -1131,7 +1174,7 @@ export function OpportunitiesPage() {
                   }),
                 })
               }
-              className="appearance-none bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium pl-3 pr-7 py-2 rounded-xl border border-slate-200/60 outline-none cursor-pointer transition-colors"
+              className="appearance-none bg-[#F8FAFC] hover:bg-white text-[#171F2C] text-xs font-medium pl-3 pr-7 py-2 rounded-[4px] border border-[#E2E8F0] hover:border-[#CBD5E1] focus:border-[#171F2C] outline-none cursor-pointer transition-colors"
             >
               <option value="newest">Sort: Newest First</option>
               <option value="expiring">Sort: Expiry Soonest</option>
@@ -1220,7 +1263,8 @@ export function OpportunitiesPage() {
                     const isSaved = savedOpportunityIds.has(opp.id);
                     const interestRecord = interestStore[opp.id];
                     const interestStatus = interestRecord?.status ?? "idle";
-                    const isMock = opp.id.startsWith("RY-") && OPPORTUNITIES.some((m) => m.id === opp.id);
+                    const isMock =
+                      opp.id.startsWith("RY-") && OPPORTUNITIES.some((m) => m.id === opp.id);
                     const defaultBase = isMock ? calculateBaseViews(opp.id, opp.interested) : 0;
                     const dynamicViews = viewsMap[opp.id] ?? opp.views ?? defaultBase;
 
@@ -1233,7 +1277,9 @@ export function OpportunitiesPage() {
                       <div
                         key={opp.id}
                         className={cn(
-                          !isSignedIn && idx >= 2 && "filter blur-[8px] opacity-25 select-none pointer-events-none scale-[1.01] transform",
+                          !isSignedIn &&
+                            idx >= 2 &&
+                            "filter blur-[8px] opacity-25 select-none pointer-events-none scale-[1.01] transform",
                         )}
                       >
                         <ObservedOpportunityCard
@@ -1337,7 +1383,10 @@ export function OpportunitiesPage() {
               <HowItWorksCard />
 
               {/* 2. Need a Custom Partner Callout Card (Dark Foundation Banner) */}
-              <TargetedPlacementCard buttonHref={isSignedIn ? "/post" : undefined} disabled={!isSignedIn} />
+              <TargetedPlacementCard
+                buttonHref={isSignedIn ? "/post" : undefined}
+                disabled={!isSignedIn}
+              />
 
               {/* 3. Recent Handshakes Live Widget */}
               <RecentHandshakesCard />
@@ -1357,42 +1406,44 @@ export function OpportunitiesPage() {
 
               {/* 3. Floating Centered Gatekeeper Box (Sign In / Apply) - Completely inside the solid white dome */}
               <div className="absolute top-16 sm:top-20 lg:top-24 inset-x-3 sm:inset-x-4 flex items-center justify-center pointer-events-auto">
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-7 md:p-8 shadow-[0_22px_60px_-10px_rgba(15,23,42,0.2)] text-center max-w-[94%] sm:max-w-md md:max-w-lg w-full space-y-3.5 sm:space-y-4 animate-in fade-in zoom-in-95 duration-200">
-                  <div className="w-11 h-11 rounded-full bg-slate-950 text-white flex items-center justify-center mx-auto shadow-xs">
+                <div className="bg-white border border-[#E2E8F0] rounded-[4px] p-6 sm:p-8 shadow-2xl text-center max-w-[94%] sm:max-w-md md:max-w-lg w-full space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="w-11 h-11 rounded-[4px] bg-[#171F2C] text-white flex items-center justify-center mx-auto shadow-2xs">
                     <Lock className="w-5 h-5 text-white" />
                   </div>
 
                   <div>
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500 bg-slate-100 border border-slate-200 px-3 py-0.5 rounded-full inline-block mb-2">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#64748B] bg-[#F8FAFC] border border-[#E2E8F0] px-3 py-0.5 rounded-[2px] inline-block mb-2">
                       VERIFIED OPERATOR NETWORK
                     </span>
-                    <h3 className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight font-display">
+                    <h3 className="text-xl sm:text-2xl font-extrabold text-[#171F2C] tracking-tight font-display">
                       Unlock All Commercial Opportunities
                     </h3>
-                    <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed max-w-sm mx-auto">
-                      Verified company executives exchange deals, distribution, and partnerships daily. Apply for access or sign in to unmask partner identities and propose deals.
+                    <p className="text-xs sm:text-sm text-[#64748B] mt-2 leading-relaxed max-w-sm mx-auto">
+                      Verified company executives exchange deals, distribution, and partnerships
+                      daily. Apply for access or sign in to unmask partner identities and propose
+                      deals.
                     </p>
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
                     <Link
                       to="/signup"
-                      className="w-full sm:w-auto px-7 py-3 rounded-lg bg-slate-950 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs flex items-center justify-center gap-2"
+                      className="w-full sm:w-auto px-6 py-2.5 rounded-[4px] bg-[#000000] hover:bg-[#171F2C] text-white text-xs sm:text-sm font-semibold tracking-wide transition-all shadow-xs flex items-center justify-center gap-2"
                     >
                       <span>Apply for Access</span>
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                     <Link
                       to="/login"
-                      className="w-full sm:w-auto px-7 py-3 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs sm:text-sm font-bold hover:bg-slate-50 transition-all flex items-center justify-center"
+                      className="w-full sm:w-auto px-6 py-2.5 rounded-[4px] bg-white border border-[#E2E8F0] text-[#171F2C] text-xs sm:text-sm font-semibold hover:bg-[#F8FAFC] hover:border-[#CBD5E1] transition-all flex items-center justify-center"
                     >
                       Sign In
                     </Link>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-center gap-4 text-[11px] font-mono text-slate-500 flex-wrap">
+                  <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-center gap-4 text-[11px] font-mono text-[#64748B] flex-wrap">
                     <span className="flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-slate-700" />
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#171F2C]" />
                       Zero Cold Outreach
                     </span>
                     <span>•</span>
@@ -1419,7 +1470,7 @@ export function OpportunitiesPage() {
           }
         }}
       >
-        <DialogContent className="max-w-2xl bg-white rounded-2xl shadow-2xl p-0 sm:p-0 !p-0 gap-0 overflow-hidden flex flex-col border border-[#E2E8F0] animate-in fade-in zoom-in-95 duration-150">
+        <DialogContent className="max-w-2xl bg-white rounded-[4px] shadow-2xl p-0 sm:p-0 !p-0 gap-0 overflow-hidden flex flex-col border border-[#E2E8F0] animate-in fade-in zoom-in-95 duration-150">
           {selectedOppForInterest && (
             <div className="w-full flex flex-col overflow-hidden">
               {/* 1. Minimal Clean Modal Header */}
@@ -1429,27 +1480,29 @@ export function OpportunitiesPage() {
                     <DialogTitle className="font-display text-lg sm:text-xl font-bold text-[#171F2C] tracking-tight">
                       Express Interest: {selectedOppForInterest.company}
                     </DialogTitle>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-[2px] border border-emerald-200 shrink-0">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                       94% Match
                     </span>
                   </div>
-                  <p className="text-xs text-[#64748B]">
-                    {selectedOppForInterest.title}
-                  </p>
+                  <p className="text-xs text-[#64748B]">{selectedOppForInterest.title}</p>
                 </div>
               </div>
 
               {/* 2. Clean Single-Column Modal Content */}
               <div className="px-6 sm:px-8 py-5 sm:py-6 space-y-5 overflow-y-auto max-h-[calc(88vh-140px)]">
                 {/* Seeking & Offering Context Pill */}
-                <div className="flex items-center gap-2 px-3.5 py-2.5 bg-slate-50 border border-[#E2E8F0] rounded-xl text-xs text-slate-600">
-                  <Info className="w-4 h-4 text-slate-400 shrink-0" />
+                <div className="flex items-center gap-2 px-3.5 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] text-xs text-[#64748B]">
+                  <Info className="w-4 h-4 text-[#94A3B8] shrink-0" />
                   <span>
-                    <strong className="font-semibold text-slate-800">Seeking:</strong>{" "}
-                    {selectedOppForInterest.location || selectedOppForInterest.geo || "Tier-1 Enterprise Intros"}
-                    {selectedOppForInterest.industry ? ` in ${selectedOppForInterest.industry}` : ""} •{" "}
-                    <strong className="font-semibold text-slate-800">Offering:</strong>{" "}
+                    <strong className="font-semibold text-[#171F2C]">Seeking:</strong>{" "}
+                    {selectedOppForInterest.location ||
+                      selectedOppForInterest.geo ||
+                      "Tier-1 Enterprise Intros"}
+                    {selectedOppForInterest.industry
+                      ? ` in ${selectedOppForInterest.industry}`
+                      : ""}{" "}
+                    • <strong className="font-semibold text-[#171F2C]">Offering:</strong>{" "}
                     {selectedOppForInterest.offer_text || "25% recurring rev-share"}
                   </span>
                 </div>
@@ -1471,7 +1524,7 @@ export function OpportunitiesPage() {
                     maxLength={500}
                     placeholder="Describe your reciprocal value or reach..."
                     rows={3}
-                    className="w-full bg-white border border-[#E2E8F0] text-slate-900 text-xs md:text-sm rounded-xl p-3.5 focus:outline-none focus:ring-1 focus:ring-[#000000] focus:border-[#000000] leading-relaxed transition-all shadow-xs resize-none placeholder-slate-400"
+                    className="w-full bg-white border border-[#E2E8F0] text-[#171F2C] text-xs md:text-sm rounded-[4px] p-3 focus:outline-none focus:ring-1 focus:ring-[#171F2C] focus:border-[#171F2C] leading-relaxed transition-all shadow-2xs resize-none placeholder:text-[#94A3B8]"
                   />
                 </div>
 
@@ -1480,7 +1533,9 @@ export function OpportunitiesPage() {
                   {/* Proposed Rev Share */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-xs font-semibold text-[#171F2C]">Proposed Rev Share</span>
+                      <span className="text-xs font-semibold text-[#171F2C]">
+                        Proposed Rev Share
+                      </span>
                       <span className="font-mono font-bold text-xs text-[#171F2C]" id="split-val">
                         {splitVal}
                       </span>
@@ -1493,10 +1548,10 @@ export function OpportunitiesPage() {
                             key={val}
                             type="button"
                             onClick={() => setSplitVal(val)}
-                            className={`py-2 text-center text-xs rounded-lg transition-colors cursor-pointer ${
+                            className={`py-2 text-center text-xs rounded-[4px] transition-colors cursor-pointer ${
                               isSelected
                                 ? "bg-[#000000] text-white font-semibold shadow-xs"
-                                : "border border-[#E2E8F0] text-slate-600 hover:bg-slate-50 font-medium"
+                                : "border border-[#E2E8F0] text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#171F2C] font-medium"
                             }`}
                           >
                             {val === "25.0%" ? "25%" : val === "27.5%" ? "27.5%" : "30%"}
@@ -1509,8 +1564,10 @@ export function OpportunitiesPage() {
                   {/* Commitment Period */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-xs font-semibold text-[#171F2C]">Commitment Period</span>
-                      <span className="text-slate-400 font-mono text-[11px]">
+                      <span className="text-xs font-semibold text-[#171F2C]">
+                        Commitment Period
+                      </span>
+                      <span className="text-[#94A3B8] font-mono text-[11px]">
                         {duration.includes("6") ? "6 mo." : "12 mo."}
                       </span>
                     </div>
@@ -1523,10 +1580,10 @@ export function OpportunitiesPage() {
                             key={dur}
                             type="button"
                             onClick={() => setDuration(dur)}
-                            className={`py-2 text-center text-xs rounded-lg transition-colors cursor-pointer ${
+                            className={`py-2 text-center text-xs rounded-[4px] transition-colors cursor-pointer ${
                               isSelected
                                 ? "bg-[#000000] text-white font-semibold shadow-xs"
-                                : "border border-[#E2E8F0] text-slate-600 hover:bg-slate-50 font-medium"
+                                : "border border-[#E2E8F0] text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#171F2C] font-medium"
                             }`}
                           >
                             {dur}
@@ -1538,29 +1595,32 @@ export function OpportunitiesPage() {
                 </div>
 
                 {/* Blinded NDA notice */}
-                <div className="pt-1 flex items-center gap-2 text-xs text-slate-500">
-                  <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span>Bilateral mutual NDA automatically included. Identity remains blinded until accepted.</span>
+                <div className="pt-1 flex items-center gap-2 text-xs text-[#64748B]">
+                  <Lock className="w-3.5 h-3.5 text-[#94A3B8] shrink-0" />
+                  <span>
+                    Bilateral mutual NDA automatically included. Identity remains blinded until
+                    accepted.
+                  </span>
                 </div>
               </div>
 
               {/* 3. Modal Clean Direct Footer */}
-              <div className="px-6 sm:px-8 py-4 border-t border-[#E2E8F0] bg-slate-50/50 flex items-center justify-end gap-3 shrink-0">
-                <button
-                  type="button"
+              <div className="px-6 sm:px-8 py-4 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-end gap-3 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => {
                     setInterestOpen(false);
                     setSelectedOppForInterest(null);
                   }}
-                  className="px-4 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium border border-[#E2E8F0] transition-colors cursor-pointer"
                 >
                   Cancel
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="monochrome"
+                  size="sm"
                   onClick={handleSubmitInterest}
                   disabled={submittingInterest}
-                  className="px-5 py-2 rounded-lg bg-[#000000] hover:bg-zinc-800 text-white text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {submittingInterest ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -1570,7 +1630,7 @@ export function OpportunitiesPage() {
                       <ArrowRight className="w-3.5 h-3.5" />
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -1589,7 +1649,7 @@ export function OpportunitiesPage() {
           }
         }}
       >
-        <DialogContent className="max-w-xl bg-white border border-[#E2E8F0] p-6 rounded-lg shadow-xl">
+        <DialogContent className="max-w-xl bg-white border border-[#E2E8F0] p-6 rounded-[4px] shadow-xl">
           <DialogHeader>
             <DialogTitle className="font-bold text-base text-[#171F2C]">
               Edit Opportunity Listing
@@ -1661,9 +1721,7 @@ export function OpportunitiesPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-[#171F2C]">
-                Seeking in Exchange
-              </Label>
+              <Label className="text-xs font-semibold text-[#171F2C]">Seeking in Exchange</Label>
               <Input
                 placeholder="e.g. 25% recurring margin + co-marketing budget"
                 value={editOfferText}
@@ -1686,26 +1744,81 @@ export function OpportunitiesPage() {
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#E2E8F0]">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   setEditOpen(false);
                   setSelectedOppToEdit(null);
                 }}
-                className="px-4 py-2 text-xs font-medium text-[#64748B] hover:text-[#171F2C] cursor-pointer"
               >
                 Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={submittingEdit}
-                className="inline-flex items-center gap-1.5 bg-[#000000] hover:bg-[#171F2C] text-white text-xs font-semibold px-4 py-2 rounded-[4px] cursor-pointer shadow-xs disabled:opacity-50"
-              >
+              </Button>
+              <Button type="submit" variant="monochrome" size="sm" disabled={submittingEdit}>
                 {submittingEdit && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>Save Changes</span>
-              </button>
+              </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          MOBILE METRICS POPUP MODAL
+          ═══════════════════════════════════════════════════════════════════ */}
+      <Dialog open={mobileMetricsOpen} onOpenChange={setMobileMetricsOpen}>
+        <DialogContent className="max-w-md bg-white border border-[#E2E8F0] p-6 rounded-[4px] shadow-xl">
+          <DialogHeader>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#F97316]">
+                Reciprocal Dealflow
+              </span>
+              <span className="text-[#CBD5E1]">•</span>
+              <span className="text-xs text-[#64748B]">Platform Telemetry</span>
+            </div>
+            <DialogTitle className="font-bold text-lg text-[#171F2C] tracking-tight">
+              Network &amp; Opportunity Metrics
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#64748B]">
+              Real-time verified platform volume, response velocity, and operator parity statistics.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-2 gap-3 py-3">
+            <MetricCard
+              label="Active Deals"
+              value={dbOpps.length.toLocaleString()}
+              subLabel="verified opportunities"
+            />
+            <MetricCard
+              label="Median Response"
+              value={medianResponseTime}
+              subLabel="avg pitch turn"
+            />
+            <MetricCard
+              label="Reciprocity Rate"
+              value="97%"
+              subLabel="Bilateral Parity"
+              subLabelColor="text-[#059669] font-medium"
+            />
+            <MetricCard
+              label="Verified Businesses"
+              value={verifiedBizCount.toLocaleString()}
+              subLabel="member network"
+            />
+          </div>
+
+          <DialogFooter className="pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMobileMetricsOpen(false)}
+              className="w-full"
+            >
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

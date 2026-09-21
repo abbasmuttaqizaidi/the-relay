@@ -2,605 +2,547 @@ When designing the page use the color scheme present in color_scheme.md
 
 
 
-# `/b2b-referral-network`
+Yes. I did the audit before moving the cluster forward, and there is a **clearer architecture now**.
 
-I reviewed the **current implementation in the repo** and the current search landscape around “B2B referral network,” “business referral network,” and “find referral partners.”
+I checked the updated `b2b-opportunity-exchange`, `b2b-lead-exchange`, `b2b-referral-network`, plus the current `referral-partnerships` route in the repo, and I also checked the current 2026 search landscape for referral-partnership queries.
 
-The SERP is notably different from lead exchange. The dominant intent is **finding/building complementary referral relationships**, not exchanging individual leads. BNI, newer referral platforms, and B2B partnership guides all frame referral networks around complementary businesses, trusted introductions, and recurring relationships. :chatgpt-content-reference{index="0"}
+## Audit result
 
-That gives us a clean boundary:
+### 1. `/b2b-opportunity-exchange` — now a proper parent page
 
-> **Opportunity exchange = the broad commercial opportunity layer**  
-> **Lead exchange = a specific opportunity/lead use case**  
-> **Referral network = the ongoing relationship between businesses**
+This page is in the right position now.
 
-That distinction is important for SEO.
+Its job is:
+
+> **What is a B2B opportunity exchange, and what kinds of commercial opportunities can be exchanged?**
+
+It currently covers the parent concept, use cases, workflows, audiences, and links into the specialized pages.
+
+One issue remains:
+
+**The page currently describes a 7-stage workflow, while the actual Relay journey is 8 stages.**
+
+The real product flow is:
+
+**Verify → Post → Discover → Express Interest → Acknowledge → Negotiate → Agree → Handshake**
+
+So we should correct the opportunity page before we consider this cluster fully clean.
+
+Everything else about its keyword boundary is good.
 
 ---
 
-# 1. Keyword strategy
+### 2. `/b2b-lead-exchange` — strong, but keep it tightly constrained
 
-### Primary keyword
+This now owns:
 
-**B2B referral network**
+> **“I have a B2B lead my company can't fulfil.”**
 
-### Secondary keywords
+That is the right intent.
 
-`business referral network`  
-`B2B referral partners`  
-`find referral partners`  
-`B2B referral partnerships`  
-`business referral partners`  
-`referral network for businesses`  
-`B2B referrals`  
-`business referral program`  
-`find B2B partners`  
-`business networking referrals`
+The page should not drift into becoming:
 
-### Long-tail opportunities
+> “How to generate more B2B leads.”
 
-`how to find B2B referral partners`  
-`how to build a B2B referral network`  
-`how businesses get referrals from partners`  
-`how to create referral partnerships`
+That's a different search intent and belongs elsewhere.
 
-Those last informational queries should primarily belong to:
+The important boundary is:
+
+**Lead Exchange**  
+→ existing commercial lead/opportunity
+
+**Lead Generation**  
+→ creating new demand
+
+That distinction is already reflected in the page structure, so I would keep it.
+
+The current FAQ answers are now present in the DOM while being visually collapsed. That's the right implementation pattern.
+
+---
+
+### 3. `/b2b-referral-network` — good parent for referral relationships
+
+This page should own:
+
+> **Finding the right businesses to refer opportunities to and building a referral network.**
+
+This is distinct from the lead-exchange page.
+
+Current search results support that positioning: referral-network guidance consistently centers on complementary businesses serving overlapping customers, rather than simply buying/selling lead lists. :chatgpt-content-reference{index="0"}
+
+So the semantic chain is now:
+
+```text
+B2B Opportunity Exchange
+        ↓
+B2B Lead Exchange
+        ↓
+B2B Referral Network
+```
+
+But there is a **fourth page** waiting underneath that creates the main cannibalization risk.
+
+---
+
+# 4. `/referral-partnerships` is currently too close to `/b2b-referral-network`
+
+I inspected its current implementation.
+
+Its current title is:
+
+> **B2B Referral Partnerships — Find Referral Partners | The Relay**
+
+That's the problem.
+
+**“Find referral partners” belongs much more naturally to `/b2b-referral-network`.**
+
+And its current body overlaps heavily with that page:
+
+- complementary businesses
+- referral partners
+- partner fit
+- referral examples
+- referral network
+- referral opportunities
+
+So if we simply optimize it for:
+
+> B2B referral partnerships
+
+while keeping the same structure, we'd create two pages competing for essentially the same cluster.
+
+We should **change the role of this page rather than just rewrite the words.**
+
+---
+
+# The new architecture
+
+This is the structure I'd lock in:
+
+| URL | Owns |
+|---|---|
+| `/b2b-opportunity-exchange` | What is an opportunity exchange? |
+| `/b2b-lead-exchange` | Exchange leads your business can't fulfil |
+| `/b2b-referral-network` | Find/build a referral network |
+| `/referral-partnerships` | Structure and formalize a referral partnership |
+| `/how-to-find-b2b-referral-partners` | Step-by-step guide to finding partners |
+
+That is much cleaner.
+
+### In plain English
+
+**Referral Network**
+
+> “Who should I partner with?”
+
+**Referral Partnership**
+
+> “How should this partnership actually work?”
+
+**How To Find Referral Partners**
+
+> “How do I go about finding them?”
+
+That separation is exactly what we want for SEO.
+
+Current search results reinforce this distinction: referral-partnership resources commonly focus on formal arrangements, commission/payment terms, qualified-referral definitions, tracking, confidentiality and agreement structure. :chatgpt-content-reference{index="1"}
+
+---
+
+# 5. What I found wrong with the current `/referral-partnerships`
+
+This page needs a more substantial rewrite than the previous two.
+
+It currently contains claims such as:
+
+> “10% on the engineering contract”
+
+> “15% First-Year ARR”
+
+> “Standard 10% closed value commission”
+
+and FAQ claims around:
+
+> “5% to 20%”
+
+> “5% to 10% ongoing revenue share”
+
+plus claims around:
+
+> Master NCND  
+> binding terms  
+> preventing poaching
+
+We shouldn't make those into Relay facts unless the product actually implements those exact structures.
+
+The current web landscape does show that referral programs commonly use commission/fee arrangements and formal agreements, but the actual rates and legal terms vary substantially by business and contract. :chatgpt-content-reference{index="2"}
+
+So instead of telling users:
+
+> “Relay's standard is 10%”
+
+we should explain:
+
+> **“Referral partnerships can use flat fees, percentage-based commissions, recurring shares, reciprocal referrals or other mutually agreed structures.”**
+
+That's accurate and much safer.
+
+---
+
+# 6. Keyword strategy for `/referral-partnerships`
+
+## Primary
+
+**B2B referral partnerships**
+
+## Secondary
+
+`referral partnership`  
+`B2B referral partner`  
+`referral partnership agreement`  
+`B2B referral agreement`  
+`referral commission structure`  
+`referral partnership terms`  
+`business referral partnership`  
+`referral partner agreement`  
+`B2B referral program`
+
+## Supporting concepts
+
+`qualified referral`  
+`referral fee`  
+`commission`  
+`attribution`  
+`referral ownership`  
+`client introduction`  
+`referral tracking`  
+`reciprocal referrals`  
+`partner terms`
+
+### Important
+
+I would **not** make `find referral partners` a target term here.
+
+That's owned by:
+
+`/b2b-referral-network`
+
+And:
+
+`how to find B2B referral partners`
+
+belongs to:
 
 `/how-to-find-b2b-referral-partners`
 
-So **we mention the concepts here but don't turn this page into a 3,000-word “how to build a referral network” guide.**
+---
+
+# 7. New intent for the page
+
+The page should answer:
+
+> **“I've found a potential referral partner. How do we structure the relationship?”**
+
+That means the content should focus on:
+
+### What a referral partnership is
+
+A formal relationship where one business introduces relevant opportunities to another under agreed expectations.
+
+### What needs to be defined
+
+Who qualifies as a referral?
+
+How is the introduction made?
+
+Who owns the client relationship?
+
+What counts as a successful conversion?
+
+When is compensation earned?
+
+How long does attribution last?
+
+What happens with duplicate/existing leads?
+
+How are disputes handled?
+
+What information is disclosed?
+
+### Commercial models
+
+We can explain:
+
+**Flat referral fee**
+
+**Percentage commission**
+
+**Recurring revenue share**
+
+**Reciprocal referral**
+
+**Co-delivery / collaboration**
+
+without claiming that one percentage or structure is "standard."
+
+### Relay workflow
+
+This is where we connect it back to the product:
+
+**Opportunity → Interest → Terms → Agreement → Consent → Introduction**
+
+That makes the page about **partnership structure**, not partner discovery.
 
 ---
 
-# 2. What is wrong with the current page
-
-The current route has some good structure, but it overstates several things.
-
-For example, it currently claims:
-
-> “10% Rev Share”
-
-and talks about:
-
-> “Master NCND protection”  
-> “binding legal covenants”  
-> “cryptographic gated disclosure”  
-> “KYB verification and LEI entity attribution”
-
-Those are exactly the kinds of claims I don't want us building SEO copy around unless they're **actually implemented, documented and legally accurate**.
-
-Also, phrases like:
-
-> “High conversion probability”  
-> “Predictable organic pipeline”  
-> “Zero reputational risk”
-
-are outcome claims that we can't substantiate.
-
-The new page should be **more credible and more commercially useful**.
-
----
-
-# 3. SEO package
+# 8. Proposed SEO package
 
 ### Title
 
-**B2B Referral Network — Find Referral Partners | The Relay**
-
-Your current title is already good.
+**B2B Referral Partnerships — Structure Referral Deals | The Relay**
 
 ### Meta description
 
-**Find and build B2B referral partnerships with businesses that serve complementary customers. Discover referral opportunities and exchange qualified business introductions on The Relay.**
+**Learn how B2B referral partnerships work, what terms to define, and how businesses can structure referral relationships around real commercial opportunities on The Relay.**
 
 ### H1
 
-**Find B2B Referral Partners That Complement Your Business**
+**Structure B2B Referral Partnerships Around Real Opportunities**
 
-This gives us the primary keyword context while immediately matching commercial intent.
-
----
-
-# 4. Recommended page copy
-
-## Hero
-
-### Find B2B Referral Partners That Complement Your Business
-
-The best referral relationships are often between businesses that serve the same customers but solve different problems.
-
-A software company may need an implementation partner. An agency may need a specialist developer. A consultant may regularly meet clients who need services outside their expertise.
-
-**The Relay gives businesses a structured place to discover complementary companies and build referral relationships around real opportunities.**
-
-**Explore Referral Opportunities**  
-**Post an Opportunity**
-
-Supporting line:
-
-> Find relevant businesses. Exchange opportunities. Build relationships that make commercial sense.
+That gives this page a completely different job from the referral-network page.
 
 ---
 
-# What is a B2B referral network?
+# 9. Recommended content structure
 
-A **B2B referral network** connects businesses that can refer relevant customers, prospects or commercial opportunities to one another.
+I'd make the page:
 
-The strongest relationships are usually complementary rather than competitive.
+### 1. Hero
+What a referral partnership is and why structured terms matter.
 
-Two businesses may serve the same customer type while offering different services. That creates an opportunity for both sides to introduce work that fits the other business.
+### 2. What is a B2B referral partnership?
+Clear definition.
 
-For example:
+### 3. Referral network vs referral partnership
+Very important for differentiating the two Relay pages.
 
-**A web development company** may refer branding work.
+### 4. What should a referral partnership define?
+The actual operating terms.
 
-**A branding agency** may refer software development work.
+### 5. Common referral partnership models
+Flat fee, percentage, recurring, reciprocal, collaboration.
 
-**A tax advisor** may refer legal or financial services.
+### 6. Qualified referral: define it before you start
+Very useful commercial topic.
 
-**A SaaS vendor** may refer implementation or integration work.
+### 7. Client ownership and introduction rules
+Who owns the relationship and what happens after introduction.
 
-The relationship works because each business encounters needs the other business can address.
+### 8. Attribution and payment
+When compensation is earned and how businesses can define it.
 
-This complementary model is a common foundation of business referral networks. :chatgpt-content-reference{index="1"}
+### 9. How referral partnerships can work on Relay
+Map actual Relay mechanics onto the concept.
 
----
+### 10. Example partnership structures
+Realistic examples without invented “standard” percentages.
 
-# Why build a referral network?
+### 11. Common mistakes
+Undefined attribution, vague qualification, unclear payment triggers, etc.
 
-A referral relationship can solve a simple problem:
+### 12. FAQ
 
-**Your customers don't only need what you sell.**
-
-A customer might need several services across their business lifecycle.
-
-You may provide one part of that solution while another company provides another.
-
-Instead of treating that additional need as someone else's problem, you can develop a relationship with a business that can help.
-
-Over time, the relationship can work in both directions.
-
-You refer relevant opportunities to them.
-
-They refer relevant opportunities to you.
-
----
-
-# What makes a good referral partner?
-
-A good referral partner isn't simply another business that wants more leads.
-
-The relationship usually works better when the businesses have:
-
-### Complementary services
-
-You solve different problems for the same or similar buyers.
-
-### Customer overlap
-
-Both businesses encounter the same kinds of companies or decision-makers.
-
-### Clear referral situations
-
-You can identify situations where one business naturally needs the other.
-
-### Reasonable commercial alignment
-
-Both sides understand how introductions, referrals or commercial arrangements will work.
-
-### Confidence in delivery
-
-You are comfortable putting another business in front of your customer.
-
-The goal isn't to collect hundreds of contacts.
-
-**It's to find businesses you have a genuine reason to refer to.**
+### 13. CTA
 
 ---
 
-# Examples of complementary B2B referral partners
+# 10. The internal-link structure becomes very clean
 
-## Agency + software company
-
-A creative agency wins a project requiring custom software development.
-
-A software company can fulfil the technical work.
-
-The agency provides the creative relationship.
-
-Both businesses serve the same client without providing the exact same service.
-
----
-
-## Consultant + specialist provider
-
-A business consultant identifies a customer that needs specialist compliance support.
-
-A specialist provider can take the requirement.
-
-The consultant can refer the opportunity rather than attempting work outside their expertise.
-
----
-
-## SaaS company + implementation partner
-
-A software company sells the product but doesn't provide every implementation service customers may need.
-
-An implementation or integration specialist can fill that gap.
-
-The two businesses can establish a referral relationship around that recurring need.
-
----
-
-## Regional business + local partner
-
-A company receives an enquiry from a geographic market it doesn't currently serve.
-
-A suitable regional partner may already operate there.
-
-The relationship can create a path for the opportunity without requiring the original business to build an entirely new local operation.
-
----
-
-# Referral network vs lead exchange
-
-These concepts are closely connected, but they're not identical.
-
-### B2B lead exchange
-
-The focus is an **individual opportunity**.
-
-> “I received this lead and need another business that can pursue it.”
-
-### B2B referral network
-
-The focus is the **relationship between businesses**.
-
-> “We serve similar customers and can regularly refer relevant opportunities to each other.”
-
-The Relay supports both.
-
-That's why:
-
-**Lead exchange** and **referral network** are separate parts of the broader Relay opportunity ecosystem.
-
-Link:
-
-**Explore the B2B Lead Exchange →**
-
----
-
-# How a B2B referral relationship can work on Relay
-
-### 01 — Identify the opportunity
-
-A business posts or discovers a commercial opportunity.
-
-### 02 — Determine the right capability
-
-The business identifies what type of company could help.
-
-### 03 — Find a relevant business
-
-Another business with complementary capabilities discovers the opportunity.
-
-### 04 — Express interest
-
-The potential referral partner indicates that the opportunity may fit.
-
-### 05 — Discuss the relationship
-
-Both sides discuss the opportunity and how they want to work together.
-
-### 06 — Agree on the next step
-
-The businesses decide whether to make an introduction, collaborate, refer the opportunity or pursue another arrangement.
-
-The Relay facilitates the connection.
-
-**The businesses decide the relationship.**
-
----
-
-# What referral networks are not
-
-A referral network doesn't need to be a giant directory.
-
-It doesn't have to mean:
-
-- collecting thousands of business cards
-- sending random introductions
-- asking everyone for referrals
-- joining endless networking groups
-- accepting every business as a "partner"
-
-The value comes from **relevance and trust**, not network size.
-
-BNI, for example, structures referral networking around ongoing relationships between members and professions, while newer digital referral networks are experimenting with online matching and tracked introductions. :chatgpt-content-reference{index="2"}
-
-Relay's approach is to put the **commercial opportunity itself** at the center of the interaction.
-
----
-
-# Who can benefit from a B2B referral network?
-
-### Agencies
-
-Find complementary firms for projects outside your core services.
-
-### Consultants
-
-Build relationships with specialists your clients may need.
-
-### Software companies
-
-Create referral relationships around implementation, integrations and complementary products.
-
-### Professional service firms
-
-Exchange opportunities with firms serving similar client profiles.
-
-### Founders and operators
-
-Discover businesses that can complement your offering or open relevant customer relationships.
-
----
-
-# Referral partnerships work best when the fit is specific
-
-“Any business owner” isn't a useful referral-partner profile.
-
-A better profile might be:
-
-> “A software company serving mid-market ecommerce brands that doesn't provide paid acquisition.”
-
-Now there is a clear reason for the relationship.
-
-The businesses share a customer context.
-
-Their services don't directly compete.
-
-And each can recognize situations where the other may be relevant.
-
-That's the type of specificity a referral network needs.
-
----
-
-# Referral opportunities can work both ways
-
-A healthy referral relationship isn't necessarily:
-
-> Business A sends leads → Business B receives them.
-
-It can become:
-
-> **Business A ↔ Business B**
-
-A marketing agency may refer development work.
-
-The development company may refer marketing work.
-
-A consultant may refer legal work.
-
-The legal firm may refer consulting work.
-
-That reciprocal structure is one reason complementary businesses can benefit from deliberate referral relationships. Current B2B referral-network guidance similarly emphasizes complementary partners and reciprocal introductions. :chatgpt-content-reference{index="3"}
-
----
-
-# Build around real opportunities, not networking for its own sake
-
-Traditional networking can be useful.
-
-But a conversation that starts with:
-
-> “What do you do?”
-
-is very different from:
-
-> “I have a customer who needs something you provide.”
-
-The second conversation already has commercial context.
-
-That's where The Relay fits.
-
-The platform is designed around **opportunities first**, with referral relationships developing around those opportunities.
-
----
-
-# FAQ
-
-### What is a B2B referral network?
-
-A B2B referral network is a group or platform that connects complementary businesses so they can exchange relevant customer introductions and commercial opportunities.
-
-### How do I find B2B referral partners?
-
-Start with businesses that serve similar customers but offer complementary services. Define the situations where a referral would naturally occur, then approach businesses that fit that profile. The Relay provides a structured environment for discovering and discussing those opportunities.
-
-### What makes a good referral partner?
-
-Good referral partners usually have complementary capabilities, overlapping customer profiles, clear referral situations and confidence in each other's ability to serve the customer.
-
-### Is a referral network the same as a lead exchange?
-
-No. A lead exchange is primarily about exchanging individual opportunities or leads. A referral network is about establishing relationships through which relevant opportunities can be referred over time.
-
-### Do referral partners have to be competitors?
-
-Generally, referral relationships are more natural between businesses with complementary rather than overlapping services. The specific relationship depends on the businesses involved.
-
-### Can agencies use a B2B referral network?
-
-Yes. Agencies frequently encounter customer needs outside their own services, making complementary relationships with development firms, consultants, specialists and other service providers potentially useful.
-
-### Does Relay guarantee referrals or revenue?
-
-No. Relay provides a structured environment for discovering opportunities and connecting businesses. Referral volume, revenue and conversion depend on the participating businesses and the opportunities involved.
-
----
-
-# Final CTA
-
-## Find the businesses your customers may need next.
-
-Your customers don't only need your service.
-
-They need everything around it.
-
-Find complementary businesses, exchange relevant opportunities and build referral relationships around real commercial needs.
-
-**Explore Referral Opportunities**  
-**Post an Opportunity**
-
----
-
-# 5. Internal-link architecture
-
-This page should strongly connect to:
+On `/referral-partnerships`:
 
 **Parent**
 
 `/b2b-opportunity-exchange`
 
-**Related commercial page**
+**Discovery**
 
-`/b2b-lead-exchange`
+`/b2b-referral-network`
 
-**Referral-specific**
-
-`/referral-partnerships`
-
-**Educational**
+**How-to**
 
 `/how-to-find-b2b-referral-partners`
 
-**Partnership**
+**Lead-specific**
+
+`/b2b-lead-exchange`
+
+**Broader partnership**
 
 `/b2b-partnership-network`
-
-**Distribution**
-
-`/distribution-partners`
 
 **Workflow**
 
 `/8-step-journey`
 
-**Trust**
-
-`/trust-and-safety`
-
-The key relationship should look like:
-
-```text
-B2B Opportunity Exchange
-        ↓
-B2B Referral Network
-        ↓
-Referral Partnerships
-        ↓
-How to Find B2B Referral Partners
-```
-
-That creates a very clean topical hierarchy.
+This creates a proper topic cluster rather than four pages fighting over “referral partners.”
 
 ---
 
-# 6. Agent prompt
+# 11. One more technical observation
 
-Give your coding agent this:
+The updated Opportunity and Lead pages have moved in the right direction, and the FAQ answers are now rendered in the HTML rather than only appearing after the answer is created client-side.
+
+The **Referral Partnerships** page has not had that cleanup yet; its current FAQ still uses conditional rendering:
+
+```tsx
+{isOpen && (
+  <div>
+    {faq.a}
+  </div>
+)}
+```
+
+So when we rewrite it, we'll fix that too.
+
+---
+
+# Next route
+
+I would now move directly to:
+
+## `/referral-partnerships`
+
+But **not** using the old page's positioning.
+
+We're going to make it the **“formalize the relationship”** page.
+
+This is the prompt I'd give your agent:
 
 ```text
-Rewrite /b2b-referral-network.tsx using the following SEO/content strategy.
+Rewrite /referral-partnerships.tsx as a distinct commercial-intent SEO page.
+
+IMPORTANT:
+This page must NOT compete with /b2b-referral-network.
+
+PAGE ROLE:
+- /b2b-referral-network = find/build a network of referral partners
+- /referral-partnerships = structure/formalize the referral relationship itself
+- /how-to-find-b2b-referral-partners = educational guide for finding partners
 
 PRIMARY KEYWORD:
-B2B referral network
-
-SECONDARY KEYWORDS/CONCEPTS:
-business referral network
-B2B referral partners
-find referral partners
 B2B referral partnerships
-business referral partners
-referral network for businesses
-B2B referrals
-business referral program
-find B2B partners
-business networking referrals
+
+SECONDARY KEYWORDS:
+referral partnership
+B2B referral partner
+referral partnership agreement
+B2B referral agreement
+referral commission structure
+referral partnership terms
+business referral partnership
+referral partner agreement
+B2B referral program
+qualified referral
+referral fee
+referral tracking
+reciprocal referrals
 
 SEO TITLE:
-B2B Referral Network — Find Referral Partners | The Relay
+B2B Referral Partnerships — Structure Referral Deals | The Relay
 
 META DESCRIPTION:
-Find and build B2B referral partnerships with businesses that serve complementary customers. Discover referral opportunities and exchange qualified business introductions on The Relay.
+Learn how B2B referral partnerships work, what terms to define, and how businesses can structure referral relationships around real commercial opportunities on The Relay.
 
 H1:
-Find B2B Referral Partners That Complement Your Business
+Structure B2B Referral Partnerships Around Real Opportunities
 
-CONTENT POSITIONING:
-- This page is about the RELATIONSHIP between complementary businesses.
-- Do NOT make it primarily about individual lead exchange.
-- Do NOT make it a generic business networking page.
-- Do NOT make it a full how-to guide; that belongs on /how-to-find-b2b-referral-partners.
-- Position the page around complementary businesses serving similar customers.
-- Explain reciprocal referral relationships.
-- Keep the commercial opportunity as the mechanism that creates/strengthens the referral relationship.
+CORE SEARCH INTENT:
+The reader has found or is considering a referral partner and wants to understand how the partnership should actually be structured.
 
-IMPORTANT CLAIM RULES:
-Remove or rewrite unsupported claims currently present in the page.
-Do NOT claim:
-- fixed referral percentages
-- guaranteed conversion
-- guaranteed revenue
-- zero reputational risk
-- binding legal covenants unless actually documented/implemented
-- cryptographic consent unless technically true
-- LEI/KYB requirements unless actually enforced in the product
-- mandatory NCND agreements
-- claims that informal networks are inherently spam/obligation-based
-- unsupported statistics
+DO NOT optimize this page around:
+- find referral partners
+- referral network
+- how to find referral partners
 
-Use factual, mechanism-based language.
+Those are owned by separate pages.
 
-RECOMMENDED SECTIONS:
+CONTENT SECTIONS:
 
 1. Hero
-2. What is a B2B referral network?
-3. Why build a referral network?
-4. What makes a good referral partner?
-5. Examples of complementary B2B referral partners
-6. Referral network vs lead exchange
-7. How a B2B referral relationship can work on Relay
-8. What referral networks are not
-9. Who can benefit from a B2B referral network?
-10. Referral partnerships work best when the fit is specific
-11. Referral opportunities can work both ways
-12. Build around real opportunities, not networking for its own sake
-13. FAQ
-14. Final CTA
+2. What is a B2B referral partnership?
+3. Referral network vs. referral partnership
+4. What should a referral partnership define?
+5. Common referral partnership models
+6. What is a qualified referral?
+7. Client ownership and introduction rules
+8. Attribution and payment
+9. How referral partnerships can work on The Relay
+10. Example B2B referral partnership structures
+11. Common mistakes when structuring referral partnerships
+12. FAQ
+13. Final CTA
+
+IMPORTANT CLAIM RULES:
+Remove unsupported existing claims about:
+- fixed 10%/15% commissions
+- "standard" commission percentages
+- guaranteed revenue
+- binding legal covenants
+- Master NCND
+- cryptographic consent
+- automatic enforcement
+- legal enforceability
+- guaranteed protection from client poaching
+
+Do NOT invent legal or commercial standards.
+
+Explain that referral terms vary by business and should be agreed explicitly between the participating parties.
+
+Useful commercial concepts to explain:
+- flat referral fee
+- percentage commission
+- recurring revenue share
+- reciprocal referrals
+- co-delivery/collaboration
+- qualified-referral definition
+- attribution window
+- duplicate/existing lead handling
+- payment trigger
+- client ownership
+- confidentiality/information sharing
+
+Do not state a universal or Relay-standard commission percentage.
+
+RELAY POSITIONING:
+Explain that The Relay provides a structured opportunity layer where businesses can discover potential counterparties, discuss opportunities, agree commercial terms, and proceed toward an introduction.
+Do not claim that Relay itself guarantees payment, enforces legal agreements, or guarantees conversion unless the actual product implementation supports that.
 
 INTERNAL LINKS:
 - /b2b-opportunity-exchange
-- /b2b-lead-exchange
-- /referral-partnerships
+- /b2b-referral-network
 - /how-to-find-b2b-referral-partners
+- /b2b-lead-exchange
 - /b2b-partnership-network
-- /distribution-partners
 - /8-step-journey
-- /trust-and-safety
 
-IMPORTANT:
-Keep the existing visual design language, layout patterns and icons unless needed for readability.
+FAQ:
+Keep answers in the rendered HTML even when the accordion is visually collapsed.
+Do not conditionally remove the FAQ answer from the DOM.
 
-Fix FAQ implementation so FAQ answers remain present in the rendered HTML even when visually collapsed. Do not rely on client-side conditional rendering to make the answer exist.
+STRUCTURED DATA:
+Keep WebPage/Breadcrumb/Organization structured data.
+Do not add unsupported claims to structured data.
 
-Keep canonical:
-https://www.usetherelay.com/b2b-referral-network
+CANONICAL:
+https://www.usetherelay.com/referral-partnerships
 
-Keep WebPage/Breadcrumb/Organization structured data, but remove unsupported claims from structured data too.
+Keep the existing design language.
 
-Run build/typecheck and fix issues.
-
-Commit and push the final implementation.
+Run build/typecheck and commit/push.
 ```
+
+This is the point where the architecture becomes much stronger:
+
+**Opportunity → Lead → Referral Network → Referral Partnership → How-to**
+
+And we haven't yet touched the broader **partnership/channel/distribution** cluster, so we're keeping the taxonomy clean before moving there.

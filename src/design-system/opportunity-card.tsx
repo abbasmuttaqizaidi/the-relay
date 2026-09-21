@@ -17,9 +17,13 @@ import {
 } from "lucide-react";
 import { cn, getCompanyInitials } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company-logo";
-import { RelayVerificationSeal } from "@/components/relay-verification-seal";
-import { DealCodeStamp, CategoryPill, UrgentBadge, VerifiedBadge, ParityScoreBadge } from "./badges";
-import { ExchangeCalloutBox } from "./cards";
+import {
+  DealCodeStamp,
+  CategoryPill,
+  UrgentBadge,
+  VerifiedBadge,
+  ParityScoreBadge,
+} from "./badges";
 import { Button } from "./button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -109,8 +113,8 @@ export function OpportunityCard({
     <Collapsible open={isOpen} onOpenChange={handleOpenChange} asChild>
       <article
         className={cn(
-          "bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(15,23,42,0.04)] overflow-hidden transition-all hover:border-slate-300 flex flex-col select-none",
-          isOpen && "border-slate-300 ring-1 ring-slate-200/50",
+          "bg-white rounded-[4px] border border-[#E2E8F0] shadow-2xs overflow-hidden transition-all hover:border-[#CBD5E1] flex flex-col select-none",
+          isOpen && "border-[#171F2C]/20 shadow-xs",
           className,
         )}
       >
@@ -118,26 +122,26 @@ export function OpportunityCard({
             1. COLLAPSED STATE (CLICKABLE CARD HEADER)
             ══════════════════════════════════════════════════════════════════ */}
         <CollapsibleTrigger asChild>
-          <div className="w-full p-5 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3.5 hover:bg-slate-50/50 transition-colors text-left">
+          <div className="w-full p-4 sm:p-5 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3.5 hover:bg-[#F8FAFC]/70 transition-colors text-left">
             <div className="flex items-start md:items-center gap-3.5 min-w-0 flex-1">
-              {/* Optional Company Logo Avatar */}
+              {/* Company Logo / Initials Avatar */}
               <div className="relative shrink-0 mt-0.5 md:mt-0">
                 <CompanyLogo
                   src={shouldHide || isBlurred ? undefined : opp.logo_url}
                   name={displayCompany}
                   className={cn(
-                    "w-9 h-9 rounded-xl object-contain border border-slate-200 shrink-0",
+                    "w-9 h-9 rounded-[4px] object-contain border border-[#E2E8F0] shrink-0 bg-white",
                     isBlurred && "filter blur-[3.5px] select-none opacity-60",
                   )}
                   fallbackClassName={cn(
-                    "w-9 h-9 rounded-xl bg-[#171F2C] text-white flex items-center justify-center font-bold text-xs shrink-0",
+                    "w-9 h-9 rounded-[4px] bg-[#171F2C] text-white flex items-center justify-center font-bold text-xs shrink-0 border border-[#171F2C]",
                     isBlurred && "filter blur-[3.5px] select-none opacity-60",
                   )}
                   textClassName="text-xs font-mono font-bold"
                 />
                 {isBlurred && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Lock className="w-3.5 h-3.5 text-slate-900" />
+                    <Lock className="w-3.5 h-3.5 text-[#171F2C]" />
                   </div>
                 )}
               </div>
@@ -145,33 +149,25 @@ export function OpportunityCard({
               {/* Core 3-Row Content Block */}
               <div className="min-w-0 flex-1 flex flex-col gap-1">
                 {/* ── ROW 1: Opportunity ID & Category Tags (Left) ── */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-lg bg-slate-100 text-[#171F2C] border border-slate-200/75">
-                    {opp.opportunity_number || "RY-0042"}
-                  </span>
-                  <span className="text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600">
-                    {opp.type}
-                  </span>
-                  {isPromoted && (
-                    <span className="text-[11px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200">
-                      Urgent
-                    </span>
-                  )}
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <DealCodeStamp code={opp.opportunity_number || "RY-0042"} />
+                  <CategoryPill category={opp.type} />
+                  {isPromoted && <UrgentBadge label="Urgent" />}
                   {shouldHide && (
-                    <span className="text-[11px] font-medium text-[#64748B] bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-0.5 rounded-lg flex items-center gap-1 select-none">
+                    <span className="text-[11px] font-medium text-[#64748B] bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-0.5 rounded-[4px] flex items-center gap-1 select-none">
                       <EyeOff className="w-3 h-3 text-[#94A3B8]" />
                       Anonymous Partner
                     </span>
                   )}
                   {isOwner && (
-                    <span className="text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-lg bg-[#171F2C] text-white inline-flex items-center gap-1.5">
+                    <span className="text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-[4px] bg-[#171F2C] text-white inline-flex items-center gap-1.5 shadow-2xs">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                       Your Listing
                     </span>
                   )}
                 </div>
 
-                {/* ── ROW 2: Opportunity Title (Ellipsed if long) ── */}
+                {/* ── ROW 2: Opportunity Title ── */}
                 <h2 className="font-display font-semibold text-[15px] sm:text-[16px] text-[#171F2C] truncate tracking-tight pt-0.5">
                   {opp.title}
                 </h2>
@@ -183,25 +179,21 @@ export function OpportunityCard({
                       {opp.company || "Enterprise Corp Inc."}
                     </span>
                   ) : (
-                    <span className="font-medium text-[#171F2C] truncate">
-                      {displayCompany}
-                    </span>
+                    <span className="font-medium text-[#171F2C] truncate">{displayCompany}</span>
                   )}
 
                   <span className="inline-flex items-center gap-1 text-emerald-700 text-[10px] font-medium shrink-0">
-                    <RelayVerificationSeal className="w-3.5 h-3.5" size={14} /> Verified
+                    <VerifiedBadge size={14} /> Verified
                   </span>
 
-                  <span className="text-slate-300">|</span>
+                  <span className="text-[#CBD5E1]">|</span>
 
-                  <span className="truncate">
-                    {opp.location || opp.geo || "Remote / Global"}
-                  </span>
+                  <span className="truncate">{opp.location || opp.geo || "Remote / Global"}</span>
 
                   {opp.industry && (
                     <>
-                      <span className="text-slate-300">•</span>
-                      <span className="truncate text-slate-500">{opp.industry}</span>
+                      <span className="text-[#CBD5E1]">•</span>
+                      <span className="truncate text-[#64748B]">{opp.industry}</span>
                     </>
                   )}
                 </div>
@@ -209,7 +201,7 @@ export function OpportunityCard({
             </div>
 
             {/* Right Side: Parity Score, Expiry & Expand/Collapse Icon */}
-            <div className="flex items-center justify-between md:justify-end gap-4 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+            <div className="flex items-center justify-between md:justify-end gap-4 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-[#E2E8F0]">
               <div className="flex items-center gap-3 text-right">
                 <div className="flex flex-col items-end">
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">
@@ -223,20 +215,20 @@ export function OpportunityCard({
                   <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">
                     Expires
                   </span>
-                  <span className="text-xs text-slate-600 font-medium">
+                  <span className="text-xs text-[#64748B] font-medium font-mono">
                     {expiryInfo.text}
                   </span>
                 </div>
               </div>
 
-              {/* Circular Chevron Expand/Collapse Indicator */}
+              {/* Chevron Expand/Collapse Indicator */}
               <div
                 className={cn(
-                  "w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200/80 border border-slate-200/60 flex items-center justify-center text-slate-700 transition-transform duration-300 shrink-0",
-                  isOpen && "rotate-180 bg-slate-200/80",
+                  "w-8 h-8 rounded-[4px] bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#E2E8F0] flex items-center justify-center text-[#171F2C] transition-transform duration-200 shrink-0",
+                  isOpen && "rotate-180 bg-[#E2E8F0]",
                 )}
               >
-                <ChevronDown className="w-4 h-4 text-slate-700 stroke-[2.5]" />
+                <ChevronDown className="w-4 h-4 text-[#171F2C] stroke-[2.2]" />
               </div>
             </div>
           </div>
@@ -245,11 +237,11 @@ export function OpportunityCard({
         {/* ══════════════════════════════════════════════════════════════════
             2. EXPANDED STATE (COLLAPSIBLE DETAILS BODY)
             ══════════════════════════════════════════════════════════════════ */}
-        <CollapsibleContent className="border-t border-slate-100 p-6 flex flex-col gap-4 bg-white transition-all data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0">
+        <CollapsibleContent className="border-t border-[#E2E8F0] p-5 sm:p-6 flex flex-col gap-4 bg-white transition-all data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0">
           {/* A. Counterparty Detail Strip */}
-          <div className="flex items-center justify-between gap-3 p-3 bg-slate-50/70 border border-slate-100 rounded-xl">
+          <div className="flex items-center justify-between gap-3 p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-[#171F2C] text-white text-xs font-semibold flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-[4px] bg-[#171F2C] text-white text-xs font-semibold flex items-center justify-center shrink-0 border border-[#171F2C]">
                 {getCompanyInitials(displayCompany)}
               </div>
               <div className="min-w-0">
@@ -257,15 +249,15 @@ export function OpportunityCard({
                   <span className="font-semibold text-xs sm:text-sm text-[#171F2C] truncate">
                     {displayCompany}
                   </span>
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-medium shrink-0">
-                    <RelayVerificationSeal className="w-3.5 h-3.5" size={14} /> Verified
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-medium shrink-0">
+                    <VerifiedBadge size={13} /> Verified
                   </span>
-                  <span className="text-slate-300">•</span>
+                  <span className="text-[#CBD5E1]">•</span>
                   <span className="text-xs text-[#64748B] shrink-0">
                     {shouldHide ? "Blinded Mode Active" : "Direct Bilateral Partner"}
                   </span>
                 </div>
-                <div className="text-xs text-[#64748B] truncate">
+                <div className="text-xs text-[#64748B] truncate mt-0.5">
                   {opp.location || opp.geo || "Remote / Global"} • {opp.industry}
                 </div>
               </div>
@@ -274,7 +266,7 @@ export function OpportunityCard({
               <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8] block">
                 Turnaround
               </span>
-              <span className="font-medium text-[#171F2C]">&lt; 2 hours</span>
+              <span className="font-medium text-[#171F2C] font-mono">&lt; 2 hours</span>
             </div>
           </div>
 
@@ -283,19 +275,18 @@ export function OpportunityCard({
             <span className="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">
               Opportunity Overview &amp; Requirements
             </span>
-            <p className="text-sm text-[#475569] leading-relaxed">
-              {opp.description}
-            </p>
+            <p className="text-sm text-[#334155] leading-relaxed">{opp.description}</p>
           </div>
 
           {/* C. Bilateral Value Proposition (What We Offer) */}
-          <div className="bg-slate-50/70 border border-slate-100 rounded-xl p-4 flex flex-col gap-1.5">
+          <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] p-4 flex flex-col gap-1.5">
             <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#171F2C]">
-              <Repeat className="w-4 h-4 text-slate-500" />
+              <Repeat className="w-4 h-4 text-[#F97316]" />
               <span>What We Offer in Bilateral Exchange</span>
             </div>
             <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
-              {opp.offer_text || "Direct reciprocal margin & revenue split under sovereign non-circumvention covenants."}
+              {opp.offer_text ||
+                "Direct reciprocal margin & revenue split under sovereign non-circumvention covenants."}
             </p>
           </div>
 
@@ -303,12 +294,10 @@ export function OpportunityCard({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1">
             <div className="flex items-center gap-3 text-xs text-[#64748B] flex-wrap">
               {/* Unique Operator Views Counter */}
-              <span className="flex items-center gap-1 font-mono text-slate-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-                <Eye className="w-3.5 h-3.5 text-slate-500" />
-                <span className="font-semibold text-slate-800">
-                  {(opp.views ?? 0).toLocaleString()}
-                </span>
-                <span className="text-[11px] text-slate-500">
+              <span className="flex items-center gap-1 font-mono text-[#171F2C] bg-[#F8FAFC] px-2 py-0.5 rounded-[4px] border border-[#E2E8F0]">
+                <Eye className="w-3.5 h-3.5 text-[#64748B]" />
+                <span className="font-semibold">{(opp.views ?? 0).toLocaleString()}</span>
+                <span className="text-[11px] text-[#64748B]">
                   {(opp.views ?? 0) === 1 ? "view" : "views"}
                 </span>
               </span>
@@ -336,7 +325,7 @@ export function OpportunityCard({
               )}
 
               {/* Pitch Count */}
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 font-mono text-xs">
                 <Inbox className="w-3.5 h-3.5 text-[#94A3B8]" />
                 <span>
                   {opp.interested + 2} pitch
@@ -344,9 +333,9 @@ export function OpportunityCard({
                 </span>
               </span>
 
-              <span className="text-slate-300">•</span>
+              <span className="text-[#CBD5E1]">•</span>
 
-              <span className="text-[11px] font-medium text-slate-500 uppercase">
+              <span className="text-[11px] font-medium text-[#64748B] uppercase font-mono">
                 Stage 4 Bilateral Reveal
               </span>
             </div>
@@ -354,33 +343,30 @@ export function OpportunityCard({
             {/* Action Buttons */}
             <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
               {isOwner && onEdit ? (
-                <button
-                  type="button"
-                  onClick={() => onEdit(opp)}
-                  className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[#171F2C] text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-                >
+                <Button variant="outline" size="sm" onClick={() => onEdit(opp)} className="gap-1.5">
                   <Pencil className="w-3.5 h-3.5 text-[#171F2C]" />
                   <span>Manage Listing</span>
-                </button>
+                </Button>
               ) : interestStatus === "pending" || interestStatus === "accepted" ? (
                 <Link
                   to="/my-relay"
                   search={{ tab: "sent" }}
-                  className="px-4 py-2 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[4px] bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] text-xs font-semibold hover:bg-[#D1FAE5] transition-colors shadow-2xs"
                 >
                   <CheckCircle2 className="w-4 h-4 text-[#059669]" />
                   <span>Proposal Sent</span>
                 </Link>
               ) : onExpressInterest ? (
-                <button
-                  type="button"
+                <Button
+                  variant="monochrome"
+                  size="sm"
                   disabled={isBlurred}
                   onClick={() => onExpressInterest(opp)}
-                  className="px-4 py-2 rounded-xl bg-[#171F2C] hover:bg-[#2C374A] text-white text-xs font-semibold transition-colors flex items-center gap-1.5 self-end sm:self-center shadow-xs cursor-pointer disabled:opacity-50"
+                  className="gap-1.5 self-end sm:self-center"
                 >
                   <span>Express Interest</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
               ) : null}
             </div>
           </div>
