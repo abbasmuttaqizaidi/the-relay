@@ -1320,95 +1320,151 @@ export function OpportunitiesPage() {
 
               {/* Responsive Pagination (Only for Authenticated Users) */}
               {isSignedIn && sortedOpps.length > 0 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border border-[#E2E8F0] rounded-[4px] px-4 py-3 sm:px-5 sm:py-3.5 text-xs text-[#64748B] shadow-2xs w-full">
-                  <div className="text-center sm:text-left">
-                    Showing{" "}
-                    <span className="font-semibold text-[#171F2C]">
-                      {(currentPage - 1) * ITEMS_PER_PAGE + 1} –{" "}
-                      {Math.min(currentPage * ITEMS_PER_PAGE, sortedOpps.length)}
-                    </span>{" "}
-                    of <span className="font-semibold text-[#171F2C]">{sortedOpps.length}</span>{" "}
-                    listings
-                  </div>
-
-                  <div className="flex items-center justify-center sm:justify-end gap-1 font-mono w-full sm:w-auto flex-wrap sm:flex-nowrap">
-                    <button
-                      type="button"
-                      aria-label="Previous page"
-                      disabled={currentPage <= 1}
-                      onClick={() =>
-                        navigate({
-                          search: (prev: SearchParams) => ({
-                            ...prev,
-                            page: Math.max(1, currentPage - 1),
-                          }),
-                        })
-                      }
-                      className="inline-flex items-center justify-center gap-1 h-8 px-2.5 rounded-[4px] border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors text-xs font-medium shrink-0"
-                    >
-                      <ChevronLeft className="w-3.5 h-3.5 shrink-0" />
-                      <span className="hidden xs:inline">Previous</span>
-                      <span className="inline xs:hidden">Prev</span>
-                    </button>
-
-                    <div className="flex items-center gap-1">
-                      {getPaginationRange(currentPage, totalPages).map((item, idx) => {
-                        if (typeof item === "string") {
-                          return (
-                            <span
-                              key={`ellipsis-${idx}`}
-                              className="w-6 sm:w-7 h-8 flex items-center justify-center text-[#94A3B8] select-none text-xs"
-                            >
-                              …
-                            </span>
-                          );
-                        }
-                        const isCurrent = item === currentPage;
-                        return (
-                          <button
-                            key={item}
-                            type="button"
-                            aria-label={`Page ${item}`}
-                            aria-current={isCurrent ? "page" : undefined}
-                            onClick={() =>
-                              navigate({
-                                search: (prev: SearchParams) => ({
-                                  ...prev,
-                                  page: item,
-                                }),
-                              })
-                            }
-                            className={cn(
-                              "min-w-[30px] sm:min-w-[32px] h-8 px-2 flex items-center justify-center rounded-[4px] font-mono text-xs font-medium cursor-pointer transition-colors shrink-0",
-                              isCurrent
-                                ? "bg-[#000000] text-white border border-[#000000]"
-                                : "border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C]",
-                            )}
-                          >
-                            {item}
-                          </button>
-                        );
-                      })}
+                <div className="bg-white border border-[#E2E8F0] rounded-[4px] p-3.5 sm:px-5 sm:py-3.5 text-xs text-[#64748B] shadow-2xs w-full">
+                  {/* Desktop / Tablet View (>= 640px) */}
+                  <div className="hidden sm:flex sm:items-center sm:justify-between gap-4">
+                    <div>
+                      Showing{" "}
+                      <span className="font-semibold text-[#171F2C]">
+                        {(currentPage - 1) * ITEMS_PER_PAGE + 1} –{" "}
+                        {Math.min(currentPage * ITEMS_PER_PAGE, sortedOpps.length)}
+                      </span>{" "}
+                      of <span className="font-semibold text-[#171F2C]">{sortedOpps.length}</span>{" "}
+                      listings
                     </div>
 
-                    <button
-                      type="button"
-                      aria-label="Next page"
-                      disabled={currentPage >= totalPages}
-                      onClick={() =>
-                        navigate({
-                          search: (prev: SearchParams) => ({
-                            ...prev,
-                            page: Math.min(totalPages, currentPage + 1),
-                          }),
-                        })
-                      }
-                      className="inline-flex items-center justify-center gap-1 h-8 px-2.5 rounded-[4px] border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors text-xs font-medium shrink-0"
-                    >
-                      <span className="hidden xs:inline">Next</span>
-                      <span className="inline xs:hidden">Next</span>
-                      <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-                    </button>
+                    <div className="flex items-center gap-1 font-mono">
+                      <button
+                        type="button"
+                        aria-label="Previous page"
+                        disabled={currentPage <= 1}
+                        onClick={() =>
+                          navigate({
+                            search: (prev: SearchParams) => ({
+                              ...prev,
+                              page: Math.max(1, currentPage - 1),
+                            }),
+                          })
+                        }
+                        className="inline-flex items-center justify-center gap-1 h-8 px-3 rounded-[4px] border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors text-xs font-medium shrink-0"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5 shrink-0" />
+                        <span>Previous</span>
+                      </button>
+
+                      <div className="flex items-center gap-1">
+                        {getPaginationRange(currentPage, totalPages).map((item, idx) => {
+                          if (typeof item === "string") {
+                            return (
+                              <span
+                                key={`ellipsis-${idx}`}
+                                className="w-7 h-8 flex items-center justify-center text-[#94A3B8] select-none text-xs"
+                              >
+                                …
+                              </span>
+                            );
+                          }
+                          const isCurrent = item === currentPage;
+                          return (
+                            <button
+                              key={item}
+                              type="button"
+                              aria-label={`Page ${item}`}
+                              aria-current={isCurrent ? "page" : undefined}
+                              onClick={() =>
+                                navigate({
+                                  search: (prev: SearchParams) => ({
+                                    ...prev,
+                                    page: item,
+                                  }),
+                                })
+                              }
+                              className={cn(
+                                "min-w-[32px] h-8 px-2.5 flex items-center justify-center rounded-[4px] font-mono text-xs font-medium cursor-pointer transition-colors shrink-0",
+                                isCurrent
+                                  ? "bg-[#000000] text-white border border-[#000000]"
+                                  : "border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C]",
+                              )}
+                            >
+                              {item}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <button
+                        type="button"
+                        aria-label="Next page"
+                        disabled={currentPage >= totalPages}
+                        onClick={() =>
+                          navigate({
+                            search: (prev: SearchParams) => ({
+                              ...prev,
+                              page: Math.min(totalPages, currentPage + 1),
+                            }),
+                          })
+                        }
+                        className="inline-flex items-center justify-center gap-1 h-8 px-3 rounded-[4px] border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors text-xs font-medium shrink-0"
+                      >
+                        <span>Next</span>
+                        <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Mobile View (< 640px) */}
+                  <div className="flex sm:hidden flex-col gap-3 w-full">
+                    <div className="text-center text-xs text-[#64748B]">
+                      Showing{" "}
+                      <span className="font-semibold text-[#171F2C]">
+                        {(currentPage - 1) * ITEMS_PER_PAGE + 1} –{" "}
+                        {Math.min(currentPage * ITEMS_PER_PAGE, sortedOpps.length)}
+                      </span>{" "}
+                      of <span className="font-semibold text-[#171F2C]">{sortedOpps.length}</span>{" "}
+                      listings
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 w-full font-mono">
+                      <button
+                        type="button"
+                        aria-label="Previous page"
+                        disabled={currentPage <= 1}
+                        onClick={() =>
+                          navigate({
+                            search: (prev: SearchParams) => ({
+                              ...prev,
+                              page: Math.max(1, currentPage - 1),
+                            }),
+                          })
+                        }
+                        className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-[4px] border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-[#171F2C] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors text-xs font-medium flex-1"
+                      >
+                        <ChevronLeft className="w-4 h-4 shrink-0" />
+                        <span>Prev</span>
+                      </button>
+
+                      <div className="h-9 px-3 flex items-center justify-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] text-[#171F2C] font-mono font-semibold text-xs whitespace-nowrap">
+                        {currentPage} / {totalPages}
+                      </div>
+
+                      <button
+                        type="button"
+                        aria-label="Next page"
+                        disabled={currentPage >= totalPages}
+                        onClick={() =>
+                          navigate({
+                            search: (prev: SearchParams) => ({
+                              ...prev,
+                              page: Math.min(totalPages, currentPage + 1),
+                            }),
+                          })
+                        }
+                        className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-[4px] border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-[#171F2C] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors text-xs font-medium flex-1"
+                      >
+                        <span>Next</span>
+                        <ChevronRight className="w-4 h-4 shrink-0" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
