@@ -13,9 +13,13 @@ import {
   FileCheck,
   Handshake,
   Shield,
-  CheckCircle2,
+  Layers,
+  Sparkles,
+  Network,
+  Users,
+  Repeat,
 } from "lucide-react";
-
+import { createSeoMeta, SITE_URL } from "@/lib/seo";
 import { journeyIllustrations } from "@/components/journey-illustrations";
 
 interface StepSpec {
@@ -34,7 +38,6 @@ interface StepData {
   diagramLabel: string;
   caption: string;
   cdoesStatus: string;
-  cdoesColor: string;
   specs: StepSpec[];
 }
 
@@ -44,14 +47,13 @@ const STEPS_DATA: StepData[] = [
     number: "01",
     name: "Verify",
     phase: "PHASE 01 • ACCREDITATION",
-    title: "01. VERIFY",
+    title: "01. Verify",
     subtitle: "Join a network of verified businesses.",
     description:
-      "Create your profile and complete verification so counterparties negotiate with verified peers only. Relay screens organizational validity prior to granting marketplace participation.",
+      "Create your profile and complete B2B business verification so counterparties negotiate with verified peers only. Relay audits statutory corporate validity (KYB & LEI) prior to granting marketplace participation.",
     diagramLabel: "DIAGRAM • ACCREDITATION",
-    caption: "Cryptographic KYB & LEI Verification",
+    caption: "Cryptographic KYB & LEI Business Verification",
     cdoesStatus: "Identity Protected",
-    cdoesColor: "bg-emerald-600",
     specs: [
       { label: "KYB & LEI Check", desc: "Enterprise entity validation" },
       { label: "Signatory Verify", desc: "Executive authority confirm" },
@@ -63,14 +65,13 @@ const STEPS_DATA: StepData[] = [
     number: "02",
     name: "Post",
     phase: "PHASE 02 • LISTING DISCRETION",
-    title: "02. POST",
+    title: "02. Post",
     subtitle: "Put an opportunity on the table.",
     description:
-      "Share a lead, referral, distribution channel, hiring requirement, or strategic partnership without exposing proprietary identifiers. Keep sensitive client data shielded.",
+      "Share a commercial opportunity, out-of-scope lead, referral requirement, distribution channel, or strategic partnership in our B2B opportunity exchange without exposing proprietary trademarks or sensitive client records.",
     diagramLabel: "DIAGRAM • BLIND LISTING",
     caption: "Blinded Deal Specification & Parameters",
     cdoesStatus: "Identifiers Masked",
-    cdoesColor: "bg-emerald-600",
     specs: [
       { label: "Masked Entity", desc: "No competitor tipping" },
       { label: "Parameter Bounds", desc: "Clear value & scope tags" },
@@ -82,14 +83,13 @@ const STEPS_DATA: StepData[] = [
     number: "03",
     name: "Discover",
     phase: "PHASE 03 • MARKET DISCOVERY",
-    title: "03. DISCOVER",
+    title: "03. Discover",
     subtitle: "Find opportunities worth exploring.",
     description:
-      "Browse and filter verified opportunities across categories by deal size, scope, geography, and industry without alerting competitors or triggering market rumors.",
-    diagramLabel: "DIAGRAM • BILATERAL MATCHING",
-    caption: "Parametric Filtering & Match Engine",
+      "Conduct structured B2B opportunity discovery across commercial categories by deal size, scope, geography, and industry sector without alerting competitors or triggering market rumors.",
+    diagramLabel: "DIAGRAM • BILATERAL DISCOVERY",
+    caption: "Parametric Filtering & Discovery Engine",
     cdoesStatus: "Blinded Discovery",
-    cdoesColor: "bg-blue-600",
     specs: [
       { label: "Multi-Filter Grid", desc: "Search deal sizes & sectors" },
       { label: "Zero Scraping", desc: "Bot & crawlers eliminated" },
@@ -101,14 +101,13 @@ const STEPS_DATA: StepData[] = [
     number: "04",
     name: "Express Interest",
     phase: "PHASE 04 • STRUCTURED INTENT",
-    title: "04. EXPRESS INTEREST",
+    title: "04. Express Interest",
     subtitle: "Signal interest with structured intent.",
     description:
-      "Send a focused proposal explaining why your business is relevant. Unsolicited outreach and aggressive sales pitching are strictly prevented by protocol design.",
+      "Signal mutual interest with a focused commercial proposal explaining why your business is relevant. Unsolicited outreach and aggressive sales pitching are structurally prevented by protocol design.",
     diagramLabel: "DIAGRAM • INTENT SUBMISSION",
     caption: "Structured Mutual Fit Application",
     cdoesStatus: "Intent Stamped",
-    cdoesColor: "bg-blue-600",
     specs: [
       { label: "Structured Form", desc: "Formal relevancy statement" },
       { label: "Capability Proof", desc: "Vetted peer capability" },
@@ -120,14 +119,13 @@ const STEPS_DATA: StepData[] = [
     number: "05",
     name: "Acknowledge",
     phase: "PHASE 05 • CDOES GATEWAY",
-    title: "05. ACKNOWLEDGE",
+    title: "05. Acknowledge",
     subtitle: "Both sides understand the exchange.",
     description:
-      "Where CDOES activates: mutual clarity, bilateral consent, and explicit alignment before any identity or value reveal occurs. Both parties acknowledge mutual fit.",
+      "Where CDOES activates: mutual consent, bilateral alignment, and controlled disclosure before any corporate identity or value reveal occurs. Both parties formally acknowledge mutual fit.",
     diagramLabel: "DIAGRAM • CONSENT GATEWAY",
     caption: "CDOES Mutual Consent Protocol Activation",
     cdoesStatus: "CDOES Gateway Active",
-    cdoesColor: "bg-indigo-600",
     specs: [
       { label: "Bilateral Gate", desc: "Two-way verified handshake" },
       { label: "Pre-Reveal Consent", desc: "Explicit assent required" },
@@ -139,14 +137,13 @@ const STEPS_DATA: StepData[] = [
     number: "06",
     name: "Negotiate",
     phase: "PHASE 06 • BILATERAL ALIGNMENT",
-    title: "06. NEGOTIATE",
+    title: "06. Negotiate",
     subtitle: "Decide what the exchange means to both sides.",
     description:
-      "Propose, counter-propose, and agree on commercial value (e.g., Lead ↔ Rev Share, Referral ↔ Referral, Intro ↔ Partnership) within clean parameterized bounds.",
+      "Conduct commercial negotiation within parameterized bounds to agree on commercial terms (e.g., Lead ↔ Rev Share %, Referral ↔ Referral, Distribution ↔ Reseller) with total transparency.",
     diagramLabel: "DIAGRAM • VALUE RATIO MATRIX",
     caption: "Parametric Bilateral Counter-Offers",
-    cdoesStatus: "Escrow Protected",
-    cdoesColor: "bg-indigo-600",
+    cdoesStatus: "Protected Terms",
     specs: [
       { label: "Terms Builder", desc: "Flexible reciprocal structures" },
       { label: "Counter-Offers", desc: "Structured terms revisions" },
@@ -158,14 +155,13 @@ const STEPS_DATA: StepData[] = [
     number: "07",
     name: "Agree",
     phase: "PHASE 07 • BILATERAL ACCORD",
-    title: "07. AGREE",
+    title: "07. Agree",
     subtitle: "Confirm the exact exchange terms.",
     description:
-      "Both businesses independently confirm final exchange terms. No assumed value. Double bilateral sign-off commits both sides before disclosure occurs.",
+      "Both businesses independently confirm the final bilateral commercial agreement. No assumed value. Double digital sign-off locks non-circumvention terms before contact disclosure occurs.",
     diagramLabel: "DIAGRAM • DOUBLE ASSENT",
     caption: "Simultaneous Multi-Party Sign-Off",
     cdoesStatus: "Assent Locked",
-    cdoesColor: "bg-slate-900",
     specs: [
       { label: "Double Sign-Off", desc: "Independent confirmation" },
       { label: "Term Locking", desc: "No scope or pricing drift" },
@@ -177,14 +173,13 @@ const STEPS_DATA: StepData[] = [
     number: "08",
     name: "Handshake",
     phase: "PHASE 08 • UNMASK & EXECUTION",
-    title: "08. HANDSHAKE",
+    title: "08. Handshake",
     subtitle: "Connect and take it forward.",
     description:
-      "Both businesses consent to unlock verified contact details. Relay facilitates the connection; the businesses execute the commercial exchange direct and unmediated.",
+      "Both businesses consent to unlock verified executive contact details. Relay facilitates the connection; counterparties execute their commercial relationship directly and unmediated.",
     diagramLabel: "DIAGRAM • DIRECT UNMASKING",
     caption: "Contact Unlocked & Sovereign Execution",
     cdoesStatus: "Contacts Unlocked",
-    cdoesColor: "bg-emerald-600",
     specs: [
       { label: "Direct Contacts", desc: "Executive email & phone" },
       { label: "Relay Steps Out", desc: "Sovereign direct execution" },
@@ -193,14 +188,12 @@ const STEPS_DATA: StepData[] = [
   },
 ];
 
-import { createSeoMeta } from "@/lib/seo";
-
 export const Route = createFileRoute("/8-step-journey")({
   head: () =>
     createSeoMeta({
-      title: "How The Relay Works — 8-Step B2B Opportunity Exchange | The Relay",
+      title: "How a B2B Opportunity Exchange Works — The Relay",
       description:
-        "See how businesses move from opportunity discovery to interest, negotiation, agreement, consent, and a completed handshake on The Relay.",
+        "Learn how The Relay's B2B opportunity exchange works, from business verification and opportunity discovery through mutual interest, negotiation, agreement, and the final commercial handshake.",
       path: "/8-step-journey",
     }),
   component: EightStepJourneyPage,
@@ -278,40 +271,129 @@ export function EightStepJourneyPage() {
     }
   };
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${SITE_URL}/8-step-journey#webpage`,
+        url: `${SITE_URL}/8-step-journey`,
+        name: "How a B2B Opportunity Exchange Works — The Relay",
+        description:
+          "Learn how The Relay's B2B opportunity exchange works, from business verification and opportunity discovery through mutual interest, negotiation, agreement, and the final commercial handshake.",
+        breadcrumb: {
+          "@id": `${SITE_URL}/8-step-journey#breadcrumb`,
+        },
+        isPartOf: {
+          "@type": "WebSite",
+          "@id": `${SITE_URL}/#website`,
+          url: SITE_URL,
+          name: "The Relay",
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${SITE_URL}/8-step-journey#breadcrumb`,
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: SITE_URL,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Platform",
+            item: `${SITE_URL}/solutions`,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: "8-Step Workflow",
+            item: `${SITE_URL}/8-step-journey`,
+          },
+        ],
+      },
+      {
+        "@type": "Organization",
+        "@id": `${SITE_URL}/#organization`,
+        name: "The Relay",
+        url: SITE_URL,
+      },
+    ],
+  };
+
   return (
-    <div className="bg-[#FAFAFA] font-sans text-slate-900 antialiased min-h-screen flex flex-col justify-between selection:bg-slate-900 selection:text-white">
+    <div className="bg-[#F8FAFC] font-sans text-[#171F2C] antialiased min-h-screen flex flex-col justify-between selection:bg-[#171F2C] selection:text-white">
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <main className="w-full pt-8 pb-20 flex-1">
-        {/* Hero Section */}
-        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 pb-8 text-center md:text-left">
-          <div className="flex flex-col gap-3">
-            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-950">
+        
+        {/* ═══════════════════════════════════════════════════════════════════
+            1. HERO SECTION & WORKFLOW CONTEXT
+            ═══════════════════════════════════════════════════════════════════ */}
+        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-2 pb-8">
+          <div className="flex flex-col gap-3.5">
+            {/* Breadcrumb */}
+            <nav
+              aria-label="Breadcrumb"
+              className="flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#64748B] uppercase tracking-[0.04em]"
+            >
+              <Link to="/" className="hover:text-[#171F2C] transition-colors">
+                Platform
+              </Link>
+              <span className="text-[#94A3B8]">/</span>
+              <span className="text-[#64748B]">Workflow</span>
+              <span className="text-[#94A3B8]">/</span>
+              <span className="text-[#171F2C] font-bold">8-Step Journey</span>
+            </nav>
+
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#171F2C]">
               How The Relay Works
             </h1>
-            <p className="text-lg sm:text-xl font-medium text-slate-700">
-              From opportunity to handshake — without the noise.
+            <p className="text-lg sm:text-xl font-semibold text-[#171F2C]">
+              From commercial opportunity to handshake — without the noise.
             </p>
-            <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
-              Step through the 8 stages of consent-driven bilateral exchange. Relay gives verified enterprises complete control at every milestone without identity exposure, data leakage, or unsolicited cold outreach.
+            <p className="text-sm sm:text-base text-[#64748B] max-w-3xl leading-relaxed">
+              Step through the 8 stages of our consent-driven{" "}
+              <Link
+                to="/b2b-opportunity-exchange"
+                className="text-[#171F2C] underline underline-offset-2 hover:text-[#000000] font-medium"
+              >
+                B2B opportunity exchange workflow
+              </Link>
+              . The 8-step B2B opportunity exchange process gives verified enterprises complete control at every milestone without premature identity exposure, data leakage, or unsolicited cold outreach.
             </p>
 
-            {/* Why the steps matter Callout Box */}
-            <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs text-left">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
-                  PROTOCOL ARCHITECTURE
+            {/* Introductory SEO Context Box */}
+            <div className="mt-4 p-5 rounded-[4px] bg-white border border-[#E2E8F0] text-left space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono font-bold uppercase tracking-[0.04em] text-[#64748B]">
+                  Protocol Architecture
                 </span>
-                <span className="text-slate-300">•</span>
-                <span className="text-xs font-semibold text-slate-900">Why the 8 steps matter</span>
+                <span className="text-[#94A3B8]">•</span>
+                <h2 className="text-xs font-bold text-[#171F2C]">
+                  How the B2B Opportunity Exchange Workflow Works
+                </h2>
               </div>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                <strong className="text-slate-950 font-semibold">Interest is not agreement. Negotiation is not agreement.</strong> The 8-step structure deliberately separates discovery, evaluation, term negotiation, and explicit dual-party consent so the final commercial connection is verified, uncompromised, and spam-free.
+              <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
+                The Relay organizes commercial opportunity discovery into a structured sequence that moves from{" "}
+                <Link to="/trust-and-safety" className="text-[#171F2C] underline hover:text-[#000000]">
+                  business verification
+                </Link>{" "}
+                and opportunity posting through discovery, interest, acknowledgment, negotiation, agreement, and direct commercial connection. Separating discovery from negotiation and agreement ensures every exchange is verified, uncompromised, and spam-free.
               </p>
             </div>
           </div>
 
           {/* DESKTOP: Clickable 8-Step Navigation Bar (hidden on mobile) */}
           <div className="mt-8 hidden lg:block">
-            <div className="flex items-center justify-between overflow-x-auto gap-2 pb-2 p-1.5 bg-white border border-slate-200 rounded-xl shadow-xs">
+            <div className="flex items-center justify-between overflow-x-auto gap-2 p-1.5 bg-white border border-[#E2E8F0] rounded-[4px]">
               {STEPS_DATA.map((s, idx) => {
                 const isActive = idx === currentStep;
                 return (
@@ -319,15 +401,15 @@ export function EightStepJourneyPage() {
                     key={s.number}
                     type="button"
                     onClick={() => goToStep(idx)}
-                    className={`flex-1 min-w-[105px] py-2 px-3 rounded-lg text-xs font-semibold text-left transition-all flex flex-col gap-0.5 cursor-pointer ${
+                    className={`flex-1 min-w-[105px] py-2 px-3 rounded-[4px] text-xs font-semibold text-left transition-all flex flex-col gap-0.5 cursor-pointer ${
                       isActive
-                        ? "border border-transparent bg-slate-900 text-white shadow-xs"
-                        : "border border-slate-200/80 hover:border-slate-400 text-slate-600 hover:text-slate-900 bg-white"
+                        ? "bg-[#171F2C] text-white border border-[#171F2C]"
+                        : "border border-transparent hover:border-[#E2E8F0] text-[#64748B] hover:text-[#171F2C] bg-white hover:bg-[#F8FAFC]"
                     }`}
                   >
                     <span
                       className={`text-[10px] uppercase font-mono tracking-wider ${
-                        isActive ? "text-slate-300" : "text-slate-400"
+                        isActive ? "text-[#94A3B8]" : "text-[#94A3B8]"
                       }`}
                     >
                       Step {s.number}
@@ -341,18 +423,18 @@ export function EightStepJourneyPage() {
 
           {/* MOBILE: Quick-Jump Step Pills (visible only on < lg) */}
           <div className="mt-6 block lg:hidden overflow-x-auto scrollbar-none pb-1">
-            <div className="inline-flex items-center gap-1.5 p-1.5 bg-white border border-slate-200/80 rounded-2xl shadow-xs">
+            <div className="inline-flex items-center gap-1.5 p-1.5 bg-white border border-[#E2E8F0] rounded-[4px]">
               {STEPS_DATA.map((s) => {
-                const isHighlight = s.index === 6 || s.index === 7;
+                const isActive = s.index === currentStep;
                 return (
                   <button
                     key={s.number}
                     type="button"
                     onClick={() => scrollToMobileStep(s.number)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
-                      isHighlight
-                        ? "text-emerald-700 bg-emerald-50/80 hover:bg-emerald-100"
-                        : "text-slate-600 hover:bg-slate-100"
+                    className={`px-3 py-1.5 rounded-[4px] text-xs font-mono font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
+                      isActive
+                        ? "text-white bg-[#171F2C] border border-[#171F2C]"
+                        : "text-[#64748B] hover:bg-[#F8FAFC] border border-transparent"
                     }`}
                   >
                     <span>{s.number}.</span>
@@ -365,14 +447,14 @@ export function EightStepJourneyPage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            DESKTOP VIEW: Interactive 2-Column Slideshow (hidden on mobile)
+            2. DESKTOP VIEW: INTERACTIVE 2-COLUMN SLIDESHOW (LG SCREENS)
             ═══════════════════════════════════════════════════════════════════ */}
-        <section className="w-full max-w-5xl mx-auto px-6 mb-12 hidden lg:block">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 mb-12 hidden lg:block">
+          <div className="bg-white border border-[#E2E8F0] rounded-[4px] overflow-hidden flex flex-col">
             {/* Progress Indicator Bar */}
-            <div className="w-full bg-slate-100 h-1.5 relative overflow-hidden">
+            <div className="w-full bg-[#F8FAFC] h-1.5 relative overflow-hidden border-b border-[#E2E8F0]">
               <div
-                className="h-full bg-slate-900 transition-all duration-300 ease-out"
+                className="h-full bg-[#171F2C] transition-all duration-300 ease-out"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -380,9 +462,9 @@ export function EightStepJourneyPage() {
             {/* Main Slide Content Canvas */}
             <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[460px]">
               {/* Visual Illustration Canvas (Left) */}
-              <div className="lg:col-span-6 bg-[#f8fafc] border-b lg:border-b-0 lg:border-r border-slate-200 p-6 sm:p-10 flex flex-col items-center justify-center relative select-none">
-                <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 text-[11px] font-mono font-medium text-slate-600 bg-white/90 border border-slate-200 px-2.5 py-1 rounded-md shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-900"></span>
+              <div className="lg:col-span-6 bg-[#F8FAFC] border-b lg:border-b-0 lg:border-r border-[#E2E8F0] p-6 sm:p-10 flex flex-col items-center justify-center relative select-none">
+                <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 text-[11px] font-mono font-medium text-[#64748B] bg-white border border-[#E2E8F0] px-2.5 py-1 rounded-[4px]">
+                  <span className="w-1.5 h-1.5 rounded-[2px] bg-[#171F2C]"></span>
                   <span>{step.diagramLabel}</span>
                 </div>
 
@@ -394,13 +476,15 @@ export function EightStepJourneyPage() {
                   >
                     {(() => {
                       const StepIllustration = journeyIllustrations[currentStep];
-                      return <StepIllustration className="w-full h-full object-contain rounded-xl shadow-xs" />;
+                      return (
+                        <StepIllustration className="w-full h-full object-contain rounded-[4px]" />
+                      );
                     })()}
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="mt-3 flex items-center gap-2 text-xs text-[#64748B]">
+                  <ShieldCheck className="w-4 h-4 text-[#171F2C] shrink-0" />
                   <span className="font-mono text-[11px]">{step.caption}</span>
                 </div>
               </div>
@@ -409,43 +493,43 @@ export function EightStepJourneyPage() {
               <div className="lg:col-span-6 p-6 sm:p-10 flex flex-col justify-between">
                 <div className="flex flex-col gap-4">
                   {/* Top metadata row */}
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-4">
-                    <span className="px-2.5 py-1 rounded text-[10.5px] font-bold tracking-wider uppercase bg-slate-900 text-white font-mono">
+                  <div className="flex items-center justify-between gap-2 border-b border-[#E2E8F0] pb-4">
+                    <span className="px-2.5 py-1 rounded-[4px] text-[10.5px] font-bold tracking-wider uppercase bg-[#171F2C] text-white font-mono">
                       {step.phase}
                     </span>
-                    <span className="text-xs font-mono font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded border border-slate-200">
+                    <span className="text-xs font-mono font-bold text-[#171F2C] bg-[#F8FAFC] px-2.5 py-1 rounded-[4px] border border-[#E2E8F0]">
                       {step.number} / 08
                     </span>
                   </div>
 
                   {/* Slide Headline & Body */}
-                  <div className="mt-1">
-                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 font-display">
+                  <div className="space-y-1.5">
+                    <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#171F2C] font-display">
                       {step.title}
-                    </h2>
-                    <p className="text-base font-semibold text-slate-600 mt-1">
+                    </h3>
+                    <p className="text-base font-semibold text-[#64748B]">
                       {step.subtitle}
                     </p>
-                    <p className="text-sm text-slate-600 leading-relaxed mt-3">
+                    <p className="text-sm text-[#64748B] leading-relaxed pt-1">
                       {step.description}
                     </p>
                   </div>
 
                   {/* Protocol Specs Micro Cards */}
-                  <div className="mt-2">
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-900 mb-2 font-mono">
+                  <div className="pt-2">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#171F2C] mb-2 font-mono">
                       Bilateral Protocol Covenants
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                       {step.specs.map((spec) => (
                         <div
                           key={spec.label}
-                          className="p-2.5 rounded-lg border border-slate-200 bg-[#f8fafc]"
+                          className="p-2.5 rounded-[4px] border border-[#E2E8F0] bg-[#F8FAFC]"
                         >
-                          <p className="text-[11px] font-semibold text-slate-900">
+                          <p className="text-[11px] font-semibold text-[#171F2C]">
                             {spec.label}
                           </p>
-                          <p className="text-[10px] text-slate-500 mt-0.5 leading-snug">
+                          <p className="text-[10px] text-[#64748B] mt-0.5 leading-snug">
                             {spec.desc}
                           </p>
                         </div>
@@ -455,13 +539,13 @@ export function EightStepJourneyPage() {
                 </div>
 
                 {/* Carousel Navigation Controls Bar */}
-                <div className="pt-6 mt-6 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                <div className="pt-6 mt-6 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       disabled={currentStep === 0}
                       onClick={prevStep}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[4px] border border-[#E2E8F0] bg-white text-xs font-semibold text-[#171F2C] hover:bg-[#F8FAFC] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       <ArrowLeft className="w-3.5 h-3.5" />
                       <span>Previous</span>
@@ -469,7 +553,7 @@ export function EightStepJourneyPage() {
                     <button
                       type="button"
                       onClick={nextStep}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-black disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[4px] bg-[#171F2C] text-white text-xs font-semibold hover:bg-[#1E293B] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       <span>{currentStep === 7 ? "Restart" : "Next Step"}</span>
                       {currentStep === 7 ? (
@@ -484,10 +568,10 @@ export function EightStepJourneyPage() {
                     <button
                       type="button"
                       onClick={toggleAutoPlay}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs transition-colors cursor-pointer ${
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[4px] border text-xs transition-colors cursor-pointer ${
                         isPlaying
-                          ? "border-slate-900 bg-slate-900 text-white"
-                          : "border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                          ? "border-[#171F2C] bg-[#171F2C] text-white"
+                          : "border-[#E2E8F0] text-[#64748B] hover:text-[#171F2C] hover:bg-[#F8FAFC]"
                       }`}
                     >
                       {isPlaying ? (
@@ -507,16 +591,15 @@ export function EightStepJourneyPage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            MOBILE VIEW: Vertical Timeline UI (visible on < lg screens)
+            3. MOBILE VIEW: VERTICAL TIMELINE UI (< LG SCREENS)
             ═══════════════════════════════════════════════════════════════════ */}
         <section className="w-full px-4 sm:px-6 mb-16 block lg:hidden relative">
-          {/* Vertical Spine (Connecting Line) */}
-          <div className="absolute left-7 sm:left-9 top-4 bottom-8 w-0.5 bg-gradient-to-b from-slate-300 via-slate-200 to-emerald-500 z-0" />
+          {/* Vertical Spine */}
+          <div className="absolute left-7 sm:left-9 top-4 bottom-8 w-0.5 bg-[#E2E8F0] z-0" />
 
           {/* Timeline Items */}
           <div className="space-y-8 relative z-10">
             {STEPS_DATA.map((s, idx) => {
-              const isHighlight = idx === 6 || idx === 7;
               const StepIllustration = journeyIllustrations[idx];
 
               return (
@@ -527,32 +610,22 @@ export function EightStepJourneyPage() {
                 >
                   {/* Timeline Node Badge */}
                   <div className="shrink-0 flex flex-col items-center">
-                    <div
-                      className={`w-9 h-9 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-mono font-bold text-xs sm:text-sm tracking-wider shadow-sm transition-all ${
-                        isHighlight
-                          ? "bg-slate-950 text-emerald-400 border-2 border-emerald-400/60 ring-4 ring-emerald-500/10"
-                          : "bg-white text-slate-900 border-2 border-slate-900 ring-4 ring-slate-100"
-                      }`}
-                    >
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-[4px] flex items-center justify-center font-mono font-bold text-xs sm:text-sm tracking-wider bg-[#171F2C] text-white border border-[#171F2C]">
                       {s.number}
                     </div>
                   </div>
 
                   {/* Timeline Card */}
-                  <div className="flex-1 rounded-2xl p-4 sm:p-5 bg-white text-slate-950 shadow-[0_8px_25px_rgba(0,0,0,0.06)] border border-slate-200/80 transition-all">
-                    {/* Heading */}
-                    <h2 className="text-lg font-bold font-display tracking-tight text-slate-950">
+                  <div className="flex-1 rounded-[4px] p-4 sm:p-5 bg-white text-[#171F2C] border border-[#E2E8F0]">
+                    <h3 className="text-base font-bold font-display tracking-tight text-[#171F2C]">
                       {s.number}. {s.name}
-                    </h2>
-
-                    {/* Sub Heading */}
-                    <p className="text-xs sm:text-sm font-medium text-slate-600 mt-0.5 mb-3.5">
+                    </h3>
+                    <p className="text-xs font-medium text-[#64748B] mt-0.5 mb-3">
                       {s.subtitle}
                     </p>
 
-                    {/* Protocol Action */}
-                    <div className="p-3 rounded-xl bg-[#F8FAFC] border border-slate-100 text-slate-700 mb-3.5">
-                      <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider block mb-1 text-slate-400">
+                    <div className="p-3 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B] mb-3">
+                      <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider block mb-1 text-[#171F2C]">
                         Protocol Action
                       </span>
                       <p className="text-xs leading-relaxed font-sans">
@@ -560,8 +633,7 @@ export function EightStepJourneyPage() {
                       </p>
                     </div>
 
-                    {/* Illustration Image */}
-                    <div className="w-full aspect-[16/9] max-h-[190px] flex items-center justify-center bg-white rounded-xl p-1.5 border border-slate-200/60 overflow-hidden shadow-2xs">
+                    <div className="w-full aspect-[16/9] max-h-[190px] flex items-center justify-center bg-white rounded-[4px] p-1.5 border border-[#E2E8F0] overflow-hidden">
                       <StepIllustration className="w-full h-full object-contain" />
                     </div>
                   </div>
@@ -572,177 +644,347 @@ export function EightStepJourneyPage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            THE RESOLUTION SECTION ("Then, connect.")
+            4. WHY THE 8-STEP STRUCTURE MATTERS (REQUIRED SECTION)
             ═══════════════════════════════════════════════════════════════════ */}
-        <section className="w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-12">
-          <div className="mb-8 text-center md:text-left">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 font-mono">
-              The Resolution
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-950 font-display mt-1">
-              Then, connect.
-            </h2>
-            <p className="text-sm sm:text-base text-slate-600 mt-1">
-              Once bilateral terms are locked, Relay steps aside so counterparties direct their partnership freely.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-            {/* Inside Relay */}
-            <div className="p-6 sm:p-7 rounded-3xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.05)] flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-900"></span>
-                  <h3 className="text-lg font-bold text-slate-950 font-display">Inside Relay</h3>
-                </div>
-                <p className="text-xs text-slate-500 mb-4 uppercase tracking-wider font-mono font-medium">
-                  The Protocol
-                </p>
-                <ul className="space-y-3.5 text-sm text-slate-800">
-                  <li className="flex items-start gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>Blinded discovery and verified credentials</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>Structured mutual consent protocol</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>Bilateral term agreement without leakage</span>
-                  </li>
-                </ul>
-              </div>
+        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 pb-12 border-t border-[#E2E8F0]">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-[0.04em] text-[#64748B]">
+                Architectural Integrity
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight">
+                Why the 8-Step Structure Matters
+              </h2>
+              <p className="text-xs sm:text-sm text-[#64748B] max-w-3xl leading-relaxed">
+                By intentionally separating business verification, opportunity posting, discovery, interest evaluation, acknowledgment, commercial negotiation, bilateral agreement, and final handshake, The Relay enforces a structured{" "}
+                <Link to="/b2b-opportunity-exchange" className="text-[#171F2C] underline hover:text-[#000000]">
+                  B2B opportunity exchange workflow
+                </Link>
+                . This ensures mutual consent, prevents premature data leakage, and establishes sovereign commercial relationships.
+              </p>
             </div>
 
-            {/* Outside Relay */}
-            <div className="p-6 sm:p-7 rounded-3xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.05)] flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                  <h3 className="text-lg font-bold text-slate-950 font-display">Outside Relay</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Inside Relay */}
+              <div className="p-6 sm:p-7 rounded-[4px] border border-[#E2E8F0] bg-white flex flex-col justify-between space-y-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2.5 h-2.5 rounded-[2px] bg-[#171F2C]"></span>
+                    <h3 className="text-base font-bold text-[#171F2C] font-display">Inside The Relay Protocol</h3>
+                  </div>
+                  <p className="text-xs text-[#64748B] mb-4 uppercase tracking-wider font-mono font-medium">
+                    Gated Bilateral Security
+                  </p>
+                  <ul className="space-y-3 text-xs sm:text-sm text-[#64748B]">
+                    <li className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                      <span>Blinded opportunity discovery with verified business credentials</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                      <span>Structured bilateral consent before any contact disclosure</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                      <span>Digital bilateral non-circumvention terms locked in Stage 7</span>
+                    </li>
+                  </ul>
                 </div>
-                <p className="text-xs text-slate-500 mb-4 uppercase tracking-wider font-mono font-medium">
-                  Direct Partnership
-                </p>
-                <ul className="space-y-3.5 text-sm text-slate-800">
-                  <li className="flex items-start gap-2.5">
-                    <ArrowRight className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>Direct executive contacts unlocked</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <ArrowRight className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>Sovereign contracts and legal agreements</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <ArrowRight className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>Long-term unmediated commercial relationship</span>
-                  </li>
-                </ul>
+                <div className="pt-3 border-t border-[#E2E8F0] text-[11px] font-mono text-[#171F2C]">
+                  Protocol Level: 100% Gated &amp; Blinded
+                </div>
+              </div>
+
+              {/* Outside Relay */}
+              <div className="p-6 sm:p-7 rounded-[4px] border border-[#E2E8F0] bg-white flex flex-col justify-between space-y-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2.5 h-2.5 rounded-[2px] bg-[#171F2C]"></span>
+                    <h3 className="text-base font-bold text-[#171F2C] font-display">Outside The Relay Protocol</h3>
+                  </div>
+                  <p className="text-xs text-[#64748B] mb-4 uppercase tracking-wider font-mono font-medium">
+                    Direct Commercial Execution
+                  </p>
+                  <ul className="space-y-3 text-xs sm:text-sm text-[#64748B]">
+                    <li className="flex items-start gap-2.5">
+                      <ArrowRight className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                      <span>Direct executive email lines and phone contacts unlocked</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <ArrowRight className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                      <span>Sovereign contracts, invoices, and service agreements executed directly</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <ArrowRight className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                      <span>Long-term unmediated commercial partnerships and referral networks</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="pt-3 border-t border-[#E2E8F0] text-[11px] font-mono text-[#171F2C]">
+                  Execution Level: Sovereign &amp; Unmediated
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Executive CTA */}
-        <section className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6">
-          <div className="py-12 px-6 sm:px-10 rounded-3xl border border-slate-200 bg-white text-center flex flex-col items-center gap-4 shadow-[0_10px_35px_rgba(0,0,0,0.06)]">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 font-display">
+        {/* ═══════════════════════════════════════════════════════════════════
+            5. WHAT BUSINESSES CAN USE THE RELAY FOR (RELATED USE CASES)
+            ═══════════════════════════════════════════════════════════════════ */}
+        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 pb-12 border-t border-[#E2E8F0]">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <span className="text-[11px] font-mono font-bold uppercase tracking-[0.04em] text-[#64748B]">
+                Supported Exchange Models
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight">
+                What Businesses Can Use The Relay For
+              </h2>
+              <p className="text-xs sm:text-sm text-[#64748B] max-w-3xl leading-relaxed">
+                The 8-step workflow accommodates various commercial exchange and partnership models across B2B verticals.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Link
+                to="/b2b-lead-exchange"
+                className="p-5 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] transition-all group flex flex-col justify-between space-y-2"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
+                      Lead Monetization
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:translate-x-1 transition-transform" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#171F2C] group-hover:underline">
+                    B2B Lead Exchange
+                  </h3>
+                  <p className="text-xs text-[#64748B] leading-relaxed mt-1">
+                    Route out-of-scope client requirements for contracted rev-shares.
+                  </p>
+                </div>
+              </Link>
+
+              <Link
+                to="/referral-partnerships"
+                className="p-5 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] transition-all group flex flex-col justify-between space-y-2"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
+                      Referral Network
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:translate-x-1 transition-transform" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#171F2C] group-hover:underline">
+                    Referral Partnerships
+                  </h3>
+                  <p className="text-xs text-[#64748B] leading-relaxed mt-1">
+                    Establish bilateral referral arrangements with non-competing peers.
+                  </p>
+                </div>
+              </Link>
+
+              <Link
+                to="/b2b-partnership-network"
+                className="p-5 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] transition-all group flex flex-col justify-between space-y-2"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
+                      Strategic Alliances
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:translate-x-1 transition-transform" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#171F2C] group-hover:underline">
+                    B2B Partnership Network
+                  </h3>
+                  <p className="text-xs text-[#64748B] leading-relaxed mt-1">
+                    Source co-selling partners and cross-sector commercial alliances.
+                  </p>
+                </div>
+              </Link>
+
+              <Link
+                to="/channel-partnerships"
+                className="p-5 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] transition-all group flex flex-col justify-between space-y-2"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
+                      Channel Scale
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:translate-x-1 transition-transform" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#171F2C] group-hover:underline">
+                    Channel Partnerships
+                  </h3>
+                  <p className="text-xs text-[#64748B] leading-relaxed mt-1">
+                    Scale commercial distribution via value-added resellers and integrators.
+                  </p>
+                </div>
+              </Link>
+
+              <Link
+                to="/distribution-partners"
+                className="p-5 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] transition-all group flex flex-col justify-between space-y-2"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
+                      Market Access
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:translate-x-1 transition-transform" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#171F2C] group-hover:underline">
+                    Distribution Partners
+                  </h3>
+                  <p className="text-xs text-[#64748B] leading-relaxed mt-1">
+                    Connect with specialized distributors and regional commercial partners.
+                  </p>
+                </div>
+              </Link>
+
+              <Link
+                to="/agency-lead-exchange"
+                className="p-5 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] transition-all group flex flex-col justify-between space-y-2"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
+                      Agency Capacity
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:translate-x-1 transition-transform" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#171F2C] group-hover:underline">
+                    Agency Lead Exchange
+                  </h3>
+                  <p className="text-xs text-[#64748B] leading-relaxed mt-1">
+                    Monetize out-of-scope agency briefs and source trusted execution peers.
+                  </p>
+                </div>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            6. EXECUTIVE CTA SECTION (MONOCHROME EXECUTIVE)
+            ═══════════════════════════════════════════════════════════════════ */}
+        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4">
+          <div className="py-12 px-6 sm:px-10 rounded-[4px] border border-[#171F2C] bg-[#171F2C] text-white text-center flex flex-col items-center gap-4">
+            <span className="inline-flex text-[11px] font-mono font-bold uppercase tracking-[0.04em] text-[#94A3B8] bg-[#112030] px-3 py-1 rounded-[4px] border border-slate-700">
+              Verified Bilateral Exchange
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-white">
               Ready to experience the 8-step journey?
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 max-w-md">
-              Turn unfulfillable pipeline into verified reciprocal partnerships.
+            <p className="text-xs sm:text-sm text-[#94A3B8] max-w-md leading-relaxed">
+              Turn unfulfillable commercial opportunities into verified reciprocal partnerships.
             </p>
-            <div className="flex flex-col sm:flex-row items-center gap-3 mt-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-3 mt-2 w-full sm:w-auto">
               <Link
                 to="/opportunities"
-                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-slate-950 text-white rounded-xl text-sm font-semibold hover:bg-black transition-all shadow-md hover:shadow-lg"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 bg-white text-[#171F2C] rounded-[4px] text-xs sm:text-sm font-bold hover:bg-[#F8FAFC] transition-all cursor-pointer"
               >
-                <span>Explore Opportunities</span>
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <span>Explore Live Opportunities</span>
+                <ArrowRight className="w-4 h-4 ml-1.5" />
               </Link>
               <Link
-                to="/post"
-                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-white text-slate-900 border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors"
+                to="/core-pillars"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 bg-[#171F2C] hover:bg-[#1E293B] text-white border border-slate-700 rounded-[4px] text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
               >
-                Post an Opportunity
+                Read Core Pillars &amp; CDOES
               </Link>
             </div>
 
-            <div className="pt-4 mt-2 border-t border-slate-100 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-slate-500 font-mono">
-              <Link to="/core-pillars" className="hover:text-slate-950 underline underline-offset-4 transition-colors">
-                Read Core Pillars &amp; CDOES
+            <div className="pt-4 mt-2 border-t border-slate-800 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-[#94A3B8] font-mono">
+              <Link to="/trust-and-safety" className="hover:text-white underline underline-offset-4 transition-colors">
+                Trust &amp; Safety Protocols
               </Link>
               <span>•</span>
-              <Link to="/faq" className="hover:text-slate-950 underline underline-offset-4 transition-colors">
+              <Link to="/faq" className="hover:text-white underline underline-offset-4 transition-colors">
                 View Protocol FAQ &amp; Standards
+              </Link>
+              <span>•</span>
+              <Link to="/solutions" className="hover:text-white underline underline-offset-4 transition-colors">
+                Solutions Directory
               </Link>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Clean Minimalist Footer */}
-      <footer className="w-full border-t border-slate-200 bg-white">
-        <div className="w-full max-w-6xl mx-auto px-6 py-10">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 pb-8 text-sm">
-            <div className="col-span-2 flex flex-col gap-3 pr-4">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-sm text-slate-900 tracking-tight">The Relay</span>
-              </div>
-              <p className="text-xs text-slate-500 leading-relaxed max-w-sm">
-                Structured bilateral acquisition network engineered for verified counterparties and discreet consent-driven commercial exchanges.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-900 font-mono">
+      {/* ═══════════════════════════════════════════════════════════════════
+          7. CLEAN MONOCHROME FOOTER
+          ═══════════════════════════════════════════════════════════════════ */}
+      <footer className="w-full border-t border-[#E2E8F0] bg-white">
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pb-8 text-sm border-b border-[#E2E8F0]">
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#171F2C]">
                 Architecture
               </span>
-              <Link to="/core-pillars" className="text-xs text-slate-500 hover:text-slate-900 transition-colors">
-                Protocol Spec
+              <Link to="/core-pillars" className="text-xs text-[#64748B] hover:text-[#171F2C] transition-colors">
+                Core Principles
               </Link>
-              <Link to="/core-pillars" className="text-xs text-slate-500 hover:text-slate-900 transition-colors">
-                Zero-Knowledge Escrow
+              <Link to="/8-step-journey" className="text-xs text-[#64748B] hover:text-[#171F2C] transition-colors">
+                8-Step Workflow
               </Link>
-              <Link to="/core-pillars" className="text-xs text-slate-500 hover:text-slate-900 transition-colors">
-                Reciprocal Unmasking
+              <Link to="/b2b-opportunity-exchange" className="text-xs text-[#64748B] hover:text-[#171F2C] transition-colors">
+                Opportunity Exchange
               </Link>
             </div>
-            <div className="flex flex-col gap-2.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-900 font-mono">
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#171F2C]">
+                Solutions
+              </span>
+              <Link to="/b2b-lead-exchange" className="text-xs text-[#64748B] hover:text-[#171F2C] transition-colors">
+                B2B Lead Exchange
+              </Link>
+              <Link to="/referral-partnerships" className="text-xs text-[#64748B] hover:text-[#171F2C] transition-colors">
+                Referral Partnerships
+              </Link>
+              <Link to="/b2b-partnership-network" className="text-xs text-[#64748B] hover:text-[#171F2C] transition-colors">
+                B2B Partnership Network
+              </Link>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#171F2C]">
                 Governance
               </span>
-              <a href="#governance" className="text-xs text-slate-500 hover:text-slate-900 transition-colors">
-                Curation Committee
-              </a>
-              <a href="#governance" className="text-xs text-slate-500 hover:text-slate-900 transition-colors">
-                Underwriting Rules
-              </a>
-              <a href="#governance" className="text-xs text-slate-500 hover:text-slate-900 transition-colors">
-                Arbitration Charter
-              </a>
+              <Link to="/trust-and-safety" className="text-xs text-[#64748B] hover:text-[#171F2C] transition-colors">
+                KYB Verification Desk
+              </Link>
+              <Link to="/trust-and-safety" className="text-xs text-[#64748B] hover:text-[#171F2C] transition-colors">
+                Controlled Disclosure
+              </Link>
+              <Link to="/faq" className="text-xs text-[#64748B] hover:text-[#171F2C] transition-colors">
+                Protocol FAQ
+              </Link>
             </div>
-            <div className="flex flex-col gap-2.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-900 font-mono">
-                Legal
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#171F2C]">
+                Company
               </span>
-              <a href="#legal" className="text-xs text-slate-500 hover:text-slate-900 transition-colors">
-                Bilateral NDA
-              </a>
-              <a href="#legal" className="text-xs text-slate-500 hover:text-slate-900 transition-colors">
-                Privacy &amp; Anonymity
-              </a>
-              <a href="#legal" className="text-xs text-slate-500 hover:text-slate-900 transition-colors">
-                Terms of Protocol
-              </a>
+              <Link to="/about" className="text-xs text-[#64748B] hover:text-[#171F2C] transition-colors">
+                About The Relay
+              </Link>
+              <Link to="/solutions" className="text-xs text-[#64748B] hover:text-[#171F2C] transition-colors">
+                All Solutions
+              </Link>
+              <Link to="/opportunities" className="text-xs text-[#64748B] hover:text-[#171F2C] transition-colors">
+                Live Opportunities
+              </Link>
             </div>
           </div>
-          <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <p>© 2025 The Relay Network Inc. All rights reserved.</p>
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#64748B]">
+            <p>© 2025 The Relay. All rights reserved. Zero Cold Outreach Protocol.</p>
             <div className="flex items-center gap-4">
-              <span className="inline-flex items-center gap-1 text-slate-600">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                Verified Protocol
+              <span className="inline-flex items-center gap-1 text-[#171F2C]">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#171F2C]" />
+                100% Verified Protocol
               </span>
               <span>•</span>
               <span>Sovereign Execution</span>
