@@ -123,6 +123,7 @@ export const Route = createFileRoute("/my-relay")({
         content:
           "Manage your B2B opportunities, active bilateral requests, and saved opportunities.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: MyRelayPage,

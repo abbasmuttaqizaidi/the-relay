@@ -44,6 +44,7 @@ import { AdminCreateQuestionDialog } from "../components/admin/AdminCreateQuesti
 import { AdminCreateKnowledgeDialog } from "../components/admin/AdminCreateKnowledgeDialog";
 import { CompanyLogo } from "../components/company-logo";
 import { getCompanyInitials } from "@/lib/utils";
+import { createSeoMeta } from "@/lib/seo";
 import {
   Question,
   KnowledgeInsight,
@@ -57,28 +58,12 @@ const insightsSearchSchema = z.object({
 export const Route = createFileRoute("/insights/")({
   validateSearch: zodValidator(insightsSearchSchema),
   head: () => ({
-    meta: [
-      { title: "Insights & Peer Intelligence — The Relay" },
-      {
-        name: "description",
-        content:
-          "Tactical lessons and peer advice from verified B2B operators. Every perspective requires authenticated corporate attribution.",
-      },
-      { property: "og:title", content: "Insights & Peer Intelligence — The Relay" },
-      {
-        property: "og:description",
-        content:
-          "Tactical lessons and peer advice from verified B2B operators. Every perspective requires authenticated corporate attribution.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Insights & Peer Intelligence — The Relay" },
-      {
-        name: "twitter:description",
-        content:
-          "Tactical lessons and peer advice from verified B2B operators.",
-      },
-    ],
+    meta: createSeoMeta({
+      title: "Insights & Peer Intelligence — The Relay",
+      description:
+        "Tactical lessons and peer advice from verified B2B operators. Every perspective requires authenticated corporate attribution.",
+      canonicalPath: "/insights",
+    }),
   }),
   component: InsightsIndexPage,
 });

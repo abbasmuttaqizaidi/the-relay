@@ -49,6 +49,7 @@ export const Route = createFileRoute("/onboarding")({
         name: "description",
         content: "Manage your company details and verified enterprise credentials on The Relay.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: OnboardingPage,

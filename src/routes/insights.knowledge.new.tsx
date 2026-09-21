@@ -1,16 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { KnowledgeEditorWorkspace } from "@/components/insights/KnowledgeEditorWorkspace";
+import { createPrivateMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/insights/knowledge/new")({
   head: () => ({
-    meta: [
-      { title: "Write Knowledge Article — The Relay" },
-      {
-        name: "description",
-        content:
-          "Publish operational lessons, practical advice, and experiments for verified businesses on The Relay.",
-      },
-    ],
+    meta: createPrivateMeta("Write Knowledge Article — The Relay"),
   }),
   component: NewKnowledgePage,
 });

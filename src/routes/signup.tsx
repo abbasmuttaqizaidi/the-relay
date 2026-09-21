@@ -39,6 +39,7 @@ export const Route = createFileRoute("/signup")({
         content:
           "Trade commercial value without cold outreach. Apply for institutional membership on The Relay.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: SignUpPage,

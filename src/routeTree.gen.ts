@@ -9,9 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WhatToDoWithUnqualifiedLeadsRouteImport } from './routes/what-to-do-with-unqualified-leads'
 import { Route as TrustAndSafetyRouteImport } from './routes/trust-and-safety'
+import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SavedOpportunitiesRouteImport } from './routes/saved-opportunities'
+import { Route as ReferralPartnershipsRouteImport } from './routes/referral-partnerships'
 import { Route as QueryRelayRouteImport } from './routes/query-relay'
 import { Route as ProposalsRouteImport } from './routes/proposals'
 import { Route as PostRouteImport } from './routes/post'
@@ -21,11 +24,22 @@ import { Route as NetworkRouteImport } from './routes/network'
 import { Route as MyRelayRouteImport } from './routes/my-relay'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InsightsRouteImport } from './routes/insights'
+import { Route as HowToMonetizeUnqualifiedLeadsRouteImport } from './routes/how-to-monetize-unqualified-leads'
+import { Route as HowToFindDistributionPartnersRouteImport } from './routes/how-to-find-distribution-partners'
+import { Route as HowToFindB2bReferralPartnersRouteImport } from './routes/how-to-find-b2b-referral-partners'
+import { Route as HowToExchangeBusinessLeadsRouteImport } from './routes/how-to-exchange-business-leads'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EightStepJourneyRouteImport } from './routes/eight-step-journey'
+import { Route as DistributionPartnersRouteImport } from './routes/distribution-partners'
 import { Route as CorePillarsRouteImport } from './routes/core-pillars'
+import { Route as ChannelPartnershipsRouteImport } from './routes/channel-partnerships'
 import { Route as BusinessProfileRouteImport } from './routes/business-profile'
+import { Route as B2bReferralNetworkRouteImport } from './routes/b2b-referral-network'
+import { Route as B2bPartnershipNetworkRouteImport } from './routes/b2b-partnership-network'
+import { Route as B2bOpportunityExchangeRouteImport } from './routes/b2b-opportunity-exchange'
+import { Route as B2bLeadExchangeRouteImport } from './routes/b2b-lead-exchange'
+import { Route as AgencyLeadExchangeRouteImport } from './routes/agency-lead-exchange'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as R8StepJourneyRouteImport } from './routes/8-step-journey'
@@ -42,9 +56,20 @@ import { Route as InsightsKnowledgeNewRouteImport } from './routes/insights.know
 import { Route as InsightsKnowledgeIdRouteImport } from './routes/insights.knowledge.$id'
 import { Route as InsightsKnowledgeIdEditRouteImport } from './routes/insights.knowledge.$id.edit'
 
+const WhatToDoWithUnqualifiedLeadsRoute =
+  WhatToDoWithUnqualifiedLeadsRouteImport.update({
+    id: '/what-to-do-with-unqualified-leads',
+    path: '/what-to-do-with-unqualified-leads',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const TrustAndSafetyRoute = TrustAndSafetyRouteImport.update({
   id: '/trust-and-safety',
   path: '/trust-and-safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsRoute = SolutionsRouteImport.update({
+  id: '/solutions',
+  path: '/solutions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -55,6 +80,11 @@ const SignupRoute = SignupRouteImport.update({
 const SavedOpportunitiesRoute = SavedOpportunitiesRouteImport.update({
   id: '/saved-opportunities',
   path: '/saved-opportunities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReferralPartnershipsRoute = ReferralPartnershipsRouteImport.update({
+  id: '/referral-partnerships',
+  path: '/referral-partnerships',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QueryRelayRoute = QueryRelayRouteImport.update({
@@ -102,6 +132,30 @@ const InsightsRoute = InsightsRouteImport.update({
   path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HowToMonetizeUnqualifiedLeadsRoute =
+  HowToMonetizeUnqualifiedLeadsRouteImport.update({
+    id: '/how-to-monetize-unqualified-leads',
+    path: '/how-to-monetize-unqualified-leads',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HowToFindDistributionPartnersRoute =
+  HowToFindDistributionPartnersRouteImport.update({
+    id: '/how-to-find-distribution-partners',
+    path: '/how-to-find-distribution-partners',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HowToFindB2bReferralPartnersRoute =
+  HowToFindB2bReferralPartnersRouteImport.update({
+    id: '/how-to-find-b2b-referral-partners',
+    path: '/how-to-find-b2b-referral-partners',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const HowToExchangeBusinessLeadsRoute =
+  HowToExchangeBusinessLeadsRouteImport.update({
+    id: '/how-to-exchange-business-leads',
+    path: '/how-to-exchange-business-leads',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const HomeRoute = HomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -117,14 +171,49 @@ const EightStepJourneyRoute = EightStepJourneyRouteImport.update({
   path: '/eight-step-journey',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DistributionPartnersRoute = DistributionPartnersRouteImport.update({
+  id: '/distribution-partners',
+  path: '/distribution-partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CorePillarsRoute = CorePillarsRouteImport.update({
   id: '/core-pillars',
   path: '/core-pillars',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChannelPartnershipsRoute = ChannelPartnershipsRouteImport.update({
+  id: '/channel-partnerships',
+  path: '/channel-partnerships',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BusinessProfileRoute = BusinessProfileRouteImport.update({
   id: '/business-profile',
   path: '/business-profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const B2bReferralNetworkRoute = B2bReferralNetworkRouteImport.update({
+  id: '/b2b-referral-network',
+  path: '/b2b-referral-network',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const B2bPartnershipNetworkRoute = B2bPartnershipNetworkRouteImport.update({
+  id: '/b2b-partnership-network',
+  path: '/b2b-partnership-network',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const B2bOpportunityExchangeRoute = B2bOpportunityExchangeRouteImport.update({
+  id: '/b2b-opportunity-exchange',
+  path: '/b2b-opportunity-exchange',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const B2bLeadExchangeRoute = B2bLeadExchangeRouteImport.update({
+  id: '/b2b-lead-exchange',
+  path: '/b2b-lead-exchange',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgencyLeadExchangeRoute = AgencyLeadExchangeRouteImport.update({
+  id: '/agency-lead-exchange',
+  path: '/agency-lead-exchange',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -208,11 +297,22 @@ export interface FileRoutesByFullPath {
   '/8-step-journey': typeof R8StepJourneyRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/agency-lead-exchange': typeof AgencyLeadExchangeRoute
+  '/b2b-lead-exchange': typeof B2bLeadExchangeRoute
+  '/b2b-opportunity-exchange': typeof B2bOpportunityExchangeRoute
+  '/b2b-partnership-network': typeof B2bPartnershipNetworkRoute
+  '/b2b-referral-network': typeof B2bReferralNetworkRoute
   '/business-profile': typeof BusinessProfileRoute
+  '/channel-partnerships': typeof ChannelPartnershipsRoute
   '/core-pillars': typeof CorePillarsRoute
+  '/distribution-partners': typeof DistributionPartnersRoute
   '/eight-step-journey': typeof EightStepJourneyRoute
   '/faq': typeof FaqRoute
   '/home': typeof HomeRoute
+  '/how-to-exchange-business-leads': typeof HowToExchangeBusinessLeadsRoute
+  '/how-to-find-b2b-referral-partners': typeof HowToFindB2bReferralPartnersRoute
+  '/how-to-find-distribution-partners': typeof HowToFindDistributionPartnersRoute
+  '/how-to-monetize-unqualified-leads': typeof HowToMonetizeUnqualifiedLeadsRoute
   '/insights': typeof InsightsRouteWithChildren
   '/login': typeof LoginRoute
   '/my-relay': typeof MyRelayRoute
@@ -222,9 +322,12 @@ export interface FileRoutesByFullPath {
   '/post': typeof PostRoute
   '/proposals': typeof ProposalsRoute
   '/query-relay': typeof QueryRelayRoute
+  '/referral-partnerships': typeof ReferralPartnershipsRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
+  '/solutions': typeof SolutionsRoute
   '/trust-and-safety': typeof TrustAndSafetyRoute
+  '/what-to-do-with-unqualified-leads': typeof WhatToDoWithUnqualifiedLeadsRoute
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
   '/insights/ask': typeof InsightsAskRoute
@@ -242,11 +345,22 @@ export interface FileRoutesByTo {
   '/8-step-journey': typeof R8StepJourneyRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/agency-lead-exchange': typeof AgencyLeadExchangeRoute
+  '/b2b-lead-exchange': typeof B2bLeadExchangeRoute
+  '/b2b-opportunity-exchange': typeof B2bOpportunityExchangeRoute
+  '/b2b-partnership-network': typeof B2bPartnershipNetworkRoute
+  '/b2b-referral-network': typeof B2bReferralNetworkRoute
   '/business-profile': typeof BusinessProfileRoute
+  '/channel-partnerships': typeof ChannelPartnershipsRoute
   '/core-pillars': typeof CorePillarsRoute
+  '/distribution-partners': typeof DistributionPartnersRoute
   '/eight-step-journey': typeof EightStepJourneyRoute
   '/faq': typeof FaqRoute
   '/home': typeof HomeRoute
+  '/how-to-exchange-business-leads': typeof HowToExchangeBusinessLeadsRoute
+  '/how-to-find-b2b-referral-partners': typeof HowToFindB2bReferralPartnersRoute
+  '/how-to-find-distribution-partners': typeof HowToFindDistributionPartnersRoute
+  '/how-to-monetize-unqualified-leads': typeof HowToMonetizeUnqualifiedLeadsRoute
   '/login': typeof LoginRoute
   '/my-relay': typeof MyRelayRoute
   '/network': typeof NetworkRoute
@@ -254,9 +368,12 @@ export interface FileRoutesByTo {
   '/post': typeof PostRoute
   '/proposals': typeof ProposalsRoute
   '/query-relay': typeof QueryRelayRoute
+  '/referral-partnerships': typeof ReferralPartnershipsRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
+  '/solutions': typeof SolutionsRoute
   '/trust-and-safety': typeof TrustAndSafetyRoute
+  '/what-to-do-with-unqualified-leads': typeof WhatToDoWithUnqualifiedLeadsRoute
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
   '/insights/ask': typeof InsightsAskRoute
@@ -275,11 +392,22 @@ export interface FileRoutesById {
   '/8-step-journey': typeof R8StepJourneyRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
+  '/agency-lead-exchange': typeof AgencyLeadExchangeRoute
+  '/b2b-lead-exchange': typeof B2bLeadExchangeRoute
+  '/b2b-opportunity-exchange': typeof B2bOpportunityExchangeRoute
+  '/b2b-partnership-network': typeof B2bPartnershipNetworkRoute
+  '/b2b-referral-network': typeof B2bReferralNetworkRoute
   '/business-profile': typeof BusinessProfileRoute
+  '/channel-partnerships': typeof ChannelPartnershipsRoute
   '/core-pillars': typeof CorePillarsRoute
+  '/distribution-partners': typeof DistributionPartnersRoute
   '/eight-step-journey': typeof EightStepJourneyRoute
   '/faq': typeof FaqRoute
   '/home': typeof HomeRoute
+  '/how-to-exchange-business-leads': typeof HowToExchangeBusinessLeadsRoute
+  '/how-to-find-b2b-referral-partners': typeof HowToFindB2bReferralPartnersRoute
+  '/how-to-find-distribution-partners': typeof HowToFindDistributionPartnersRoute
+  '/how-to-monetize-unqualified-leads': typeof HowToMonetizeUnqualifiedLeadsRoute
   '/insights': typeof InsightsRouteWithChildren
   '/login': typeof LoginRoute
   '/my-relay': typeof MyRelayRoute
@@ -289,9 +417,12 @@ export interface FileRoutesById {
   '/post': typeof PostRoute
   '/proposals': typeof ProposalsRoute
   '/query-relay': typeof QueryRelayRoute
+  '/referral-partnerships': typeof ReferralPartnershipsRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
+  '/solutions': typeof SolutionsRoute
   '/trust-and-safety': typeof TrustAndSafetyRoute
+  '/what-to-do-with-unqualified-leads': typeof WhatToDoWithUnqualifiedLeadsRoute
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
   '/insights/ask': typeof InsightsAskRoute
@@ -311,11 +442,22 @@ export interface FileRouteTypes {
     | '/8-step-journey'
     | '/about'
     | '/admin'
+    | '/agency-lead-exchange'
+    | '/b2b-lead-exchange'
+    | '/b2b-opportunity-exchange'
+    | '/b2b-partnership-network'
+    | '/b2b-referral-network'
     | '/business-profile'
+    | '/channel-partnerships'
     | '/core-pillars'
+    | '/distribution-partners'
     | '/eight-step-journey'
     | '/faq'
     | '/home'
+    | '/how-to-exchange-business-leads'
+    | '/how-to-find-b2b-referral-partners'
+    | '/how-to-find-distribution-partners'
+    | '/how-to-monetize-unqualified-leads'
     | '/insights'
     | '/login'
     | '/my-relay'
@@ -325,9 +467,12 @@ export interface FileRouteTypes {
     | '/post'
     | '/proposals'
     | '/query-relay'
+    | '/referral-partnerships'
     | '/saved-opportunities'
     | '/signup'
+    | '/solutions'
     | '/trust-and-safety'
+    | '/what-to-do-with-unqualified-leads'
     | '/connections/$id'
     | '/insights/$id'
     | '/insights/ask'
@@ -345,11 +490,22 @@ export interface FileRouteTypes {
     | '/8-step-journey'
     | '/about'
     | '/admin'
+    | '/agency-lead-exchange'
+    | '/b2b-lead-exchange'
+    | '/b2b-opportunity-exchange'
+    | '/b2b-partnership-network'
+    | '/b2b-referral-network'
     | '/business-profile'
+    | '/channel-partnerships'
     | '/core-pillars'
+    | '/distribution-partners'
     | '/eight-step-journey'
     | '/faq'
     | '/home'
+    | '/how-to-exchange-business-leads'
+    | '/how-to-find-b2b-referral-partners'
+    | '/how-to-find-distribution-partners'
+    | '/how-to-monetize-unqualified-leads'
     | '/login'
     | '/my-relay'
     | '/network'
@@ -357,9 +513,12 @@ export interface FileRouteTypes {
     | '/post'
     | '/proposals'
     | '/query-relay'
+    | '/referral-partnerships'
     | '/saved-opportunities'
     | '/signup'
+    | '/solutions'
     | '/trust-and-safety'
+    | '/what-to-do-with-unqualified-leads'
     | '/connections/$id'
     | '/insights/$id'
     | '/insights/ask'
@@ -377,11 +536,22 @@ export interface FileRouteTypes {
     | '/8-step-journey'
     | '/about'
     | '/admin'
+    | '/agency-lead-exchange'
+    | '/b2b-lead-exchange'
+    | '/b2b-opportunity-exchange'
+    | '/b2b-partnership-network'
+    | '/b2b-referral-network'
     | '/business-profile'
+    | '/channel-partnerships'
     | '/core-pillars'
+    | '/distribution-partners'
     | '/eight-step-journey'
     | '/faq'
     | '/home'
+    | '/how-to-exchange-business-leads'
+    | '/how-to-find-b2b-referral-partners'
+    | '/how-to-find-distribution-partners'
+    | '/how-to-monetize-unqualified-leads'
     | '/insights'
     | '/login'
     | '/my-relay'
@@ -391,9 +561,12 @@ export interface FileRouteTypes {
     | '/post'
     | '/proposals'
     | '/query-relay'
+    | '/referral-partnerships'
     | '/saved-opportunities'
     | '/signup'
+    | '/solutions'
     | '/trust-and-safety'
+    | '/what-to-do-with-unqualified-leads'
     | '/connections/$id'
     | '/insights/$id'
     | '/insights/ask'
@@ -412,11 +585,22 @@ export interface RootRouteChildren {
   R8StepJourneyRoute: typeof R8StepJourneyRoute
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
+  AgencyLeadExchangeRoute: typeof AgencyLeadExchangeRoute
+  B2bLeadExchangeRoute: typeof B2bLeadExchangeRoute
+  B2bOpportunityExchangeRoute: typeof B2bOpportunityExchangeRoute
+  B2bPartnershipNetworkRoute: typeof B2bPartnershipNetworkRoute
+  B2bReferralNetworkRoute: typeof B2bReferralNetworkRoute
   BusinessProfileRoute: typeof BusinessProfileRoute
+  ChannelPartnershipsRoute: typeof ChannelPartnershipsRoute
   CorePillarsRoute: typeof CorePillarsRoute
+  DistributionPartnersRoute: typeof DistributionPartnersRoute
   EightStepJourneyRoute: typeof EightStepJourneyRoute
   FaqRoute: typeof FaqRoute
   HomeRoute: typeof HomeRoute
+  HowToExchangeBusinessLeadsRoute: typeof HowToExchangeBusinessLeadsRoute
+  HowToFindB2bReferralPartnersRoute: typeof HowToFindB2bReferralPartnersRoute
+  HowToFindDistributionPartnersRoute: typeof HowToFindDistributionPartnersRoute
+  HowToMonetizeUnqualifiedLeadsRoute: typeof HowToMonetizeUnqualifiedLeadsRoute
   InsightsRoute: typeof InsightsRouteWithChildren
   LoginRoute: typeof LoginRoute
   MyRelayRoute: typeof MyRelayRoute
@@ -426,9 +610,12 @@ export interface RootRouteChildren {
   PostRoute: typeof PostRoute
   ProposalsRoute: typeof ProposalsRoute
   QueryRelayRoute: typeof QueryRelayRoute
+  ReferralPartnershipsRoute: typeof ReferralPartnershipsRoute
   SavedOpportunitiesRoute: typeof SavedOpportunitiesRoute
   SignupRoute: typeof SignupRoute
+  SolutionsRoute: typeof SolutionsRoute
   TrustAndSafetyRoute: typeof TrustAndSafetyRoute
+  WhatToDoWithUnqualifiedLeadsRoute: typeof WhatToDoWithUnqualifiedLeadsRoute
   ConnectionsIdRoute: typeof ConnectionsIdRoute
   RequestsIncomingRoute: typeof RequestsIncomingRoute
   RequestsSentRoute: typeof RequestsSentRoute
@@ -436,11 +623,25 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/what-to-do-with-unqualified-leads': {
+      id: '/what-to-do-with-unqualified-leads'
+      path: '/what-to-do-with-unqualified-leads'
+      fullPath: '/what-to-do-with-unqualified-leads'
+      preLoaderRoute: typeof WhatToDoWithUnqualifiedLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/trust-and-safety': {
       id: '/trust-and-safety'
       path: '/trust-and-safety'
       fullPath: '/trust-and-safety'
       preLoaderRoute: typeof TrustAndSafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions': {
+      id: '/solutions'
+      path: '/solutions'
+      fullPath: '/solutions'
+      preLoaderRoute: typeof SolutionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -455,6 +656,13 @@ declare module '@tanstack/react-router' {
       path: '/saved-opportunities'
       fullPath: '/saved-opportunities'
       preLoaderRoute: typeof SavedOpportunitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/referral-partnerships': {
+      id: '/referral-partnerships'
+      path: '/referral-partnerships'
+      fullPath: '/referral-partnerships'
+      preLoaderRoute: typeof ReferralPartnershipsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/query-relay': {
@@ -520,6 +728,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InsightsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/how-to-monetize-unqualified-leads': {
+      id: '/how-to-monetize-unqualified-leads'
+      path: '/how-to-monetize-unqualified-leads'
+      fullPath: '/how-to-monetize-unqualified-leads'
+      preLoaderRoute: typeof HowToMonetizeUnqualifiedLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-to-find-distribution-partners': {
+      id: '/how-to-find-distribution-partners'
+      path: '/how-to-find-distribution-partners'
+      fullPath: '/how-to-find-distribution-partners'
+      preLoaderRoute: typeof HowToFindDistributionPartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-to-find-b2b-referral-partners': {
+      id: '/how-to-find-b2b-referral-partners'
+      path: '/how-to-find-b2b-referral-partners'
+      fullPath: '/how-to-find-b2b-referral-partners'
+      preLoaderRoute: typeof HowToFindB2bReferralPartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-to-exchange-business-leads': {
+      id: '/how-to-exchange-business-leads'
+      path: '/how-to-exchange-business-leads'
+      fullPath: '/how-to-exchange-business-leads'
+      preLoaderRoute: typeof HowToExchangeBusinessLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/home': {
       id: '/home'
       path: '/home'
@@ -541,6 +777,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EightStepJourneyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/distribution-partners': {
+      id: '/distribution-partners'
+      path: '/distribution-partners'
+      fullPath: '/distribution-partners'
+      preLoaderRoute: typeof DistributionPartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/core-pillars': {
       id: '/core-pillars'
       path: '/core-pillars'
@@ -548,11 +791,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CorePillarsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/channel-partnerships': {
+      id: '/channel-partnerships'
+      path: '/channel-partnerships'
+      fullPath: '/channel-partnerships'
+      preLoaderRoute: typeof ChannelPartnershipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/business-profile': {
       id: '/business-profile'
       path: '/business-profile'
       fullPath: '/business-profile'
       preLoaderRoute: typeof BusinessProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/b2b-referral-network': {
+      id: '/b2b-referral-network'
+      path: '/b2b-referral-network'
+      fullPath: '/b2b-referral-network'
+      preLoaderRoute: typeof B2bReferralNetworkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/b2b-partnership-network': {
+      id: '/b2b-partnership-network'
+      path: '/b2b-partnership-network'
+      fullPath: '/b2b-partnership-network'
+      preLoaderRoute: typeof B2bPartnershipNetworkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/b2b-opportunity-exchange': {
+      id: '/b2b-opportunity-exchange'
+      path: '/b2b-opportunity-exchange'
+      fullPath: '/b2b-opportunity-exchange'
+      preLoaderRoute: typeof B2bOpportunityExchangeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/b2b-lead-exchange': {
+      id: '/b2b-lead-exchange'
+      path: '/b2b-lead-exchange'
+      fullPath: '/b2b-lead-exchange'
+      preLoaderRoute: typeof B2bLeadExchangeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agency-lead-exchange': {
+      id: '/agency-lead-exchange'
+      path: '/agency-lead-exchange'
+      fullPath: '/agency-lead-exchange'
+      preLoaderRoute: typeof AgencyLeadExchangeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -713,11 +998,22 @@ const rootRouteChildren: RootRouteChildren = {
   R8StepJourneyRoute: R8StepJourneyRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
+  AgencyLeadExchangeRoute: AgencyLeadExchangeRoute,
+  B2bLeadExchangeRoute: B2bLeadExchangeRoute,
+  B2bOpportunityExchangeRoute: B2bOpportunityExchangeRoute,
+  B2bPartnershipNetworkRoute: B2bPartnershipNetworkRoute,
+  B2bReferralNetworkRoute: B2bReferralNetworkRoute,
   BusinessProfileRoute: BusinessProfileRoute,
+  ChannelPartnershipsRoute: ChannelPartnershipsRoute,
   CorePillarsRoute: CorePillarsRoute,
+  DistributionPartnersRoute: DistributionPartnersRoute,
   EightStepJourneyRoute: EightStepJourneyRoute,
   FaqRoute: FaqRoute,
   HomeRoute: HomeRoute,
+  HowToExchangeBusinessLeadsRoute: HowToExchangeBusinessLeadsRoute,
+  HowToFindB2bReferralPartnersRoute: HowToFindB2bReferralPartnersRoute,
+  HowToFindDistributionPartnersRoute: HowToFindDistributionPartnersRoute,
+  HowToMonetizeUnqualifiedLeadsRoute: HowToMonetizeUnqualifiedLeadsRoute,
   InsightsRoute: InsightsRouteWithChildren,
   LoginRoute: LoginRoute,
   MyRelayRoute: MyRelayRoute,
@@ -727,9 +1023,12 @@ const rootRouteChildren: RootRouteChildren = {
   PostRoute: PostRoute,
   ProposalsRoute: ProposalsRoute,
   QueryRelayRoute: QueryRelayRoute,
+  ReferralPartnershipsRoute: ReferralPartnershipsRoute,
   SavedOpportunitiesRoute: SavedOpportunitiesRoute,
   SignupRoute: SignupRoute,
+  SolutionsRoute: SolutionsRoute,
   TrustAndSafetyRoute: TrustAndSafetyRoute,
+  WhatToDoWithUnqualifiedLeadsRoute: WhatToDoWithUnqualifiedLeadsRoute,
   ConnectionsIdRoute: ConnectionsIdRoute,
   RequestsIncomingRoute: RequestsIncomingRoute,
   RequestsSentRoute: RequestsSentRoute,

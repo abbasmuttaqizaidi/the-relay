@@ -38,9 +38,23 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   });
 }
 
+import { generateSitemapXml } from "./lib/sitemap.server";
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      if (url.pathname === "/sitemap.xml") {
+        const xml = await generateSitemapXml();
+        return new Response(xml, {
+          status: 200,
+          headers: {
+            "content-type": "application/xml; charset=utf-8",
+            "cache-control": "public, max-age=1800, s-maxage=3600",
+          },
+        });
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
@@ -53,4 +67,5 @@ export default {
     }
   },
 };
+
 

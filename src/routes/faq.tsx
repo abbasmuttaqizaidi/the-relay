@@ -22,28 +22,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/design-system";
+import { createSeoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/faq")({
-  head: () => ({
-    meta: [
-      { title: "FAQ & Protocol Standards | The Relay — B2B Reciprocal Exchange" },
-      {
-        name: "description",
-        content:
-          "Everything you need to know about The Relay, the Consent-Driven Opportunity Exchange (CDOE) protocol, blinded bilateral matching, and programmatic commercial covenants.",
-      },
-      {
-        property: "og:title",
-        content: "FAQ & Protocol Standards | The Relay",
-      },
-      {
-        property: "og:description",
-        content:
-          "Comprehensive protocol guide, bilateral lifecycle rules, verification standards, and frequently answered questions.",
-      },
-      { property: "og:type", content: "website" },
-    ],
-  }),
+  head: () =>
+    createSeoMeta({
+      title: "The Relay FAQ — B2B Opportunity Exchange Questions | The Relay",
+      description:
+        "Answers to common questions about The Relay, B2B opportunity exchange, lead exchange, referrals, verification, consent, and the Relay workflow.",
+      path: "/faq",
+    }),
   component: FAQPage,
 });
 

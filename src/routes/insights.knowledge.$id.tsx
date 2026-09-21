@@ -35,6 +35,7 @@ import { ShareModal } from "../components/insights/ShareModal";
 import { CompanyLogo } from "../components/company-logo";
 import { KnowledgeContentRenderer } from "../components/insights/KnowledgeContentRenderer";
 import { KnowledgeInsight, Business, KnowledgeInsightBasedOn } from "../types";
+import { createSeoMeta, createArticleSchema, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/insights/knowledge/$id")({
   loader: async ({ params }) => {
@@ -47,7 +48,7 @@ export const Route = createFileRoute("/insights/knowledge/$id")({
       return { insight: null };
     }
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const title = loaderData?.insight?.title
       ? `${loaderData.insight.title} — The Relay Knowledge`
       : "Knowledge Article — The Relay";
@@ -60,16 +61,12 @@ export const Route = createFileRoute("/insights/knowledge/$id")({
     const description = `${snippet}${author}`;
 
     return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:type", content: "article" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-      ],
+      meta: createSeoMeta({
+        title,
+        description,
+        canonicalPath: `/insights/knowledge/${params.id}`,
+        ogType: "article",
+      }),
     };
   },
   component: KnowledgeDetailPage,
@@ -443,6 +440,22 @@ export function KnowledgeDetailPage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-28">
+      {/* Article JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            createArticleSchema({
+              title: insight.title,
+              description: insight.content?.slice(0, 160) || "",
+              path: `/insights/knowledge/${id}`,
+              datePublished: insight.created_at,
+              dateModified: insight.updated_at || insight.created_at,
+              authorName: insight.business?.company_name || "The Relay Editorial Team",
+            })
+          ),
+        }}
+      />
       {/* ═══════════════════════════════════════════════════════════════════
           1. TOP NAVIGATION / BREADCRUMB
           ═══════════════════════════════════════════════════════════════════ */}

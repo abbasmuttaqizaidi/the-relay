@@ -11,27 +11,16 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+import { createSeoMeta } from "@/lib/seo";
+
 export const Route = createFileRoute("/core-pillars")({
-  head: () => ({
-    meta: [
-      { title: "Core Pillars | The Relay — B2B Reciprocal Exchange Architecture" },
-      {
-        name: "description",
-        content:
-          "The foundational principles of The Relay: Value Creation, Consent-Driven Opportunity Exchange (CDOES), and Commercial Discipline.",
-      },
-      {
-        property: "og:title",
-        content: "Core Pillars | The Relay — B2B Reciprocal Exchange Architecture",
-      },
-      {
-        property: "og:description",
-        content:
-          "What Relay creates, how Relay enables it, and what makes Relay different.",
-      },
-      { property: "og:type", content: "website" },
-    ],
-  }),
+  head: () =>
+    createSeoMeta({
+      title: "Core Pillars of The Relay — CDOES & B2B Opportunity Exchange | The Relay",
+      description:
+        "Explore the principles behind The Relay: exchange value, consent-driven opportunity exchange, and a commercial environment without social-feed noise.",
+      path: "/core-pillars",
+    }),
   component: CorePillarsPage,
 });
 

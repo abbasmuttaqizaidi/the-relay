@@ -39,6 +39,7 @@ export const Route = createFileRoute("/login")({
         content:
           "Sign in to your confidential opportunity dealroom, active bilateral negotiations, and verified business network on The Relay.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: SignInPage,

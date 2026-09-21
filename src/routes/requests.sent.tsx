@@ -26,8 +26,12 @@ import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { ReciprocityBadge } from "@/components/reciprocity-badge";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
+import { createPrivateMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/requests/sent")({
+  head: () => ({
+    meta: createPrivateMeta("Sent Requests — The Relay"),
+  }),
   component: SentRequestsPage,
 });
 

@@ -56,6 +56,7 @@ import { ShareModal } from "../components/insights/ShareModal";
 import { QuestionContentRenderer } from "../components/insights/QuestionContentRenderer";
 import { CompanyLogo } from "../components/company-logo";
 import { Question, Perspective, Business, DesiredPerspective } from "../types";
+import { createSeoMeta, createArticleSchema, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/insights/$id")({
   loader: async ({ params }) => {
@@ -68,7 +69,7 @@ export const Route = createFileRoute("/insights/$id")({
       return { question: null };
     }
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const title = loaderData?.question?.title
       ? `${loaderData.question.title} — The Relay Insights`
       : "Business Question & Perspectives — The Relay";
@@ -81,16 +82,12 @@ export const Route = createFileRoute("/insights/$id")({
     const description = `${snippet}${author}`;
 
     return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:type", content: "article" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-      ],
+      meta: createSeoMeta({
+        title,
+        description,
+        canonicalPath: `/insights/${params.id}`,
+        ogType: "article",
+      }),
     };
   },
   component: QuestionDetailPage,
@@ -300,6 +297,22 @@ export function QuestionDetailPage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-24">
+      {/* Article JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            createArticleSchema({
+              title: question.title,
+              description: question.description?.slice(0, 160) || "",
+              path: `/insights/${id}`,
+              datePublished: question.created_at,
+              dateModified: question.updated_at || question.created_at,
+              authorName: question.business?.company_name || "The Relay Editorial Team",
+            })
+          ),
+        }}
+      />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

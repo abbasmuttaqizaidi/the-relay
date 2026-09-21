@@ -7,8 +7,12 @@ import { ArrowLeft } from "lucide-react";
 import { getExchangeDetails } from "@/functions/getExchangeDetails";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
 import { ExchangeWorkflow } from "@/components/exchange/ExchangeWorkflow";
+import { createPrivateMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/connections/$id")({
+  head: () => ({
+    meta: createPrivateMeta("Connection Details — The Relay"),
+  }),
   component: HandshakeDetailPage,
 });
 

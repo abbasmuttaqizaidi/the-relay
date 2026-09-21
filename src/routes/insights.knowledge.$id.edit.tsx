@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { KnowledgeEditorWorkspace } from "@/components/insights/KnowledgeEditorWorkspace";
 import { getKnowledgeInsightById } from "@/functions/getKnowledgeInsightById";
+import { createPrivateMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/insights/knowledge/$id/edit")({
   loader: async ({ params }) => {
@@ -14,13 +15,11 @@ export const Route = createFileRoute("/insights/knowledge/$id/edit")({
     }
   },
   head: ({ loaderData }) => ({
-    meta: [
-      {
-        title: loaderData?.insight?.title
-          ? `Edit: ${loaderData.insight.title} — The Relay`
-          : "Edit Knowledge Article — The Relay",
-      },
-    ],
+    meta: createPrivateMeta(
+      loaderData?.insight?.title
+        ? `Edit: ${loaderData.insight.title} — The Relay`
+        : "Edit Knowledge Article — The Relay"
+    ),
   }),
   component: EditKnowledgePage,
 });

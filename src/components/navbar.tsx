@@ -24,6 +24,7 @@ import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { ReciprocityBadge } from "@/components/reciprocity-badge";
 import { getIncomingRequestsCount } from "@/functions/getIncomingRequestsCount";
+import { SolutionsDropdown, SolutionsMobileSection } from "@/design-system";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 
 interface NavbarProps {
@@ -121,7 +122,6 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
     !!matchRoute({ to: "/eight-step-journey", fuzzy: true });
   const isFaq = !!matchRoute({ to: "/faq", fuzzy: true });
   const isAbout = !!matchRoute({ to: "/about", fuzzy: true });
-  const isTrustAndSafety = !!matchRoute({ to: "/trust-and-safety", fuzzy: true });
   const isPost = !!matchRoute({ to: "/post", fuzzy: true });
 
   // Check if the Opportunities feed (not my) is active
@@ -170,6 +170,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                       </span>
                     )}
                   </Link>
+                  <SolutionsDropdown />
                   <Link
                     to="/my-relay"
                     className={`hover:text-slate-800 pb-1 transition-colors flex items-center gap-1.5 ${
@@ -221,6 +222,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                   >
                     8-Step Journey
                   </Link>
+                  <SolutionsDropdown />
                   <Link
                     to="/insights"
                     className={`hover:text-slate-800 pb-1 transition-colors ${
@@ -236,14 +238,6 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                     }`}
                   >
                     FAQ
-                  </Link>
-                  <Link
-                    to="/trust-and-safety"
-                    className={`hover:text-slate-800 pb-1 transition-colors ${
-                      isTrustAndSafety ? "text-slate-900 border-b-2 border-slate-900" : ""
-                    }`}
-                  >
-                    Trust &amp; Safety
                   </Link>
                 </>
               )}
@@ -511,6 +505,10 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                           </Link>
                         </SheetClose>
 
+                        <div className="pt-2 pb-1 border-t border-slate-100">
+                          <SolutionsMobileSection onNavigate={() => setMobileMenuOpen(false)} />
+                        </div>
+
                         <SheetClose asChild>
                           <Link
                             to="/faq"
@@ -613,6 +611,10 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                           </Link>
                         </SheetClose>
 
+                        <div className="pt-2 pb-1 border-t border-slate-100">
+                          <SolutionsMobileSection onNavigate={() => setMobileMenuOpen(false)} />
+                        </div>
+
                         <SheetClose asChild>
                           <Link
                             to="/insights"
@@ -656,26 +658,6 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                               </span>
                             </span>
                             <ChevronRight className={`w-3.5 h-3.5 ${isFaq ? "text-white/50" : "text-slate-300"}`} />
-                          </Link>
-                        </SheetClose>
-
-                        <SheetClose asChild>
-                          <Link
-                            to="/trust-and-safety"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className={`flex items-center justify-between px-3 py-3 rounded-lg transition-all ${
-                              isTrustAndSafety
-                                ? "bg-slate-900 text-white"
-                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                            }`}
-                          >
-                            <span className="flex items-center gap-2.5">
-                              <ShieldCheck className="w-4 h-4" />
-                              <span className="text-[12px] font-mono uppercase tracking-wider font-bold">
-                                Trust &amp; Safety
-                              </span>
-                            </span>
-                            <ChevronRight className={`w-3.5 h-3.5 ${isTrustAndSafety ? "text-white/50" : "text-slate-300"}`} />
                           </Link>
                         </SheetClose>
                       </>

@@ -54,6 +54,12 @@ const networkSearchSchema = z.object({
 
 export const Route = createFileRoute("/network")({
   validateSearch: zodValidator(networkSearchSchema),
+  head: () => ({
+    meta: [
+      { title: "Network Directory — The Relay" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: NetworkDirectoryPage,
 });
 

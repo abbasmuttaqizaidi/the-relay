@@ -12,27 +12,16 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 
+import { createSeoMeta } from "@/lib/seo";
+
 export const Route = createFileRoute("/about")({
-  head: () => ({
-    meta: [
-      { title: "About The Relay — B2B Opportunity Exchange" },
-      {
-        name: "description",
-        content:
-          "Learn why The Relay exists and how its consent-driven B2B opportunity exchange helps businesses turn unused commercial opportunities into value.",
-      },
-      {
-        property: "og:title",
-        content: "About The Relay — B2B Opportunity Exchange",
-      },
-      {
-        property: "og:description",
-        content:
-          "Business opportunities should not disappear just because one business cannot fulfil them. Discover the mission and architecture of The Relay.",
-      },
-      { property: "og:type", content: "website" },
-    ],
-  }),
+  head: () =>
+    createSeoMeta({
+      title: "About The Relay — B2B Opportunity Exchange",
+      description:
+        "Learn why The Relay exists and how its consent-driven B2B opportunity exchange helps businesses turn unused commercial opportunities into value.",
+      path: "/about",
+    }),
   component: AboutPage,
 });
 

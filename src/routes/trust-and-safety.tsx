@@ -14,27 +14,16 @@ import {
   Gavel,
 } from "lucide-react";
 
+import { createSeoMeta } from "@/lib/seo";
+
 export const Route = createFileRoute("/trust-and-safety")({
-  head: () => ({
-    meta: [
-      { title: "Trust & Safety — Verified B2B Opportunity Exchange | The Relay" },
-      {
-        name: "description",
-        content:
-          "Learn how verification, controlled disclosure, explicit consent, and the Relay handshake structure support responsible B2B opportunity exchange.",
-      },
-      {
-        property: "og:title",
-        content: "Trust & Safety — Verified B2B Opportunity Exchange | The Relay",
-      },
-      {
-        property: "og:description",
-        content:
-          "Commercial exchange needs clear boundaries. Explore the verification, blinded disclosure, and consent governance architecture of The Relay.",
-      },
-      { property: "og:type", content: "website" },
-    ],
-  }),
+  head: () =>
+    createSeoMeta({
+      title: "Trust & Safety — Verified B2B Opportunity Exchange | The Relay",
+      description:
+        "Learn how verification, controlled disclosure, explicit consent, and the Relay handshake structure support responsible B2B opportunity exchange.",
+      path: "/trust-and-safety",
+    }),
   component: TrustAndSafetyPage,
 });
 

@@ -169,6 +169,7 @@ export const Route = createFileRoute("/opportunities/")({
         content:
           "Discover high-intent B2B partnerships, distribution deals, and reciprocal exchanges. Privacy-guaranteed until mutual agreement.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       { property: "og:title", content: "Commercial Opportunity Board — The Relay" },
       {
         property: "og:description",

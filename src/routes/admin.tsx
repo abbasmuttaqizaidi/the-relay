@@ -63,6 +63,7 @@ export const Route = createFileRoute("/admin")({
     meta: [
       { title: "Super Admin Control Center — The Relay" },
       { name: "description", content: "Hidden dashboard for platform operator administration." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: AdminDashboard,

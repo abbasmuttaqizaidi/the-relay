@@ -36,6 +36,7 @@ import { updateQuestion } from "../functions/updateQuestion";
 import { getQuestionById } from "../functions/getQuestionById";
 import { QuestionRichTextEditor } from "../components/insights/QuestionRichTextEditor";
 import { QuestionTopic, DesiredPerspective, Business, Question } from "../types";
+import { createPrivateMeta } from "@/lib/seo";
 
 const askSearchSchema = z.object({
   edit: z.string().uuid().optional(),
@@ -44,15 +45,7 @@ const askSearchSchema = z.object({
 export const Route = createFileRoute("/insights/ask")({
   validateSearch: zodValidator(askSearchSchema),
   head: () => ({
-    meta: [
-      { title: "Ask the Relay — Post a Business Question" },
-      {
-        name: "description",
-        content:
-          "Pose a genuine business challenge, operational decision, or strategic problem to verified operators.",
-      },
-      { property: "og:title", content: "Ask the Relay — Post a Business Question" },
-    ],
+    meta: createPrivateMeta("Ask the Relay — Post a Business Question"),
   }),
   component: AskQuestionPage,
 });

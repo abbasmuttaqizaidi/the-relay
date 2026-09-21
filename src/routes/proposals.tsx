@@ -56,6 +56,7 @@ export const Route = createFileRoute("/proposals")({
         name: "description",
         content: "Review received inquiries and track sent proposals across your institutional deal network.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: ProposalsPage,

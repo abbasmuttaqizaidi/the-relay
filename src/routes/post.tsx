@@ -22,6 +22,7 @@ export const Route = createFileRoute("/post")({
         content:
           "Create a new business opportunity brief or share a product/service offer with verified operators.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       { property: "og:title", content: "Post to The Relay — Business Exchange" },
     ],
   }),

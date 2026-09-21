@@ -46,6 +46,7 @@ export const Route = createFileRoute("/saved-opportunities")({
         name: "description",
         content: "Review and manage your saved business opportunities on The Relay network.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: SavedOpportunitiesPage,

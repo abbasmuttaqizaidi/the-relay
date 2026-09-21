@@ -39,28 +39,17 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { getDynamicMedianResponseTime } from "@/lib/utils";
+import { createSeoMeta, createOrganizationSchema, createWebsiteSchema } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "The Relay — B2B Opportunity Exchange" },
-      {
-        name: "description",
-        content:
-          "Monetize leads you can't fulfill, or source verified commercial partnerships—all within a private, zero-spam dealroom.",
-      },
-      {
-        property: "og:title",
-        content: "The Relay — B2B Opportunity Exchange",
-      },
-      {
-        property: "og:description",
-        content:
-          "Monetize leads you can't fulfill, or source verified commercial partnerships—all within a private, zero-spam dealroom.",
-      },
-      { property: "og:type", content: "website" },
-    ],
-  }),
+  head: () =>
+    createSeoMeta({
+      title: "The Relay — B2B Opportunity Exchange",
+      description:
+        "Monetize leads you can't fulfill, or source verified commercial partnerships—all within a private, zero-spam dealroom.",
+      path: "/",
+      ogType: "website",
+    }),
   component: LandingPage,
 });
 
@@ -986,6 +975,14 @@ export function LandingPage() {
 
   return (
     <div className="bg-white text-slate-800 font-sans selection:bg-slate-200 selection:text-slate-900 min-h-screen flex flex-col overflow-x-hidden w-full max-w-full">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(createOrganizationSchema()) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(createWebsiteSchema()) }}
+      />
       <main className="flex-grow">
         {/* ═══════════════════════════════════════════════════════════════════
             BEGIN: HeroSection (Faithfully matching LANDINGPAGE.md)
@@ -3314,52 +3311,69 @@ export function LandingPage() {
       {/* ═══════════════════════════════════════════════════════════════════
           BEGIN: MainFooter
           ═══════════════════════════════════════════════════════════════════ */}
-      <footer className="bg-white border-t border-slate-200 pt-12 pb-8 text-xs text-slate-500">
+      <footer className="bg-white border-t border-slate-200 pt-16 pb-12 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
             {/* Brand Summary */}
-            <div className="col-span-2">
+            <div className="col-span-2 md:col-span-1">
               <Link to="/" className="flex items-center gap-2 mb-3">
-                <div className="w-6 h-6 bg-slate-950 text-white flex items-center justify-center font-mono font-bold text-xs rounded">
+                <div className="w-6 h-6 bg-slate-950 text-white flex items-center justify-center font-mono font-bold text-xs rounded-[4px]">
                   R
                 </div>
                 <span className="font-extrabold tracking-widest text-slate-950 uppercase">THE RELAY</span>
               </Link>
-              <p className="text-slate-500 text-xs leading-relaxed max-w-sm mb-4">
-                The private exchange where verified companies trade out-of-scope leads, distribution, and partner capacity into real revenue.
+              <p className="text-slate-500 text-xs leading-relaxed mb-4">
+                The governed B2B opportunity exchange where verified companies turn out-of-scope leads and strategic capacity into structured revenue.
               </p>
               <span className="font-mono text-[11px] text-slate-400 block">
-                The Relay — The B2B Opportunity Exchange
+                Zero Cold Outreach Network
               </span>
             </div>
 
+            {/* Platform & Protocol */}
             <div>
-              <h4 className="font-mono font-bold text-slate-950 uppercase tracking-wider text-[11px] mb-3">How It Works</h4>
+              <h4 className="font-mono font-bold text-slate-950 uppercase tracking-wider text-[11px] mb-3">Platform</h4>
               <ul className="space-y-2">
-                <li><a className="hover:text-slate-950 transition-colors" href="#how-it-works">Anonymous Posting</a></li>
-                <li><a className="hover:text-slate-950 transition-colors" href="#exchange-model">Fair Terms Negotiation</a></li>
-                <li><a className="hover:text-slate-950 transition-colors" href="#how-it-works">Digital Agreements</a></li>
-                <li><a className="hover:text-slate-950 transition-colors" href="#how-it-works">Secure Introductions</a></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/8-step-journey">8-Step Journey</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/core-pillars">Core Pillars</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/trust-and-safety">Trust &amp; Safety</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/faq">Platform FAQ</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/about">About The Relay</Link></li>
               </ul>
             </div>
 
+            {/* Commercial Hubs */}
             <div>
-              <h4 className="font-mono font-bold text-slate-950 uppercase tracking-wider text-[11px] mb-3">Trust &amp; Safety</h4>
+              <h4 className="font-mono font-bold text-slate-950 uppercase tracking-wider text-[11px] mb-3">Commercial Hubs</h4>
               <ul className="space-y-2">
-                <li><a className="hover:text-slate-950 transition-colors" href="#trust-verification">Business Verification</a></li>
-                <li><a className="hover:text-slate-950 transition-colors" href="#trust-verification">Executive ID Check</a></li>
-                <li><a className="hover:text-slate-950 transition-colors" href="#trust-verification">Zero-Spam Covenant</a></li>
-                <li><a className="hover:text-slate-950 transition-colors" href="#trust-verification">Non-Circumvention Rule</a></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/b2b-opportunity-exchange">Opportunity Exchange</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/b2b-lead-exchange">Lead Exchange</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/b2b-referral-network">Referral Network</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/b2b-partnership-network">Partnership Network</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/insights">Insights &amp; Knowledge</Link></li>
               </ul>
             </div>
 
+            {/* Solutions & Vertical Hubs */}
             <div>
-              <h4 className="font-mono font-bold text-slate-950 uppercase tracking-wider text-[11px] mb-3">Legal &amp; Privacy</h4>
+              <h4 className="font-mono font-bold text-slate-950 uppercase tracking-wider text-[11px] mb-3">Vertical Solutions</h4>
               <ul className="space-y-2">
-                <li><a className="hover:text-slate-950 transition-colors" href="#faq">Terms of Service</a></li>
-                <li><a className="hover:text-slate-950 transition-colors" href="#trust-verification">Mutual Confidentiality</a></li>
-                <li><a className="hover:text-slate-950 transition-colors" href="#trust-verification">Security Standards</a></li>
-                <li><a className="hover:text-slate-950 transition-colors" href="#faq">Privacy Policy</a></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/referral-partnerships">Referral Partnerships</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/channel-partnerships">Channel Partnerships</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/distribution-partners">Distribution Partners</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/agency-lead-exchange">Agency Dealflow Exchange</Link></li>
+              </ul>
+            </div>
+
+            {/* Guides & Frameworks */}
+            <div>
+              <h4 className="font-mono font-bold text-slate-950 uppercase tracking-wider text-[11px] mb-3">Operator Guides</h4>
+              <ul className="space-y-2">
+                <li><Link className="hover:text-slate-950 transition-colors" to="/what-to-do-with-unqualified-leads">Unqualified Leads Decision</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/how-to-monetize-unqualified-leads">Monetize Unqualified Leads</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/how-to-find-b2b-referral-partners">Find B2B Referral Partners</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/how-to-find-distribution-partners">Find Distribution Partners</Link></li>
+                <li><Link className="hover:text-slate-950 transition-colors" to="/how-to-exchange-business-leads">How to Exchange Leads</Link></li>
               </ul>
             </div>
           </div>
@@ -3371,7 +3385,7 @@ export function LandingPage() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="inline-flex items-center gap-1 text-slate-500">
-                <Check className="w-3 h-3 text-emerald-600" />
+                <Check className="w-3 h-3 text-slate-900" />
                 Private Dealrooms Active
               </span>
               <span>Verified Network</span>

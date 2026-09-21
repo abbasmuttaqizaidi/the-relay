@@ -193,27 +193,16 @@ const STEPS_DATA: StepData[] = [
   },
 ];
 
+import { createSeoMeta } from "@/lib/seo";
+
 export const Route = createFileRoute("/8-step-journey")({
-  head: () => ({
-    meta: [
-      { title: "How The Relay Works — 8-Step B2B Opportunity Exchange | The Relay" },
-      {
-        name: "description",
-        content:
-          "See how businesses move from opportunity discovery to interest, negotiation, agreement, consent, and a completed handshake on The Relay.",
-      },
-      {
-        property: "og:title",
-        content: "How The Relay Works — 8-Step B2B Opportunity Exchange | The Relay",
-      },
-      {
-        property: "og:description",
-        content:
-          "See how businesses move from opportunity discovery to interest, negotiation, agreement, consent, and a completed handshake on The Relay.",
-      },
-      { property: "og:type", content: "website" },
-    ],
-  }),
+  head: () =>
+    createSeoMeta({
+      title: "How The Relay Works — 8-Step B2B Opportunity Exchange | The Relay",
+      description:
+        "See how businesses move from opportunity discovery to interest, negotiation, agreement, consent, and a completed handshake on The Relay.",
+      path: "/8-step-journey",
+    }),
   component: EightStepJourneyPage,
 });
 

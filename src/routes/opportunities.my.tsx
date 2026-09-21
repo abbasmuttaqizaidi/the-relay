@@ -67,6 +67,7 @@ import {
 } from "@/components/ui/select";
 import { TooltipSimple } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
+import { createPrivateMeta } from "@/lib/seo";
 
 const mySearchSchema = z.object({
   tab: fallback(z.enum(["posted", "saved"]), "posted").default("posted"),
@@ -76,13 +77,7 @@ const mySearchSchema = z.object({
 export const Route = createFileRoute("/opportunities/my")({
   validateSearch: zodValidator(mySearchSchema),
   head: () => ({
-    meta: [
-      { title: "My Opportunities — The Relay" },
-      {
-        name: "description",
-        content: "Manage your B2B opportunity listings on The Relay network.",
-      },
-    ],
+    meta: createPrivateMeta("My Opportunities — The Relay"),
   }),
   component: MyOpportunitiesPage,
 });
