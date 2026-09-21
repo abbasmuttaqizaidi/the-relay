@@ -2,46 +2,37 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
-  ArrowDown,
-  Check,
-  CheckCircle2,
-  X,
   ChevronDown,
   Building2,
   Layers,
   ShieldCheck,
-  Lock,
-  EyeOff,
-  FileCheck,
   Handshake,
   Share2,
   Network,
   Users,
   Briefcase,
-  Store,
-  Sparkles,
-  Search,
-  PlusCircle,
-  HelpCircle,
-  Scale,
   Compass,
   ArrowLeftRight,
-  Coins,
-  Repeat,
-  ShieldAlert,
-  Percent,
+  CheckCircle2,
+  HelpCircle,
+  Sparkles,
+  FileText,
+  Search,
+  PlusCircle,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 import { createSeoMeta, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/b2b-lead-exchange")({
   head: () =>
     createSeoMeta({
-      title: "B2B Lead Exchange — Exchange Leads You Cannot Fulfil | The Relay",
+      title: "B2B Lead Exchange — Exchange Leads Your Business Can't Fulfil | The Relay",
       description:
-        "Explore a structured way to exchange B2B leads and commercial opportunities that your business cannot or does not want to fulfil.",
+        "Exchange B2B leads your business cannot fulfil with businesses that can. Discover a structured way to share referrals, out-of-scope opportunities and commercial leads.",
       path: "/b2b-lead-exchange",
+      keywords:
+        "B2B lead exchange, lead exchange, B2B lead sharing, business lead exchange, exchange business leads, unqualified leads, unserviceable leads, out-of-scope leads, B2B lead referrals, referral leads, lead referral network",
     }),
   component: B2BLeadExchangePage,
 });
@@ -60,9 +51,9 @@ export function B2BLeadExchangePage() {
         "@type": "WebPage",
         "@id": `${SITE_URL}/b2b-lead-exchange#webpage`,
         url: `${SITE_URL}/b2b-lead-exchange`,
-        name: "B2B Lead Exchange — Exchange Leads You Cannot Fulfil | The Relay",
+        name: "B2B Lead Exchange — Exchange Leads Your Business Can't Fulfil | The Relay",
         description:
-          "Explore a structured way to exchange B2B leads and commercial opportunities that your business cannot or does not want to fulfil.",
+          "Exchange B2B leads your business cannot fulfil with businesses that can. Discover a structured way to share referrals, out-of-scope opportunities and commercial leads.",
         breadcrumb: {
           "@id": `${SITE_URL}/b2b-lead-exchange#breadcrumb`,
         },
@@ -79,21 +70,21 @@ export function B2BLeadExchangePage() {
         itemListElement: [
           {
             "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": `${SITE_URL}`,
+            position: 1,
+            name: "Home",
+            item: `${SITE_URL}`,
           },
           {
             "@type": "ListItem",
-            "position": 2,
-            "name": "B2B Opportunity Exchange",
-            "item": `${SITE_URL}/b2b-opportunity-exchange`,
+            position: 2,
+            name: "B2B Opportunity Exchange",
+            item: `${SITE_URL}/b2b-opportunity-exchange`,
           },
           {
             "@type": "ListItem",
-            "position": 3,
-            "name": "B2B Lead Exchange",
-            "item": `${SITE_URL}/b2b-lead-exchange`,
+            position: 3,
+            name: "B2B Lead Exchange",
+            item: `${SITE_URL}/b2b-lead-exchange`,
           },
         ],
       },
@@ -103,33 +94,99 @@ export function B2BLeadExchangePage() {
         name: "The Relay",
         url: SITE_URL,
       },
+      {
+        "@type": "FAQPage",
+        "@id": `${SITE_URL}/b2b-lead-exchange#faq`,
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: "What is a B2B lead exchange?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "A B2B lead exchange allows businesses to share or exchange commercial leads with other businesses that may be better positioned to pursue them.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "Can I exchange a lead my business cannot fulfil?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Yes. A core use case is sharing an opportunity that falls outside your services, geography, capabilities or capacity.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "Is a lead exchange the same as buying leads?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "No. Some lead exchanges operate as buyer/seller marketplaces. Relay is focused on helping businesses surface opportunities they already have and connect them with businesses that may be able to pursue them.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "What types of leads can be exchanged?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Examples include agency project enquiries, specialist service requests, regional opportunities, implementation needs, referrals and other B2B commercial opportunities.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "Should every lead be exchanged?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "No. An opportunity should only be shared when there is a legitimate business reason to do so and the participating businesses can appropriately handle the relationship.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "Does Relay guarantee a lead will convert?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "No. Relay facilitates discovery and connection. Whether a lead converts depends on the businesses involved, customer requirements and the resulting commercial relationship.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "How is lead exchange different from lead generation?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Lead generation creates new demand or enquiries. Lead exchange helps businesses find a suitable path for existing opportunities that may not fit their own operation.",
+            },
+          },
+        ],
+      },
     ],
   };
 
   const faqs = [
     {
       q: "What is a B2B lead exchange?",
-      a: "A B2B lead exchange is a structured commercial mechanism that allows companies to take qualified inbound business enquiries they cannot fulfil—due to scope, geography, or capacity—and present them to verified peer businesses capable of servicing them.",
+      a: "A B2B lead exchange allows businesses to share or exchange commercial leads with other businesses that may be better positioned to pursue them.",
     },
     {
-      q: "How do I monetize an out-of-scope lead on The Relay?",
-      a: "When posting an unserviceable opportunity, you define your preferred exchange structure (such as a referral fee, ongoing revenue share, or reciprocal lead-swap). Counterparties review sanitized metadata, express interest, negotiate commercial terms, and upon mutual consent, execute the formal commercial introduction.",
+      q: "Can I exchange a lead my business cannot fulfil?",
+      a: "Yes. A core use case is sharing an opportunity that falls outside your services, geography, capabilities or capacity.",
     },
     {
-      q: "Is customer contact information exposed publicly on the exchange?",
-      a: "Never. The Relay operates under a strict Consent-Driven Opportunity Exchange (CDOE) protocol. Opportunities are posted with sanitized project scope, industry, and budget parameters. Proprietary customer names and contact details are only disclosed after both parties reach mutual agreement and give explicit consent.",
+      q: "Is a lead exchange the same as buying leads?",
+      a: "No. Some lead exchanges operate as buyer/seller marketplaces. Relay is focused on helping businesses surface opportunities they already have and connect them with businesses that may be able to pursue them.",
     },
     {
-      q: "How does The Relay differ from standard lead brokerages?",
-      a: "Lead brokerages typically sell scraped or multi-distributed contact lists to dozens of competing buyers. The Relay is an exclusive bilateral exchange: opportunities are originated from real inbound commercial intent and syndicated directly between verified executive counterparties.",
+      q: "What types of leads can be exchanged?",
+      a: "Examples include agency project enquiries, specialist service requests, regional opportunities, implementation needs, referrals and other B2B commercial opportunities.",
     },
     {
-      q: "What types of unserviceable leads work best for exchange?",
-      a: "High-value B2B opportunities perform best—such as agency project overflow, enterprise software implementations, compliance/licensing mismatches, specialized engineering requests, and regional inquiries outside your core operating territory.",
+      q: "Should every lead be exchanged?",
+      a: "No. An opportunity should only be shared when there is a legitimate business reason to do so and the participating businesses can appropriately handle the relationship.",
     },
     {
-      q: "Are commercial referral agreements legally binding on Relay?",
-      a: "Yes. Counterparties on The Relay operate under standardized Master Non-Circumvent & Non-Disclosure (NCND) covenants and programmatic bilateral agreements established during the negotiation phase prior to disclosure.",
+      q: "Does Relay guarantee a lead will convert?",
+      a: "No. Relay facilitates discovery and connection. Whether a lead converts depends on the businesses involved, customer requirements and the resulting commercial relationship.",
+    },
+    {
+      q: "How is lead exchange different from lead generation?",
+      a: "Lead generation creates new demand or enquiries. Lead exchange helps businesses find a suitable path for existing opportunities that may not fit their own operation.",
     },
   ];
 
@@ -143,9 +200,8 @@ export function B2BLeadExchangePage() {
 
       <main className="w-full flex-1 pt-6 pb-20">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 1: BREADCRUMB STRIP
+              BREADCRUMB
               ═══════════════════════════════════════════════════════════════════ */}
           <nav aria-label="Breadcrumb" className="pt-2">
             <ol className="flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#64748B] uppercase tracking-[0.04em]">
@@ -156,99 +212,99 @@ export function B2BLeadExchangePage() {
               </li>
               <li className="text-[#94A3B8]">/</li>
               <li>
-                <Link to="/b2b-opportunity-exchange" className="hover:text-[#171F2C] transition-colors">
+                <Link
+                  to="/b2b-opportunity-exchange"
+                  className="hover:text-[#171F2C] transition-colors"
+                >
                   B2B Opportunity Exchange
                 </Link>
               </li>
               <li className="text-[#94A3B8]">/</li>
-              <li className="text-[#171F2C] font-bold">
-                B2B Lead Exchange
-              </li>
+              <li className="text-[#171F2C] font-bold">B2B Lead Exchange</li>
             </ol>
           </nav>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 2: HERO SECTION WITH BEFORE/AFTER PIPELINE VISUAL
+              1. HERO SECTION
               ═══════════════════════════════════════════════════════════════════ */}
           <section className="border-b border-[#E2E8F0] pb-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-              {/* Text Column (7 Cols) */}
               <div className="lg:col-span-7 flex flex-col items-start">
                 <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-[4px] border border-[#E2E8F0] bg-white text-[11px] font-mono font-semibold uppercase tracking-wider text-[#64748B] mb-4">
                   <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C]"></span>
-                  Unserviceable Dealflow Protocol
+                  B2B Lead Exchange &amp; Referral Protocol
                 </div>
                 <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-display font-bold text-[#171F2C] tracking-tight leading-[1.18] mb-4">
-                  The lead you cannot fulfil may still be valuable.
+                  Exchange the B2B Leads Your Business Can&apos;t Fulfil
                 </h1>
                 <div className="space-y-3 text-base sm:text-lg text-[#64748B] font-normal leading-relaxed max-w-2xl mb-6">
+                  <p>Not every lead is the right lead for your business.</p>
                   <p>
-                    Every B2B business receives enquiries outside its service capabilities, target geography, delivery capacity, or commercial priorities.
+                    A prospect may need a service you don&apos;t offer. A project may fall outside
+                    your capabilities. The customer may be in a market you don&apos;t serve. Or your
+                    team may simply not have the capacity to take it on.
                   </p>
-                  <p className="text-[#334155]">
-                    The default outcome is almost always rejection, a dead-end email, or lost enterprise value. The Relay gives businesses a structured, consent-driven marketplace to exchange unserviceable leads with verified peers who can execute them.
+                  <p className="text-[#171F2C] font-medium">
+                    Instead of letting that opportunity disappear, The Relay gives you a structured
+                    way to exchange it with another business that may be able to act on it.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 mb-4 w-full sm:w-auto">
                   <Link
-                    to="/post"
+                    to="/opportunities"
                     className="inline-flex items-center justify-center bg-[#171F2C] hover:bg-[#010611] text-white text-[13px] font-medium px-5 h-[42px] rounded-[4px] border border-[#171F2C] transition-colors"
                   >
-                    Post an Unserviceable Lead
+                    Post a Lead
                   </Link>
                   <Link
                     to="/opportunities"
-                    className="inline-flex items-center justify-center bg-white hover:bg-[#F1F5F9] text-[#171F2C] text-[13px] font-medium px-5 h-[42px] rounded-[4px] border border-[#E2E8F0] transition-colors"
+                    className="inline-flex items-center justify-center bg-white hover:bg-[#F8FAFC] text-[#171F2C] text-[13px] font-medium px-5 h-[42px] rounded-[4px] border border-[#E2E8F0] transition-colors"
                   >
-                    Explore Lead Dealflow
+                    Explore Opportunities
                   </Link>
                 </div>
                 <p className="text-xs sm:text-[13px] text-[#64748B] font-medium tracking-wide">
-                  Sanitized discovery. Mutual commercial terms. Gated bilateral consent.
+                  Share relevant context. Find interested businesses. Decide whether the opportunity
+                  should move forward.
                 </p>
               </div>
 
-              {/* Visual Column: Before / After Pipeline Comparison (5 Cols) */}
+              {/* Hero Visual Card */}
               <div className="lg:col-span-5 w-full">
                 <div className="p-5 sm:p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
                     <span className="text-[11px] font-mono font-semibold text-[#64748B] uppercase tracking-wider">
-                      Dealflow Transition Model
+                      Commercial Exchange Model
                     </span>
-                    <span className="text-[10px] font-mono text-[#94A3B8]">
-                      PROTOCOL-LEAD-01
-                    </span>
+                    <span className="text-[10px] font-mono text-[#94A3B8]">RELAY-LEAD-FLOW</span>
                   </div>
 
-                  {/* The Old Way */}
                   <div className="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
-                    <div className="flex items-center justify-between text-xs font-mono font-semibold text-rose-700 uppercase mb-2">
-                      <span>Default Unmanaged Outcome</span>
-                      <X className="w-3.5 h-3.5 text-rose-600" />
+                    <div className="text-[11px] font-mono font-semibold text-[#64748B] uppercase mb-1">
+                      Originating Opportunity
                     </div>
-                    <div className="text-[13px] font-medium text-[#171F2C] mb-1">
-                      Inbound Lead ➔ Scope Mismatch ➔ Lead Discarded
+                    <div className="text-[13px] font-medium text-[#171F2C]">
+                      Qualified Commercial Lead Received
                     </div>
-                    <div className="text-xs text-[#64748B]">
-                      Prospect is turned away. Zero monetization, broken relationship, wasted acquisition cost.
+                    <div className="text-xs text-[#64748B] mt-1">
+                      Identified service, scope, regional, or capacity mismatch.
                     </div>
                   </div>
 
                   <div className="flex justify-center text-[#94A3B8] py-0.5">
-                    <ArrowDown className="w-4 h-4" />
+                    <ArrowLeftRight className="w-4 h-4 text-[#171F2C]" />
                   </div>
 
-                  {/* The Relay Exchange Way */}
                   <div className="p-4 bg-[#171F2C] text-white border border-[#171F2C] rounded-[4px]">
-                    <div className="flex items-center justify-between text-xs font-mono font-semibold text-slate-300 uppercase mb-2">
-                      <span>The Relay Exchange Workflow</span>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                    <div className="text-[11px] font-mono font-semibold text-slate-300 uppercase mb-1">
+                      Structured Exchange
                     </div>
-                    <div className="text-[13px] font-bold text-white mb-1.5">
-                      Sanitized Post ➔ Peer Interest ➔ Term Agreement ➔ Consent Handshake
+                    <div className="text-[13px] font-bold text-white mb-1">
+                      B2B Peer Discovery &amp; Controlled Introduction
                     </div>
                     <div className="text-xs text-slate-300 leading-relaxed">
-                      Lead is captured, evaluated by verified specialists, and monetized via agreed referral fee, rev-share, or reciprocal dealflow.
+                      Connect with vetted businesses capable of fulfilling the project under agreed
+                      bilateral arrangements.
                     </div>
                   </div>
                 </div>
@@ -257,255 +313,687 @@ export function B2BLeadExchangePage() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 3: 4 COMMERCIAL VALUE MODELS FOR UNSERVICEABLE LEADS
+              2. WHAT IS A B2B LEAD EXCHANGE?
               ═══════════════════════════════════════════════════════════════════ */}
           <section className="border-b border-[#E2E8F0] pb-12">
-            <div className="max-w-3xl mb-8">
+            <div className="max-w-3xl mb-6">
               <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
-                Value Realization Structures
+                Definition &amp; Concept
               </div>
               <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
-                How Businesses Turn Unfulfilled Leads Into Value
+                What Is a B2B Lead Exchange?
               </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed mb-4">
+                A <strong className="text-[#171F2C]">B2B lead exchange</strong> is a system that
+                helps businesses share leads or commercial enquiries with other businesses that may
+                be better positioned to pursue them.
+              </p>
               <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
-                You don't need to sell leads in bulk or enter risky brokerages. Relay lets participating businesses agree on bilateral commercial terms for every individual opportunity:
+                This can happen when a lead falls outside a company&apos;s:
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {/* Model 1: Referral Fee */}
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] flex flex-col justify-between hover:border-[#171F2C] transition-colors">
-                <div>
-                  <div className="w-8 h-8 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#171F2C] mb-3">
-                    <Coins className="w-4 h-4" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
+              {[
+                { title: "Service Offering", desc: "Outside core capabilities" },
+                { title: "Geographic Coverage", desc: "Outside operating regions" },
+                { title: "Technical Capability", desc: "Specialist requirements" },
+                { title: "Target Market", desc: "Non-ICP client profile" },
+                { title: "Current Capacity", desc: "Timeline or bandwidth limits" },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] flex flex-col justify-between"
+                >
+                  <div className="text-xs font-mono font-bold text-[#171F2C] mb-1">0{idx + 1}</div>
+                  <div>
+                    <h3 className="text-[13px] font-semibold text-[#171F2C] mb-0.5">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs text-[#64748B]">{item.desc}</p>
                   </div>
-                  <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">
-                    Referral Fee / Bounty
-                  </h3>
-                  <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
-                    Agreed flat commission or fixed percentage paid upon successful closing or contract milestone.
-                  </p>
                 </div>
-                <div className="text-xs font-mono text-[#64748B] pt-2 border-t border-[#E2E8F0]">
-                  Immediate cash settlement
-                </div>
-              </div>
-
-              {/* Model 2: Revenue Share */}
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] flex flex-col justify-between hover:border-[#171F2C] transition-colors">
-                <div>
-                  <div className="w-8 h-8 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#171F2C] mb-3">
-                    <Percent className="w-4 h-4" />
-                  </div>
-                  <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">
-                    Ongoing Revenue Share
-                  </h3>
-                  <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
-                    Recurring percentage of project invoices or retainer fees over 6–24 month commercial horizons.
-                  </p>
-                </div>
-                <div className="text-xs font-mono text-[#64748B] pt-2 border-t border-[#E2E8F0]">
-                  Long-term yield alignment
-                </div>
-              </div>
-
-              {/* Model 3: Reciprocal Dealflow Swap */}
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] flex flex-col justify-between hover:border-[#171F2C] transition-colors">
-                <div>
-                  <div className="w-8 h-8 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#171F2C] mb-3">
-                    <Repeat className="w-4 h-4" />
-                  </div>
-                  <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">
-                    Reciprocal Lead Swap
-                  </h3>
-                  <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
-                    Exchange an out-of-scope lead today in return for future dealflow matching your exact core services.
-                  </p>
-                </div>
-                <div className="text-xs font-mono text-[#64748B] pt-2 border-t border-[#E2E8F0]">
-                  Balanced bilateral dealflow
-                </div>
-              </div>
-
-              {/* Model 4: Strategic Co-Pitch */}
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] flex flex-col justify-between hover:border-[#171F2C] transition-colors">
-                <div>
-                  <div className="w-8 h-8 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#171F2C] mb-3">
-                    <Handshake className="w-4 h-4" />
-                  </div>
-                  <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">
-                    Co-Pitch &amp; Subcontract
-                  </h3>
-                  <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
-                    Retain client relationship leadership while partnering with a specialist peer to deliver complex components.
-                  </p>
-                </div>
-                <div className="text-xs font-mono text-[#64748B] pt-2 border-t border-[#E2E8F0]">
-                  Account retention &amp; expansion
-                </div>
-              </div>
+              ))}
             </div>
+
+            <p className="text-sm text-[#64748B] leading-relaxed max-w-3xl">
+              Instead of simply rejecting the enquiry, the business can look for a relevant
+              counterpart. That is the basic idea behind a lead exchange.
+            </p>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 4: PRACTICAL OPERATOR SCENARIOS
+              3. WHY BUSINESSES HAVE LEADS THEY CANNOT FULFIL
               ═══════════════════════════════════════════════════════════════════ */}
           <section className="border-b border-[#E2E8F0] pb-12">
             <div className="max-w-3xl mb-8">
               <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
-                Real-World Scenarios
+                Core Realities
               </div>
-              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-2">
-                Common Scenarios Handled on The Relay
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                Why Businesses Have Leads They Cannot Fulfil
               </h2>
               <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
-                Unserviceable leads occur across every industry. Here is how leading B2B operators structure them:
+                A lead can be genuine and valuable without being right for your business. Common
+                mismatches include:
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {/* Scenario 1 */}
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] flex flex-col justify-between hover:border-[#171F2C] transition-colors">
-                <div>
-                  <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
-                    Digital Agency
-                  </div>
-                  <h3 className="text-base font-semibold text-[#171F2C] mb-2">
-                    Web Agency Receives Mobile App Enquiry
-                  </h3>
-                  <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
-                    A Shopify web development agency is approached by an existing enterprise client for native iOS/Android development.
-                  </p>
-                  <p className="text-xs text-[#64748B] bg-[#F8FAFC] p-2.5 rounded-[4px] border border-[#E2E8F0]">
-                    <strong className="text-[#171F2C]">Relay Resolution:</strong> Originates an opportunity on Relay, matches with a vetted mobile engineering studio, and agrees on a 10% referral fee.
-                  </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">Service Mismatch</h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  A prospect needs a capability your company doesn&apos;t provide, such as
+                  complementary tooling, custom coding, or distinct advisory.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">
+                  Geography Mismatch
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  The customer is outside your operating market or requires local jurisdictional
+                  compliance and on-the-ground support.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">Capacity Mismatch</h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Your team could fulfil the work, but not within the required delivery timeline or
+                  resource availability.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">Industry Mismatch</h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  The opportunity requires specialist vertical experience, compliance
+                  certifications, or domain depth outside your normal client base.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">
+                  Commercial Mismatch
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  The opportunity is real, but the required engagement structure, contract size, or
+                  billing model doesn&apos;t fit your current operations.
+                </p>
+              </div>
+
+              <div className="p-5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] flex flex-col justify-center">
+                <div className="text-xs font-mono uppercase text-[#64748B] mb-1">Key Takeaway</div>
+                <p className="text-[13px] font-medium text-[#171F2C] leading-relaxed">
+                  In each case, the lead does not necessarily have to become a dead end.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              4. WHAT CAN YOU DO WITH A LEAD YOU CANNOT FULFIL?
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-12">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Strategic Options
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                What Can You Do with a Lead You Cannot Fulfil?
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                When an out-of-scope opportunity arrives, there are several possible outcomes:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#64748B] uppercase mb-1">
+                  Option A
                 </div>
+                <h3 className="text-[14px] font-semibold text-[#171F2C] mb-1">
+                  Refer to Complementary Business
+                </h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Pass the lead to a trusted provider with the right capabilities.
+                </p>
+              </div>
+
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#64748B] uppercase mb-1">
+                  Option B
+                </div>
+                <h3 className="text-[14px] font-semibold text-[#171F2C] mb-1">Find a Specialist</h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Look for a dedicated partner who can fulfil specific components of the
+                  requirement.
+                </p>
+              </div>
+
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#64748B] uppercase mb-1">
+                  Option C
+                </div>
+                <h3 className="text-[14px] font-semibold text-[#171F2C] mb-1">
+                  Explore a Partnership
+                </h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Collaborate around customer needs to maintain relationship value.
+                </p>
+              </div>
+
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#64748B] uppercase mb-1">
+                  Option D
+                </div>
+                <h3 className="text-[14px] font-semibold text-[#171F2C] mb-1">Decline Directly</h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Turn down the enquiry when no suitable counterpart or alignment exists.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-5 bg-white border border-[#171F2C] rounded-[4px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[11px] font-mono font-semibold uppercase text-[#64748B] block mb-1">
+                  The Relay Approach
+                </span>
+                <p className="text-sm sm:text-base font-semibold text-[#171F2C]">
+                  The Relay creates another option: put the opportunity in front of businesses that
+                  may be able to use it.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
                 <Link
-                  to="/agency-lead-exchange"
-                  className="inline-flex items-center gap-1 text-xs font-mono font-semibold text-[#171F2C] hover:text-[#64748B] transition-colors pt-3 mt-3 border-t border-[#E2E8F0]"
+                  to="/what-to-do-with-unqualified-leads"
+                  className="text-xs font-mono font-semibold text-[#171F2C] hover:text-[#64748B] underline underline-offset-4"
                 >
-                  <span>Explore Agency Lead Exchange</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  Unqualified Lead Guide
+                </Link>
+                <Link
+                  to="/how-to-monetize-unqualified-leads"
+                  className="text-xs font-mono font-semibold text-[#171F2C] hover:text-[#64748B] underline underline-offset-4"
+                >
+                  Monetization Options
                 </Link>
               </div>
+            </div>
+          </section>
 
-              {/* Scenario 2 */}
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] flex flex-col justify-between hover:border-[#171F2C] transition-colors">
-                <div>
-                  <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
-                    SaaS Vendor
-                  </div>
-                  <h3 className="text-base font-semibold text-[#171F2C] mb-2">
-                    Software Vendor Needs Deployment Integrator
-                  </h3>
-                  <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
-                    A B2B SaaS platform closes an enterprise license, but the customer requires legacy SAP on-premise migration services.
-                  </p>
-                  <p className="text-xs text-[#64748B] bg-[#F8FAFC] p-2.5 rounded-[4px] border border-[#E2E8F0]">
-                    <strong className="text-[#171F2C]">Relay Resolution:</strong> Exchanges the implementation scope with a certified SAP systems integrator, preserving software ARR without professional services overhead.
-                  </p>
+          {/* ═══════════════════════════════════════════════════════════════════
+              5. HOW THE RELAY LEAD EXCHANGE WORKS
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-12">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Exchange Workflow
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                How the Relay Lead Exchange Works
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                The exchange follows a structured, transparent 6-step lifecycle:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-bold text-[#171F2C] mb-2">
+                  01 — Describe the opportunity
                 </div>
-                <div className="text-xs text-[#64748B] pt-3 mt-3 border-t border-[#E2E8F0]">
-                  Ecosystem implementation alignment
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Provide the relevant business context and explain what the prospect needs.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-bold text-[#171F2C] mb-2">
+                  02 — Define what kind of business fits
+                </div>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Identify the capability, service, market or partner profile that would be
+                  relevant.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-bold text-[#171F2C] mb-2">
+                  03 — Publish the opportunity
+                </div>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  The opportunity becomes discoverable by businesses looking for relevant commercial
+                  opportunities.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-bold text-[#171F2C] mb-2">
+                  04 — Businesses express interest
+                </div>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  A business that believes it can help can indicate interest.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-bold text-[#171F2C] mb-2">
+                  05 — Discuss the opportunity
+                </div>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  The parties can evaluate fit and determine how they want to proceed.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-bold text-[#171F2C] mb-2">
+                  06 — Make the introduction
+                </div>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  The originating and receiving businesses decide whether to move forward with the
+                  relationship.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs sm:text-[13px]">
+              <div className="text-[#171F2C]">
+                The Relay provides the exchange mechanism.{" "}
+                <strong>The participating businesses determine the commercial arrangement.</strong>
+              </div>
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/how-to-exchange-business-leads"
+                  className="font-mono font-semibold text-[#171F2C] hover:text-[#64748B] underline underline-offset-4"
+                >
+                  Step-by-Step Guide
+                </Link>
+                <Link
+                  to="/8-step-journey"
+                  className="font-mono font-semibold text-[#171F2C] hover:text-[#64748B] underline underline-offset-4"
+                >
+                  Full Journey
+                </Link>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              6. LEAD EXCHANGE IS NOT THE SAME AS BUYING LEAD LISTS
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-12">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Crucial Distinction
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                Lead Exchange Is Not the Same as Buying Lead Lists
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                This distinction is important. A traditional lead marketplace can involve buyers
+                purchasing leads according to criteria such as industry, geography, volume or
+                pricing.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#64748B] uppercase mb-2">
+                  Traditional Lead Marketplaces
+                </div>
+                <h3 className="text-base font-semibold text-[#171F2C] mb-2">
+                  Scraped &amp; Bulk Multi-Distributed Lists
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
+                  Operates around generic buyers and sellers exchanging commoditized contact
+                  databases. Often results in cold outreach to unverified prospects without existing
+                  intent.
+                </p>
+                <div className="text-xs font-mono text-[#64748B] pt-2 border-t border-[#E2E8F0]">
+                  High friction, low context
                 </div>
               </div>
 
-              {/* Scenario 3 */}
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] flex flex-col justify-between hover:border-[#171F2C] transition-colors">
+              <div className="p-5 bg-[#171F2C] text-white border border-[#171F2C] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-slate-300 uppercase mb-2">
+                  The Relay Starting Point
+                </div>
+                <h3 className="text-base font-bold text-white mb-2">
+                  A Business Already Has a Commercial Opportunity
+                </h3>
+                <p className="text-[13px] text-slate-300 leading-relaxed mb-3">
+                  The question is:{" "}
+                  <strong className="text-white">
+                    &ldquo;Who else could legitimately pursue it?&rdquo;
+                  </strong>{" "}
+                  That makes Relay closer to a structured B2B lead-sharing and referral environment
+                  than a generic lead-list marketplace.
+                </p>
+                <div className="text-xs font-mono text-slate-300 pt-2 border-t border-slate-700">
+                  Organic business origin, high context
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs font-mono text-[#64748B]">
+              <span>Learn about verification &amp; safeguards:</span>
+              <Link
+                to="/trust-and-safety"
+                className="font-semibold text-[#171F2C] hover:text-[#64748B] underline underline-offset-4"
+              >
+                Trust &amp; Safety Overview
+              </Link>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              7. COMMON B2B LEAD EXCHANGE SCENARIOS
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-12">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Real Scenarios
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-2">
+                Common B2B Lead Exchange Scenarios
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Practical examples of commercial opportunities exchanged between operators:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              {/* Scenario 1: Agency */}
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] flex flex-col justify-between">
                 <div>
                   <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
-                    Consulting &amp; Legal
+                    Scenario 01
                   </div>
                   <h3 className="text-base font-semibold text-[#171F2C] mb-2">
-                    Cross-Border Jurisdictional Mismatch
+                    An agency gets a project outside its services
                   </h3>
                   <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
-                    A UK corporate compliance advisory receives an inquiry for SEC regulatory filings in the United States.
-                  </p>
-                  <p className="text-xs text-[#64748B] bg-[#F8FAFC] p-2.5 rounded-[4px] border border-[#E2E8F0]">
-                    <strong className="text-[#171F2C]">Relay Resolution:</strong> Syndicates the lead to a verified US counterpart firm, establishing a bilateral reciprocal referral channel for transatlantic corporate clients.
+                    A web agency receives a qualified request for a service it doesn&apos;t provide.
+                    Rather than simply turning the prospect away, the agency can look for a
+                    complementary business that can handle the requirement.
                   </p>
                 </div>
-                <div className="text-xs text-[#64748B] pt-3 mt-3 border-t border-[#E2E8F0]">
-                  Jurisdictional compliance exchange
+                <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between">
+                  <span className="text-xs font-mono font-semibold text-[#171F2C]">
+                    Possible outcome: referral or partnership
+                  </span>
+                  <Link
+                    to="/agency-lead-exchange"
+                    className="text-xs font-mono text-[#64748B] hover:text-[#171F2C] flex items-center gap-1"
+                  >
+                    <span>Agency Hub</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Scenario 2: Software Company */}
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] flex flex-col justify-between">
+                <div>
+                  <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+                    Scenario 02
+                  </div>
+                  <h3 className="text-base font-semibold text-[#171F2C] mb-2">
+                    A software company receives an implementation request
+                  </h3>
+                  <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
+                    A software vendor has a customer that needs implementation or integration
+                    expertise beyond its internal team. The vendor can look for a specialist capable
+                    of handling the requirement.
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-[#E2E8F0]">
+                  <span className="text-xs font-mono font-semibold text-[#171F2C]">
+                    Possible outcome: implementation partnership
+                  </span>
+                </div>
+              </div>
+
+              {/* Scenario 3: Consultant */}
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] flex flex-col justify-between">
+                <div>
+                  <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+                    Scenario 03
+                  </div>
+                  <h3 className="text-base font-semibold text-[#171F2C] mb-2">
+                    A consultant receives a request outside their specialty
+                  </h3>
+                  <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
+                    A client asks for a service that sits outside the consultant&apos;s area of
+                    expertise. The consultant can look for another specialist while preserving the
+                    possibility of a useful client relationship.
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-[#E2E8F0]">
+                  <span className="text-xs font-mono font-semibold text-[#171F2C]">
+                    Possible outcome: referral relationship
+                  </span>
+                </div>
+              </div>
+
+              {/* Scenario 4: Geography */}
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] flex flex-col justify-between">
+                <div>
+                  <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#64748B] mb-1.5">
+                    Scenario 04
+                  </div>
+                  <h3 className="text-base font-semibold text-[#171F2C] mb-2">
+                    A business receives a lead outside its geography
+                  </h3>
+                  <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
+                    A company receives an enquiry from a market it doesn&apos;t currently serve.
+                    Instead of discarding it, the company can look for an appropriate regional
+                    counterpart.
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-[#E2E8F0]">
+                  <span className="text-xs font-mono font-semibold text-[#171F2C]">
+                    Possible outcome: regional referral or channel relationship
+                  </span>
                 </div>
               </div>
             </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 5: CDOES GATED PRIVACY & ANONYMITY PIPELINE
+              8. WHAT MAKES A LEAD WORTH EXCHANGING?
               ═══════════════════════════════════════════════════════════════════ */}
           <section className="border-b border-[#E2E8F0] pb-12">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Qualification Criteria
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                What Makes a Lead Worth Exchanging?
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Not every enquiry makes sense as an exchange opportunity. A useful B2B lead
+                generally has:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-2">
+                  A Real Business Need
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  There is an identifiable requirement rather than generic or exploratory curiosity.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-2">A Clear Fit</h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Another business could reasonably provide the required service or capability.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-2">Enough Context</h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  A potential counterpart can understand the opportunity before deciding whether to
+                  pursue it.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-2">
+                  Commercial Relevance
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  There is a plausible referral, service, partnership or other business relationship
+                  involved.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] text-xs sm:text-[13px] text-[#64748B] leading-relaxed">
+              The goal isn&apos;t to pass around every contact you receive.{" "}
+              <strong className="text-[#171F2C]">
+                It&apos;s to surface opportunities that another business can realistically act on.
+              </strong>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              9. FOR BUSINESSES THAT GENERATE LEADS
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-12">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Supply Side
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                For Businesses That Generate Leads
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                The Relay can help businesses that regularly receive enquiries outside their normal
+                scope. That includes:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">Agencies</h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Receive client projects you cannot fulfil internally due to scope or technical
+                  requirements.
+                </p>
+              </div>
+
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">Consultancies</h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Encounter specialist domain requirements outside your firm&apos;s core advisory
+                  practice.
+                </p>
+              </div>
+
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">Software Companies</h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Need implementation, integration, migration or specialized systems partners for
+                  customer deals.
+                </p>
+              </div>
+
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  Professional Services Firms
+                </h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Receive corporate requests outside your practice area or jurisdictional licensing.
+                </p>
+              </div>
+
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">B2B Service Providers</h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Generate demand in geographies, time zones, or customer tiers you don&apos;t
+                  currently cover.
+                </p>
+              </div>
+
+              <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] flex flex-col justify-center">
+                <div className="text-[11px] font-mono text-[#64748B] uppercase mb-0.5">
+                  Core Principle
+                </div>
+                <div className="text-xs font-semibold text-[#171F2C]">
+                  You generated the opportunity, but you&apos;re not the right business to fulfil
+                  it.
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              10. FOR BUSINESSES LOOKING FOR LEADS
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-12">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-7">
                 <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
-                  Controlled Disclosure Protocol
+                  Demand Side
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
-                  Exchange Leads Without Exposing Client Data
+                  For Businesses Looking for Leads
                 </h2>
                 <div className="space-y-3 text-sm sm:text-base text-[#64748B] leading-relaxed mb-6">
+                  <p>Lead exchange also works from the other side.</p>
                   <p>
-                    Posting a lead should never compromise proprietary client confidentiality or client ownership.
+                    Instead of only asking:{" "}
+                    <strong className="text-[#171F2C]">
+                      &ldquo;How do I generate more leads?&rdquo;
+                    </strong>{" "}
+                    a business can ask:{" "}
+                    <strong className="text-[#171F2C]">
+                      &ldquo;Which leads already exist that match what we do?&rdquo;
+                    </strong>
                   </p>
-                  <p className="text-[#171F2C] font-medium">
-                    The Relay's Consent-Driven Opportunity Exchange (CDOE) protocol mandates a multi-stage gated pipeline:
+                  <p>
+                    That can create a different acquisition channel built around opportunities
+                    originating from other businesses. Businesses can discover opportunities based
+                    on their capabilities and decide which ones are worth pursuing.
                   </p>
-                </div>
-                <div className="space-y-3 mb-6">
-                  <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-[4px] flex items-start gap-3">
-                    <EyeOff className="w-4 h-4 text-[#64748B] mt-0.5 shrink-0" />
-                    <div>
-                      <div className="text-[13px] font-semibold text-[#171F2C]">1. Sanitized Context Only</div>
-                      <div className="text-xs text-[#64748B] leading-relaxed">Opportunity title, budget bracket, industry vertical, and timeline are visible—identities remain completely shielded.</div>
-                    </div>
-                  </div>
-                  <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-[4px] flex items-start gap-3">
-                    <FileCheck className="w-4 h-4 text-[#64748B] mt-0.5 shrink-0" />
-                    <div>
-                      <div className="text-[13px] font-semibold text-[#171F2C]">2. Bilateral Term Alignment</div>
-                      <div className="text-xs text-[#64748B] leading-relaxed">Both companies formalize commercial covenants (referral fee %, exclusivity, timeline) in private discussion.</div>
-                    </div>
-                  </div>
-                  <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-[4px] flex items-start gap-3">
-                    <Lock className="w-4 h-4 text-[#171F2C] mt-0.5 shrink-0" />
-                    <div>
-                      <div className="text-[13px] font-semibold text-[#171F2C]">3. Cryptographic Consent &amp; Introduction</div>
-                      <div className="text-xs text-[#64748B] leading-relaxed">Full contact info and direct introduction occur only after both authorized signatories trigger mutual consent.</div>
-                    </div>
-                  </div>
                 </div>
                 <Link
-                  to="/trust-and-safety"
+                  to="/opportunities"
                   className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-[#171F2C] hover:text-[#64748B] transition-colors"
                 >
-                  <span>Read the Trust &amp; Safety Protocol</span>
+                  <span>Explore Existing Inbound Dealflow</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
 
-              {/* Security Card Graphic */}
               <div className="lg:col-span-5">
-                <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-                    <span className="text-[11px] font-mono font-semibold text-[#64748B] uppercase tracking-wider">
-                      Institutional Protection
-                    </span>
-                    <ShieldCheck className="w-4 h-4 text-[#171F2C]" />
+                <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-3">
+                  <div className="text-[11px] font-mono font-semibold text-[#64748B] uppercase tracking-wider pb-2 border-b border-[#E2E8F0]">
+                    Inbound Discovery Channel
                   </div>
-                  <div className="text-xs text-[#64748B] leading-relaxed space-y-3">
-                    <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
-                      <span className="font-semibold text-[#171F2C] block mb-1">Master NCND Protection</span>
-                      Every participant is bound by enterprise non-circumvention rules before viewing opportunity details.
+                  <div className="text-xs text-[#64748B] space-y-2">
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#171F2C] shrink-0 mt-0.5" />
+                      <span>
+                        Opportunities originated by businesses with direct prospect contact.
+                      </span>
                     </div>
-                    <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
-                      <span className="font-semibold text-[#171F2C] block mb-1">Zero Public Contact Scraping</span>
-                      No email addresses or phone numbers are ever indexed or accessible to automated crawlers.
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#171F2C] shrink-0 mt-0.5" />
+                      <span>Contextual details provided upfront before committing resources.</span>
                     </div>
-                    <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
-                      <span className="font-semibold text-[#171F2C] block mb-1">Verified Entity Attribution</span>
-                      Only authenticated corporations with confirmed executive credentials can express interest.
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#171F2C] shrink-0 mt-0.5" />
+                      <span>
+                        Direct discussions with originating operators to evaluate mutual fit.
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -514,119 +1002,142 @@ export function B2BLeadExchangePage() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 6: TOPIC CLUSTER & ECOSYSTEM MESH
+              11. WHY EXCHANGE LEADS INSTEAD OF SIMPLY REJECTING THEM?
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-12">
+            <div className="max-w-3xl">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Value Retention
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                Why Exchange Leads Instead of Simply Rejecting Them?
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed mb-4">
+                Because a lead can be commercially relevant even when it isn&apos;t operationally
+                relevant <strong className="text-[#171F2C]">to your company</strong>.
+              </p>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed mb-4">
+                Rejecting an opportunity may be the correct decision. But sometimes the better
+                outcome is to find a business that can actually serve the need.
+              </p>
+              <p className="text-sm sm:text-base text-[#171F2C] font-semibold">
+                That&apos;s where a structured lead exchange can be useful.
+              </p>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              12. B2B LEAD EXCHANGE VS REFERRAL NETWORK
               ═══════════════════════════════════════════════════════════════════ */}
           <section className="border-b border-[#E2E8F0] pb-12">
             <div className="max-w-3xl mb-8">
               <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
-                Related Frameworks &amp; Guides
+                Structural Comparison
               </div>
-              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-2">
-                Explore The Lead Exchange Knowledge Mesh
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                B2B Lead Exchange vs. Referral Network
               </h2>
               <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
-                Connect directly into dedicated vertical networks, operational guides, and architectural protocols:
+                These concepts are related, but they aren&apos;t identical:
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Hub 1: Agency Lead Exchange */}
-              <Link
-                to="/agency-lead-exchange"
-                className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors flex flex-col justify-between group"
-              >
-                <div>
-                  <div className="text-[10px] font-mono text-[#64748B] uppercase tracking-wider mb-1">
-                    Vertical Hub
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#64748B] uppercase mb-1">
+                  Lead Exchange
+                </div>
+                <h3 className="text-base font-semibold text-[#171F2C] mb-2">
+                  Focuses on the Opportunity Itself
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
+                  <em>&ldquo;I have an opportunity I cannot fulfil.&rdquo;</em> Transaction-level
+                  discovery and routing for individual inbound enquiries.
+                </p>
+                <div className="text-xs font-mono text-[#171F2C] pt-2 border-t border-[#E2E8F0]">
+                  Single-deal resolution
+                </div>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#64748B] uppercase mb-1">
+                  Referral Network
+                </div>
+                <h3 className="text-base font-semibold text-[#171F2C] mb-2">
+                  Focuses on Ongoing Relationships
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed mb-3">
+                  <em>&ldquo;We regularly refer relevant opportunities to each other.&rdquo;</em>{" "}
+                  Long-term strategic alignment between complementary service providers.
+                </p>
+                <div className="pt-2 border-t border-[#E2E8F0]">
+                  <Link
+                    to="/b2b-referral-network"
+                    className="text-xs font-mono font-semibold text-[#171F2C] hover:text-[#64748B] flex items-center gap-1"
+                  >
+                    <span>Explore B2B Referral Network</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Related Ecosystem Topic Mesh */}
+            <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+              <div className="text-[11px] font-mono font-semibold text-[#64748B] uppercase tracking-wider mb-3">
+                Related Network Models &amp; Guides
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <Link
+                  to="/b2b-opportunity-exchange"
+                  className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors"
+                >
+                  <div className="text-[11px] font-mono font-semibold text-[#171F2C] mb-0.5">
+                    Opportunity Exchange
                   </div>
-                  <h3 className="text-[13px] font-semibold text-[#171F2C] group-hover:text-[#64748B] mb-1">
+                  <div className="text-xs text-[#64748B]">Broad parent ecosystem model</div>
+                </Link>
+
+                <Link
+                  to="/b2b-partnership-network"
+                  className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors"
+                >
+                  <div className="text-[11px] font-mono font-semibold text-[#171F2C] mb-0.5">
+                    Partnership Network
+                  </div>
+                  <div className="text-xs text-[#64748B]">Co-selling &amp; distribution</div>
+                </Link>
+
+                <Link
+                  to="/agency-lead-exchange"
+                  className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors"
+                >
+                  <div className="text-[11px] font-mono font-semibold text-[#171F2C] mb-0.5">
                     Agency Lead Exchange
-                  </h3>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    How digital, creative, and development agencies monetize out-of-scope enquiries.
-                  </p>
-                </div>
-                <div className="mt-3 text-[11px] font-mono font-semibold text-[#171F2C] flex items-center gap-1">
-                  <span>Explore Guide</span>
-                  <ArrowRight className="w-3 h-3" />
-                </div>
-              </Link>
-
-              {/* Hub 2: What To Do With Unqualified Leads */}
-              <Link
-                to="/what-to-do-with-unqualified-leads"
-                className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors flex flex-col justify-between group"
-              >
-                <div>
-                  <div className="text-[10px] font-mono text-[#64748B] uppercase tracking-wider mb-1">
-                    Decision Framework
                   </div>
-                  <h3 className="text-[13px] font-semibold text-[#171F2C] group-hover:text-[#64748B] mb-1">
-                    Unqualified Lead Matrix
-                  </h3>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    Practical 4-step checklist to evaluate scope, geography, capacity, and referral value.
-                  </p>
-                </div>
-                <div className="mt-3 text-[11px] font-mono font-semibold text-[#171F2C] flex items-center gap-1">
-                  <span>Read Matrix</span>
-                  <ArrowRight className="w-3 h-3" />
-                </div>
-              </Link>
+                  <div className="text-xs text-[#64748B]">Out-of-scope agency overflow</div>
+                </Link>
 
-              {/* Hub 3: How To Monetize Unqualified Leads */}
-              <Link
-                to="/how-to-monetize-unqualified-leads"
-                className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors flex flex-col justify-between group"
-              >
-                <div>
-                  <div className="text-[10px] font-mono text-[#64748B] uppercase tracking-wider mb-1">
-                    Commercial Guide
+                <Link
+                  to="/how-to-exchange-business-leads"
+                  className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors"
+                >
+                  <div className="text-[11px] font-mono font-semibold text-[#171F2C] mb-0.5">
+                    Exchange Guide
                   </div>
-                  <h3 className="text-[13px] font-semibold text-[#171F2C] group-hover:text-[#64748B] mb-1">
-                    Monetizing Out-of-Scope
-                  </h3>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    Standard commercial pricing covenants, referral percentages, and agreement terms.
-                  </p>
-                </div>
-                <div className="mt-3 text-[11px] font-mono font-semibold text-[#171F2C] flex items-center gap-1">
-                  <span>Read Guide</span>
-                  <ArrowRight className="w-3 h-3" />
-                </div>
-              </Link>
-
-              {/* Hub 4: 8-Step Journey */}
-              <Link
-                to="/8-step-journey"
-                className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors flex flex-col justify-between group"
-              >
-                <div>
-                  <div className="text-[10px] font-mono text-[#64748B] uppercase tracking-wider mb-1">
-                    Lifecycle
-                  </div>
-                  <h3 className="text-[13px] font-semibold text-[#171F2C] group-hover:text-[#64748B] mb-1">
-                    How Relay Works
-                  </h3>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    The complete step-by-step transaction lifecycle from intent to final handshake.
-                  </p>
-                </div>
-                <div className="mt-3 text-[11px] font-mono font-semibold text-[#171F2C] flex items-center gap-1">
-                  <span>View Lifecycle</span>
-                  <ArrowRight className="w-3 h-3" />
-                </div>
-              </Link>
+                  <div className="text-xs text-[#64748B]">Practical operator instructions</div>
+                </Link>
+              </div>
             </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 7: FAQ ACCORDION (LEAD EXCHANGE QUESTIONS)
+              13. FAQ ACCORDION (SEO CRAWLER FRIENDLY)
               ═══════════════════════════════════════════════════════════════════ */}
           <section className="border-b border-[#E2E8F0] pb-12">
             <div className="max-w-3xl mb-8">
               <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
-                Documentation &amp; Answers
+                Questions &amp; Answers
               </div>
               <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight">
                 Frequently Asked Questions
@@ -641,24 +1152,28 @@ export function B2BLeadExchangePage() {
                     className="bg-white border border-[#E2E8F0] rounded-[4px] overflow-hidden"
                   >
                     <button
+                      type="button"
                       onClick={() => toggleFaq(idx)}
-                      className="w-full flex items-center justify-between p-4 text-left hover:bg-[#F8FAFC] transition-colors"
+                      aria-expanded={isOpen}
+                      className="w-full flex items-center justify-between p-4 text-left hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                     >
-                      <span className="text-[14px] font-semibold text-[#171F2C]">
-                        {faq.q}
-                      </span>
+                      <span className="text-[14px] font-semibold text-[#171F2C]">{faq.q}</span>
                       <ChevronDown
                         className={cn(
                           "w-4 h-4 text-[#64748B] transition-transform duration-200 shrink-0 ml-3",
-                          isOpen && "rotate-180 text-[#171F2C]"
+                          isOpen && "rotate-180 text-[#171F2C]",
                         )}
                       />
                     </button>
-                    {isOpen && (
-                      <div className="px-4 pb-4 pt-1 text-[13px] text-[#64748B] border-t border-[#E2E8F0] leading-relaxed">
-                        {faq.a}
-                      </div>
-                    )}
+                    {/* Rendered in HTML for search engines and crawlers regardless of client toggle */}
+                    <div
+                      className={cn(
+                        "px-4 pb-4 pt-1 text-[13px] text-[#64748B] border-t border-[#E2E8F0] leading-relaxed",
+                        !isOpen && "hidden",
+                      )}
+                    >
+                      {faq.a}
+                    </div>
                   </div>
                 );
               })}
@@ -666,36 +1181,36 @@ export function B2BLeadExchangePage() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 8: FINAL DUAL CTA
+              14. FINAL CTA
               ═══════════════════════════════════════════════════════════════════ */}
           <section className="pb-8">
             <div className="p-8 sm:p-12 bg-white border border-[#E2E8F0] rounded-[4px] text-center max-w-4xl mx-auto">
               <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-2">
-                B2B Lead Exchange
+                The Relay
               </div>
               <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-display font-bold text-[#171F2C] tracking-tight mb-4">
-                Stop Discarding Unserviceable Inbound Dealflow
+                Don&apos;t Discard a Lead Just Because You Can&apos;t Fulfil It.
               </h2>
               <p className="text-sm sm:text-base text-[#64748B] max-w-2xl mx-auto mb-6 leading-relaxed">
-                Present your unfulfilled opportunities to verified corporate peers and monetize out-of-scope demand through consent-driven commercial handshakes.
+                Your business doesn&apos;t have to deliver every opportunity it receives. Sometimes
+                the right move is to find the business that can.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <Link
-                  to="/post"
+                  to="/opportunities"
                   className="inline-flex items-center justify-center bg-[#171F2C] hover:bg-[#010611] text-white text-[13px] font-medium px-6 h-[44px] rounded-[4px] border border-[#171F2C] transition-colors"
                 >
-                  Post an Unserviceable Lead
+                  Post an Opportunity
                 </Link>
                 <Link
                   to="/opportunities"
-                  className="inline-flex items-center justify-center bg-white hover:bg-[#F1F5F9] text-[#171F2C] text-[13px] font-medium px-6 h-[44px] rounded-[4px] border border-[#E2E8F0] transition-colors"
+                  className="inline-flex items-center justify-center bg-white hover:bg-[#F8FAFC] text-[#171F2C] text-[13px] font-medium px-6 h-[44px] rounded-[4px] border border-[#E2E8F0] transition-colors"
                 >
-                  Explore Lead Dealflow
+                  Explore Opportunities
                 </Link>
               </div>
             </div>
           </section>
-
         </div>
       </main>
     </div>

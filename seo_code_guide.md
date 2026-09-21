@@ -1,414 +1,507 @@
-Yes. I researched the actual search landscape first, and there is an important finding that changes how I want us to write this page.
+When designing the page use the color scheme present in color_scheme.md
 
-## 1. What the keyword research tells us
 
-The exact query **“B2B opportunity exchange”** is not a mature, tightly defined search category yet. Current results are mixed: some are business-matchmaking/event exchanges, while others are broader business-opportunity marketplaces. :chatgpt-content-reference{index="0"}
+I reviewed the current Relay page in the repo and researched the current SERP around “B2B lead exchange,” “lead exchange,” and related lead-sharing queries. The search landscape is much clearer here than it was for “B2B opportunity exchange.”
 
-That is actually useful for Relay. It means we can **define the category around what Relay actually does**, rather than trying to imitate an established competitor.
+Current results commonly fall into two buckets: lead buyers/sellers exchanging leads as a marketplace, and businesses passing leads they cannot service to another business that can. :chatgpt-content-reference{index="0"}
 
-But related terms are much more established:
+**Relay should own the second concept**, while still being explicit that it is broader than a traditional lead marketplace.
 
-- **B2B lead exchange / lead exchange** → generally means businesses buying, selling, routing, or referring leads. Current examples include LeadExchange and LeadByte's Lead Exchange Directory. :chatgpt-content-reference{index="1"}
-- **B2B referral network** → an established concept centered on businesses generating referrals through complementary partners. :chatgpt-content-reference{index="2"}
-- **partner marketplace** → an established B2B term, but it usually refers to a vendor's ecosystem where partners, integrations, resellers, etc. are discovered. PartnerStack describes it in that sense. :chatgpt-content-reference{index="3"}
+## SEO target for `/b2b-lead-exchange`
 
-So I **don't** want the Relay page to pretend that "B2B opportunity exchange" means "lead marketplace." They overlap, but they aren't the same thing.
+**Primary keyword**
 
-### Keyword architecture for this page
+`B2B lead exchange`
 
-**Primary**
+**Secondary terms**
 
-`B2B opportunity exchange`
-
-**Secondary/supporting**
-
-`B2B business opportunity exchange`  
-`business opportunity exchange`  
-`B2B opportunity platform`  
-`B2B commercial opportunities`  
-`B2B partnership opportunities`  
+`lead exchange`  
+`B2B lead sharing`  
 `business lead exchange`  
-`B2B referrals`  
-`commercial partnerships`  
-`distribution opportunities`  
-`referral partnerships`
+`exchange business leads`  
+`unqualified leads`  
+`unserviceable leads`  
+`out-of-scope leads`  
+`B2B lead referrals`  
+`referral leads`  
+`lead referral network`
 
-I would **not** deliberately optimize this page for `business opportunity marketplace` as a primary term. That SERP has substantial franchise, investment, business-sale and acquisition intent that doesn't match Relay. :chatgpt-content-reference{index="4"}
+**Search intent**
 
-Also, I'm not going to invent monthly search-volume numbers. We need Google Keyword Planner/Ahrefs/Semrush for defensible volume data. What we've established here is the **SERP/intent landscape**.
+Commercial + problem-solving.
 
----
+The strongest problem statement is:
 
-# 2. The bigger problem with the current page
+> **“I have a legitimate business lead that my company cannot fulfil. What can I do with it?”**
 
-I inspected the current `/b2b-opportunity-exchange` implementation in the Relay repo.
-
-The page has a lot of good material, but it is **too SEO-engineered and repetitive**.
-
-For example, it repeatedly explains:
-
-> opportunity → exchange → verified business → interest → agreement
-
-in multiple sections.
-
-That risks making the page feel like it was written for search engines rather than for a business owner.
-
-There is also a concrete inconsistency:
-
-The page links to the **8-Step Journey**, but its "How The Relay Works" section currently presents **7 stages**.
-
-That's something we should fix rather than carry into the rewritten content.
+That is much closer to Relay's actual product than positioning the page as a generic place to buy leads.
 
 ---
 
-# 3. The new page positioning
+# What I would change from the current page
 
-I want the page to establish this simple concept:
+The current implementation has several claims I would remove or soften.
 
-> **Businesses generate opportunities they cannot always pursue themselves. An opportunity exchange gives those businesses a structured way to pass that commercial intent to another business that can act on it.**
+For example, it currently says things such as:
 
-That is much more distinctive than:
+- “Cryptographic Consent”
+- “Master NCND Protection”
+- “Every participant is bound by enterprise non-circumvention rules”
+- “legally binding”
+- “verified executive credentials”
+- specific 6–24 month revenue-share structures
 
-> "A marketplace where businesses find opportunities."
+Those are **too specific unless the product/legal system actually enforces them today**.
 
-The latter sounds like dozens of existing marketplaces.
+We shouldn't manufacture an impressive-looking security/commercial framework for SEO.
+
+Likewise, phrases like “monetize every unserviceable lead” create an implied outcome guarantee. We should describe the mechanism without promising the result.
 
 ---
 
-# 4. Recommended SEO package
+# Recommended title
 
-### URL
-
-`https://www.usetherelay.com/b2b-opportunity-exchange`
-
-### Title
-
-**B2B Opportunity Exchange — The Relay**
-
-This is already correct.
+**B2B Lead Exchange — Exchange Leads Your Business Can't Fulfil | The Relay**
 
 ### Meta description
 
-I'd tighten the current one to:
-
-> **Exchange B2B commercial opportunities with verified businesses. Discover referrals, partnerships, distribution opportunities and leads your business can act on.**
+**Exchange B2B leads your business cannot fulfil with businesses that can. Discover a structured way to share referrals, out-of-scope opportunities and commercial leads.**
 
 ### H1
 
-**The B2B Opportunity Exchange for Commercial Relationships**
+**Exchange the B2B Leads Your Business Can't Fulfil**
 
-Keep this. It naturally combines the target term with the actual category.
+That is stronger than making the H1 simply:
+
+> B2B Lead Exchange
+
+because the phrase immediately communicates the problem Relay solves.
 
 ---
 
-# 5. The actual page copy
-
-This is the direction I recommend implementing.
+# Page copy
 
 ## Hero
 
-### The B2B Opportunity Exchange for Commercial Relationships
+### Exchange the B2B Leads Your Business Can't Fulfil
 
-Every business receives opportunities it cannot pursue.
+Not every lead is the right lead for your business.
 
-A project may fall outside your capabilities. A customer may need a service you don't offer. Your team may be at capacity. A potential partnership may make more sense for another company in your network.
+A prospect may need a service you don't offer. A project may fall outside your capabilities. The customer may be in a market you don't serve. Or your team may simply not have the capacity to take it on.
 
-**The Relay gives businesses a structured way to exchange those opportunities with other verified businesses.**
+**Instead of letting that opportunity disappear, The Relay gives you a structured way to exchange it with another business that may be able to act on it.**
 
-Discover opportunities that fit your business. Express interest. Discuss the relationship. Share the relevant information only when both sides are ready.
+**Post a Lead**  
+**Explore Opportunities**
 
-**CTA:** Post an Opportunity  
-**CTA:** Explore Opportunities
+Small supporting line:
 
----
-
-## What is a B2B opportunity exchange?
-
-A **B2B opportunity exchange** is a structured environment where businesses can share commercial opportunities with other businesses that may be able to pursue them.
-
-Instead of every business opportunity ending in either **"we'll take it"** or **"we can't help,"** there is another option:
-
-**Find a business that can.**
-
-That could mean referring a customer to a complementary provider, finding a partner for a project, discovering a distribution relationship, locating a vendor, or passing an opportunity to another business because it falls outside your current scope.
-
-The Relay is built around that exchange.
+> Share relevant context. Find interested businesses. Decide whether the opportunity should move forward.
 
 ---
 
-# Turn opportunities you cannot pursue into opportunities someone else can
+# What is a B2B lead exchange?
 
-Businesses regularly encounter commercial demand that doesn't fit their current operation.
+A **B2B lead exchange** is a system that helps businesses share leads or commercial enquiries with other businesses that may be better positioned to pursue them.
 
-### An agency receives the wrong type of project
+This can happen when a lead falls outside a company's:
 
-The client is genuine and the project is valuable, but the required capability isn't part of the agency's service offering.
+- service offering
+- geographic coverage
+- technical capability
+- target market
+- current capacity
 
-Instead of simply declining it, the opportunity can be surfaced to a business that provides the required service.
+Instead of simply rejecting the enquiry, the business can look for a relevant counterpart.
 
-### A customer needs a complementary service
-
-A company may be able to solve one part of a customer's problem while another business is better suited to solve the next part.
-
-The opportunity can become a referral or partnership instead of a dead end.
-
-### A business needs help entering a new market
-
-A company may have the product but lack distribution, local expertise, implementation capability or channel relationships.
-
-Finding the right business partner can turn that gap into a commercial opportunity.
-
-### A partnership opportunity doesn't fit right now
-
-The opportunity may be valuable but poorly timed, geographically unsuitable or outside the company's current priorities.
-
-Another business may be better positioned to pursue it.
+That is the basic idea behind a lead exchange.
 
 ---
 
-# What can businesses exchange on Relay?
+# Why businesses have leads they cannot fulfil
 
-The Relay isn't limited to one type of lead.
+A lead can be genuine and valuable without being right for your business.
 
-Businesses can use the exchange for different types of commercial relationships, including:
+### Service mismatch
 
-**Referrals**  
-Pass relevant customers or business opportunities to complementary providers.
+A prospect needs a capability your company doesn't provide.
 
-**Partnerships**  
-Find businesses for co-selling, collaboration, integrations or other strategic relationships.
+### Geography mismatch
 
-**Distribution**  
-Discover businesses that can help take products or services into new markets or channels.
+The customer is outside your operating market.
 
-**Vendor opportunities**  
-Find businesses with capabilities your company or customers need.
+### Capacity mismatch
 
-**Business leads**  
-Surface qualified opportunities that your company cannot fulfil but another business may be able to pursue.
+Your team could fulfil the work, but not within the required timeline.
 
-The specific commercial arrangement is decided by the businesses involved.
+### Industry mismatch
 
----
+The opportunity requires specialist experience outside your normal client base.
 
-# How a B2B opportunity exchange works
+### Commercial mismatch
 
-The Relay keeps the process structured around the opportunity rather than around social networking.
+The opportunity is real, but the required engagement doesn't fit your current business model.
 
-### 01 — Post
-
-Describe the commercial opportunity and what kind of business would be relevant.
-
-### 02 — Discover
-
-Other businesses can discover opportunities that match their capabilities and interests.
-
-### 03 — Express interest
-
-A business indicates that it is interested in pursuing the opportunity.
-
-### 04 — Discuss
-
-The businesses discuss fit, requirements and potential commercial terms.
-
-### 05 — Agree
-
-Both sides determine whether the relationship makes sense.
-
-### 06 — Consent
-
-Relevant information can be disclosed once both sides are ready.
-
-### 07 — Handshake
-
-The businesses move forward directly with the relationship they agreed to pursue.
-
-**Want the complete process?**  
-See the [8-Step Relay Journey].
+In each case, the lead does not necessarily have to become a dead end.
 
 ---
 
-# An opportunity exchange is different from a lead list
+# What can you do with a lead you cannot fulfil?
 
-A lead list gives you contacts.
+There are several possible outcomes.
 
-An opportunity exchange starts with **commercial intent**.
+You can refer the opportunity to a complementary business.
 
-That distinction matters.
+You can look for a specialist who can fulfil a part of the requirement.
 
-A business opportunity can carry context about what is needed, what type of capability is relevant and what kind of relationship may make sense.
+You can explore a partnership around the customer need.
 
-The Relay is designed around that context and the businesses' decision to engage.
+Or you can simply decline the opportunity when no suitable counterpart exists.
 
-It's not intended to be a directory of random contacts or a feed of promotional posts.
+**The Relay creates another option: put the opportunity in front of businesses that may be able to use it.**
 
 ---
 
-# Built for businesses that create and receive commercial opportunities
+# How the Relay lead exchange works
 
-Relay can be useful for businesses that regularly work through partners, referrals or complementary providers.
+### 01 — Describe the opportunity
+
+Provide the relevant business context and explain what the prospect needs.
+
+### 02 — Define what kind of business fits
+
+Identify the capability, service, market or partner profile that would be relevant.
+
+### 03 — Publish the opportunity
+
+The opportunity becomes discoverable by businesses looking for relevant commercial opportunities.
+
+### 04 — Businesses express interest
+
+A business that believes it can help can indicate interest.
+
+### 05 — Discuss the opportunity
+
+The parties can evaluate fit and determine how they want to proceed.
+
+### 06 — Make the introduction
+
+The originating and receiving businesses decide whether to move forward with the relationship.
+
+The Relay provides the exchange mechanism. **The participating businesses determine the commercial arrangement.**
+
+---
+
+# Lead exchange is not the same as buying lead lists
+
+This distinction is important.
+
+A traditional lead marketplace can involve buyers purchasing leads according to criteria such as industry, geography, volume or pricing. Some current lead-exchange services explicitly operate around buyers and sellers of leads. :chatgpt-content-reference{index="1"}
+
+The Relay is built around a different starting point:
+
+**A business already has a commercial opportunity.**
+
+The question is:
+
+> **Who else could legitimately pursue it?**
+
+That makes Relay closer to a structured **B2B lead-sharing and referral environment** than a generic lead-list marketplace.
+
+---
+
+# Common B2B lead exchange scenarios
+
+## An agency gets a project outside its services
+
+A web agency receives a qualified request for a service it doesn't provide.
+
+Rather than simply turning the prospect away, the agency can look for a complementary business that can handle the requirement.
+
+**Possible outcome:** referral or partnership.
+
+---
+
+## A software company receives an implementation request
+
+A software vendor has a customer that needs implementation or integration expertise beyond its internal team.
+
+The vendor can look for a specialist capable of handling the requirement.
+
+**Possible outcome:** implementation partnership.
+
+---
+
+## A consultant receives a request outside their specialty
+
+A client asks for a service that sits outside the consultant's area of expertise.
+
+The consultant can look for another specialist while preserving the possibility of a useful client relationship.
+
+**Possible outcome:** referral relationship.
+
+---
+
+## A business receives a lead outside its geography
+
+A company receives an enquiry from a market it doesn't currently serve.
+
+Instead of discarding it, the company can look for an appropriate regional counterpart.
+
+**Possible outcome:** regional referral or channel relationship.
+
+---
+
+# What makes a lead worth exchanging?
+
+Not every enquiry makes sense as an exchange opportunity.
+
+A useful B2B lead generally has:
+
+### A real business need
+
+There is an identifiable requirement rather than generic interest.
+
+### A clear fit
+
+Another business could reasonably provide the required service or capability.
+
+### Enough context
+
+A potential counterpart can understand the opportunity before deciding whether to pursue it.
+
+### Commercial relevance
+
+There is a plausible referral, service, partnership or other business relationship involved.
+
+The goal isn't to pass around every contact you receive.
+
+**It's to surface opportunities that another business can realistically act on.**
+
+---
+
+# For businesses that generate leads
+
+The Relay can help businesses that regularly receive enquiries outside their normal scope.
 
 That includes:
 
 **Agencies**  
-Receive projects outside your core services and find businesses that can fulfil them.
+Receive projects you cannot fulfil.
 
-**Consultants**  
-Build relationships with specialists whose capabilities complement your own.
+**Consultancies**  
+Encounter specialist requirements outside your expertise.
 
 **Software companies**  
-Find referral, implementation, integration and distribution opportunities.
+Need implementation, integration, migration or specialist partners.
 
-**Professional service firms**  
-Exchange relevant business opportunities with complementary providers.
+**Professional services firms**  
+Receive requests outside your practice area.
 
-**Founders and operators**  
-Discover commercial relationships that may not surface through your existing network.
+**B2B service providers**  
+Generate demand in geographies or industries you don't currently cover.
 
-The common factor is simple:
+The underlying problem is the same:
 
-**Your business has commercial relationships worth exchanging.**
-
----
-
-# Why use an opportunity exchange instead of social media?
-
-Social platforms are designed around people, content and engagement.
-
-Relay is designed around **commercial opportunities**.
-
-There is no requirement to build an audience, publish content every day or compete for attention in a feed.
-
-The objective is more direct:
-
-**Find something relevant.  
-Express interest.  
-Connect around the opportunity.  
-Decide whether there is a business relationship worth pursuing.**
+> **You generated the opportunity, but you're not the right business to fulfil it.**
 
 ---
 
-# The Relay opportunity exchange
+# For businesses looking for leads
 
-The Relay combines opportunity discovery with a structured path toward a commercial relationship.
+Lead exchange also works from the other side.
 
-Businesses can:
+Instead of only asking:
 
-**Publish** opportunities they want another business to pursue.
+> “How do I generate more leads?”
 
-**Discover** opportunities relevant to their capabilities.
+a business can ask:
 
-**Express interest** without immediately exposing everything about the underlying relationship.
+> **“Which leads already exist that match what we do?”**
 
-**Discuss** the commercial fit.
+That can create a different acquisition channel built around opportunities originating from other businesses.
 
-**Agree** on how they want to proceed.
-
-The platform facilitates the process. **The businesses decide what relationship they actually want.**
+Businesses can discover opportunities based on their capabilities and decide which ones are worth pursuing.
 
 ---
 
-# What makes an opportunity worth exchanging?
+# Why exchange leads instead of simply rejecting them?
 
-Not every lead belongs on an opportunity exchange.
+Because a lead can be commercially relevant even when it isn't operationally relevant **to your company**.
 
-A useful opportunity usually has some combination of:
+Rejecting an opportunity may be the correct decision.
 
-**A defined business need**  
-Someone actually needs something.
+But sometimes the better outcome is to find a business that can actually serve the need.
 
-**A potential business fit**  
-Another company could realistically fulfil that need.
-
-**Commercial relevance**  
-There is a possible referral, project, partnership, distribution or vendor relationship.
-
-**Enough context to evaluate it**  
-The receiving business can understand the opportunity without requiring unnecessary disclosure upfront.
-
-That's why Relay focuses on structured opportunities rather than simply collecting contact details.
+That's where a structured lead exchange can be useful.
 
 ---
 
-# Frequently asked questions
+# B2B lead exchange vs referral network
 
-### What is a B2B opportunity exchange?
+These are related, but they aren't identical.
 
-A B2B opportunity exchange is a structured environment where businesses share and discover commercial opportunities that other businesses may be able to pursue, including referrals, partnerships, distribution opportunities, vendor needs and business leads.
+A **lead exchange** focuses on the opportunity itself:
 
-### Is a B2B opportunity exchange the same as a lead marketplace?
+> “I have an opportunity I cannot fulfil.”
 
-Not necessarily. A lead marketplace typically focuses on buying, selling or distributing leads. An opportunity exchange can cover a broader range of commercial relationships, including referrals, partnerships, distribution and vendor relationships.
+A **referral network** focuses more on the ongoing relationship between businesses:
 
-### Can I post a lead that my business cannot fulfil?
+> “We regularly refer relevant opportunities to each other.”
 
-Yes. That's one of the use cases Relay is designed for. A business can surface an opportunity that falls outside its capabilities, capacity or scope and allow another relevant business to express interest.
+That's why Relay should link this page to:
 
-### Is Relay a social network?
+`/b2b-referral-network`
 
-No. Relay is designed around commercial opportunities rather than social feeds, follower counts or content engagement.
+rather than trying to make this page rank for every referral-related query.
 
-### Does Relay guarantee that an opportunity will convert?
+---
 
-No. Relay facilitates discovery and the path toward a commercial relationship, but the participating businesses determine whether an opportunity is suitable and whether they ultimately reach an agreement.
+# FAQ
+
+### What is a B2B lead exchange?
+
+A B2B lead exchange allows businesses to share or exchange commercial leads with other businesses that may be better positioned to pursue them.
+
+### Can I exchange a lead my business cannot fulfil?
+
+Yes. A core use case is sharing an opportunity that falls outside your services, geography, capabilities or capacity.
+
+### Is a lead exchange the same as buying leads?
+
+No. Some lead exchanges operate as buyer/seller marketplaces. Relay is focused on helping businesses surface opportunities they already have and connect them with businesses that may be able to pursue them. :chatgpt-content-reference{index="2"}
+
+### What types of leads can be exchanged?
+
+Examples include agency project enquiries, specialist service requests, regional opportunities, implementation needs, referrals and other B2B commercial opportunities.
+
+### Should every lead be exchanged?
+
+No. An opportunity should only be shared when there is a legitimate business reason to do so and the participating businesses can appropriately handle the relationship.
+
+### Does Relay guarantee a lead will convert?
+
+No. Relay facilitates discovery and connection. Whether a lead converts depends on the businesses involved, customer requirements and the resulting commercial relationship.
+
+### How is lead exchange different from lead generation?
+
+Lead generation creates new demand or enquiries. Lead exchange helps businesses find a suitable path for existing opportunities that may not fit their own operation.
 
 ---
 
 # Final CTA
 
-## Don't let a good opportunity stop at "we don't do that."
+## Don't discard a lead just because you can't fulfil it.
 
-Some opportunities aren't wrong for your business.
+Your business doesn't have to deliver every opportunity it receives.
 
-They're simply **better suited to another business**.
-
-The Relay gives you a structured way to exchange those opportunities and discover commercial relationships that fit what you can actually do.
+Sometimes the right move is to find the business that can.
 
 **Post an Opportunity**  
 **Explore Opportunities**
 
 ---
 
-## 6. Internal-link strategy
+# Internal linking
 
-This page should act as the **parent hub** and pass relevance to the more specific pages.
+This page should link prominently to:
 
-Natural links should go to:
+`/b2b-opportunity-exchange`  
+`/b2b-referral-network`  
+`/b2b-partnership-network`  
+`/agency-lead-exchange`  
+`/what-to-do-with-unqualified-leads`  
+`/how-to-monetize-unqualified-leads`  
+`/how-to-exchange-business-leads`  
+`/8-step-journey`  
+`/trust-and-safety`
 
-`/b2b-lead-exchange` → when discussing leads
+The important relationship is:
 
-`/b2b-referral-network` → when discussing referral relationships
+**B2B Opportunity Exchange** = broad parent concept  
+**B2B Lead Exchange** = leads specifically  
+**B2B Referral Network** = recurring referral relationships
 
-`/b2b-partnership-network` → when discussing partnerships
-
-`/distribution-partners` → when discussing distribution
-
-`/agency-lead-exchange` → when discussing agencies
-
-`/8-step-journey` → for the complete workflow
-
-`/trust-and-safety` → when explaining verification/controlled disclosure
-
-`/insights` → for deeper educational material
-
-The important thing is that **the anchor text should describe the destination naturally**, rather than repeatedly using exact-match keywords.
+That separation helps prevent cannibalization.
 
 ---
 
-## 7. One technical/content change I'd make with the rewrite
+## Prompt for your agent
 
-Your current FAQ accordion only renders the answer when someone opens it:
+Paste this to your coding agent:
 
-```tsx
-{isOpen && (
-   <div>...</div>
-)}
+```text
+Rewrite /b2b-lead-exchange.tsx using the approved SEO/content strategy below.
+
+Primary keyword:
+B2B lead exchange
+
+Secondary concepts:
+lead exchange
+B2B lead sharing
+business lead exchange
+exchange business leads
+unqualified leads
+unserviceable leads
+out-of-scope leads
+B2B lead referrals
+lead referral network
+
+SEO title:
+B2B Lead Exchange — Exchange Leads Your Business Can't Fulfil | The Relay
+
+Meta description:
+Exchange B2B leads your business cannot fulfil with businesses that can. Discover a structured way to share referrals, out-of-scope opportunities and commercial leads.
+
+H1:
+Exchange the B2B Leads Your Business Can't Fulfil
+
+IMPORTANT CONTENT RULES:
+- The page must be written for human B2B operators first.
+- Do not keyword stuff.
+- Do not make unsupported legal, security, financial or compliance claims.
+- Remove/soften claims currently present about "cryptographic consent", "Master NCND", guaranteed legal binding, verified executive credentials, and fixed 6–24 month revenue-share structures unless those capabilities are actually implemented and documented in the product.
+- Do not promise lead conversion, revenue, monetization, or guaranteed outcomes.
+- Do not position Relay as a generic lead-list marketplace.
+- Clearly distinguish lead exchange from buying/selling bulk lead lists.
+- Position Relay around existing commercial opportunities that a business cannot fulfil and may want to connect with another business that can.
+
+Use these sections:
+
+1. Hero
+2. What is a B2B lead exchange?
+3. Why businesses have leads they cannot fulfil
+4. What can you do with a lead you cannot fulfil?
+5. How the Relay lead exchange works
+6. Lead exchange is not the same as buying lead lists
+7. Common B2B lead exchange scenarios
+8. What makes a lead worth exchanging?
+9. For businesses that generate leads
+10. For businesses looking for leads
+11. Why exchange leads instead of simply rejecting them?
+12. B2B lead exchange vs referral network
+13. FAQ
+14. Final CTA
+
+Internal links should naturally include:
+- /b2b-opportunity-exchange
+- /b2b-referral-network
+- /b2b-partnership-network
+- /agency-lead-exchange
+- /what-to-do-with-unqualified-leads
+- /how-to-monetize-unqualified-leads
+- /how-to-exchange-business-leads
+- /8-step-journey
+- /trust-and-safety
+
+Keep the existing Relay visual/design language unless a change is needed for readability.
+
+Fix the FAQ implementation so the answers are present in the rendered HTML even when the accordion is visually collapsed, rather than only rendering the answer after a client-side click.
+
+Keep canonical URL:
+https://www.usetherelay.com/b2b-lead-exchange
+
+Keep appropriate WebPage/Breadcrumb/Organization structured data, but do not add unsupported schema.
+
+Run build/typecheck and commit/push the finished page.
 ```
-
-For an SEO content page, I'd prefer the FAQ answers to be present in the HTML and visually collapsed, rather than conditionally absent from the DOM. We can then use appropriate structured data where the page qualifies.
-
-Also, we should fix the current **7-step vs 8-step** inconsistency before publishing the rewrite.
-
-### The strategy from here
-
-This page now becomes our **semantic parent**.
