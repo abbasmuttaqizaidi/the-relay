@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { useState, useEffect } from 'react';
+import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
+import { useAuth } from '@clerk/tanstack-react-start';
+import { checkOnboardingStatus } from '@/functions/checkOnboardingStatus';
 import {
   ArrowRight,
   ChevronDown,
@@ -25,6 +27,21 @@ import { createSeoMeta, SITE_URL } from '@/lib/seo';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/solutions')({
+  beforeLoad: async () => {
+    try {
+      const authData = await checkOnboardingStatus();
+      if (authData?.isAuthenticated) {
+        throw redirect({
+          to: '/opportunities',
+          replace: true,
+        });
+      }
+    } catch (err) {
+      if (err && typeof err === 'object' && 'to' in err) {
+        throw err;
+      }
+    }
+  },
   component: SolutionsHubPage,
   head: () =>
     createSeoMeta({
@@ -52,7 +69,15 @@ const CATEGORY_DESCRIPTIONS: Record<string, string> = {
 };
 
 export function SolutionsHubPage() {
+  const { isSignedIn, isLoaded } = useAuth();
+  const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      navigate({ to: '/opportunities', replace: true });
+    }
+  }, [isLoaded, isSignedIn, navigate]);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);

@@ -170,7 +170,6 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                       </span>
                     )}
                   </Link>
-                  <SolutionsDropdown />
                   <Link
                     to="/my-relay"
                     className={`hover:text-slate-800 pb-1 transition-colors flex items-center gap-1.5 ${
@@ -504,10 +503,6 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                             <ChevronRight className={`w-3.5 h-3.5 ${isInsights ? "text-white/50" : "text-slate-300"}`} />
                           </Link>
                         </SheetClose>
-
-                        <div className="pt-2 pb-1 border-t border-slate-100">
-                          <SolutionsMobileSection onNavigate={() => setMobileMenuOpen(false)} />
-                        </div>
 
                         <SheetClose asChild>
                           <Link
