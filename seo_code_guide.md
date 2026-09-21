@@ -1,48 +1,102 @@
-The architecture now looks correct.
+The implementation we should add
+Create:
+src/lib/analytics.ts
+/**
+ * Google Analytics 4 — production-only tracking for The Relay.
+ *
+ * Measurement ID: G-CTQSXFFG6G
+ */
 
-Before we consider technical SEO complete, do a final verification-only pass.
+const MEASUREMENT_ID = "G-CTQSXFFG6G";
 
-Do NOT modify page content, keywords, routes, or SEO strategy.
+declare global {
+  interface Window {
+    dataLayer: unknown[];
+    gtag?: (...args: unknown[]) => void;
+    __relayGaInitialized?: boolean;
+  }
+}
 
-Show me the exact final contents of:
+export function initAnalytics(): void {
+  if (typeof window === "undefined" || !import.meta.env.PROD) return;
+  if (window.__relayGaInitialized) return;
 
-1. public/robots.txt
+  window.dataLayer = window.dataLayer || [];
 
-2. public/sitemap.xml
+  window.gtag =
+    window.gtag ||
+    function (...args: unknown[]) {
+      window.dataLayer.push(args);
+    };
 
-3. The canonical output for these pages:
-   - /
-   - /solutions
-   - /b2b-opportunity-exchange
-   - /insights
-   - /insights/:id
-   - /8-step-journey
+  const scriptId = "relay-google-analytics";
 
-4. The response behavior for:
-   - /eight-step-journey
-   - /home
+  if (!document.getElementById(scriptId)) {
+    const script = document.createElement("script");
+    script.id = scriptId;
+    script.async = true;
+    script.src =
+      `https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`;
 
-5. Confirm that none of these appear in sitemap.xml:
-   - /eight-step-journey
-   - /home
-   - /login
-   - /signup
-   - /onboarding
-   - /my-relay
-   - /opportunities
-   - /network
-   - /admin
-   - other authenticated/private routes
+    document.head.appendChild(script);
+  }
 
-6. Confirm that /eight-step-journey is NOT blocked by robots.txt.
+  window.gtag("js", new Date());
 
-7. Confirm that private routes use noindex and are NOT blocked by robots.txt solely to achieve noindex.
+  window.gtag("config", MEASUREMENT_ID, {
+    send_page_view: false,
+  });
 
-8. Verify whether the HowTo JSON-LD on the three "how-to" pages actually corresponds to visible step-by-step content. If not, recommend removing it for now.
+  window.__relayGaInitialized = true;
+}
 
-9. Confirm that the production build succeeds.
+export function trackPageView(
+  pathname: string,
+  search = "",
+): void {
+  if (typeof window === "undefined" || !import.meta.env.PROD) return;
 
-10. Most importantly, test the actual generated HTML/head output rather than relying only on TypeScript source inspection.
+  initAnalytics();
 
-Report PASS/FAIL for each item.
-Do not make changes unless a verification failure is found.
+  window.gtag?.("event", "page_view", {
+    page_title: document.title,
+    page_location:
+      `${window.location.origin}${pathname}${search}`,
+    page_path: `${pathname}${search}`,
+  });
+}
+Then in your existing:
+src/routes/__root.tsx
+add:
+import { useRouterState } from "@tanstack/react-router";
+import { initAnalytics, trackPageView } from "@/lib/analytics";
+And inside RootComponent():
+function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
+
+  const location = useRouterState({
+    select: (state) => state.location,
+  });
+
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
+  useEffect(() => {
+    trackPageView(location.pathname, location.search);
+  }, [location.pathname, location.search]);
+
+  // ...existing code
+}
+This approach deliberately disables automatic page views and sends them ourselves when TanStack Router changes routes. That's important for a client-side application like Relay.
+Google's GA4 documentation supports installing the Google tag using the property's Measurement ID and then verifying incoming data in Realtime. 
+Why I'm specifically using import.meta.env.PROD
+This is the part I wanted to get right for you:
+if (typeof window === "undefined" || !import.meta.env.PROD) return;
+Therefore:
+Localhost
+→ GA4 doesn't initialize
+→ no page views sent
+Production
+→ GA4 initializes
+→ page views are recorded

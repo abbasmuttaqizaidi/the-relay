@@ -4,12 +4,14 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   useMatchRoute,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
 import { ClerkProvider } from "@clerk/tanstack-react-start";
+import { initAnalytics, trackPageView } from "@/lib/analytics";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
@@ -148,6 +150,18 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+  const location = useRouterState({
+    select: (state) => state.location,
+  });
+
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
+  useEffect(() => {
+    trackPageView(location.pathname, location.search);
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
