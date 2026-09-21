@@ -47,7 +47,7 @@ export const Route = createFileRoute('/solutions')({
     createSeoMeta({
       title: 'B2B Opportunity Exchange Solutions | The Relay',
       description:
-        "Explore The Relay's B2B opportunity exchange solutions for lead exchange, referral partnerships, agency opportunities, channel relationships, distribution, and commercial dealflow discovery.",
+        "Explore The Relay's B2B opportunity exchange solutions for lead exchange, referral partnerships, agency opportunities, channel relationships, and distribution.",
       path: '/solutions',
     }),
 });
@@ -123,7 +123,7 @@ export function SolutionsHubPage() {
         url: `${SITE_URL}/solutions`,
         name: 'B2B Opportunity Exchange Solutions | The Relay',
         description:
-          "Explore The Relay's B2B opportunity exchange solutions for lead exchange, referral partnerships, agency opportunities, channel relationships, distribution, and commercial dealflow discovery.",
+          "Explore The Relay's B2B opportunity exchange solutions for lead exchange, referral partnerships, agency opportunities, channel relationships, and distribution.",
         breadcrumb: {
           '@id': `${SITE_URL}/solutions#breadcrumb`,
         },

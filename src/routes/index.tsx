@@ -44,7 +44,7 @@ import { createSeoMeta, createOrganizationSchema, createWebsiteSchema } from "@/
 export const Route = createFileRoute("/")({
   head: () =>
     createSeoMeta({
-      title: "The Relay — B2B Opportunity Exchange",
+      title: "The Relay — B2B Commercial Opportunity Network",
       description:
         "Monetize leads you can't fulfill, or source verified commercial partnerships—all within a private, zero-spam dealroom.",
       path: "/",
@@ -996,11 +996,11 @@ export function LandingPage() {
                 <p className="text-xs font-mono tracking-widest text-slate-500 uppercase font-semibold">
                   Same Network. MORE POSSIBILITIES
                 </p>
-                <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-950 font-display mt-2 uppercase leading-[1.08]">
+                <div className="text-3xl sm:text-4xl font-black tracking-tight text-slate-950 font-display mt-2 uppercase leading-[1.08]">
                   <span>ONE PLATFORM.</span>
                   <br />
                   <span>TWO GROWTH ENGINES.</span>
-                </h1>
+                </div>
                 <p className="text-sm text-slate-600 mt-2.5 max-w-xl mx-auto leading-relaxed">
                   Turn opportunities into value or find the right partners to grow - all in one place
                 </p>

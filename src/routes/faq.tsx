@@ -29,7 +29,7 @@ export const Route = createFileRoute("/faq")({
     createSeoMeta({
       title: "B2B Opportunity Exchange FAQ — The Relay",
       description:
-        "Get answers about The Relay, B2B opportunity exchange, lead exchange, referral partnerships, business verification, consent, commercial relationships, and how the platform works.",
+        "Get answers about The Relay, B2B opportunity exchange, lead exchange, referral partnerships, business verification, consent, and how the platform works.",
       path: "/faq",
     }),
   component: FAQPage,
@@ -438,7 +438,7 @@ export function FAQPage() {
         url: `${SITE_URL}/faq`,
         name: "B2B Opportunity Exchange FAQ — The Relay",
         description:
-          "Get answers about The Relay, B2B opportunity exchange, lead exchange, referral partnerships, business verification, consent, commercial relationships, and how the platform works.",
+          "Get answers about The Relay, B2B opportunity exchange, lead exchange, referral partnerships, business verification, consent, and how the platform works.",
         breadcrumb: {
           "@id": `${SITE_URL}/faq#breadcrumb`,
         },

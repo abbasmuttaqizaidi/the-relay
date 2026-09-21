@@ -47,7 +47,7 @@ import { createSeoMeta, SITE_URL } from "@/lib/seo";
 export const Route = createFileRoute("/distribution-partners")({
   head: () =>
     createSeoMeta({
-      title: "B2B Distribution Partners — Find Distribution Partners | The Relay",
+      title: "B2B Distribution Partners | The Relay",
       description:
         "Find B2B distribution partners that can help expand your product or service into new markets, territories and reseller networks. Explore distribution opportunities on The Relay.",
       path: "/distribution-partners",
@@ -225,7 +225,14 @@ export function DistributionPartnersPage() {
                   <p className="text-[#334155]">
                     The Relay connects product companies, SaaS providers, and manufacturers with
                     verified regional and vertical distributors ready to expand commercial reach
-                    through structured, opportunity-led discovery.
+                    through a structured{' '}
+                    <Link
+                      to="/b2b-opportunity-exchange"
+                      className="text-[#171F2C] underline decoration-[#94A3B8] underline-offset-2 hover:decoration-[#171F2C] transition-colors"
+                    >
+                      B2B opportunity exchange
+                    </Link>
+                    .
                   </p>
                 </div>
 

@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { getIncomingRequests } from "../functions/getIncomingRequests";
 import { getSentRequests } from "../functions/getSentRequests";
+import { getRequestById } from "../functions/getRequestById";
 import { acceptInterest } from "../functions/acceptInterest";
 import { declineInterest } from "../functions/declineInterest";
 import { withdrawInterest } from "../functions/withdrawInterest";
@@ -44,7 +45,7 @@ import {
 } from "@/components/ui/dialog";
 
 const searchParamsSchema = z.object({
-  tab: fallback(z.enum(["received", "sent", "all"]), "all").default("all"),
+  tab: fallback(z.enum(["received", "sent"]), "received").default("received"),
 });
 
 export const Route = createFileRoute("/proposals")({
@@ -62,7 +63,7 @@ export const Route = createFileRoute("/proposals")({
   component: ProposalsPage,
 });
 
-type TabType = "received" | "sent" | "all";
+type TabType = "received" | "sent";
 
 export function ProposalsPage() {
   const { tab: initialTab } = Route.useSearch();
@@ -70,14 +71,14 @@ export function ProposalsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<TabType>(initialTab as TabType);
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab === "sent" ? "sent" : "received");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProposalForModal, setSelectedProposalForModal] = useState<any | null>(null);
   const [modalType, setModalType] = useState<"detail" | "accept" | "decline" | "withdraw" | null>(null);
 
   // Sync tab with URL search if changed
   useEffect(() => {
-    if (initialTab && ["received", "sent", "all"].includes(initialTab)) {
+    if (initialTab && ["received", "sent"].includes(initialTab)) {
       setActiveTab(initialTab as TabType);
     }
   }, [initialTab]);
@@ -109,7 +110,7 @@ export function ProposalsPage() {
     }
   }, [isLoaded, isSignedIn, onboardingData, navigate]);
 
-  // 2. Incoming Proposals Query
+  // 2. Incoming Proposals Query - ONLY fetched when Received tab is active
   const { data: incomingRequests = [], isLoading: loadingIncoming } = useQuery({
     queryKey: ["incoming-requests", userId],
     queryFn: async () => {
@@ -117,11 +118,11 @@ export function ProposalsPage() {
       const data = await getIncomingRequests();
       return data || [];
     },
-    enabled: Boolean(isLoaded && isSignedIn),
+    enabled: Boolean(isLoaded && isSignedIn && activeTab === "received"),
     staleTime: 1000 * 30,
   });
 
-  // 3. Sent Proposals Query (DB + LocalStorage sync fallback)
+  // 3. Sent Proposals Query - ONLY fetched when Sent tab is active
   const { data: rawSentRequests = [], isLoading: loadingSent } = useQuery({
     queryKey: ["sent-requests", userId],
     queryFn: async () => {
@@ -129,9 +130,26 @@ export function ProposalsPage() {
       const data = await getSentRequests();
       return data || [];
     },
-    enabled: Boolean(isLoaded && isSignedIn),
+    enabled: Boolean(isLoaded && isSignedIn && activeTab === "sent"),
     staleTime: 1000 * 30,
   });
+
+  // 4. On-demand Detail Query with caching when opening detail modal
+  const selectedProposalId = selectedProposalForModal?.id;
+  const { data: fetchedProposalDetail, isLoading: loadingDetail } = useQuery({
+    queryKey: ["proposal-detail", selectedProposalId],
+    queryFn: async () => {
+      if (!selectedProposalId) return null;
+      if (selectedProposalId.startsWith("local-req-")) {
+        return selectedProposalForModal;
+      }
+      return await getRequestById({ data: { interest_id: selectedProposalId } });
+    },
+    enabled: Boolean(selectedProposalId && modalType === "detail"),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const activeProposalDetail = fetchedProposalDetail || selectedProposalForModal;
 
   // Merged Sent Requests (Combines PostgreSQL requests with any local store entries)
   const sentRequests = useMemo(() => {
@@ -331,7 +349,7 @@ export function ProposalsPage() {
     }
   };
 
-  const isLoading = loadingIncoming || loadingSent;
+  const isLoading = activeTab === "received" ? loadingIncoming : loadingSent;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col selection:bg-[#171F2C] selection:text-white">
@@ -351,36 +369,41 @@ export function ProposalsPage() {
                 </p>
               </div>
 
-              {/* KPI Strip */}
+              {/* Dynamic KPI Strip based on active tab */}
               <div className="flex items-center gap-3">
-                <div className="px-3.5 py-2 bg-white border border-[#E2E8F0] rounded-[4px] flex items-center gap-2.5 shadow-xs">
-                  <Inbox className="w-4 h-4 text-slate-500" />
-                  <span className="text-xs text-[#64748B] font-medium">Received Pending:</span>
-                  <span className="text-xs font-bold text-[#171F2C] font-mono">{pendingIncomingCount}</span>
-                </div>
-                <div className="px-3.5 py-2 bg-white border border-[#E2E8F0] rounded-[4px] flex items-center gap-2.5 shadow-xs">
-                  <Send className="w-4 h-4 text-slate-500" />
-                  <span className="text-xs text-[#64748B] font-medium">Sent In Motion:</span>
-                  <span className="text-xs font-bold text-[#171F2C] font-mono">{activeSentCount}</span>
-                </div>
+                {activeTab === "received" ? (
+                  <>
+                    <div className="px-3.5 py-2 bg-white border border-[#E2E8F0] rounded-[4px] flex items-center gap-2.5 shadow-xs">
+                      <Inbox className="w-4 h-4 text-slate-500" />
+                      <span className="text-xs text-[#64748B] font-medium">Total Received:</span>
+                      <span className="text-xs font-bold text-[#171F2C] font-mono">{incomingRequests.length}</span>
+                    </div>
+                    <div className="px-3.5 py-2 bg-white border border-[#E2E8F0] rounded-[4px] flex items-center gap-2.5 shadow-xs">
+                      <Clock className="w-4 h-4 text-amber-500" />
+                      <span className="text-xs text-[#64748B] font-medium">Awaiting Review:</span>
+                      <span className="text-xs font-bold text-[#171F2C] font-mono">{pendingIncomingCount}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="px-3.5 py-2 bg-white border border-[#E2E8F0] rounded-[4px] flex items-center gap-2.5 shadow-xs">
+                      <Send className="w-4 h-4 text-slate-500" />
+                      <span className="text-xs text-[#64748B] font-medium">Total Sent:</span>
+                      <span className="text-xs font-bold text-[#171F2C] font-mono">{sentRequests.length}</span>
+                    </div>
+                    <div className="px-3.5 py-2 bg-white border border-[#E2E8F0] rounded-[4px] flex items-center gap-2.5 shadow-xs">
+                      <Clock className="w-4 h-4 text-blue-500" />
+                      <span className="text-xs text-[#64748B] font-medium">In Motion:</span>
+                      <span className="text-xs font-bold text-[#171F2C] font-mono">{activeSentCount}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Filter Tabs & Search Bar */}
+            {/* Filter Tabs & Search Bar (Only Received and Sent tabs) */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
               <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-[4px] border border-[#E2E8F0] w-fit">
-                <button
-                  type="button"
-                  onClick={() => handleTabChange("all")}
-                  className={`px-4 py-1.5 rounded-[4px] text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === "all"
-                      ? "bg-[#171F2C] text-white shadow-xs"
-                      : "text-[#64748B] hover:text-[#171F2C]"
-                  }`}
-                >
-                  All Proposals
-                </button>
-
                 <button
                   type="button"
                   onClick={() => handleTabChange("received")}
@@ -451,7 +474,7 @@ export function ProposalsPage() {
             <div className="w-full py-20 flex flex-col items-center justify-center gap-3">
               <Loader2 className="w-6 h-6 animate-spin text-[#171F2C]" />
               <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
-                Loading Proposals Pipeline...
+                Loading {activeTab === "received" ? "Received" : "Sent"} Proposals...
               </span>
             </div>
           ) : (
@@ -459,15 +482,15 @@ export function ProposalsPage() {
               {/* ═══════════════════════════════════════════════════════════
                   SECTION 1: RECEIVED PROPOSALS / INBOUND PITCHES
                   ═══════════════════════════════════════════════════════════ */}
-              {(activeTab === "received" || activeTab === "all") && (
+              {activeTab === "received" && (
                 <section className="flex flex-col gap-4">
                   <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
                     <div className="flex items-center gap-2.5">
                       <h2 className="font-display text-lg font-bold text-[#171F2C]">
-                        Received on Your Listings
+                        Received Proposals
                       </h2>
                       <span className="px-2 py-0.5 rounded-[4px] bg-slate-100 border border-slate-200 text-[#171F2C] text-xs font-mono font-medium">
-                        {pendingIncomingCount} Awaiting Review
+                        {incomingRequests.length} Total • {pendingIncomingCount} Awaiting Review
                       </span>
                     </div>
                   </div>
@@ -565,7 +588,7 @@ export function ProposalsPage() {
                               )}
                             </div>
 
-                            {/* Actions */}
+                            {/* Actions for Received Proposals across all stages */}
                             <div className="pt-2 border-t border-[#E2E8F0] flex items-center gap-2">
                               {isPending ? (
                                 <>
@@ -601,6 +624,27 @@ export function ProposalsPage() {
                                     <Eye className="w-4 h-4" />
                                   </button>
                                 </>
+                              ) : isAccepted ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedProposalForModal(req);
+                                      setModalType("detail");
+                                    }}
+                                    className="flex-1 py-2 px-3 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    <span>View Details</span>
+                                  </button>
+                                  <Link
+                                    to="/my-relay"
+                                    className="flex-1 py-2 px-3 rounded-[4px] bg-[#171F2C] hover:bg-black text-white text-xs font-semibold transition-colors text-center inline-flex items-center justify-center gap-1"
+                                  >
+                                    <span>Exchange</span>
+                                    <ArrowRight className="w-3 h-3" />
+                                  </Link>
+                                </>
                               ) : (
                                 <button
                                   type="button"
@@ -626,7 +670,7 @@ export function ProposalsPage() {
               {/* ═══════════════════════════════════════════════════════════
                   SECTION 2: SENT PROPOSALS / OUTBOUND DISPATCHED
                   ═══════════════════════════════════════════════════════════ */}
-              {(activeTab === "sent" || activeTab === "all") && (
+              {activeTab === "sent" && (
                 <section className="flex flex-col gap-4">
                   <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
                     <div className="flex items-center gap-2.5">
@@ -780,17 +824,24 @@ export function ProposalsPage() {
               <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
                 Proposal Mandate
               </span>
-              {selectedProposalForModal && getStatusBadge(selectedProposalForModal.status)}
+              {activeProposalDetail && getStatusBadge(activeProposalDetail.status)}
             </div>
             <DialogTitle className="font-display font-bold text-lg text-[#171F2C]">
-              {selectedProposalForModal?.opportunity?.title || "Opportunity Proposal"}
+              {activeProposalDetail?.opportunity?.title || "Opportunity Proposal"}
             </DialogTitle>
             <DialogDescription className="text-xs text-[#64748B]">
-              Created {selectedProposalForModal ? formatDistance(selectedProposalForModal.created_at) : ""}
+              Created {activeProposalDetail ? formatDistance(activeProposalDetail.created_at) : ""}
             </DialogDescription>
           </DialogHeader>
 
-          {selectedProposalForModal && (
+          {loadingDetail ? (
+            <div className="py-12 flex flex-col items-center justify-center gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-[#171F2C]" />
+              <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
+                Loading Proposal Details...
+              </span>
+            </div>
+          ) : activeProposalDetail && (
             <div className="space-y-4 pt-2">
               <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-1">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold block">
@@ -798,9 +849,9 @@ export function ProposalsPage() {
                 </span>
                 <div className="flex items-center gap-1.5 font-semibold text-xs text-[#171F2C]">
                   <span>
-                    {selectedProposalForModal.requesting_business?.company_name ||
-                      selectedProposalForModal.opportunity?.business?.company_name ||
-                      selectedProposalForModal.opportunity?.company ||
+                    {activeProposalDetail.requesting_business?.company_name ||
+                      activeProposalDetail.opportunity?.business?.company_name ||
+                      activeProposalDetail.opportunity?.company ||
                       "Verified Syndicate"}
                   </span>
                   <span className="material-symbols-outlined text-[14px] text-[#059669]">
@@ -809,12 +860,28 @@ export function ProposalsPage() {
                 </div>
               </div>
 
+              {/* If accepted, show unlocked contact details */}
+              {activeProposalDetail.status === "accepted" &&
+                (activeProposalDetail.requesting_business?.contact_email ||
+                  activeProposalDetail.opportunity?.business?.contact_email) && (
+                  <div className="p-3 rounded-[4px] bg-emerald-50 border border-emerald-200 text-xs flex flex-col gap-1">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-800 font-semibold flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      Verified Direct Contact Email
+                    </span>
+                    <span className="font-mono text-emerald-900 font-semibold text-xs break-all">
+                      {activeProposalDetail.requesting_business?.contact_email ||
+                        activeProposalDetail.opportunity?.business?.contact_email}
+                    </span>
+                  </div>
+                )}
+
               <div className="space-y-1.5">
                 <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold block">
                   Full Proposal Pitch & Commercial Terms
                 </span>
                 <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] text-xs text-[#171F2C] leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
-                  {selectedProposalForModal.message || "No custom pitch provided."}
+                  {activeProposalDetail.message || "No custom pitch provided."}
                 </div>
               </div>
 

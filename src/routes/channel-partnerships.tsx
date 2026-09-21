@@ -1057,11 +1057,17 @@ export function ChannelPartnershipsPage() {
                     The Relay is an Opportunity Discovery Layer, Not PRM Software
                   </h2>
                   <p className="text-xs sm:text-[13px] text-[#64748B] leading-relaxed">
-                    The Relay is not a Partner Relationship Management (PRM) system. It is an
-                    opportunity exchange where businesses discover commercial requirements and
-                    qualified counterparties. Ongoing CRM integration, partner onboarding portals,
-                    training certification management, and incentive administration remain separate
-                    operational activities managed directly by the businesses.
+                    The Relay is not a Partner Relationship Management (PRM) system. It is a{' '}
+                    <Link
+                      to="/b2b-opportunity-exchange"
+                      className="text-[#171F2C] underline decoration-[#94A3B8] underline-offset-2 hover:decoration-[#171F2C] transition-colors"
+                    >
+                      B2B opportunity exchange
+                    </Link>{' '}
+                    where businesses discover commercial requirements and qualified counterparties.
+                    Ongoing CRM integration, partner onboarding portals, training certification
+                    management, and incentive administration remain separate operational activities
+                    managed directly by the businesses.
                   </p>
                 </div>
                 <div className="lg:col-span-4 p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-2 font-mono text-xs text-[#64748B]">

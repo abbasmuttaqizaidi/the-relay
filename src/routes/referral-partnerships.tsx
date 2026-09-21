@@ -32,7 +32,7 @@ import { createSeoMeta, SITE_URL } from "@/lib/seo";
 export const Route = createFileRoute("/referral-partnerships")({
   head: () =>
     createSeoMeta({
-      title: "B2B Referral Partnerships — Structure Referral Deals | The Relay",
+      title: "B2B Referral Partnerships | The Relay",
       description:
         "Learn how B2B referral partnerships work, what terms to define, and how businesses can structure referral relationships around real commercial opportunities on The Relay.",
       path: "/referral-partnerships",

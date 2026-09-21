@@ -193,7 +193,7 @@ export const Route = createFileRoute("/8-step-journey")({
     createSeoMeta({
       title: "How a B2B Opportunity Exchange Works | The Relay",
       description:
-        "Learn how a B2B opportunity exchange works through The Relay's 8-step workflow, from business verification and opportunity discovery to mutual interest, negotiation, agreement, and commercial connection.",
+        "Learn how a B2B opportunity exchange works through The Relay's 8-step workflow, from verification and discovery to interest, negotiation, agreement, and connection.",
       path: "/8-step-journey",
     }),
   component: EightStepJourneyPage,
@@ -280,7 +280,7 @@ export function EightStepJourneyPage() {
         url: `${SITE_URL}/8-step-journey`,
         name: "How a B2B Opportunity Exchange Works | The Relay",
         description:
-          "Learn how a B2B opportunity exchange works through The Relay's 8-step workflow, from business verification and opportunity discovery to mutual interest, negotiation, agreement, and commercial connection.",
+          "Learn how a B2B opportunity exchange works through The Relay's 8-step workflow, from verification and discovery to interest, negotiation, agreement, and connection.",
         breadcrumb: {
           "@id": `${SITE_URL}/8-step-journey#breadcrumb`,
         },

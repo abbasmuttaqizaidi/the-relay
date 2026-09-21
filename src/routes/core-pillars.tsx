@@ -23,9 +23,9 @@ import { createSeoMeta, SITE_URL } from "@/lib/seo";
 export const Route = createFileRoute("/core-pillars")({
   head: () =>
     createSeoMeta({
-      title: "B2B Opportunity Exchange Principles & Core Pillars | The Relay",
+      title: "B2B Opportunity Exchange Principles | The Relay",
       description:
-        "Explore the core principles behind The Relay's B2B opportunity exchange, including value exchange, mutual consent, commercial relationships, and a focused business network.",
+        "Explore the principles behind The Relay's B2B opportunity exchange, including value exchange, mutual consent, commercial relationships, and business focus.",
       path: "/core-pillars",
     }),
   component: CorePillarsPage,
@@ -77,9 +77,9 @@ export function CorePillarsPage() {
         "@type": "WebPage",
         "@id": `${SITE_URL}/core-pillars#webpage`,
         url: `${SITE_URL}/core-pillars`,
-        name: "B2B Opportunity Exchange Principles & Core Pillars | The Relay",
+        name: "B2B Opportunity Exchange Principles | The Relay",
         description:
-          "Explore the core principles behind The Relay's B2B opportunity exchange, including value exchange, mutual consent, commercial relationships, and a focused business network.",
+          "Explore the principles behind The Relay's B2B opportunity exchange, including value exchange, mutual consent, commercial relationships, and business focus.",
         breadcrumb: {
           "@id": `${SITE_URL}/core-pillars#breadcrumb`,
         },

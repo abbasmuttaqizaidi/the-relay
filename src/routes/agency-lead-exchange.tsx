@@ -38,7 +38,7 @@ import { createSeoMeta, SITE_URL } from "@/lib/seo";
 export const Route = createFileRoute("/agency-lead-exchange")({
   head: () =>
     createSeoMeta({
-      title: "Agency Lead Exchange — Exchange Out-of-Scope Leads | The Relay",
+      title: "Agency Lead Exchange | The Relay",
       description:
         "Exchange out-of-scope or unserviceable agency leads with businesses that can fulfil them. Discover and refer agency opportunities through The Relay.",
       path: "/agency-lead-exchange",
