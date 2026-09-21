@@ -876,34 +876,8 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
       };
     });
 
-    // Also include active opportunities created by this business that don't yet have active requests
-    const unattachedMyOpps = myOpps
-      .filter((opp) => !allCombinedRequestsWithWorkflow.some((r) => r.opportunity?.id === opp.id || r.opportunity_id === opp.id))
-      .map((opp): PipelineOpportunity => {
-        const dealCode = opp.opportunity_number
-          ? `RY-${String(opp.opportunity_number).padStart(4, "0")}`
-          : `RY-${opp.id?.substring(0, 4)?.toUpperCase() || "0000"}`;
-        return {
-          id: opp.id,
-          dealCode,
-          title: opp.title,
-          origin: "posted",
-          partner: "Awaiting Inbound Partner",
-          isVerified: business?.status === "approved",
-          isUnblinded: false,
-          stage: 1,
-          metricLabel1: "Category",
-          metricValue1: opp.category === "strategic_advice" ? "Strategic Advice" : (opp.category || "Partnership"),
-          metricLabel2: "Terms Type",
-          metricValue2: opp.offer_text || "Bilateral Exchange",
-          actionLabel: "View Listing",
-          actionType: "view",
-          rawRequest: { opportunity: opp },
-        };
-      });
-
-    return [...dynamicDeals, ...unattachedMyOpps];
-  }, [allCombinedRequestsWithWorkflow, myOpps, business?.id, business?.status]);
+    return dynamicDeals;
+  }, [allCombinedRequestsWithWorkflow, business?.id]);
 
   const postedPipelineCount = useMemo(() => allPipelineDeals.filter((d) => d.origin === "posted").length, [allPipelineDeals]);
   const requestedPipelineCount = useMemo(() => allPipelineDeals.filter((d) => d.origin === "requested").length, [allPipelineDeals]);
