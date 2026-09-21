@@ -1,439 +1,434 @@
 When designing the page use the color scheme present in color_scheme.md
 
-Checked the latest push. **`/agency-lead-exchange` is now finished.** The final version has the right agency-specific intent, crawlable FAQ, internal links, and no unsupported NCND/percentage/cryptographic claims.
+I checked the pushed code directly.
 
-Now we move to **Cluster 3 — Page 2: `/what-to-do-with-unqualified-leads`**.
+### Page 2 is now in good shape
 
-I also checked current search results for this query. The dominant informational intent is not “monetize every bad lead”; it is to **determine why a lead is unqualified, distinguish poor fit from temporary lack of readiness, and then decide whether to disqualify, nurture, recycle, or otherwise route it**. :chatgpt-content-reference{index="0"}
+`/what-to-do-with-unqualified-leads` now has the right search intent:
 
-That gives us a very important SEO distinction:
+**diagnose → decide → disqualify / nurture / recycle / refer / exchange**
 
-**`/what-to-do-with-unqualified-leads` = decision/process guide**  
-**`/how-to-monetize-unqualified-leads` = monetization guide**  
-**`/agency-lead-exchange` = agency commercial landing page**
+It is clearly differentiated from `/agency-lead-exchange`, which is exactly what we wanted.
+
+One important thing: the **next page still contains the old problematic monetization copy**, so we should not leave it as-is. The current `/how-to-monetize-unqualified-leads` still has fixed `5–15%` / `5–10%` figures, NCND claims, “Master NCND Protected,” conditional FAQ rendering, and legal-style language. I checked it directly in the repo.
+
+Current search results for this topic tend to frame monetization around **referral partnerships, routing unsuitable prospects to another provider, and creating commercial value from leads that do not fit the original business**. :chatgpt-content-reference{index="0"}
+
+So the next page should be:
+
+## `/how-to-monetize-unqualified-leads`
+
+This page should answer:
+
+> **“When can an unqualified lead have commercial value, and what are the legitimate ways to create that value?”**
+
+Not:
+
+> “Every unqualified lead can be monetized.”
 
 Send this to the agent:
 
-```text id="cluster3-page2"
+```text
 Rewrite ONLY:
-src/routes/what-to-do-with-unqualified-leads.tsx
+src/routes/how-to-monetize-unqualified-leads.tsx
 
-This is Cluster 3, informational page #2.
+This is Cluster 3 — informational/commercial page #3.
 
 PRIMARY SEARCH INTENT
 
 Target:
-what to do with unqualified leads
+how to monetize unqualified leads
 
 SECONDARY / SEMANTIC TERMS
 
-- what to do with unqualified leads
-- what to do with unqualified B2B leads
-- how to handle unqualified leads
-- unqualified lead management
-- unqualified B2B leads
-- lead qualification
-- lead disqualification
-- lead nurturing
-- lead recycling
-- out-of-scope leads
-- leads your business cannot fulfil
-- what to do with leads you cannot serve
+- how to monetize unqualified leads
+- monetize unqualified B2B leads
+- monetize out-of-scope leads
+- monetize leads your business cannot fulfil
+- monetize unserviceable leads
+- lead referral monetization
+- B2B lead referral
+- referral partnerships
+- commercial value from unqualified leads
+- monetize rejected leads
+- monetize unused leads
 
-Do NOT keyword stuff.
+CORE POSITIONING
 
-CORE PURPOSE OF THIS PAGE
+This page must explain WHEN an unqualified lead may have commercial value and HOW businesses can potentially create that value.
 
-This page must answer the practical question:
+Do NOT claim every unqualified lead can be monetized.
 
-"What should a business do when a lead does not qualify for its current sales or delivery process?"
+Make this distinction very clear:
 
-The answer should NOT be:
-"Send every unqualified lead to The Relay."
+A lead can be unqualified for one business while still representing a legitimate opportunity for another business.
 
-Instead, teach the reader to first determine WHY the lead is unqualified.
+Examples:
+- wrong service capability
+- wrong geography
+- insufficient delivery capacity
+- different specialization
+- commercial model mismatch
 
-The page should distinguish between:
+But:
+- spam
+- fake enquiries
+- impossible requirements
+- no genuine business intent
+- fundamentally poor-fit prospects
 
-1. Poor fit
-2. Not ready yet
-3. Missing information
-4. Outside current service capability
-5. Outside geography
-6. Capacity constraint
-7. Commercial mismatch
-8. No genuine buying intent
+may have little or no referral value.
 
-This distinction is central to the page.
+The page should therefore teach the reader to identify whether the opportunity is actually monetizable before discussing referral or exchange mechanisms.
 
 SEO METADATA
 
 Title:
-What To Do With Unqualified B2B Leads | The Relay
+How to Monetize Unqualified Leads | The Relay
 
 Meta description:
-Learn what to do with unqualified B2B leads, including when to disqualify, nurture, recycle, refer, or exchange opportunities your business cannot fulfil.
+Learn how to monetize suitable unqualified B2B leads through referrals, opportunity exchanges, and other agreed commercial arrangements without treating every lead as valuable.
 
 H1:
-What Should You Do With an Unqualified B2B Lead?
-
-Do NOT use a salesy H1.
+How to Monetize Unqualified B2B Leads
 
 SECTION 1 — HERO
 
 Eyebrow:
-B2B LEAD QUALIFICATION & ROUTING
+B2B LEAD MONETIZATION
 
 H1:
-What Should You Do With an Unqualified B2B Lead?
+How to Monetize Unqualified B2B Leads
 
 Opening copy:
 
-Explain that "unqualified" is not a single category.
+Explain that businesses spend time and money generating enquiries, but not every enquiry fits their current offer.
 
-A lead may be:
-- a poor fit for the business,
-- too early,
-- missing important information,
-- outside the company's service scope,
-- outside geographic coverage,
-- beyond available delivery capacity,
-- or simply not showing enough buying intent.
+Some are genuinely poor-fit leads.
 
-The correct next action depends on the reason.
+Others are legitimate opportunities that simply cannot be fulfilled by the current business.
 
-Important:
-Do not say that an unqualified lead is automatically worthless.
-Do not say that every unqualified lead can become qualified.
-Do not promise conversion.
+That second category may sometimes support:
+- a referral
+- a partner introduction
+- a reciprocal lead exchange
+- another mutually agreed commercial arrangement
 
-SECTION 2 — FIRST QUESTION: WHY IS THE LEAD UNQUALIFIED?
+Do NOT promise income.
 
-H2:
-Why Is the Lead Unqualified?
+Do NOT say:
+"Turn every unqualified lead into revenue."
 
-This should be the main conceptual section.
+Do NOT use:
+passive income
+predictable revenue
+guaranteed commission
+guaranteed monetization
+guaranteed conversion
 
-Explain:
+CTA:
+Explore B2B Lead Opportunities
 
-"Unqualified" should be treated as a disposition, not an explanation.
+Secondary:
+Post an Opportunity
 
-Create a clear framework:
-
-A. Fit problem
-The company, requirement, industry, geography, or use case does not match what you serve.
-
-Typical action:
-Disqualify or route elsewhere.
-
-B. Readiness problem
-The business could be a good fit, but timing, budget, internal priorities, or project readiness is not there yet.
-
-Typical action:
-Nurture or recycle.
-
-C. Information problem
-There is not enough information to determine whether the opportunity fits.
-
-Typical action:
-Ask follow-up questions.
-
-D. Capability problem
-The need is legitimate but outside your current technical/service capability.
-
-Typical action:
-Consider a specialist referral or opportunity exchange where appropriate.
-
-E. Capacity problem
-The business can fulfil the work but cannot take it on at the required time.
-
-Typical action:
-Consider a referral, later follow-up, or another delivery partner.
-
-F. Commercial problem
-The project does not fit the company's pricing, engagement model, minimum project size, or other commercial parameters.
-
-Typical action:
-Disqualify, renegotiate, or route to another provider if appropriate.
-
-SECTION 3 — DECISION FRAMEWORK
+SECTION 2 — THE MOST IMPORTANT DISTINCTION
 
 H2:
-What Should You Do With an Unqualified Lead?
+Not Every Unqualified Lead Is Monetizable
 
-Create a practical decision tree or 5-step framework:
+Explain the difference between:
 
-01 — Confirm the qualification failure
-Identify the actual reason rather than using "unqualified" as a catch-all.
+A. Poor-fit lead
+No realistic fit for the current business or another provider.
 
-02 — Decide whether the problem is permanent or temporary
-Poor fit may remain poor fit.
-Timing or missing information can change.
+B. Out-of-scope opportunity
+Legitimate business requirement, but outside the current company's capabilities.
 
-03 — Choose the appropriate disposition
-Possible outcomes:
-- disqualify
-- nurture
-- recycle
-- request more information
-- refer
-- exchange
+C. Temporary capacity mismatch
+Legitimate opportunity that the current company cannot handle at the required time.
 
-04 — Protect the prospect relationship
-Do not send the lead somewhere else simply to move it off your pipeline.
-The referral should make sense for the prospect.
+D. Specialist requirement
+A legitimate project requiring expertise the current business does not provide.
 
-05 — Record why the decision was made
-The reason should be clear enough that another team member understands the disposition later.
+E. Geographic mismatch
+A real opportunity outside the company's operational market.
 
-Do not invent CRM features or specific software workflows.
+Make clear:
+The latter categories are more likely to have referral/exchange potential than spam or fundamentally poor-fit enquiries.
 
-SECTION 4 — UNQUALIFIED DOES NOT ALWAYS MEAN BAD
+Link to:
+ /what-to-do-with-unqualified-leads
+
+SECTION 3 — WHEN CAN AN UNQUALIFIED LEAD HAVE COMMERCIAL VALUE?
 
 H2:
-Unqualified Does Not Always Mean a Bad Lead
+When Can an Unqualified Lead Have Commercial Value?
 
-This section is critical.
+Use practical criteria:
 
-Explain:
+1. Genuine business requirement
+2. Clear or sufficiently understood need
+3. Plausible provider fit
+4. The opportunity is still active
+5. Referral/exchange is appropriate
+6. Client information can be shared appropriately
+7. Commercial expectations are clear enough for both parties
 
-A lead can be:
-"good company + genuine need + wrong timing"
+Do NOT say "verified buyer intent" as an absolute requirement.
 
-versus:
-"wrong company + wrong use case + no realistic fit"
+Do NOT promise that another business will accept the opportunity.
 
-These two situations need different treatment.
-
-Introduce the concept:
-
-Fit failure vs readiness failure.
-
-This is useful because current B2B search content also emphasizes separating permanent fit failures from temporary readiness failures. :chatgpt-content-reference{index="1"}
-
-Do not copy external wording.
-
-SECTION 5 — WHEN TO DISQUALIFY
+SECTION 4 — WAYS TO CREATE COMMERCIAL VALUE
 
 H2:
-When Should You Disqualify a Lead?
+How Businesses Can Monetize Suitable Unqualified Leads
 
-Explain examples such as:
+Explain several models.
 
-- clearly outside ICP
-- incompatible service requirement
-- unsupported geography
-- unrealistic requirements
-- no legitimate business need
-- clear lack of authority or buying intent
-- commercial model fundamentally incompatible
+A. Referral Fee
+The referring company and receiving business agree on a referral fee.
 
-Be careful with budget:
-A lack of current budget can sometimes be a timing issue, not necessarily permanent disqualification.
+Do NOT provide unsupported percentage ranges.
 
-Explain that businesses should define their own qualification criteria.
+State:
+"The amount, trigger, duration, and payment terms should be agreed directly between the participating businesses."
 
-SECTION 6 — WHEN TO NURTURE OR RECYCLE
+B. Revenue Share
+A recurring commercial arrangement where both parties agree to share revenue arising from a referred relationship.
 
-H2:
-When Should You Nurture or Recycle a Lead?
+Again, no invented percentages.
 
-Cover situations such as:
+C. Reciprocal Lead Exchange
+Instead of cash, businesses may exchange suitable opportunities.
 
-- project timing is later
-- budget cycle has not opened
-- implementation is postponed
-- prospect needs education
-- business fits but the requirement is not active
-- decision process is incomplete
+D. Strategic Partnership
+A lead may become the starting point for a broader commercial relationship.
 
-Make it clear:
-Nurturing is appropriate when there is a plausible future fit.
+E. Specialist Referral
+A business routes an opportunity to a specialist provider whose services better match the requirement.
 
-Do not use unsupported percentage claims about nurture performance.
+Make it clear these arrangements depend on the businesses involved and are not guaranteed outcomes.
 
-SECTION 7 — WHEN TO REFER OR EXCHANGE
+SECTION 5 — REFERRAL VS LEAD SALE
 
 H2:
-When Should You Refer or Exchange an Unqualified Lead?
+Referral vs Selling a Lead
 
-This is where The Relay enters naturally.
+This is important.
 
-Explain:
-
-A referral or opportunity exchange can make sense when the lead is not a fit for YOUR business but may still represent a legitimate business requirement.
-
-Examples:
-- wrong technical specialization
-- wrong geography
-- insufficient delivery capacity
-- project outside normal service scope
-- specialist service your company does not provide
-
-But emphasize:
-
-A lead should not be referred merely because it is difficult.
-The opportunity should be sufficiently understood and there should be a plausible fit with the receiving business.
-
-Also explain the distinction:
+Explain the difference between:
 
 Referral:
-You already know a suitable counterpart and intentionally introduce the opportunity.
+A business introduces or routes a genuine opportunity to an appropriate provider.
 
-Opportunity exchange:
-You need to discover a potentially suitable business for the opportunity.
+Lead sale:
+A business sells access to lead information as an asset.
 
-This should internally link to:
-- /agency-lead-exchange
-- /b2b-lead-exchange
-- /how-to-exchange-business-leads
+Position Relay carefully:
+The Relay is an opportunity discovery/exchange environment, not a generic database for buying and selling personal contact information.
 
-SECTION 8 — WHAT NOT TO DO
+Do not make claims about personal-data laws unless necessary.
+Do not provide legal advice.
 
-H2:
-What Not to Do With Unqualified Leads
-
-Cover:
-
-1. Do not treat every unqualified lead as permanently dead.
-2. Do not keep genuinely poor-fit leads in active sales pipelines indefinitely.
-3. Do not send every rejected lead to another company without checking fit.
-4. Do not disclose unnecessary client information when exploring a referral.
-5. Do not describe a lead as qualified simply because another provider might accept it.
-6. Do not use "unqualified" as a substitute for documenting the actual reason.
-
-This gives the page useful practical depth rather than becoming an advertisement.
-
-SECTION 9 — PRACTICAL DISPOSITION MATRIX
+SECTION 6 — HOW TO DETERMINE WHETHER A LEAD IS WORTH REFERRING
 
 H2:
-Unqualified Lead Disposition Matrix
+How to Evaluate a Lead Before Trying to Monetize It
 
-Create a clean table/card structure:
+Create a framework:
 
-Situation | Appropriate next step
+01 — Understand the actual need
+02 — Confirm it is still active
+03 — Identify why your business cannot serve it
+04 — Identify the capabilities required
+05 — Determine whether another provider could plausibly fit
+06 — Remove unnecessary sensitive/client-identifying information
+07 — Decide whether referral or exchange is appropriate
+08 — Agree commercial terms before proceeding where necessary
 
-Poor ICP fit | Disqualify
-Wrong geography | Disqualify or refer
-Wrong service capability | Refer/exchange
-Temporary capacity shortage | Refer, recycle, or revisit
-Wrong timing | Nurture/recycle
-Missing information | Follow up
-Commercial mismatch | Disqualify or renegotiate
-Unclear buying intent | Qualify further or nurture
-Legitimate opportunity but outside scope | Consider referral/exchange
+Emphasize that monetization comes AFTER suitability assessment.
 
-Be careful:
-These are practical examples, not universal rules.
-
-Use wording like "may be appropriate."
-
-SECTION 10 — HOW THE RELAY FITS
+SECTION 7 — HOW REFERRAL VALUE IS STRUCTURED
 
 H2:
-Where The Relay Fits When You Cannot Fulfil a Lead
+What Should a Lead Referral Arrangement Define?
 
-Position The Relay as one possible path, not the answer to every unqualified lead.
+Explain that participating businesses may want to clarify:
+
+- what constitutes a referral
+- who owns the client relationship
+- introduction process
+- attribution period
+- payment trigger
+- payment timing
+- scope of the arrangement
+- what happens if the opportunity does not close
+- what information can be disclosed
+- how the relationship can be terminated
+
+Do NOT claim these terms are legally enforceable through Relay.
+
+Do NOT use NCND.
+
+Do NOT imply The Relay automatically enforces these terms.
+
+State that businesses should document and agree their own commercial arrangements.
+
+SECTION 8 — HOW THE RELAY FITS
+
+H2:
+Where The Relay Fits in Lead Monetization
+
+Position Relay as:
+
+- opportunity discovery
+- counterpart discovery
+- structured opportunity presentation
+- interest signalling
+- commercial relationship discovery
 
 Explain:
 
-The Relay can be relevant when:
-- the underlying opportunity appears legitimate,
-- the current business cannot fulfil it,
-- another business may have a better capability fit,
-- the opportunity can be described without unnecessary confidential information,
-- and the relevant parties are comfortable progressing the opportunity.
+A business can post an opportunity it cannot fulfil.
+Other businesses can discover it.
+Interested businesses can assess the requirement.
+The participating companies can then explore their own referral or commercial arrangement.
 
-The Relay provides opportunity discovery and structured counterpart discovery.
+The Relay does NOT guarantee:
+- a buyer
+- a referral partner
+- a payout
+- a commission
+- a closed deal
+- successful fulfilment
 
-The Relay does NOT:
-- determine whether every lead is qualified,
-- guarantee that an opportunity will be accepted,
-- guarantee a referral fee,
-- guarantee a sale,
-- fulfil the project,
-- replace CRM or sales qualification,
-- replace the businesses' own client consent and commercial decisions.
+The Relay does NOT replace:
+- CRM qualification
+- legal agreements
+- client consent
+- commercial negotiation
 
 Internal links:
-- /agency-lead-exchange
 - /b2b-lead-exchange
-- /how-to-monetize-unqualified-leads
+- /what-to-do-with-unqualified-leads
+- /agency-lead-exchange
 - /how-to-exchange-business-leads
 - /b2b-opportunity-exchange
 - /8-step-journey
 
-SECTION 11 — ILLUSTRATIVE EXAMPLES
+SECTION 9 — EXAMPLES
 
 H2:
-Examples of What to Do With Unqualified Leads
+Examples of Monetizing Suitable Unqualified Leads
 
-Use 5 hypothetical examples:
+Use 5 clearly hypothetical examples.
 
 Example 1:
-A software company receives a lead from an industry it does not support.
-→ Disqualify or refer depending on fit.
+A web agency gets a legitimate mobile-app requirement outside its technical capability.
+→ Could refer it to a specialist agency under an agreed arrangement.
 
 Example 2:
-A consulting firm receives a genuine enterprise requirement but lacks delivery capacity this quarter.
-→ Consider referral, exchange, or later follow-up.
+A consulting firm receives a project outside its geography.
+→ Could introduce a suitable regional provider.
 
 Example 3:
-A prospect fits the ICP but the project is delayed until next quarter.
-→ Nurture/recycle.
+A SaaS company receives a requirement for implementation services it does not provide.
+→ Could explore a specialist implementation partner.
 
 Example 4:
-An enquiry lacks enough detail to understand whether the company can help.
-→ Ask clarifying questions.
+An agency cannot take on a legitimate project because of current capacity.
+→ Could refer or exchange the opportunity.
 
 Example 5:
-An agency receives a legitimate project outside its technical specialization.
-→ Consider a specialist referral or opportunity exchange.
+A business receives a spam enquiry.
+→ Not a monetization opportunity; discard/disqualify appropriately.
 
-Label them:
-"Illustrative example"
+Clearly label:
+"Illustrative examples"
 
-Do NOT fabricate customer stories.
-Do NOT use fake company names.
-Do NOT use exact revenue figures.
-Do NOT use percentage claims.
+No fake companies.
+No fake statistics.
+No fake revenue.
+No invented commission figures.
+
+SECTION 10 — COMMON MISTAKES
+
+H2:
+Common Mistakes When Trying to Monetize Unqualified Leads
+
+Cover:
+
+- treating every unqualified lead as valuable
+- referring leads without checking fit
+- confusing low quality with out-of-scope
+- sharing too much client information too early
+- failing to agree referral attribution
+- focusing on monetization before client experience
+- assuming another provider will accept the lead
+- promising revenue before the receiving business agrees
+
+SECTION 11 — DECISION MATRIX
+
+H2:
+Should You Monetize, Refer, Nurture, or Disqualify?
+
+Create a table:
+
+Situation | Possible action
+
+Poor-fit prospect | Disqualify
+Spam/fake enquiry | Disqualify
+Missing information | Qualify further
+Good fit, not ready | Nurture/recycle
+Good opportunity, wrong service | Refer/exchange
+Good opportunity, wrong geography | Refer/exchange
+Good opportunity, temporary capacity issue | Refer/exchange/revisit
+Specialist requirement | Refer/exchange
+Commercial mismatch | Disqualify, renegotiate, or refer depending on context
+
+Make clear that these are examples, not universal rules.
 
 SECTION 12 — FAQ
 
 H2:
-Unqualified B2B Lead FAQ
+How to Monetize Unqualified Leads FAQ
 
-At least 8 questions:
+At least 9 questions:
 
-1. What is an unqualified B2B lead?
-2. Does unqualified mean the lead is bad?
-3. What should you do with an unqualified lead?
-4. Should unqualified leads be deleted?
-5. When should you nurture an unqualified lead?
-6. When should you refer an unqualified lead?
-7. What is the difference between an unqualified lead and an out-of-scope lead?
-8. Can you exchange a lead that your business cannot fulfil?
-9. How should businesses protect client information when referring an opportunity?
+1. Can every unqualified lead be monetized?
+2. What makes an unqualified lead worth referring?
+3. What is the difference between an unqualified lead and an out-of-scope opportunity?
+4. How can businesses monetize leads they cannot fulfil?
+5. What is a referral fee?
+6. What is revenue sharing in a lead referral?
+7. Should referral terms be agreed before making an introduction?
+8. Is selling a lead the same as referring a lead?
+9. Does The Relay guarantee payment or commissions?
+10. Does The Relay fulfil the referred opportunity?
 
-FAQ answers MUST ALWAYS be present in the DOM.
+FAQ ANSWERS MUST ALWAYS BE RENDERED IN THE DOM.
 
-Use visual accordion behavior with CSS/display state only.
+Use CSS/display state for accordion behavior.
 
-Do NOT render answers conditionally with:
-{isOpen && ...}
+Do NOT use:
+{isOpen && (...)}
 
-If FAQPage JSON-LD exists, keep it aligned exactly with the visible FAQ content.
+If FAQPage schema is included:
+- FAQ questions must exactly match visible questions
+- answers must exactly match visible answers
 
 SECTION 13 — FINAL CTA
 
 H2:
 Have a Lead Your Business Cannot Fulfil?
 
-Copy:
+Copy should say:
 
-Some leads should be disqualified. Some should be nurtured. Others may represent legitimate opportunities that simply fall outside your current capabilities.
+Some unqualified leads have no meaningful next step.
+Others represent legitimate opportunities that simply do not fit your current capabilities.
 
-For those situations, The Relay provides a structured way to explore potential business-to-business opportunities.
+When there is a plausible business fit elsewhere, referral or opportunity exchange may create commercial value for both sides.
 
 CTA:
 Explore B2B Lead Opportunities
@@ -444,63 +439,75 @@ Learn How to Exchange Business Leads
 TECHNICAL REQUIREMENTS
 
 Keep:
-- current TanStack route
+- TanStack route
 - createSeoMeta
-- canonical path
+- canonical URL
 - current visual design system
-- responsive layout
-- structured data pattern
+- responsive design
+- structured data
 
 Use:
 WebPage
 BreadcrumbList
-FAQPage where appropriate
+FAQPage if appropriate
 
-IMPORTANT CLAIM RULES
+REMOVE ALL OLD UNSUPPORTED CONTENT
 
-Remove all current claims involving:
+Completely remove:
+- 5%–15% referral fees
+- 5%–10% revenue share
+- 12–24 month commission claims
 - Master NCND
-- guaranteed confidentiality
-- guaranteed revenue
-- fixed referral percentages
+- NCND Protected
+- cryptographic/protocol protection
+- legal attribution guarantees
+- "binding commercial alignment"
 - guaranteed monetization
-- guaranteed conversion
-- guaranteed client protection
-- legally enforceable Relay agreements
-- cryptographic handshakes
-- guaranteed quality standards
+- guaranteed revenue
+- guaranteed payouts
+- fixed commission claims
+- "zero risk"
+- "predictable revenue"
+- "passive revenue"
 
-Do not invent statistics.
+Do not introduce replacement numerical claims.
 
-Do not claim:
-"X% of leads..."
-unless a reliable source is explicitly cited and the statistic is genuinely necessary.
-
-FINAL CANNIBALIZATION CHECK
+IMPORTANT CANNIBALIZATION RULE
 
 This page owns:
-"what should I do with an unqualified lead?"
+"How can a business create commercial value from a suitable unqualified/out-of-scope lead?"
 
-It must NOT become primarily:
-- an agency lead exchange landing page
-- a monetization guide
-- a generic how-to-exchange-leads guide
-
-Keep these distinctions:
-
-/agency-lead-exchange
-= agencies exchanging out-of-scope opportunities
+It must NOT become:
 
 /what-to-do-with-unqualified-leads
-= decision framework for handling unqualified leads
+= what should I do with an unqualified lead?
 
-/how-to-monetize-unqualified-leads
-= how commercial value may be created from suitable unfulfilled opportunities
+/agency-lead-exchange
+= agency-specific opportunity exchange
 
 /how-to-exchange-business-leads
-= mechanics/process of exchanging business leads
+= mechanics of exchanging leads
+
+/b2b-lead-exchange
+= core product/category landing page
+
+Make the monetization angle the defining purpose of this page.
+
+FINAL QA
+
+Before pushing:
+1. Primary keyword is in title.
+2. Primary keyword appears naturally in H1 and opening section.
+3. Page clearly distinguishes poor-fit leads from commercially useful out-of-scope opportunities.
+4. No invented financial percentages.
+5. No unsupported legal/security claims.
+6. FAQ answers remain in DOM.
+7. Internal links to all relevant Cluster 3 pages exist.
+8. The Relay is presented as an opportunity discovery/exchange layer, not a guaranteed lead-buying marketplace.
+9. No fake case studies/statistics.
+10. Page remains genuinely useful even without mentioning The Relay.
 
 Push the completed file.
 ```
 
-The key change here is conceptual: **we don't want “unqualified = monetize.”** We want **“unqualified = diagnose the reason → choose the appropriate disposition → referral/exchange is one possible outcome.”** That matches the actual informational intent much better. :chatgpt-content-reference{index="2"}
+This is the right next move because the current page's concept is sound, but the old implementation is mixing **education, financial claims, and unsupported contractual guarantees**. The rewrite should preserve the commercially interesting topic while making the actual search answer much more credible. Current web results show referral partnerships are indeed a common way businesses describe monetizing leads that fall outside their normal service scope. :chatgpt-content-reference{index="1"}
