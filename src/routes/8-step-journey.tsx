@@ -191,9 +191,9 @@ const STEPS_DATA: StepData[] = [
 export const Route = createFileRoute("/8-step-journey")({
   head: () =>
     createSeoMeta({
-      title: "How a B2B Opportunity Exchange Works — The Relay",
+      title: "How a B2B Opportunity Exchange Works | The Relay",
       description:
-        "Learn how The Relay's B2B opportunity exchange works, from business verification and opportunity discovery through mutual interest, negotiation, agreement, and the final commercial handshake.",
+        "Learn how a B2B opportunity exchange works through The Relay's 8-step workflow, from business verification and opportunity discovery to mutual interest, negotiation, agreement, and commercial connection.",
       path: "/8-step-journey",
     }),
   component: EightStepJourneyPage,
@@ -278,9 +278,9 @@ export function EightStepJourneyPage() {
         "@type": "WebPage",
         "@id": `${SITE_URL}/8-step-journey#webpage`,
         url: `${SITE_URL}/8-step-journey`,
-        name: "How a B2B Opportunity Exchange Works — The Relay",
+        name: "How a B2B Opportunity Exchange Works | The Relay",
         description:
-          "Learn how The Relay's B2B opportunity exchange works, from business verification and opportunity discovery through mutual interest, negotiation, agreement, and the final commercial handshake.",
+          "Learn how a B2B opportunity exchange works through The Relay's 8-step workflow, from business verification and opportunity discovery to mutual interest, negotiation, agreement, and commercial connection.",
         breadcrumb: {
           "@id": `${SITE_URL}/8-step-journey#breadcrumb`,
         },
@@ -360,14 +360,14 @@ export function EightStepJourneyPage() {
               From commercial opportunity to handshake — without the noise.
             </p>
             <p className="text-sm sm:text-base text-[#64748B] max-w-3xl leading-relaxed">
-              Step through the 8 stages of our consent-driven{" "}
+              Learn how a B2B opportunity exchange works step-by-step through our consent-driven{" "}
               <Link
                 to="/b2b-opportunity-exchange"
                 className="text-[#171F2C] underline underline-offset-2 hover:text-[#000000] font-medium"
               >
                 B2B opportunity exchange workflow
               </Link>
-              . The 8-step B2B opportunity exchange process gives verified enterprises complete control at every milestone without premature identity exposure, data leakage, or unsolicited cold outreach.
+              . Whether managing a B2B lead exchange process or initiating a strategic B2B partnership process, this 8-step framework gives verified enterprises complete control at every milestone without premature identity exposure, data leakage, or unsolicited cold outreach.
             </p>
 
             {/* Introductory SEO Context Box */}
