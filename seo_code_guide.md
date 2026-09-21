@@ -1,507 +1,606 @@
 When designing the page use the color scheme present in color_scheme.md
 
 
-I reviewed the current Relay page in the repo and researched the current SERP around “B2B lead exchange,” “lead exchange,” and related lead-sharing queries. The search landscape is much clearer here than it was for “B2B opportunity exchange.”
 
-Current results commonly fall into two buckets: lead buyers/sellers exchanging leads as a marketplace, and businesses passing leads they cannot service to another business that can. :chatgpt-content-reference{index="0"}
+# `/b2b-referral-network`
 
-**Relay should own the second concept**, while still being explicit that it is broader than a traditional lead marketplace.
+I reviewed the **current implementation in the repo** and the current search landscape around “B2B referral network,” “business referral network,” and “find referral partners.”
 
-## SEO target for `/b2b-lead-exchange`
+The SERP is notably different from lead exchange. The dominant intent is **finding/building complementary referral relationships**, not exchanging individual leads. BNI, newer referral platforms, and B2B partnership guides all frame referral networks around complementary businesses, trusted introductions, and recurring relationships. :chatgpt-content-reference{index="0"}
 
-**Primary keyword**
+That gives us a clean boundary:
 
-`B2B lead exchange`
+> **Opportunity exchange = the broad commercial opportunity layer**  
+> **Lead exchange = a specific opportunity/lead use case**  
+> **Referral network = the ongoing relationship between businesses**
 
-**Secondary terms**
-
-`lead exchange`  
-`B2B lead sharing`  
-`business lead exchange`  
-`exchange business leads`  
-`unqualified leads`  
-`unserviceable leads`  
-`out-of-scope leads`  
-`B2B lead referrals`  
-`referral leads`  
-`lead referral network`
-
-**Search intent**
-
-Commercial + problem-solving.
-
-The strongest problem statement is:
-
-> **“I have a legitimate business lead that my company cannot fulfil. What can I do with it?”**
-
-That is much closer to Relay's actual product than positioning the page as a generic place to buy leads.
+That distinction is important for SEO.
 
 ---
 
-# What I would change from the current page
+# 1. Keyword strategy
 
-The current implementation has several claims I would remove or soften.
+### Primary keyword
 
-For example, it currently says things such as:
+**B2B referral network**
 
-- “Cryptographic Consent”
-- “Master NCND Protection”
-- “Every participant is bound by enterprise non-circumvention rules”
-- “legally binding”
-- “verified executive credentials”
-- specific 6–24 month revenue-share structures
+### Secondary keywords
 
-Those are **too specific unless the product/legal system actually enforces them today**.
+`business referral network`  
+`B2B referral partners`  
+`find referral partners`  
+`B2B referral partnerships`  
+`business referral partners`  
+`referral network for businesses`  
+`B2B referrals`  
+`business referral program`  
+`find B2B partners`  
+`business networking referrals`
 
-We shouldn't manufacture an impressive-looking security/commercial framework for SEO.
+### Long-tail opportunities
 
-Likewise, phrases like “monetize every unserviceable lead” create an implied outcome guarantee. We should describe the mechanism without promising the result.
+`how to find B2B referral partners`  
+`how to build a B2B referral network`  
+`how businesses get referrals from partners`  
+`how to create referral partnerships`
+
+Those last informational queries should primarily belong to:
+
+`/how-to-find-b2b-referral-partners`
+
+So **we mention the concepts here but don't turn this page into a 3,000-word “how to build a referral network” guide.**
 
 ---
 
-# Recommended title
+# 2. What is wrong with the current page
 
-**B2B Lead Exchange — Exchange Leads Your Business Can't Fulfil | The Relay**
+The current route has some good structure, but it overstates several things.
+
+For example, it currently claims:
+
+> “10% Rev Share”
+
+and talks about:
+
+> “Master NCND protection”  
+> “binding legal covenants”  
+> “cryptographic gated disclosure”  
+> “KYB verification and LEI entity attribution”
+
+Those are exactly the kinds of claims I don't want us building SEO copy around unless they're **actually implemented, documented and legally accurate**.
+
+Also, phrases like:
+
+> “High conversion probability”  
+> “Predictable organic pipeline”  
+> “Zero reputational risk”
+
+are outcome claims that we can't substantiate.
+
+The new page should be **more credible and more commercially useful**.
+
+---
+
+# 3. SEO package
+
+### Title
+
+**B2B Referral Network — Find Referral Partners | The Relay**
+
+Your current title is already good.
 
 ### Meta description
 
-**Exchange B2B leads your business cannot fulfil with businesses that can. Discover a structured way to share referrals, out-of-scope opportunities and commercial leads.**
+**Find and build B2B referral partnerships with businesses that serve complementary customers. Discover referral opportunities and exchange qualified business introductions on The Relay.**
 
 ### H1
 
-**Exchange the B2B Leads Your Business Can't Fulfil**
+**Find B2B Referral Partners That Complement Your Business**
 
-That is stronger than making the H1 simply:
-
-> B2B Lead Exchange
-
-because the phrase immediately communicates the problem Relay solves.
+This gives us the primary keyword context while immediately matching commercial intent.
 
 ---
 
-# Page copy
+# 4. Recommended page copy
 
 ## Hero
 
-### Exchange the B2B Leads Your Business Can't Fulfil
+### Find B2B Referral Partners That Complement Your Business
 
-Not every lead is the right lead for your business.
+The best referral relationships are often between businesses that serve the same customers but solve different problems.
 
-A prospect may need a service you don't offer. A project may fall outside your capabilities. The customer may be in a market you don't serve. Or your team may simply not have the capacity to take it on.
+A software company may need an implementation partner. An agency may need a specialist developer. A consultant may regularly meet clients who need services outside their expertise.
 
-**Instead of letting that opportunity disappear, The Relay gives you a structured way to exchange it with another business that may be able to act on it.**
+**The Relay gives businesses a structured place to discover complementary companies and build referral relationships around real opportunities.**
 
-**Post a Lead**  
-**Explore Opportunities**
+**Explore Referral Opportunities**  
+**Post an Opportunity**
 
-Small supporting line:
+Supporting line:
 
-> Share relevant context. Find interested businesses. Decide whether the opportunity should move forward.
-
----
-
-# What is a B2B lead exchange?
-
-A **B2B lead exchange** is a system that helps businesses share leads or commercial enquiries with other businesses that may be better positioned to pursue them.
-
-This can happen when a lead falls outside a company's:
-
-- service offering
-- geographic coverage
-- technical capability
-- target market
-- current capacity
-
-Instead of simply rejecting the enquiry, the business can look for a relevant counterpart.
-
-That is the basic idea behind a lead exchange.
+> Find relevant businesses. Exchange opportunities. Build relationships that make commercial sense.
 
 ---
 
-# Why businesses have leads they cannot fulfil
+# What is a B2B referral network?
 
-A lead can be genuine and valuable without being right for your business.
+A **B2B referral network** connects businesses that can refer relevant customers, prospects or commercial opportunities to one another.
 
-### Service mismatch
+The strongest relationships are usually complementary rather than competitive.
 
-A prospect needs a capability your company doesn't provide.
+Two businesses may serve the same customer type while offering different services. That creates an opportunity for both sides to introduce work that fits the other business.
 
-### Geography mismatch
+For example:
 
-The customer is outside your operating market.
+**A web development company** may refer branding work.
 
-### Capacity mismatch
+**A branding agency** may refer software development work.
 
-Your team could fulfil the work, but not within the required timeline.
+**A tax advisor** may refer legal or financial services.
 
-### Industry mismatch
+**A SaaS vendor** may refer implementation or integration work.
 
-The opportunity requires specialist experience outside your normal client base.
+The relationship works because each business encounters needs the other business can address.
 
-### Commercial mismatch
-
-The opportunity is real, but the required engagement doesn't fit your current business model.
-
-In each case, the lead does not necessarily have to become a dead end.
+This complementary model is a common foundation of business referral networks. :chatgpt-content-reference{index="1"}
 
 ---
 
-# What can you do with a lead you cannot fulfil?
+# Why build a referral network?
 
-There are several possible outcomes.
+A referral relationship can solve a simple problem:
 
-You can refer the opportunity to a complementary business.
+**Your customers don't only need what you sell.**
 
-You can look for a specialist who can fulfil a part of the requirement.
+A customer might need several services across their business lifecycle.
 
-You can explore a partnership around the customer need.
+You may provide one part of that solution while another company provides another.
 
-Or you can simply decline the opportunity when no suitable counterpart exists.
+Instead of treating that additional need as someone else's problem, you can develop a relationship with a business that can help.
 
-**The Relay creates another option: put the opportunity in front of businesses that may be able to use it.**
+Over time, the relationship can work in both directions.
 
----
+You refer relevant opportunities to them.
 
-# How the Relay lead exchange works
-
-### 01 — Describe the opportunity
-
-Provide the relevant business context and explain what the prospect needs.
-
-### 02 — Define what kind of business fits
-
-Identify the capability, service, market or partner profile that would be relevant.
-
-### 03 — Publish the opportunity
-
-The opportunity becomes discoverable by businesses looking for relevant commercial opportunities.
-
-### 04 — Businesses express interest
-
-A business that believes it can help can indicate interest.
-
-### 05 — Discuss the opportunity
-
-The parties can evaluate fit and determine how they want to proceed.
-
-### 06 — Make the introduction
-
-The originating and receiving businesses decide whether to move forward with the relationship.
-
-The Relay provides the exchange mechanism. **The participating businesses determine the commercial arrangement.**
+They refer relevant opportunities to you.
 
 ---
 
-# Lead exchange is not the same as buying lead lists
+# What makes a good referral partner?
 
-This distinction is important.
+A good referral partner isn't simply another business that wants more leads.
 
-A traditional lead marketplace can involve buyers purchasing leads according to criteria such as industry, geography, volume or pricing. Some current lead-exchange services explicitly operate around buyers and sellers of leads. :chatgpt-content-reference{index="1"}
+The relationship usually works better when the businesses have:
 
-The Relay is built around a different starting point:
+### Complementary services
 
-**A business already has a commercial opportunity.**
+You solve different problems for the same or similar buyers.
 
-The question is:
+### Customer overlap
 
-> **Who else could legitimately pursue it?**
+Both businesses encounter the same kinds of companies or decision-makers.
 
-That makes Relay closer to a structured **B2B lead-sharing and referral environment** than a generic lead-list marketplace.
+### Clear referral situations
 
----
+You can identify situations where one business naturally needs the other.
 
-# Common B2B lead exchange scenarios
+### Reasonable commercial alignment
 
-## An agency gets a project outside its services
+Both sides understand how introductions, referrals or commercial arrangements will work.
 
-A web agency receives a qualified request for a service it doesn't provide.
+### Confidence in delivery
 
-Rather than simply turning the prospect away, the agency can look for a complementary business that can handle the requirement.
+You are comfortable putting another business in front of your customer.
 
-**Possible outcome:** referral or partnership.
+The goal isn't to collect hundreds of contacts.
 
----
-
-## A software company receives an implementation request
-
-A software vendor has a customer that needs implementation or integration expertise beyond its internal team.
-
-The vendor can look for a specialist capable of handling the requirement.
-
-**Possible outcome:** implementation partnership.
+**It's to find businesses you have a genuine reason to refer to.**
 
 ---
 
-## A consultant receives a request outside their specialty
+# Examples of complementary B2B referral partners
 
-A client asks for a service that sits outside the consultant's area of expertise.
+## Agency + software company
 
-The consultant can look for another specialist while preserving the possibility of a useful client relationship.
+A creative agency wins a project requiring custom software development.
 
-**Possible outcome:** referral relationship.
+A software company can fulfil the technical work.
 
----
+The agency provides the creative relationship.
 
-## A business receives a lead outside its geography
-
-A company receives an enquiry from a market it doesn't currently serve.
-
-Instead of discarding it, the company can look for an appropriate regional counterpart.
-
-**Possible outcome:** regional referral or channel relationship.
+Both businesses serve the same client without providing the exact same service.
 
 ---
 
-# What makes a lead worth exchanging?
+## Consultant + specialist provider
 
-Not every enquiry makes sense as an exchange opportunity.
+A business consultant identifies a customer that needs specialist compliance support.
 
-A useful B2B lead generally has:
+A specialist provider can take the requirement.
 
-### A real business need
-
-There is an identifiable requirement rather than generic interest.
-
-### A clear fit
-
-Another business could reasonably provide the required service or capability.
-
-### Enough context
-
-A potential counterpart can understand the opportunity before deciding whether to pursue it.
-
-### Commercial relevance
-
-There is a plausible referral, service, partnership or other business relationship involved.
-
-The goal isn't to pass around every contact you receive.
-
-**It's to surface opportunities that another business can realistically act on.**
+The consultant can refer the opportunity rather than attempting work outside their expertise.
 
 ---
 
-# For businesses that generate leads
+## SaaS company + implementation partner
 
-The Relay can help businesses that regularly receive enquiries outside their normal scope.
+A software company sells the product but doesn't provide every implementation service customers may need.
 
-That includes:
+An implementation or integration specialist can fill that gap.
 
-**Agencies**  
-Receive projects you cannot fulfil.
-
-**Consultancies**  
-Encounter specialist requirements outside your expertise.
-
-**Software companies**  
-Need implementation, integration, migration or specialist partners.
-
-**Professional services firms**  
-Receive requests outside your practice area.
-
-**B2B service providers**  
-Generate demand in geographies or industries you don't currently cover.
-
-The underlying problem is the same:
-
-> **You generated the opportunity, but you're not the right business to fulfil it.**
+The two businesses can establish a referral relationship around that recurring need.
 
 ---
 
-# For businesses looking for leads
+## Regional business + local partner
 
-Lead exchange also works from the other side.
+A company receives an enquiry from a geographic market it doesn't currently serve.
 
-Instead of only asking:
+A suitable regional partner may already operate there.
 
-> “How do I generate more leads?”
-
-a business can ask:
-
-> **“Which leads already exist that match what we do?”**
-
-That can create a different acquisition channel built around opportunities originating from other businesses.
-
-Businesses can discover opportunities based on their capabilities and decide which ones are worth pursuing.
+The relationship can create a path for the opportunity without requiring the original business to build an entirely new local operation.
 
 ---
 
-# Why exchange leads instead of simply rejecting them?
+# Referral network vs lead exchange
 
-Because a lead can be commercially relevant even when it isn't operationally relevant **to your company**.
+These concepts are closely connected, but they're not identical.
 
-Rejecting an opportunity may be the correct decision.
+### B2B lead exchange
 
-But sometimes the better outcome is to find a business that can actually serve the need.
+The focus is an **individual opportunity**.
 
-That's where a structured lead exchange can be useful.
+> “I received this lead and need another business that can pursue it.”
+
+### B2B referral network
+
+The focus is the **relationship between businesses**.
+
+> “We serve similar customers and can regularly refer relevant opportunities to each other.”
+
+The Relay supports both.
+
+That's why:
+
+**Lead exchange** and **referral network** are separate parts of the broader Relay opportunity ecosystem.
+
+Link:
+
+**Explore the B2B Lead Exchange →**
 
 ---
 
-# B2B lead exchange vs referral network
+# How a B2B referral relationship can work on Relay
 
-These are related, but they aren't identical.
+### 01 — Identify the opportunity
 
-A **lead exchange** focuses on the opportunity itself:
+A business posts or discovers a commercial opportunity.
 
-> “I have an opportunity I cannot fulfil.”
+### 02 — Determine the right capability
 
-A **referral network** focuses more on the ongoing relationship between businesses:
+The business identifies what type of company could help.
 
-> “We regularly refer relevant opportunities to each other.”
+### 03 — Find a relevant business
 
-That's why Relay should link this page to:
+Another business with complementary capabilities discovers the opportunity.
 
-`/b2b-referral-network`
+### 04 — Express interest
 
-rather than trying to make this page rank for every referral-related query.
+The potential referral partner indicates that the opportunity may fit.
+
+### 05 — Discuss the relationship
+
+Both sides discuss the opportunity and how they want to work together.
+
+### 06 — Agree on the next step
+
+The businesses decide whether to make an introduction, collaborate, refer the opportunity or pursue another arrangement.
+
+The Relay facilitates the connection.
+
+**The businesses decide the relationship.**
+
+---
+
+# What referral networks are not
+
+A referral network doesn't need to be a giant directory.
+
+It doesn't have to mean:
+
+- collecting thousands of business cards
+- sending random introductions
+- asking everyone for referrals
+- joining endless networking groups
+- accepting every business as a "partner"
+
+The value comes from **relevance and trust**, not network size.
+
+BNI, for example, structures referral networking around ongoing relationships between members and professions, while newer digital referral networks are experimenting with online matching and tracked introductions. :chatgpt-content-reference{index="2"}
+
+Relay's approach is to put the **commercial opportunity itself** at the center of the interaction.
+
+---
+
+# Who can benefit from a B2B referral network?
+
+### Agencies
+
+Find complementary firms for projects outside your core services.
+
+### Consultants
+
+Build relationships with specialists your clients may need.
+
+### Software companies
+
+Create referral relationships around implementation, integrations and complementary products.
+
+### Professional service firms
+
+Exchange opportunities with firms serving similar client profiles.
+
+### Founders and operators
+
+Discover businesses that can complement your offering or open relevant customer relationships.
+
+---
+
+# Referral partnerships work best when the fit is specific
+
+“Any business owner” isn't a useful referral-partner profile.
+
+A better profile might be:
+
+> “A software company serving mid-market ecommerce brands that doesn't provide paid acquisition.”
+
+Now there is a clear reason for the relationship.
+
+The businesses share a customer context.
+
+Their services don't directly compete.
+
+And each can recognize situations where the other may be relevant.
+
+That's the type of specificity a referral network needs.
+
+---
+
+# Referral opportunities can work both ways
+
+A healthy referral relationship isn't necessarily:
+
+> Business A sends leads → Business B receives them.
+
+It can become:
+
+> **Business A ↔ Business B**
+
+A marketing agency may refer development work.
+
+The development company may refer marketing work.
+
+A consultant may refer legal work.
+
+The legal firm may refer consulting work.
+
+That reciprocal structure is one reason complementary businesses can benefit from deliberate referral relationships. Current B2B referral-network guidance similarly emphasizes complementary partners and reciprocal introductions. :chatgpt-content-reference{index="3"}
+
+---
+
+# Build around real opportunities, not networking for its own sake
+
+Traditional networking can be useful.
+
+But a conversation that starts with:
+
+> “What do you do?”
+
+is very different from:
+
+> “I have a customer who needs something you provide.”
+
+The second conversation already has commercial context.
+
+That's where The Relay fits.
+
+The platform is designed around **opportunities first**, with referral relationships developing around those opportunities.
 
 ---
 
 # FAQ
 
-### What is a B2B lead exchange?
+### What is a B2B referral network?
 
-A B2B lead exchange allows businesses to share or exchange commercial leads with other businesses that may be better positioned to pursue them.
+A B2B referral network is a group or platform that connects complementary businesses so they can exchange relevant customer introductions and commercial opportunities.
 
-### Can I exchange a lead my business cannot fulfil?
+### How do I find B2B referral partners?
 
-Yes. A core use case is sharing an opportunity that falls outside your services, geography, capabilities or capacity.
+Start with businesses that serve similar customers but offer complementary services. Define the situations where a referral would naturally occur, then approach businesses that fit that profile. The Relay provides a structured environment for discovering and discussing those opportunities.
 
-### Is a lead exchange the same as buying leads?
+### What makes a good referral partner?
 
-No. Some lead exchanges operate as buyer/seller marketplaces. Relay is focused on helping businesses surface opportunities they already have and connect them with businesses that may be able to pursue them. :chatgpt-content-reference{index="2"}
+Good referral partners usually have complementary capabilities, overlapping customer profiles, clear referral situations and confidence in each other's ability to serve the customer.
 
-### What types of leads can be exchanged?
+### Is a referral network the same as a lead exchange?
 
-Examples include agency project enquiries, specialist service requests, regional opportunities, implementation needs, referrals and other B2B commercial opportunities.
+No. A lead exchange is primarily about exchanging individual opportunities or leads. A referral network is about establishing relationships through which relevant opportunities can be referred over time.
 
-### Should every lead be exchanged?
+### Do referral partners have to be competitors?
 
-No. An opportunity should only be shared when there is a legitimate business reason to do so and the participating businesses can appropriately handle the relationship.
+Generally, referral relationships are more natural between businesses with complementary rather than overlapping services. The specific relationship depends on the businesses involved.
 
-### Does Relay guarantee a lead will convert?
+### Can agencies use a B2B referral network?
 
-No. Relay facilitates discovery and connection. Whether a lead converts depends on the businesses involved, customer requirements and the resulting commercial relationship.
+Yes. Agencies frequently encounter customer needs outside their own services, making complementary relationships with development firms, consultants, specialists and other service providers potentially useful.
 
-### How is lead exchange different from lead generation?
+### Does Relay guarantee referrals or revenue?
 
-Lead generation creates new demand or enquiries. Lead exchange helps businesses find a suitable path for existing opportunities that may not fit their own operation.
+No. Relay provides a structured environment for discovering opportunities and connecting businesses. Referral volume, revenue and conversion depend on the participating businesses and the opportunities involved.
 
 ---
 
 # Final CTA
 
-## Don't discard a lead just because you can't fulfil it.
+## Find the businesses your customers may need next.
 
-Your business doesn't have to deliver every opportunity it receives.
+Your customers don't only need your service.
 
-Sometimes the right move is to find the business that can.
+They need everything around it.
 
-**Post an Opportunity**  
-**Explore Opportunities**
+Find complementary businesses, exchange relevant opportunities and build referral relationships around real commercial needs.
+
+**Explore Referral Opportunities**  
+**Post an Opportunity**
 
 ---
 
-# Internal linking
+# 5. Internal-link architecture
 
-This page should link prominently to:
+This page should strongly connect to:
 
-`/b2b-opportunity-exchange`  
-`/b2b-referral-network`  
-`/b2b-partnership-network`  
-`/agency-lead-exchange`  
-`/what-to-do-with-unqualified-leads`  
-`/how-to-monetize-unqualified-leads`  
-`/how-to-exchange-business-leads`  
-`/8-step-journey`  
+**Parent**
+
+`/b2b-opportunity-exchange`
+
+**Related commercial page**
+
+`/b2b-lead-exchange`
+
+**Referral-specific**
+
+`/referral-partnerships`
+
+**Educational**
+
+`/how-to-find-b2b-referral-partners`
+
+**Partnership**
+
+`/b2b-partnership-network`
+
+**Distribution**
+
+`/distribution-partners`
+
+**Workflow**
+
+`/8-step-journey`
+
+**Trust**
+
 `/trust-and-safety`
 
-The important relationship is:
+The key relationship should look like:
 
-**B2B Opportunity Exchange** = broad parent concept  
-**B2B Lead Exchange** = leads specifically  
-**B2B Referral Network** = recurring referral relationships
+```text
+B2B Opportunity Exchange
+        ↓
+B2B Referral Network
+        ↓
+Referral Partnerships
+        ↓
+How to Find B2B Referral Partners
+```
 
-That separation helps prevent cannibalization.
+That creates a very clean topical hierarchy.
 
 ---
 
-## Prompt for your agent
+# 6. Agent prompt
 
-Paste this to your coding agent:
+Give your coding agent this:
 
 ```text
-Rewrite /b2b-lead-exchange.tsx using the approved SEO/content strategy below.
+Rewrite /b2b-referral-network.tsx using the following SEO/content strategy.
 
-Primary keyword:
-B2B lead exchange
+PRIMARY KEYWORD:
+B2B referral network
 
-Secondary concepts:
-lead exchange
-B2B lead sharing
-business lead exchange
-exchange business leads
-unqualified leads
-unserviceable leads
-out-of-scope leads
-B2B lead referrals
-lead referral network
+SECONDARY KEYWORDS/CONCEPTS:
+business referral network
+B2B referral partners
+find referral partners
+B2B referral partnerships
+business referral partners
+referral network for businesses
+B2B referrals
+business referral program
+find B2B partners
+business networking referrals
 
-SEO title:
-B2B Lead Exchange — Exchange Leads Your Business Can't Fulfil | The Relay
+SEO TITLE:
+B2B Referral Network — Find Referral Partners | The Relay
 
-Meta description:
-Exchange B2B leads your business cannot fulfil with businesses that can. Discover a structured way to share referrals, out-of-scope opportunities and commercial leads.
+META DESCRIPTION:
+Find and build B2B referral partnerships with businesses that serve complementary customers. Discover referral opportunities and exchange qualified business introductions on The Relay.
 
 H1:
-Exchange the B2B Leads Your Business Can't Fulfil
+Find B2B Referral Partners That Complement Your Business
 
-IMPORTANT CONTENT RULES:
-- The page must be written for human B2B operators first.
-- Do not keyword stuff.
-- Do not make unsupported legal, security, financial or compliance claims.
-- Remove/soften claims currently present about "cryptographic consent", "Master NCND", guaranteed legal binding, verified executive credentials, and fixed 6–24 month revenue-share structures unless those capabilities are actually implemented and documented in the product.
-- Do not promise lead conversion, revenue, monetization, or guaranteed outcomes.
-- Do not position Relay as a generic lead-list marketplace.
-- Clearly distinguish lead exchange from buying/selling bulk lead lists.
-- Position Relay around existing commercial opportunities that a business cannot fulfil and may want to connect with another business that can.
+CONTENT POSITIONING:
+- This page is about the RELATIONSHIP between complementary businesses.
+- Do NOT make it primarily about individual lead exchange.
+- Do NOT make it a generic business networking page.
+- Do NOT make it a full how-to guide; that belongs on /how-to-find-b2b-referral-partners.
+- Position the page around complementary businesses serving similar customers.
+- Explain reciprocal referral relationships.
+- Keep the commercial opportunity as the mechanism that creates/strengthens the referral relationship.
 
-Use these sections:
+IMPORTANT CLAIM RULES:
+Remove or rewrite unsupported claims currently present in the page.
+Do NOT claim:
+- fixed referral percentages
+- guaranteed conversion
+- guaranteed revenue
+- zero reputational risk
+- binding legal covenants unless actually documented/implemented
+- cryptographic consent unless technically true
+- LEI/KYB requirements unless actually enforced in the product
+- mandatory NCND agreements
+- claims that informal networks are inherently spam/obligation-based
+- unsupported statistics
+
+Use factual, mechanism-based language.
+
+RECOMMENDED SECTIONS:
 
 1. Hero
-2. What is a B2B lead exchange?
-3. Why businesses have leads they cannot fulfil
-4. What can you do with a lead you cannot fulfil?
-5. How the Relay lead exchange works
-6. Lead exchange is not the same as buying lead lists
-7. Common B2B lead exchange scenarios
-8. What makes a lead worth exchanging?
-9. For businesses that generate leads
-10. For businesses looking for leads
-11. Why exchange leads instead of simply rejecting them?
-12. B2B lead exchange vs referral network
+2. What is a B2B referral network?
+3. Why build a referral network?
+4. What makes a good referral partner?
+5. Examples of complementary B2B referral partners
+6. Referral network vs lead exchange
+7. How a B2B referral relationship can work on Relay
+8. What referral networks are not
+9. Who can benefit from a B2B referral network?
+10. Referral partnerships work best when the fit is specific
+11. Referral opportunities can work both ways
+12. Build around real opportunities, not networking for its own sake
 13. FAQ
 14. Final CTA
 
-Internal links should naturally include:
+INTERNAL LINKS:
 - /b2b-opportunity-exchange
-- /b2b-referral-network
+- /b2b-lead-exchange
+- /referral-partnerships
+- /how-to-find-b2b-referral-partners
 - /b2b-partnership-network
-- /agency-lead-exchange
-- /what-to-do-with-unqualified-leads
-- /how-to-monetize-unqualified-leads
-- /how-to-exchange-business-leads
+- /distribution-partners
 - /8-step-journey
 - /trust-and-safety
 
-Keep the existing Relay visual/design language unless a change is needed for readability.
+IMPORTANT:
+Keep the existing visual design language, layout patterns and icons unless needed for readability.
 
-Fix the FAQ implementation so the answers are present in the rendered HTML even when the accordion is visually collapsed, rather than only rendering the answer after a client-side click.
+Fix FAQ implementation so FAQ answers remain present in the rendered HTML even when visually collapsed. Do not rely on client-side conditional rendering to make the answer exist.
 
-Keep canonical URL:
-https://www.usetherelay.com/b2b-lead-exchange
+Keep canonical:
+https://www.usetherelay.com/b2b-referral-network
 
-Keep appropriate WebPage/Breadcrumb/Organization structured data, but do not add unsupported schema.
+Keep WebPage/Breadcrumb/Organization structured data, but remove unsupported claims from structured data too.
 
-Run build/typecheck and commit/push the finished page.
+Run build/typecheck and fix issues.
+
+Commit and push the final implementation.
 ```
