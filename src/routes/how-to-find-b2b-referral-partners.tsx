@@ -4,34 +4,43 @@ import {
   ArrowRight,
   ChevronDown,
   Check,
-  CheckCircle2,
+  Building2,
+  Layers,
   FileText,
   Handshake,
+  Share2,
   Network,
   Users,
   Briefcase,
-  ShieldCheck,
-  Percent,
-  Coins,
-  Repeat,
+  Search,
+  PlusCircle,
+  HelpCircle,
   Scale,
   Compass,
   ArrowLeftRight,
-  SlidersHorizontal,
-  Layers,
-  Sparkles,
-  HelpCircle,
-  AlertTriangle,
-  Clock,
-  Lock,
-  ExternalLink,
-  Search,
-  Target,
-  Mail,
-  BarChart3,
-  Building,
-  UserCheck,
+  Repeat,
+  CheckSquare2,
+  Workflow,
+  Globe,
+  Palette,
+  Code2,
   TrendingUp,
+  AlertCircle,
+  Target,
+  BarChart3,
+  Layers3,
+  XCircle,
+  Coins,
+  Percent,
+  Ban,
+  FileCheck,
+  Sliders,
+  ShieldCheck,
+  Lock,
+  EyeOff,
+  Mail,
+  Clock,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createSeoMeta, SITE_URL } from "@/lib/seo";
@@ -41,7 +50,7 @@ export const Route = createFileRoute("/how-to-find-b2b-referral-partners")({
     createSeoMeta({
       title: "How to Find B2B Referral Partners | The Relay",
       description:
-        "Learn how to find B2B referral partners, evaluate partner fit, start the conversation, and build referral relationships that create value for both businesses.",
+        "Learn how to find B2B referral partners by defining the right partner profile, sourcing candidates, evaluating fit, and building a practical referral relationship.",
       path: "/how-to-find-b2b-referral-partners",
     }),
   component: HowToFindB2BReferralPartnersPage,
@@ -57,35 +66,43 @@ export function HowToFindB2BReferralPartnersPage() {
   const faqs = [
     {
       q: "How do I find B2B referral partners?",
-      a: "Finding effective B2B referral partners starts by mapping your customer journey to identify who serves your ideal clients before or after your service. You can discover candidates through existing client relationships, search engines, industry associations, LinkedIn, and ecosystem partner directories.",
+      a: "Finding B2B referral partners begins by mapping your customer journey to identify who serves your ideal clients before, during, or after your engagement. You can source candidates through existing client relationships, supplier ecosystems, professional networks, industry trade associations, LinkedIn research, and structured opportunity discovery platforms.",
     },
     {
-      q: "What makes a good B2B referral partner?",
-      a: "A strong referral partner shares your ideal customer profile (ICP) without offering competing services, maintains a high standard of work quality, possesses reliable delivery capacity, communicates transparently, and has a clear operational reason to exchange client introductions.",
+      q: "What makes a good referral partner?",
+      a: "A suitable referral partner typically shares your target customer profile without directly competing with your primary service, maintains a solid reputation for work quality, has reliable delivery capacity, communicates transparently, and has a clear operational or commercial reason to collaborate.",
     },
     {
-      q: "How many referral partners should a business have?",
-      a: "Most B2B organizations achieve the highest ROI by focusing on 3 to 7 active, highly engaged referral relationships. Managing a small group of high-trust partners yields better deal flow and higher conversion rates than attempting to maintain dozens of superficial partnerships.",
+      q: "Where can I find referral partners?",
+      a: "Practical sourcing channels include existing client recommendations, non-competing vendors and suppliers, industry associations, partner directories in complementary software ecosystems, specialized founder communities, and opportunity exchange platforms like The Relay.",
+    },
+    {
+      q: "Should a referral partner serve the same customers as me?",
+      a: "Yes. Strong referral partnerships are generally built on shared customer overlap. When two businesses serve the same target buyer or industry vertical with complementary services, they encounter adjacent client needs that naturally create opportunities for introductions.",
+    },
+    {
+      q: "Should referral partners be non-competing?",
+      a: "Generally, yes. Referral partnerships work best when there is a clear division of capabilities. However, some firms with minor overlapping services can still partner successfully if they define distinct geographic boundaries, client tiers, or specialized sub-capabilities.",
     },
     {
       q: "How do I approach a potential referral partner?",
-      a: "Begin by focusing on their clients rather than a generic partnership pitch. Reach out with specific scenarios where your capabilities can solve unmet problems for their clients, or propose a brief exploratory call to discuss shared customer challenges.",
+      a: "Approach potential partners by focusing on their clients rather than a generic partnership pitch. Reference a specific client problem where your capabilities solve an unmet need adjacent to their work, and suggest a brief exploratory conversation to see whether a referral relationship makes sense.",
     },
     {
-      q: "Should referral partnerships always involve a financial commission?",
-      a: "No. While monetary referral fees (flat fees or percentage commissions) are common in many industries, many high-performing B2B partners prefer reciprocal deal exchanges where counterparties trade qualified commercial opportunities rather than managing cash commissions and vendor onboarding.",
+      q: "Should referral partnerships involve commissions?",
+      a: "It depends on the businesses and industry norms. Some partnerships operate with percentage or flat referral fees, while others operate entirely on reciprocal deal exchanges or joint co-marketing without financial compensation.",
     },
     {
-      q: "How do I know whether a referral partner is a good operational fit?",
-      a: "Evaluate candidates against six core criteria: target buyer overlap, service complementarity, domain reputation and client trust, delivery capacity and turnaround velocity, geographic/regulatory reach, and commercial alignment on expectations.",
+      q: "How many referral partners should a business have?",
+      a: "Most businesses benefit from starting with a small number of highly relevant, engaged referral relationships rather than managing a large, unfocused roster. Starting small allows you to test communication, evaluate client feedback, and refine handoff workflows.",
     },
     {
-      q: "What should be defined before sending the first client referral?",
-      a: "Before making an introduction, establish what qualifies as an eligible referral, the introduction protocol (such as warm double-opt-in), the attribution timeframe, client relationship ownership boundaries, payment triggers (if applicable), and duplicate lead verification rules.",
+      q: "How should referral relationships be tracked?",
+      a: "Track operational health indicators such as introductions sent and received, partner response times, lead qualification rates, closed opportunities, and qualitative feedback from referred clients.",
     },
     {
-      q: "How should a business track referral relationships?",
-      a: "Track key operational metrics including referrals sent and received, partner response velocity, lead acceptance rates, closed-won conversion rates, and total realized commercial or reciprocal value generated across each partnership.",
+      q: "Can The Relay help businesses discover referral partners?",
+      a: "Yes. The Relay provides an opportunity-based discovery route where businesses can post structured commercial requirements and connect with counterparties that hold complementary capabilities, enabling both sides to evaluate fit around live opportunities.",
     },
   ];
 
@@ -93,21 +110,20 @@ export function HowToFindB2BReferralPartnersPage() {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "Article",
-        "@id": `${SITE_URL}/how-to-find-b2b-referral-partners#article`,
+        "@type": "WebPage",
+        "@id": `${SITE_URL}/how-to-find-b2b-referral-partners#webpage`,
         url: `${SITE_URL}/how-to-find-b2b-referral-partners`,
-        headline: "How to Find B2B Referral Partners",
         name: "How to Find B2B Referral Partners | The Relay",
         description:
-          "Learn how to find B2B referral partners, evaluate partner fit, start the conversation, and build referral relationships that create value for both businesses.",
-        publisher: {
-          "@type": "Organization",
-          name: "The Relay",
-          url: SITE_URL,
+          "Learn how to find B2B referral partners by defining the right partner profile, sourcing candidates, evaluating fit, and building a practical referral relationship.",
+        breadcrumb: {
+          "@id": `${SITE_URL}/how-to-find-b2b-referral-partners#breadcrumb`,
         },
-        mainEntityOfPage: {
-          "@type": "WebPage",
-          "@id": `${SITE_URL}/how-to-find-b2b-referral-partners`,
+        isPartOf: {
+          "@type": "WebSite",
+          "@id": `${SITE_URL}/#website`,
+          url: SITE_URL,
+          name: "The Relay",
         },
       },
       {
@@ -118,13 +134,13 @@ export function HowToFindB2BReferralPartnersPage() {
             "@type": "ListItem",
             position: 1,
             name: "Home",
-            item: `${SITE_URL}`,
+            item: SITE_URL,
           },
           {
             "@type": "ListItem",
             position: 2,
-            name: "B2B Opportunity Exchange",
-            item: `${SITE_URL}/b2b-opportunity-exchange`,
+            name: "B2B Referral Network",
+            item: `${SITE_URL}/b2b-referral-network`,
           },
           {
             "@type": "ListItem",
@@ -133,12 +149,6 @@ export function HowToFindB2BReferralPartnersPage() {
             item: `${SITE_URL}/how-to-find-b2b-referral-partners`,
           },
         ],
-      },
-      {
-        "@type": "Organization",
-        "@id": `${SITE_URL}/#organization`,
-        name: "The Relay",
-        url: SITE_URL,
       },
       {
         "@type": "FAQPage",
@@ -152,6 +162,12 @@ export function HowToFindB2BReferralPartnersPage() {
           },
         })),
       },
+      {
+        "@type": "Organization",
+        "@id": `${SITE_URL}/#organization`,
+        name: "The Relay",
+        url: SITE_URL,
+      },
     ],
   };
 
@@ -164,9 +180,10 @@ export function HowToFindB2BReferralPartnersPage() {
       />
 
       <main className="w-full flex-1 pt-6 pb-20">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+          
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 1: BREADCRUMB & HERO (DIRECT ANSWER)
+              BREADCRUMB STRIP
               ═══════════════════════════════════════════════════════════════════ */}
           <nav aria-label="Breadcrumb" className="pt-2">
             <ol className="flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#64748B] uppercase tracking-[0.04em]">
@@ -175,1102 +192,1241 @@ export function HowToFindB2BReferralPartnersPage() {
                   Home
                 </Link>
               </li>
-              <li className="text-[#CBD5E1]">/</li>
+              <li className="text-[#94A3B8]">/</li>
               <li>
-                <Link
-                  to="/b2b-opportunity-exchange"
-                  className="hover:text-[#171F2C] transition-colors"
-                >
-                  Opportunity Exchange
+                <Link to="/b2b-referral-network" className="hover:text-[#171F2C] transition-colors">
+                  Referral Network
                 </Link>
               </li>
-              <li className="text-[#CBD5E1]">/</li>
-              <li className="text-[#171F2C] font-bold">How to Find Referral Partners</li>
+              <li className="text-[#94A3B8]">/</li>
+              <li className="text-[#171F2C] font-bold">
+                How to Find B2B Referral Partners
+              </li>
             </ol>
           </nav>
 
-          <header className="border-b border-[#E2E8F0] pb-10 space-y-6">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-[4px] bg-white border border-[#E2E8F0] shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-[2px] bg-[#F97316]" />
-              <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#171F2C]">
-                Educational Strategy Guide
-              </span>
-            </div>
-
-            <div className="max-w-4xl space-y-4">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#171F2C] tracking-tight leading-[1.12]">
-                How to Find B2B Referral Partners
-              </h1>
-              <p className="text-base sm:text-lg text-[#64748B] leading-relaxed max-w-3xl">
-                Finding high-performing B2B referral partners starts with knowing who already serves
-                the clients you want, identifying adjacent customer problems you solve, and
-                establishing a genuine commercial reason to exchange warm introductions.
-              </p>
-            </div>
-
-            {/* Direct Answer Summary Box */}
-            <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-4 max-w-4xl">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-[#171F2C]">
-                <Target className="w-4 h-4 text-[#F97316]" />
-                <span>The 6-Phase Partner Discovery Process</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-                <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-1">
-                  <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase">
-                    Phase 1
-                  </span>
-                  <p className="text-xs font-bold text-[#171F2C]">Map Customer Journey</p>
-                  <p className="text-[11px] text-[#64748B]">
-                    Identify upstream and downstream service providers.
-                  </p>
-                </div>
-                <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-1">
-                  <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase">
-                    Phase 2
-                  </span>
-                  <p className="text-xs font-bold text-[#171F2C]">Define Partner Profile</p>
-                  <p className="text-[11px] text-[#64748B]">
-                    Establish ICP, industry, size, and geography criteria.
-                  </p>
-                </div>
-                <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-1">
-                  <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase">
-                    Phase 3
-                  </span>
-                  <p className="text-xs font-bold text-[#171F2C]">Discover Candidates</p>
-                  <p className="text-[11px] text-[#64748B]">
-                    Source via client networks, directories, and search.
-                  </p>
-                </div>
-                <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-1">
-                  <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase">
-                    Phase 4
-                  </span>
-                  <p className="text-xs font-bold text-[#171F2C]">Qualify &amp; Verify Fit</p>
-                  <p className="text-[11px] text-[#64748B]">
-                    Evaluate complementarity, trust, and capacity.
-                  </p>
-                </div>
-                <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-1">
-                  <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase">
-                    Phase 5
-                  </span>
-                  <p className="text-xs font-bold text-[#171F2C]">Initiate Dialogue</p>
-                  <p className="text-[11px] text-[#64748B]">
-                    Approach around shared client problem scenarios.
-                  </p>
-                </div>
-                <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-1">
-                  <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase">
-                    Phase 6
-                  </span>
-                  <p className="text-xs font-bold text-[#171F2C]">Pilot &amp; Agree Terms</p>
-                  <p className="text-[11px] text-[#64748B]">
-                    Define qualification, attribution, and introduction rules.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </header>
-
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 2: START WITH THE CUSTOMER, NOT THE PARTNER LIST
+              SECTION: HERO
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>01</span>
-                <span>•</span>
-                <span>Journey Mapping</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
-                Start with the Customer, Not the Partner List
-              </h2>
-              <p className="text-sm text-[#64748B] max-w-2xl">
-                The most common partner discovery mistake is compiling a random list of companies
-                and pitching them cold. Effective referral architecture begins by mapping your ideal
-                client&apos;s lifecycle.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-4">
-                <div className="flex items-center gap-2">
-                  <Compass className="w-5 h-5 text-[#F97316]" />
-                  <h3 className="text-base font-bold text-[#171F2C]">Upstream Service Providers</h3>
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              {/* Text Column */}
+              <div className="lg:col-span-7 flex flex-col items-start">
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-[4px] border border-[#E2E8F0] bg-white text-[11px] font-mono font-semibold uppercase tracking-wider text-[#64748B] mb-4">
+                  <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C]"></span>
+                  B2B REFERRAL PARTNER SOURCING
                 </div>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Who does your ideal customer hire <em>immediately before</em> they realize they
-                  need your solution? Upstream providers encounter the exact pain point that
-                  triggers demand for your core capabilities.
+                <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-display font-bold text-[#171F2C] tracking-tight leading-[1.16] mb-5">
+                  How to Find B2B Referral Partners
+                </h1>
+                <div className="space-y-3 text-base sm:text-lg text-[#64748B] font-normal leading-relaxed max-w-2xl mb-8">
+                  <p>
+                    Finding effective B2B referral partners is not about mass outreach or collecting generic agency contacts. A productive partnership forms when two businesses serve the same customer profile with complementary, non-competing capabilities.
+                  </p>
+                  <p className="text-[#334155]">
+                    This guide details how to map your client journey, define an Ideal Partner Profile (IPP), research candidate firms, evaluate operational alignment, and structure a practical initial pilot.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 mb-4 w-full sm:w-auto">
+                  <Link
+                    to="/opportunities"
+                    className="inline-flex items-center justify-center bg-[#171F2C] hover:bg-[#010611] text-white text-[13px] font-medium px-6 h-[44px] rounded-[4px] border border-[#171F2C] transition-colors"
+                  >
+                    Explore Referral Opportunities
+                  </Link>
+                  <Link
+                    to="/post"
+                    className="inline-flex items-center justify-center bg-white hover:bg-[#F1F5F9] text-[#171F2C] text-[13px] font-medium px-6 h-[44px] rounded-[4px] border border-[#E2E8F0] transition-colors"
+                  >
+                    Post a Referral Requirement
+                  </Link>
+                </div>
+                <p className="text-xs sm:text-[13px] text-[#64748B] font-medium tracking-wide">
+                  Map customer journeys · Evaluate service complementarity · Start with focused pilots
                 </p>
-                <div className="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] text-xs text-[#334155] space-y-1">
-                  <strong>Example:</strong> A branding agency designs a new corporate identity. The
-                  client immediately needs a <em>web engineering firm</em> and an{" "}
-                  <em>SEO consultancy</em> to build and rank the digital experience.
-                </div>
               </div>
 
-              <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-4">
-                <div className="flex items-center gap-2">
-                  <Compass className="w-5 h-5 text-[#171F2C]" />
-                  <h3 className="text-base font-bold text-[#171F2C]">
-                    Downstream &amp; Parallel Providers
-                  </h3>
-                </div>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Who does your client work with <em>after</em> or <em>alongside</em> your
-                  engagement? Parallel providers share the same executive budget holder while
-                  operating in complementary technical or creative domains.
-                </p>
-                <div className="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] text-xs text-[#334155] space-y-1">
-                  <strong>Example:</strong> A cybersecurity auditing firm identifies compliance gaps
-                  that they cannot remediate themselves due to audit independence. They hand off
-                  remediation to a <em>managed cloud infrastructure provider</em>.
-                </div>
-              </div>
-            </div>
+              {/* Graphic Column: Process Topology */}
+              <div className="lg:col-span-5 w-full">
+                <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
+                    <span className="text-[11px] font-mono font-semibold text-[#64748B] uppercase tracking-wider">
+                      Referral Discovery Framework
+                    </span>
+                    <span className="text-[10px] font-mono text-[#94A3B8]">
+                      REFERRAL-MAP-V1
+                    </span>
+                  </div>
 
-            {/* Process Flow Ribbon */}
-            <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2 font-mono text-[#64748B]">
-                <span className="font-bold text-[#171F2C]">The Discovery Chain:</span>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap text-xs text-[#334155] font-medium">
-                <span className="px-2.5 py-1 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
-                  Target Buyer
-                </span>
-                <span>→</span>
-                <span className="px-2.5 py-1 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
-                  Core Problem
-                </span>
-                <span>→</span>
-                <span className="px-2.5 py-1 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
-                  Adjacent Provider
-                </span>
-                <span>→</span>
-                <span className="px-2.5 py-1 bg-[#171F2C] text-white rounded-[4px] font-semibold">
-                  Ideal Referral Partner
-                </span>
+                  <div className="space-y-2.5">
+                    <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-mono font-semibold text-[#171F2C]">1. Journey &amp; Profile Mapping</div>
+                        <div className="text-[11px] text-[#64748B]">Target buyer, adjacent needs, non-competing scope</div>
+                      </div>
+                      <span className="text-[10px] font-mono uppercase text-[#64748B] bg-white px-2 py-0.5 rounded-[2px] border border-[#E2E8F0]">
+                        Profile
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-mono font-semibold text-[#171F2C]">2. Sourcing &amp; Due Diligence</div>
+                        <div className="text-[11px] text-[#64748B]">Directories, networks, reputation, delivery capacity</div>
+                      </div>
+                      <span className="text-[10px] font-mono uppercase text-[#64748B] bg-white px-2 py-0.5 rounded-[2px] border border-[#E2E8F0]">
+                        Verify
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-[#171F2C] text-white border border-[#171F2C] rounded-[4px] flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-mono font-semibold text-white">3. Dialogue &amp; Focused Pilot</div>
+                        <div className="text-[11px] text-slate-300">Problem-led outreach, agreed rules, initial test handoffs</div>
+                      </div>
+                      <span className="text-[10px] font-mono uppercase text-[#171F2C] bg-white px-2 py-0.5 rounded-[2px] font-bold">
+                        Pilot
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 text-center text-xs font-mono text-[#64748B]">
+                    Complementary partnerships built on mutual client value.
+                  </div>
+                </div>
               </div>
             </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 3: DEFINE YOUR IDEAL REFERRAL PARTNER (IPP)
+              SECTION 1: START WITH THE CUSTOMER
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>02</span>
-                <span>•</span>
-                <span>Profile Specification</span>
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 01
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                Start With the Customer, Not the Partner List
+              </h2>
+              <p className="text-base text-[#64748B] leading-relaxed">
+                Partner discovery becomes actionable when you trace the steps your customer takes before, during, and after engaging your services:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-3">
+                <div className="text-xs font-mono font-semibold text-[#171F2C] uppercase tracking-wider">
+                  Core Diagnostic Questions
+                </div>
+                <ul className="space-y-2 text-[13px] text-[#64748B]">
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C] mt-1.5 shrink-0"></span>
+                    <span><strong>Who does the customer speak to before us?</strong> Upstream vendors who identify problems requiring your solution.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C] mt-1.5 shrink-0"></span>
+                    <span><strong>Who do they need after us?</strong> Downstream specialists who implement or maintain the next phase of the project.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C] mt-1.5 shrink-0"></span>
+                    <span><strong>Which services are adjacent to ours?</strong> Parallel experts who share the same buyer without competing for budget.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C] mt-1.5 shrink-0"></span>
+                    <span><strong>Where do customer needs overlap cleanly?</strong> Intersections where handoffs feel natural and valuable to the client.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="p-6 bg-white border border-[#171F2C] rounded-[4px] space-y-4">
+                <div className="text-xs font-mono font-bold uppercase tracking-wider text-[#171F2C] pb-2 border-b border-[#E2E8F0]">
+                  Illustrative Customer Journey Example
+                </div>
+                <div className="space-y-3 text-[13px]">
+                  <div>
+                    <div className="font-semibold text-[#171F2C]">Core Capability:</div>
+                    <div className="text-[#64748B]">
+                      B2B Software &amp; ERP Implementation Firm
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-[#E2E8F0]">
+                    <div className="font-semibold text-[#171F2C]">Adjacent Referral Ecosystem:</div>
+                    <div className="text-[#64748B] leading-relaxed">
+                      Cybersecurity auditing firms (assessing system compliance before deployment), cloud infrastructure consultancies (managing server architecture), and workflow automation agencies (configuring downstream operational pipelines).
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 2: DEFINE YOUR IDEAL REFERRAL PARTNER PROFILE
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 02
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
                 Define Your Ideal Referral Partner Profile
               </h2>
-              <p className="text-sm text-[#64748B] max-w-2xl">
-                Just as your sales team maintains an Ideal Customer Profile (ICP), your partnerships
-                effort requires a concrete Ideal Partner Profile (IPP) to avoid wasting time on
-                mismatched organizations.
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Establishing a clear partner profile focuses your research on organizations with high strategic compatibility:
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
-                  Criteria 1
-                </span>
-                <h3 className="text-sm font-bold text-[#171F2C]">Target Buyer Alignment</h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  They sell directly to your exact decision-maker (e.g., VP of Engineering, CMO,
-                  Head of Procurement) at similar company stages.
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">
+                  1. Customer Overlap
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  They serve the same company sizes, industry sectors, and organizational maturity levels as your firm.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
-                  Criteria 2
-                </span>
-                <h3 className="text-sm font-bold text-[#171F2C]">Deal Size &amp; ACV Parity</h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Their average contract value (ACV) and client sophistication match your commercial
-                  tier (e.g., $50k–$250k enterprise engagements).
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">
+                  2. Service Complementarity
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Their core offering naturally pairs with yours without conflicting over primary deliverables or billable scope.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
-                  Criteria 3
-                </span>
-                <h3 className="text-sm font-bold text-[#171F2C]">Non-Competing Scope</h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Zero commercial overlap in your primary service line. You complement their
-                  deliverable rather than compete for the same budget line.
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">
+                  3. Target Buyer Alignment
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  They maintain active relationships with the specific decision-makers (e.g., CTO, CMO, COO) you target.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
-                  Criteria 4
-                </span>
-                <h3 className="text-sm font-bold text-[#171F2C]">Natural Referral Trigger</h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Their standard delivery process routinely uncovers client friction that only your
-                  solution resolves (e.g., migrations, audits, scaling).
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">
+                  4. Geographic Fit
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  They operate in the legal jurisdictions, compliance regimes, and regional markets relevant to your clients.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
-                  Criteria 5
-                </span>
-                <h3 className="text-sm font-bold text-[#171F2C]">Geographic &amp; Legal Fit</h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  They operate in the territories, regulatory jurisdictions, or compliance regimes
-                  relevant to your client base.
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">
+                  5. Delivery Quality &amp; Bench
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  They maintain a reliable operational track record, protecting your reputation when introductions are made.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
-                  Criteria 6
-                </span>
-                <h3 className="text-sm font-bold text-[#171F2C]">Reputation &amp; Standards</h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Introducing them enhances your client trust. They maintain verifiable case
-                  studies, strong client retention, and verified domain authority.
-                </p>
-              </div>
-
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
-                  Criteria 7
-                </span>
-                <h3 className="text-sm font-bold text-[#171F2C]">Delivery Capacity</h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  They possess the team depth and operational bandwidth to respond to introduced
-                  leads rapidly without causing delivery bottlenecks.
-                </p>
-              </div>
-
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
-                  Criteria 8
-                </span>
-                <h3 className="text-sm font-bold text-[#171F2C]">Communication &amp; SLAs</h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  A commitment to transparent pipeline reporting, prompt prospect follow-up, and
-                  honoring agreed attribution rules.
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1.5">
+                  6. Commercial Alignment
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Both organizations share compatible expectations regarding deal mechanics, client communication, and transparency.
                 </p>
               </div>
             </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 4: PRACTICAL DISCOVERY CHANNELS
+              SECTION 3: WHERE TO FIND B2B REFERRAL PARTNERS
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>03</span>
-                <span>•</span>
-                <span>Sourcing Strategy</span>
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 03
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
-                Where to Find Businesses That Fit the Profile
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                Where to Find B2B Referral Partners
               </h2>
-              <p className="text-sm text-[#64748B] max-w-2xl">
-                The objective is not to build a database of thousands of random names, but to
-                identify the 10 to 20 highly relevant businesses that genuinely share your
-                commercial orbit.
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Source candidate referral partners across a diverse mix of warm relationships, targeted research, and structured platforms:
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <Users className="w-4 h-4 text-[#F97316]" />
-                  <span>1. Existing Client Inquiries</span>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#171F2C] mb-1">01 · Existing Client Inquiries</div>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  Ask your current best clients which other software, agencies, or consultancies
-                  they rely on. A firm that your happiest clients already trust is an instant
-                  top-tier partner candidate.
+                  Ask satisfied clients which other specialized agencies, software platforms, or consultancies they frequently work with.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <Search className="w-4 h-4 text-[#171F2C]" />
-                  <span>2. Solution &amp; Ecosystem Queries</span>
-                </div>
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#171F2C] mb-1">02 · Non-Competing Suppliers</div>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  Search for complementary B2B services combined with your industry and geography
-                  (e.g., &ldquo;Healthcare HubSpot implementation agency UK&rdquo; or &ldquo;SOC-2
-                  penetration testing firm DACH&rdquo;).
+                  Connect with vendors and technology providers who sell adjacent tools or infrastructure into your target market.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <Building className="w-4 h-4 text-[#171F2C]" />
-                  <span>3. Industry &amp; Trade Associations</span>
-                </div>
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#171F2C] mb-1">03 · Industry Associations</div>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  Specialized B2B trade bodies, chambers of commerce, and vertical directories list
-                  vetted service providers categorized by sub-specialty.
+                  Vertical trade bodies, regional chambers of commerce, and professional rosters organized by technical specialization.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <Network className="w-4 h-4 text-[#171F2C]" />
-                  <span>4. Professional Networks (LinkedIn)</span>
-                </div>
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#171F2C] mb-1">04 · Professional Networks (LinkedIn)</div>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  Search by firm capabilities and shared client personas rather than generic
-                  &ldquo;Partner Manager&rdquo; titles. Look for boutique agency founders, practice
-                  heads, and managing partners.
+                  Identify boutique agency founders, practice leaders, and partners who regularly publish insights on adjacent customer challenges.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <Layers className="w-4 h-4 text-[#171F2C]" />
-                  <span>5. Ecosystem &amp; Marketplace Directories</span>
-                </div>
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#171F2C] mb-1">05 · Ecosystem Directories</div>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  Inspect certified partner directories of major platforms your clients use (e.g.,
-                  AWS, Salesforce, Shopify Plus, Snowflake). These firms are pre-vetted for quality.
+                  Explore partner rosters for major enterprise platforms (e.g., Salesforce, HubSpot, AWS, Snowflake) that your clients deploy.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <Handshake className="w-4 h-4 text-[#059669]" />
-                  <span>6. Executive Roundtables &amp; Communities</span>
-                </div>
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-semibold text-[#171F2C] mb-1">06 · Structured Exchanges (The Relay)</div>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  Participate in specialized founder networks, agency collectives, and niche
-                  industry events where B2B leaders actively discuss co-selling and mutual deal
-                  flow.
+                  Discover commercial counterparties by posting or evaluating structured B2B requirements around live customer demand.
                 </p>
               </div>
             </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 5: LOOK FOR REAL REFERRAL & PARTNERSHIP SIGNALS
+              SECTION 4: HOW TO RESEARCH A POTENTIAL REFERRAL PARTNER
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>04</span>
-                <span>•</span>
-                <span>Candidate Research</span>
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 04
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
-                Look for Real Referral &amp; Partnership Signals
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                How to Research a Potential Referral Partner
               </h2>
-              <p className="text-sm text-[#64748B] max-w-2xl">
-                Before reaching out, review the target business for tangible evidence that they
-                value and understand collaborative partnerships.
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Before initiating outreach, gather verifiable evidence regarding their service scope and market positioning:
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <CheckCircle2 className="w-4 h-4 text-[#059669]" />
-                  <span>Dedicated Partner or Ecosystem Page</span>
-                </div>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Companies with an explicit &ldquo;Partners&rdquo; or &ldquo;Ecosystem&rdquo; page
-                  on their website already have an established mental model for working with
-                  external agencies and consultants.
-                </p>
+            <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-4">
+              <div className="text-xs font-mono font-bold uppercase tracking-wider text-[#171F2C] pb-2 border-b border-[#E2E8F0]">
+                Key Research Areas to Review
               </div>
-
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <CheckCircle2 className="w-4 h-4 text-[#059669]" />
-                  <span>Co-Marketing &amp; Joint Case Studies</span>
-                </div>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Look for published content, webinars, or case studies co-authored with
-                  complementary providers. This confirms an active culture of collaborative
-                  delivery.
-                </p>
-              </div>
-
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <CheckCircle2 className="w-4 h-4 text-[#059669]" />
-                  <span>Complementary Service Packaging</span>
-                </div>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Inspect their service menu. If they explicitly state that they do not offer your
-                  core service (e.g., &ldquo;We focus strictly on backend dev and partner with
-                  leading UX agencies&rdquo;), the fit is natural.
-                </p>
-              </div>
-
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <CheckCircle2 className="w-4 h-4 text-[#059669]" />
-                  <span>Evidence of Mutual Introductions</span>
-                </div>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Client testimonials mentioning how the firm seamlessly brought in trusted
-                  specialists demonstrates that they regularly introduce their clients to vetted
-                  counterparties.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 6: QUALIFY THE PARTNER (6-POINT FRAMEWORK)
-              ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>05</span>
-                <span>•</span>
-                <span>Vetting Framework</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
-                Qualify the Partner: A 6-Point Evaluation Framework
-              </h2>
-            </div>
-
-            <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-[2px] bg-[#171F2C] text-white flex items-center justify-center font-mono font-bold text-xs">
-                      1
-                    </span>
-                    <h3 className="text-sm font-bold text-[#171F2C]">Customer Overlap</h3>
-                  </div>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    Do they routinely work with the same company sizes, growth stages, and executive
-                    stakeholders that comprise your primary customer segment?
-                  </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[13px]">
+                <div className="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <div className="font-semibold text-[#171F2C] mb-1">Service Scope &amp; Line Card</div>
+                  <p className="text-[#64748B]">Verify that their primary offering does not directly overlap with your core deliverables.</p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-[2px] bg-[#171F2C] text-white flex items-center justify-center font-mono font-bold text-xs">
-                      2
-                    </span>
-                    <h3 className="text-sm font-bold text-[#171F2C]">Complementarity</h3>
-                  </div>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    Is the division of scope crystal clear? Will your respective service offerings
-                    fit together cleanly without competing for the same client budget?
-                  </p>
+                <div className="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <div className="font-semibold text-[#171F2C] mb-1">Target Industries &amp; Client Sizes</div>
+                  <p className="text-[#64748B]">Review case studies and client logos to ensure they operate in compatible customer segments.</p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-[2px] bg-[#171F2C] text-white flex items-center justify-center font-mono font-bold text-xs">
-                      3
-                    </span>
-                    <h3 className="text-sm font-bold text-[#171F2C]">Trust &amp; Reputation</h3>
-                  </div>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    Would introducing this firm to your most valuable client elevate or endanger
-                    your relationship? Inspect verified client references and work samples.
-                  </p>
+                <div className="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <div className="font-semibold text-[#171F2C] mb-1">Ecosystem Participation</div>
+                  <p className="text-[#64748B]">Check whether they actively maintain technology certifications or co-marketing initiatives.</p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-[2px] bg-[#171F2C] text-white flex items-center justify-center font-mono font-bold text-xs">
-                      4
-                    </span>
-                    <h3 className="text-sm font-bold text-[#171F2C]">Capacity &amp; Velocity</h3>
-                  </div>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    Do they have the available team bandwidth to follow up with an introduced
-                    prospect within 24 to 48 hours and deliver quality execution?
-                  </p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-[2px] bg-[#171F2C] text-white flex items-center justify-center font-mono font-bold text-xs">
-                      5
-                    </span>
-                    <h3 className="text-sm font-bold text-[#171F2C]">Geography &amp; Compliance</h3>
-                  </div>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    Can they legally and operationally deliver services in the jurisdictions (e.g.,
-                    GDPR, HIPAA, SOC2, US/UK/EU states) where your clients operate?
-                  </p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-[2px] bg-[#171F2C] text-white flex items-center justify-center font-mono font-bold text-xs">
-                      6
-                    </span>
-                    <h3 className="text-sm font-bold text-[#171F2C]">Commercial Fit</h3>
-                  </div>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    Are both organizations aligned on how value is exchanged—whether through
-                    reciprocal deal parity, revenue-share percentages, or joint co-selling?
-                  </p>
+                <div className="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <div className="font-semibold text-[#171F2C] mb-1">Collaborative Track Record</div>
+                  <p className="text-[#64748B]">Look for signs that they work alongside external specialists rather than attempting to deliver everything internally.</p>
                 </div>
               </div>
             </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 7: DETERMINE RECIPROCITY ("WHAT CAN I SEND THEM?")
+              SECTION 5: SIGNALS OF A GOOD REFERRAL PARTNER
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>06</span>
-                <span>•</span>
-                <span>Bilateral Economics</span>
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 05
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
-                Determine Whether the Relationship Can Be Reciprocal
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                What Signals Suggest a Business Could Be a Good Referral Partner?
               </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Look for positive indicators that demonstrate strategic alignment and a collaborative mindset:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-sm font-semibold text-[#171F2C] mb-1">Dedicated Partner Pages</div>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Having an ecosystem or partner section indicates an established framework for working with outside firms.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-sm font-semibold text-[#171F2C] mb-1">Joint Case Studies</div>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Published work featuring complementary vendors confirms active multi-firm delivery experience.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-sm font-semibold text-[#171F2C] mb-1">Clear Scope Boundaries</div>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Explicit statements about services they choose not to deliver, signaling room for specialized partners.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-sm font-semibold text-[#171F2C] mb-1">Shared Buyer Personas</div>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Content and positioning directed at the same executive stakeholders you routinely advise.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-sm font-semibold text-[#171F2C] mb-1">Recurring Adjacent Needs</div>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Frequent client encounters with problems that naturally lead into your service capabilities.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-sm font-semibold text-[#171F2C] mb-1">Clear Economic Rationale</div>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  A distinct benefit for both organizations—such as expanding project capabilities or trading deal flow.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 6: HOW TO EVALUATE A REFERRAL PARTNER
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 06
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                How to Evaluate a Referral Partner
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Use this 8-point diagnostic evaluation framework to assess candidate compatibility:
+              </p>
+            </div>
+
+            <div className="bg-white border border-[#E2E8F0] rounded-[4px] overflow-x-auto">
+              <table className="w-full text-left border-collapse text-[13px]">
+                <thead>
+                  <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[11px] font-mono font-semibold text-[#64748B] uppercase">
+                    <th className="p-4">Evaluation Factor</th>
+                    <th className="p-4">Key Diagnostic Question</th>
+                    <th className="p-4">Why It Matters</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E2E8F0] text-[#171F2C]">
+                  <tr>
+                    <td className="p-4 font-semibold">1. Customer Overlap</td>
+                    <td className="p-4 text-[#64748B]">Do you sell to the same buyer types and industry sectors?</td>
+                    <td className="p-4 text-[#64748B]">Ensures referred leads fit your commercial criteria.</td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 font-semibold">2. Complementarity</td>
+                    <td className="p-4 text-[#64748B]">Is there a distinct separation of billable scope?</td>
+                    <td className="p-4 text-[#64748B]">Prevents scope friction and competition for client budget.</td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 font-semibold">3. Reputation &amp; Quality</td>
+                    <td className="p-4 text-[#64748B]">Do they have referenceable case studies and work examples?</td>
+                    <td className="p-4 text-[#64748B]">Protects client trust when making warm introductions.</td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 font-semibold">4. Domain Experience</td>
+                    <td className="p-4 text-[#64748B]">Do they have depth in the specific technical problem area?</td>
+                    <td className="p-4 text-[#64748B]">Ensures delivered work meets professional standards.</td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 font-semibold">5. Geographic Fit</td>
+                    <td className="p-4 text-[#64748B]">Can they operate within the required jurisdictions and timezones?</td>
+                    <td className="p-4 text-[#64748B]">Avoids regional compliance and delivery barriers.</td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 font-semibold">6. Delivery Capacity</td>
+                    <td className="p-4 text-[#64748B]">Do they have bench bandwidth to service introduced clients promptly?</td>
+                    <td className="p-4 text-[#64748B]">Prevents client dissatisfaction caused by onboarding delays.</td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 font-semibold">7. Communication</td>
+                    <td className="p-4 text-[#64748B]">Are they prompt in responding to introductions and status updates?</td>
+                    <td className="p-4 text-[#64748B]">Maintains transparency across the partnership lifecycle.</td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 font-semibold">8. Commercial Alignment</td>
+                    <td className="p-4 text-[#64748B]">Are both sides aligned on attribution, terms, and expectations?</td>
+                    <td className="p-4 text-[#64748B]">Establishes sustainable, long-term commercial clarity.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 7: IDENTIFY REFERRAL VS COMPETITOR RELATIONSHIPS
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 07
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                How to Identify Referral vs Competitor Relationships
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Not all service overlap creates direct competition. Evaluate potential scope boundaries carefully:
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-4">
-                <h3 className="text-base font-bold text-[#171F2C]">
-                  The Golden Question: &ldquo;What Can I Send Them?&rdquo;
+              <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-3">
+                <div className="flex items-center gap-2 text-sm font-semibold text-[#171F2C]">
+                  <CheckSquare2 className="w-4 h-4 text-[#171F2C]" />
+                  <span>Complementary Partner Characteristics</span>
+                </div>
+                <ul className="space-y-2 text-[13px] text-[#64748B]">
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C] mt-1.5 shrink-0"></span>
+                    <span><strong>Distinct Core Focus:</strong> Primary revenue comes from different services or technologies.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C] mt-1.5 shrink-0"></span>
+                    <span><strong>Shared Client Account:</strong> Both firms can bill the same client simultaneously without conflict.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C] mt-1.5 shrink-0"></span>
+                    <span><strong>Mutual Handoff Value:</strong> Passing leads enhances project outcomes for both vendors.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-3">
+                <div className="flex items-center gap-2 text-sm font-semibold text-[#171F2C]">
+                  <XCircle className="w-4 h-4 text-[#64748B]" />
+                  <span>Direct Competitor Risks</span>
+                </div>
+                <ul className="space-y-2 text-[13px] text-[#64748B]">
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#94A3B8] mt-1.5 shrink-0"></span>
+                    <span><strong>Direct Budget Competition:</strong> Pitching the exact same core capability to the same buyer.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#94A3B8] mt-1.5 shrink-0"></span>
+                    <span><strong>Scope Cannibalization:</strong> Temptation to expand into your deliverable during delivery.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#94A3B8] mt-1.5 shrink-0"></span>
+                    <span><strong>Conflicting Client Positioning:</strong> Mixed messaging to the client regarding primary project ownership.</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 8: CAN THE RELATIONSHIP BE RECIPROCAL?
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 08
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                Can the Referral Relationship Be Reciprocal?
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Determine the operational flow of introductions between both organizations:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-3">
+                <h3 className="text-base font-semibold text-[#171F2C]">
+                  One-Way Referral Model
                 </h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  The fastest way to kill a prospective referral partnership is to approach another
-                  business expecting them to supply you with clients while offering nothing in
-                  return. Before reaching out, identify your concrete value proposition to their
-                  business.
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  One partner primarily generates and routes opportunities to the other. Common when an upstream service provider (such as a legal or accounting firm) encounters client needs for specialized downstream technical implementation.
                 </p>
-                <div className="space-y-2 pt-1 text-xs text-[#334155]">
-                  <div className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-[#059669]" />
-                    <span>
-                      <strong>Direct Reciprocal Leads:</strong> Client opportunities you can route
-                      back to them.
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-[#059669]" />
-                    <span>
-                      <strong>Co-Marketing / Joint Bidding:</strong> Including them in enterprise
-                      RFPs and proposals.
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-[#059669]" />
-                    <span>
-                      <strong>Commercial Revenue Share:</strong> Fair compensation on closed
-                      referred revenue.
-                    </span>
-                  </div>
+                <div className="text-xs font-mono text-[#64748B] pt-2">
+                  Best suited when customer lifecycles flow in a single direction.
                 </div>
               </div>
 
-              <div className="p-6 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-4 flex flex-col justify-between">
-                <div className="space-y-2">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748B]">
-                    Realistic Reciprocity
-                  </span>
-                  <h3 className="text-base font-bold text-[#171F2C]">
-                    Reciprocity Does Not Mean Exact Monthly Parity
-                  </h3>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    Different industries have different project cadences. A branding agency might
-                    send 3 web dev referrals per year, while an engineering firm might send 1 major
-                    rebrand client. What matters is long-term mutual commercial respect and fair
-                    value alignment.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-[#E2E8F0] text-xs font-mono text-[#059669]">
-                  Aligned Incentives • Sustainable Relationships
+              <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-3">
+                <h3 className="text-base font-semibold text-[#171F2C]">
+                  Reciprocal Exchange Model
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Both businesses routinely encounter out-of-scope opportunities that match the other's core capability. Introductions flow bidirectionally over time as complementary client needs arise.
+                </p>
+                <div className="text-xs font-mono text-[#64748B] pt-2">
+                  Best suited when both firms share parallel touchpoints with the same buyer.
                 </div>
               </div>
             </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 8: APPROACH THE RIGHT PERSON
+              SECTION 9: HOW TO APPROACH A REFERRAL PARTNER
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>07</span>
-                <span>•</span>
-                <span>Outreach Protocol</span>
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 09
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
-                How to Approach the Right Person
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                How to Approach a Potential Referral Partner
               </h2>
-              <p className="text-sm text-[#64748B] max-w-2xl">
-                Do not open with a generic &ldquo;We&apos;d love to partner with you&rdquo; pitch.
-                Make the initial conversation about <em>their clients</em> and common friction
-                points they encounter.
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Initiate discussions around specific client problem scenarios rather than broad partnership pitches:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-3">
+                <div className="text-xs font-mono font-semibold text-[#171F2C] uppercase tracking-wider">
+                  Outreach Best Practices
+                </div>
+                <ul className="space-y-2 text-[13px] text-[#64748B]">
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C] mt-1.5 shrink-0"></span>
+                    <span><strong>Research First:</strong> Understand their client profile and core services before reaching out.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C] mt-1.5 shrink-0"></span>
+                    <span><strong>Highlight Shared Problems:</strong> Reference concrete client friction points you help solve.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C] mt-1.5 shrink-0"></span>
+                    <span><strong>Keep Initial Step Low-Friction:</strong> Propose a brief introductory conversation to compare notes.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#171F2C] mt-1.5 shrink-0"></span>
+                    <span><strong>Avoid Immediate Demands:</strong> Do not ask for client introductions during the first exchange.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="p-6 bg-white border border-[#171F2C] rounded-[4px] space-y-3">
+                <div className="text-xs font-mono font-bold uppercase tracking-wider text-[#171F2C] pb-2 border-b border-[#E2E8F0]">
+                  Illustrative Outreach Template
+                </div>
+                <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] font-mono text-xs text-[#334155] leading-relaxed space-y-2">
+                  <p>
+                    <span className="text-[#64748B]">Subject:</span> Complementary client capabilities for [Their Company] &amp; [Your Company]
+                  </p>
+                  <p>
+                    Hi [Name], we work with [customer type] on [specific problem]. I noticed your team helps those same businesses with [adjacent need].
+                  </p>
+                  <p>
+                    There may be situations where our clients need each other&apos;s services. Would you be open to a short conversation about whether a referral relationship makes sense?
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 10: DEFINE WHAT A REFERRAL MEANS
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 10
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                Define What a Referral Means Before Sending One
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Clarify operating ground rules and expectations before making introductions:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  1. Qualification Criteria
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Establish what constitutes a qualified lead (e.g., verified budget, active timeline, direct decision-maker).
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  2. Introduction Protocol
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Confirm how handoffs occur (e.g., double opt-in email introduction vs. scheduling an exploratory sync).
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  3. Attribution Window
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Agree on the timeframe during which an introduced prospect qualifies for partnership recognition.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  4. Account Ownership
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Ensure clear boundaries so that neither firm pitches services outside the agreed handoff scope.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  5. Commercial Structure
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Agree whether the relationship operates via reciprocal introductions, finder fees, or joint co-selling.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  6. Duplicate Lead Handling
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed">
+                  Define how to verify whether a referred client is already in active pipeline discussions.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 11: START WITH A SMALL PILOT
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 11
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                Start With a Small Referral Pilot
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Rather than building a sprawling partner roster, start with a small number of highly relevant businesses:
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
-                  Rule 1
-                </span>
-                <h3 className="text-sm font-bold text-[#171F2C]">
-                  Target Executive Decision-Makers
-                </h3>
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-bold text-[#171F2C] mb-1">1. Test Real Handoffs</div>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  In boutique and mid-market B2B firms, reach out to Managing Directors, Agency
-                  Founders, VP of Partnerships, or Practice Heads who have authority over client
-                  routing.
+                  Execute one or two live introductions to evaluate responsiveness, pitch quality, and onboarding clarity.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
-                  Rule 2
-                </span>
-                <h3 className="text-sm font-bold text-[#171F2C]">
-                  Lead with Specific Problem Scenarios
-                </h3>
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-bold text-[#171F2C] mb-1">2. Gather Client Feedback</div>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  Frame the message around client scenarios you frequently solve: &ldquo;When your
-                  enterprise clients require custom SOC-2 remediation after audits, how do you
-                  currently handle that handoff?&rdquo;
+                  Check with the referred client to ensure the partner provided professional, timely, and valuable advice.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <span className="text-[10px] font-mono font-bold uppercase text-[#64748B]">
-                  Rule 3
-                </span>
-                <h3 className="text-sm font-bold text-[#171F2C]">
-                  Keep the First Step Low Friction
-                </h3>
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-xs font-mono font-bold text-[#171F2C] mb-1">3. Iterate or Expand</div>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  Do not send a 10-page partnership agreement. Propose a brief 15-minute
-                  introductory discussion to compare client profiles and see if a referral
-                  collaboration makes sense.
-                </p>
-              </div>
-            </div>
-
-            {/* Practical Email Framework */}
-            <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-3">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase text-[#171F2C]">
-                <Mail className="w-4 h-4 text-[#F97316]" />
-                <span>Effective Outreach Framework (Client-Centric Model)</span>
-              </div>
-              <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] font-mono text-xs text-[#334155] leading-relaxed space-y-2">
-                <p>
-                  <span className="text-[#64748B]">Subject:</span> Complementary client handoffs for
-                  [Their Company] &amp; [Your Company]
-                </p>
-                <p>
-                  <span className="text-[#64748B]">Body:</span> Hi [Name], I run [Your Company]. We
-                  specialize in [Your Niche] for [Target ICP].
-                </p>
-                <p>
-                  We frequently encounter clients needing [Their Core Specialty], which sits outside
-                  our delivery scope. Looking at your work with [Client Type], our capabilities seem
-                  highly complementary.
-                </p>
-                <p>
-                  Are you open to a brief 15-minute call next week to see how we handle out-of-scope
-                  client needs and whether a structured referral channel makes sense?
+                  Refine communication and handoff steps based on real operational experience before broadening collaboration.
                 </p>
               </div>
             </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 9: DEFINE WHAT A REFERRAL MEANS BEFORE SENDING ONE
+              SECTION 12: TRACK THE RELATIONSHIP
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>08</span>
-                <span>•</span>
-                <span>Governance &amp; Terms</span>
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 12
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
-                Define What a Referral Means Before Sending One
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                Track Referral Activity and Relationship Health
               </h2>
-              <p className="text-sm text-[#64748B] max-w-2xl">
-                Before facilitating the first introduction, ensure both counterparties have explicit
-                clarity on operating rules, client ownership, and attribution.
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Monitor practical indicators to assess whether the partnership remains mutually productive:
               </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <FileText className="w-4 h-4 text-[#F97316]" />
-                  <span>Qualification Criteria</span>
-                </div>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Explicitly define what counts as an eligible lead (budget verified, need
-                  confirmed, authority established).
-                </p>
-              </div>
-
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <Handshake className="w-4 h-4 text-[#171F2C]" />
-                  <span>Double-Opt-In Protocol</span>
-                </div>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Client consent must be secured in advance. No unsolicited contact transfers.
-                </p>
-              </div>
-
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <Clock className="w-4 h-4 text-[#171F2C]" />
-                  <span>Attribution Window</span>
-                </div>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Agreed timeframe (e.g., 90 to 180 days) during which an intro qualifies for credit
-                  if it closes.
-                </p>
-              </div>
-
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <ShieldCheck className="w-4 h-4 text-[#171F2C]" />
-                  <span>Account Ownership</span>
-                </div>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Scope boundaries ensuring the receiving firm does not pitch overlapping services
-                  to the client.
-                </p>
-              </div>
-
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <Coins className="w-4 h-4 text-[#059669]" />
-                  <span>Commercial Compensation</span>
-                </div>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Agreement on whether the deal operates via revenue-share, flat fee, or reciprocal
-                  deal exchange.
-                </p>
-              </div>
-
-              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#171F2C]">
-                  <Users className="w-4 h-4 text-[#171F2C]" />
-                  <span>Duplicate Lead Rule</span>
-                </div>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Process for confirming whether a referred client is already an active pipeline
-                  lead in their CRM.
-                </p>
-              </div>
-            </div>
-
-            <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs flex items-center justify-between flex-wrap gap-2 text-xs">
-              <span className="text-[#64748B]">
-                Need a complete breakdown of referral contract terms and structures?
-              </span>
-              <Link
-                to="/referral-partnerships"
-                className="font-semibold text-[#171F2C] underline underline-offset-4 flex items-center gap-1"
-              >
-                <span>Read our Guide on Structuring Referral Partnerships</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </section>
-
-          {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 10: START WITH A SMALL PILOT
-              ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>09</span>
-                <span>•</span>
-                <span>Execution Strategy</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
-                Start with a Small Pilot (3 to 5 Partners)
-              </h2>
-            </div>
-
-            <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-4">
-              <p className="text-sm text-[#334155] leading-relaxed">
-                Do not attempt to sign 50 referral partners in your first quarter. High-performing
-                partner networks are built incrementally. Begin by piloting with{" "}
-                <strong>2 to 4 highly relevant businesses</strong>.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-1">
-                  <span className="text-xs font-bold text-[#171F2C]">1. Test the Handoff</span>
-                  <p className="text-xs text-[#64748B]">
-                    Execute 1 or 2 live introductions to observe partner response time and pitch
-                    quality.
-                  </p>
-                </div>
-                <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-1">
-                  <span className="text-xs font-bold text-[#171F2C]">
-                    2. Gather Client Feedback
-                  </span>
-                  <p className="text-xs text-[#64748B]">
-                    Check in with your client to verify that the partner was professional,
-                    responsive, and helpful.
-                  </p>
-                </div>
-                <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-1">
-                  <span className="text-xs font-bold text-[#171F2C]">3. Deepen or Iterate</span>
-                  <p className="text-xs text-[#64748B]">
-                    If the pilot succeeds, establish regular syncs. If communication falters, adjust
-                    before expanding.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 11: TRACK THE RELATIONSHIP
-              ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>10</span>
-                <span>•</span>
-                <span>Operational Health</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
-                Track the Relationship: Key Operational Metrics
-              </h2>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-1 text-center">
-                <span className="text-[10px] font-mono uppercase text-[#64748B] block">
-                  Metric 1
-                </span>
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] text-center">
+                <span className="text-[10px] font-mono uppercase text-[#64748B] block mb-1">Activity</span>
                 <span className="text-xs font-bold text-[#171F2C] block">Intros Sent</span>
                 <span className="text-[11px] text-[#64748B]">Volume routed</span>
               </div>
-              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-1 text-center">
-                <span className="text-[10px] font-mono uppercase text-[#64748B] block">
-                  Metric 2
-                </span>
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] text-center">
+                <span className="text-[10px] font-mono uppercase text-[#64748B] block mb-1">Reciprocity</span>
                 <span className="text-xs font-bold text-[#171F2C] block">Intros Received</span>
-                <span className="text-[11px] text-[#64748B]">Reciprocal flow</span>
+                <span className="text-[11px] text-[#64748B]">Inbound flow</span>
               </div>
-              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-1 text-center">
-                <span className="text-[10px] font-mono uppercase text-[#64748B] block">
-                  Metric 3
-                </span>
-                <span className="text-xs font-bold text-[#171F2C] block">Accept Rate</span>
-                <span className="text-[11px] text-[#64748B]">Lead fit %</span>
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] text-center">
+                <span className="text-[10px] font-mono uppercase text-[#64748B] block mb-1">Alignment</span>
+                <span className="text-xs font-bold text-[#171F2C] block">Acceptance Rate</span>
+                <span className="text-[11px] text-[#64748B]">Lead qualification</span>
               </div>
-              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-1 text-center">
-                <span className="text-[10px] font-mono uppercase text-[#64748B] block">
-                  Metric 4
-                </span>
-                <span className="text-xs font-bold text-[#171F2C] block">Win Rate</span>
-                <span className="text-[11px] text-[#64748B]">Closed deals</span>
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] text-center">
+                <span className="text-[10px] font-mono uppercase text-[#64748B] block mb-1">Velocity</span>
+                <span className="text-xs font-bold text-[#171F2C] block">Response Time</span>
+                <span className="text-[11px] text-[#64748B]">Follow-up speed</span>
               </div>
-              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-1 text-center">
-                <span className="text-[10px] font-mono uppercase text-[#64748B] block">
-                  Metric 5
-                </span>
-                <span className="text-xs font-bold text-[#171F2C] block">Velocity</span>
-                <span className="text-[11px] text-[#64748B]">Response SLA</span>
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] text-center">
+                <span className="text-[10px] font-mono uppercase text-[#64748B] block mb-1">Commercial</span>
+                <span className="text-xs font-bold text-[#171F2C] block">Closed Deals</span>
+                <span className="text-[11px] text-[#64748B]">Engagements won</span>
               </div>
-              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-1 text-center">
-                <span className="text-[10px] font-mono uppercase text-[#64748B] block">
-                  Metric 6
-                </span>
-                <span className="text-xs font-bold text-[#059669] block">Total Value</span>
-                <span className="text-[11px] text-[#64748B]">Revenue / Deals</span>
+              <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px] text-center">
+                <span className="text-[10px] font-mono uppercase text-[#64748B] block mb-1">Satisfaction</span>
+                <span className="text-xs font-bold text-[#171F2C] block">Client Feedback</span>
+                <span className="text-[11px] text-[#64748B]">Quality score</span>
               </div>
             </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 12: COMMON MISTAKES TO AVOID
+              SECTION 13: COMMON MISTAKES
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>11</span>
-                <span>•</span>
-                <span>Pitfalls &amp; Traps</span>
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 13
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
-                Common Mistakes When Sourcing Referral Partners
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                Common Mistakes When Finding Referral Partners
               </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Avoid these frequent missteps during partner research, outreach, and onboarding:
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-5 bg-white border border-[#FECACA] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#DC2626]">
-                  <AlertTriangle className="w-4 h-4" />
-                  <span>1. Chasing Brand Fame Over Client Overlap</span>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  1. Prioritizing Fame Over Fit
+                </h3>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  Partnering with a giant enterprise brand usually results in zero deal flow because
-                  their sales team has no incentive to route leads to boutique firms. Focus on agile
-                  peers.
+                  Choosing large brand-name agencies whose frontline teams have no incentive to route leads to boutique specialists.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#FECACA] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#DC2626]">
-                  <AlertTriangle className="w-4 h-4" />
-                  <span>2. Partnering with Hidden Competitors</span>
-                </div>
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  2. Ignoring Customer Overlap
+                </h3>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  Failing to inspect their full service offering can lead to scope cannibalization
-                  where the partner attempts to cross-sell into your primary client deliverables.
+                  Partnering with firms whose clients operate in different industries or maintain drastically different project budgets.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#FECACA] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#DC2626]">
-                  <AlertTriangle className="w-4 h-4" />
-                  <span>3. Asking for Referrals Before Providing Value</span>
-                </div>
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  3. Assuming Every Complement Fits
+                </h3>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  Demanding client leads on day one creates immediate resistance. Lead with an
-                  introduction, industry insight, or client scenario to demonstrate goodwill first.
+                  Treating every non-competing firm as a natural partner without validating operational compatibility.
                 </p>
               </div>
 
-              <div className="p-5 bg-white border border-[#FECACA] rounded-[4px] shadow-2xs space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#DC2626]">
-                  <AlertTriangle className="w-4 h-4" />
-                  <span>4. Zero Follow-Up &amp; Ghosting Pipeline</span>
-                </div>
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  4. Demanding Leads on Day One
+                </h3>
                 <p className="text-xs text-[#64748B] leading-relaxed">
-                  Failing to update a referring partner on introduced prospect progress ruins trust.
-                  Maintain regular pipeline status communication.
+                  Asking for client introductions before demonstrating competence, reliability, or value.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  5. Overlooking Direct Competition
+                </h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Failing to notice that a candidate actively pitches the same core deliverables to the same stakeholders.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  6. Vague Referral Definitions
+                </h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Making introductions without agreeing on qualification criteria, attribution windows, or communication protocols.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  7. Premature Data Sharing
+                </h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Transmitting sensitive client details before obtaining explicit double opt-in consent from the buyer.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  8. Ghosting Pipeline Status
+                </h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Failing to update the referring partner on whether an introduced prospect converted or stalled.
+                </p>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <h3 className="text-sm font-semibold text-[#171F2C] mb-1">
+                  9. Expecting Exact Parity
+                </h3>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  Expecting identical monthly lead volumes despite different project lifecycles and sales velocity.
                 </p>
               </div>
             </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 13: WHERE THE RELAY FITS
+              SECTION 14: WHERE THE RELAY FITS
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>12</span>
-                <span>•</span>
-                <span>The Modern Paradigm</span>
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 14
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
-                Where The Relay Fits in Partner Discovery
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                Where The Relay Fits in Referral Partner Discovery
               </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Traditional partner search relies on speculative networking, cold messaging, and long delays. The Relay provides an opportunity-based discovery route:
+              </p>
             </div>
 
-            <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-4">
-              <p className="text-sm text-[#334155] leading-relaxed">
-                Traditional partner discovery requires finding companies, cold outreach, assessing
-                fit, initiating speculative conversations, and then waiting months hoping a client
-                opportunity emerges.
-              </p>
-              <p className="text-sm text-[#334155] leading-relaxed">
-                <strong>
-                  The Relay puts an active commercial opportunity in the middle of that process.
-                </strong>{" "}
-                Instead of speculative networking, businesses discover vetted counterparties around
-                live, unfulfilled client requirements—enabling both organizations to evaluate
-                operational fit and commercial terms around a tangible commercial transaction.
-              </p>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <Link
-                  to="/b2b-opportunity-exchange"
-                  className="px-3.5 py-2 rounded-[4px] bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#E2E8F0] text-xs font-semibold text-[#171F2C] transition-colors"
-                >
-                  Opportunity Exchange Overview
-                </Link>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-3">
+                <h3 className="text-base font-semibold text-[#171F2C]">
+                  What The Relay Provides
+                </h3>
+                <ul className="space-y-2 text-[13px] text-[#64748B]">
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                    <span>A structured venue to post specific, unfulfilled client requirements.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                    <span>Discovery mechanism connecting firms with complementary capabilities around active demand.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                    <span>Bilateral interest signaling and mutual evaluation workflows.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-3">
+                <h3 className="text-base font-semibold text-[#171F2C]">
+                  What The Relay Does Not Do
+                </h3>
+                <ul className="space-y-2 text-[13px] text-[#64748B]">
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#64748B] mt-1.5 shrink-0"></span>
+                    <span>The Relay does not guarantee referrals, lead volume, or closed revenue.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#64748B] mt-1.5 shrink-0"></span>
+                    <span>The Relay does not certify partner quality or guarantee project conversion.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-[1px] bg-[#64748B] mt-1.5 shrink-0"></span>
+                    <span>The Relay does not automatically enforce legal agreements or operate client billing.</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Related Ecosystem Links */}
+            <div className="pt-6 border-t border-[#E2E8F0]">
+              <div className="text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B] mb-4">
+                Explore The Complete Referral &amp; Partnership Ecosystem
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <Link
                   to="/b2b-referral-network"
-                  className="px-3.5 py-2 rounded-[4px] bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#E2E8F0] text-xs font-semibold text-[#171F2C] transition-colors"
+                  className="p-3 bg-white border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors flex items-center justify-between"
                 >
-                  B2B Referral Network
+                  <span className="text-[13px] font-medium text-[#171F2C]">B2B Referral Network</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#64748B]" />
                 </Link>
+
                 <Link
                   to="/referral-partnerships"
-                  className="px-3.5 py-2 rounded-[4px] bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#E2E8F0] text-xs font-semibold text-[#171F2C] transition-colors"
+                  className="p-3 bg-white border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors flex items-center justify-between"
                 >
-                  Structuring Referral Deals
+                  <span className="text-[13px] font-medium text-[#171F2C]">Referral Partnerships Guide</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#64748B]" />
+                </Link>
+
+                <Link
+                  to="/b2b-partnership-network"
+                  className="p-3 bg-white border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors flex items-center justify-between"
+                >
+                  <span className="text-[13px] font-medium text-[#171F2C]">B2B Partnership Network</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#64748B]" />
+                </Link>
+
+                <Link
+                  to="/b2b-opportunity-exchange"
+                  className="p-3 bg-white border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors flex items-center justify-between"
+                >
+                  <span className="text-[13px] font-medium text-[#171F2C]">B2B Opportunity Exchange</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#64748B]" />
+                </Link>
+
+                <Link
+                  to="/agency-lead-exchange"
+                  className="p-3 bg-white border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors flex items-center justify-between"
+                >
+                  <span className="text-[13px] font-medium text-[#171F2C]">Agency Lead Exchange</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#64748B]" />
+                </Link>
+
+                <Link
+                  to="/8-step-journey"
+                  className="p-3 bg-white border border-[#E2E8F0] rounded-[4px] hover:border-[#171F2C] transition-colors flex items-center justify-between"
+                >
+                  <span className="text-[13px] font-medium text-[#171F2C]">8-Step Journey Overview</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#64748B]" />
                 </Link>
               </div>
             </div>
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 14: FAQ SECTION (CRAWLER-FRIENDLY DOM)
+              SECTION 15: ILLUSTRATIVE EXAMPLES
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#64748B]">
-                <span>13</span>
-                <span>•</span>
-                <span>Frequently Asked Questions</span>
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 15
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#171F2C] tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                Illustrative B2B Referral Partner Examples
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Hypothetical scenarios illustrating how complementary firms structure referral relationships:
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-[10px] font-mono font-semibold text-[#64748B] uppercase mb-1">
+                  Illustrative Example 01
+                </div>
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1">
+                  Web Development Company + Branding Studio
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed mb-2">
+                  A branding studio creates new visual identities for mid-market firms. When clients require custom web applications to launch the brand, they refer work to a trusted web development agency, which reciprocates when web clients need identity refreshes.
+                </p>
+                <div className="text-xs font-mono text-[#171F2C]">
+                  <strong>Strategic Rationale:</strong> Shared marketing leadership buyer; zero overlap in core technical delivery.
+                </div>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-[10px] font-mono font-semibold text-[#64748B] uppercase mb-1">
+                  Illustrative Example 02
+                </div>
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1">
+                  ERP Consultancy + Cybersecurity Specialist
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed mb-2">
+                  An enterprise ERP consultancy deploys back-office databases. To comply with regulatory audits, clients require third-party penetration testing and SOC-2 auditing, which the ERP firm routes to an independent security consultancy.
+                </p>
+                <div className="text-xs font-mono text-[#171F2C]">
+                  <strong>Strategic Rationale:</strong> Audit independence prevents the ERP firm from auditing itself, creating a natural handoff.
+                </div>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-[10px] font-mono font-semibold text-[#64748B] uppercase mb-1">
+                  Illustrative Example 03
+                </div>
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1">
+                  SaaS Implementation Firm + Managed IT Provider (MSP)
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed mb-2">
+                  A specialized CRM configuration agency partners with regional MSPs. When the MSP manages client workstation support, they introduce the CRM specialist for revenue operations workflows.
+                </p>
+                <div className="text-xs font-mono text-[#171F2C]">
+                  <strong>Strategic Rationale:</strong> The MSP deepens client retention without having to build a dedicated CRM practice.
+                </div>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-[10px] font-mono font-semibold text-[#64748B] uppercase mb-1">
+                  Illustrative Example 04
+                </div>
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1">
+                  B2B Marketing Agency + Specialist Video Production Studio
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed mb-2">
+                  A performance marketing agency managing paid acquisition campaigns partners with a high-end corporate video production studio to deliver broadcast-quality video assets for demand generation.
+                </p>
+                <div className="text-xs font-mono text-[#171F2C]">
+                  <strong>Strategic Rationale:</strong> The agency accesses high-tier creative assets while the video studio gains recurring campaign demand.
+                </div>
+              </div>
+
+              <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px]">
+                <div className="text-[10px] font-mono font-semibold text-[#64748B] uppercase mb-1">
+                  Illustrative Example 05
+                </div>
+                <h3 className="text-base font-semibold text-[#171F2C] mb-1">
+                  Compliance Consultancy + Technology Implementation Firm
+                </h3>
+                <p className="text-[13px] text-[#64748B] leading-relaxed mb-2">
+                  A healthcare compliance advisory firm identifies technical data privacy vulnerabilities in client workflows and refers technical remediation to an authorized cloud engineering partner.
+                </p>
+                <div className="text-xs font-mono text-[#171F2C]">
+                  <strong>Strategic Rationale:</strong> Advisory firm focuses on regulatory strategy while engineering firm handles code implementation.
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 16: REFERRAL PARTNER CHECKLIST
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Phase 16
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight mb-3">
+                B2B Referral Partner Checklist
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed">
+                Review this pre-outreach and pre-commitment checklist before finalizing a referral partnership:
+              </p>
+            </div>
+
+            <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[13px] text-[#171F2C]">
+                <div className="flex items-center gap-2.5 p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <CheckSquare2 className="w-4 h-4 text-[#171F2C] shrink-0" />
+                  <span>Shared target customer profile verified</span>
+                </div>
+
+                <div className="flex items-center gap-2.5 p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <CheckSquare2 className="w-4 h-4 text-[#171F2C] shrink-0" />
+                  <span>Complementary offering with non-competing scope</span>
+                </div>
+
+                <div className="flex items-center gap-2.5 p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <CheckSquare2 className="w-4 h-4 text-[#171F2C] shrink-0" />
+                  <span>Clear operational rationale for collaboration identified</span>
+                </div>
+
+                <div className="flex items-center gap-2.5 p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <CheckSquare2 className="w-4 h-4 text-[#171F2C] shrink-0" />
+                  <span>Technical expertise and work examples reviewed</span>
+                </div>
+
+                <div className="flex items-center gap-2.5 p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <CheckSquare2 className="w-4 h-4 text-[#171F2C] shrink-0" />
+                  <span>No direct conflict on core client deliverables</span>
+                </div>
+
+                <div className="flex items-center gap-2.5 p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <CheckSquare2 className="w-4 h-4 text-[#171F2C] shrink-0" />
+                  <span>Geographic and regulatory compliance fit confirmed</span>
+                </div>
+
+                <div className="flex items-center gap-2.5 p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <CheckSquare2 className="w-4 h-4 text-[#171F2C] shrink-0" />
+                  <span>Delivery capacity and team bandwidth evaluated</span>
+                </div>
+
+                <div className="flex items-center gap-2.5 p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <CheckSquare2 className="w-4 h-4 text-[#171F2C] shrink-0" />
+                  <span>Communication and status update expectations discussed</span>
+                </div>
+
+                <div className="flex items-center gap-2.5 p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <CheckSquare2 className="w-4 h-4 text-[#171F2C] shrink-0" />
+                  <span>Referral definition and qualification rules understood</span>
+                </div>
+
+                <div className="flex items-center gap-2.5 p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                  <CheckSquare2 className="w-4 h-4 text-[#171F2C] shrink-0" />
+                  <span>Commercial terms or reciprocal expectations aligned</span>
+                </div>
+
+                <div className="flex items-center gap-2.5 p-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] md:col-span-2">
+                  <CheckSquare2 className="w-4 h-4 text-[#171F2C] shrink-0" />
+                  <span>Client information and double opt-in protocol confirmed</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 17: FAQ ACCORDION (DOM-RENDERED FOR CRAWLERS)
+              ═══════════════════════════════════════════════════════════════════ */}
+          <section className="border-b border-[#E2E8F0] pb-14">
+            <div className="max-w-3xl mb-8">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-1.5">
+                Questions &amp; Answers
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight">
                 Referral Partner Sourcing FAQ
               </h2>
             </div>
 
-            <div className="space-y-3">
+            <div className="max-w-4xl space-y-2">
               {faqs.map((faq, idx) => {
                 const isOpen = openFaq === idx;
                 return (
                   <div
                     key={idx}
-                    className={cn(
-                      "bg-white border rounded-[4px] transition-colors overflow-hidden",
-                      isOpen
-                        ? "border-[#171F2C] shadow-2xs"
-                        : "border-[#E2E8F0] hover:border-[#CBD5E1]",
-                    )}
+                    className="bg-white border border-[#E2E8F0] rounded-[4px] overflow-hidden"
                   >
                     <button
-                      type="button"
                       onClick={() => toggleFaq(idx)}
-                      className="w-full p-4 sm:p-5 flex items-center justify-between gap-4 text-left cursor-pointer focus:outline-none"
                       aria-expanded={isOpen}
+                      className="w-full flex items-center justify-between p-4 text-left hover:bg-[#F8FAFC] transition-colors"
                     >
-                      <span className="text-sm font-bold text-[#171F2C]">{faq.q}</span>
+                      <span className="text-[14px] font-semibold text-[#171F2C]">
+                        {faq.q}
+                      </span>
                       <ChevronDown
                         className={cn(
-                          "w-4 h-4 text-[#64748B] transition-transform duration-200 shrink-0",
-                          isOpen && "rotate-180 text-[#171F2C]",
+                          "w-4 h-4 text-[#64748B] transition-transform duration-200 shrink-0 ml-3",
+                          isOpen && "rotate-180 text-[#171F2C]"
                         )}
                       />
                     </button>
-
-                    {/* Crawler-Friendly: Rendered in HTML DOM */}
+                    {/* FAQ Answer permanently present in DOM for search crawlers */}
                     <div
                       className={cn(
-                        "px-4 sm:px-5 pb-5 pt-0 transition-all duration-200",
-                        isOpen ? "block" : "hidden",
+                        "px-4 pb-4 pt-1 text-[13px] text-[#64748B] border-t border-[#E2E8F0] leading-relaxed",
+                        !isOpen && "hidden"
                       )}
                     >
-                      <p className="text-xs sm:text-sm text-[#475569] leading-relaxed border-t border-[#F1F5F9] pt-3">
-                        {faq.a}
-                      </p>
+                      {faq.a}
                     </div>
                   </div>
                 );
@@ -1279,91 +1435,36 @@ export function HowToFindB2BReferralPartnersPage() {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 15: FINAL CTA & TOPIC CLUSTER DIRECTORY
+              SECTION 18: FINAL DUAL CTA
               ═══════════════════════════════════════════════════════════════════ */}
-          <section className="space-y-8 pt-4">
-            {/* CTA Box */}
-            <div className="bg-[#171F2C] text-white rounded-[4px] p-8 sm:p-10 shadow-lg space-y-6 relative overflow-hidden">
-              <div className="max-w-2xl space-y-3 relative z-10">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#F97316]">
-                  Verified B2B Dealflow
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                  Discover High-Intent Referral Partners on The Relay
-                </h2>
-                <p className="text-xs sm:text-sm text-[#CBD5E1] leading-relaxed">
-                  Join verified executive operators exchanging live client requirements, aligning on
-                  bilateral parameters, and scaling partnership revenue with complete clarity.
-                </p>
+          <section className="pb-8">
+            <div className="p-8 sm:p-12 bg-white border border-[#E2E8F0] rounded-[4px] text-center max-w-4xl mx-auto">
+              <div className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#64748B] mb-2">
+                Referral Network Discovery
               </div>
-
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 relative z-10">
+              <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-display font-bold text-[#171F2C] tracking-tight mb-4">
+                Start Finding Referral Partners That Complement Your Business
+              </h2>
+              <p className="text-sm sm:text-base text-[#64748B] max-w-2xl mx-auto mb-6 leading-relaxed">
+                A sustainable referral network starts with understanding your customer journey, defining a clear partner profile, and validating operational fit before making commitments. The Relay provides an opportunity-based discovery venue for businesses looking to build collaborative partnerships.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3">
                 <Link
                   to="/opportunities"
-                  className="bg-white hover:bg-[#F8FAFC] text-[#171F2C] text-xs sm:text-sm font-semibold px-6 py-3 rounded-[4px] transition-colors shadow-xs"
+                  className="inline-flex items-center justify-center bg-[#171F2C] hover:bg-[#010611] text-white text-[13px] font-medium px-6 h-[44px] rounded-[4px] border border-[#171F2C] transition-colors"
                 >
-                  Explore Opportunity Board
+                  Explore Referral Opportunities
                 </Link>
                 <Link
                   to="/post"
-                  className="bg-[#000000] hover:bg-[#334155] text-white border border-[#334155] text-xs sm:text-sm font-semibold px-6 py-3 rounded-[4px] transition-colors shadow-xs"
+                  className="inline-flex items-center justify-center bg-white hover:bg-[#F1F5F9] text-[#171F2C] text-[13px] font-medium px-6 h-[44px] rounded-[4px] border border-[#E2E8F0] transition-colors"
                 >
-                  Post a Client Requirement
-                </Link>
-              </div>
-            </div>
-
-            {/* Topic Cluster Cross-Links */}
-            <div className="p-6 bg-white border border-[#E2E8F0] rounded-[4px] shadow-2xs space-y-4">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#64748B]">
-                Referral &amp; Opportunity Cluster
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-                <Link
-                  to="/b2b-opportunity-exchange"
-                  className="p-3.5 bg-[#F8FAFC] hover:bg-white border border-[#E2E8F0] rounded-[4px] text-xs text-[#171F2C] font-semibold transition-all hover:border-[#171F2C] flex items-center justify-between group"
-                >
-                  <span>B2B Opportunity Exchange (Parent)</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-[#171F2C]" />
-                </Link>
-                <Link
-                  to="/b2b-referral-network"
-                  className="p-3.5 bg-[#F8FAFC] hover:bg-white border border-[#E2E8F0] rounded-[4px] text-xs text-[#171F2C] font-semibold transition-all hover:border-[#171F2C] flex items-center justify-between group"
-                >
-                  <span>B2B Referral Network</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-[#171F2C]" />
-                </Link>
-                <Link
-                  to="/referral-partnerships"
-                  className="p-3.5 bg-[#F8FAFC] hover:bg-white border border-[#E2E8F0] rounded-[4px] text-xs text-[#171F2C] font-semibold transition-all hover:border-[#171F2C] flex items-center justify-between group"
-                >
-                  <span>Structure Referral Deals</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-[#171F2C]" />
-                </Link>
-                <Link
-                  to="/b2b-lead-exchange"
-                  className="p-3.5 bg-[#F8FAFC] hover:bg-white border border-[#E2E8F0] rounded-[4px] text-xs text-[#171F2C] font-semibold transition-all hover:border-[#171F2C] flex items-center justify-between group"
-                >
-                  <span>B2B Lead Exchange</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-[#171F2C]" />
-                </Link>
-                <Link
-                  to="/b2b-partnership-network"
-                  className="p-3.5 bg-[#F8FAFC] hover:bg-white border border-[#E2E8F0] rounded-[4px] text-xs text-[#171F2C] font-semibold transition-all hover:border-[#171F2C] flex items-center justify-between group"
-                >
-                  <span>B2B Partnership Network</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-[#171F2C]" />
-                </Link>
-                <Link
-                  to="/8-step-journey"
-                  className="p-3.5 bg-[#F8FAFC] hover:bg-white border border-[#E2E8F0] rounded-[4px] text-xs text-[#171F2C] font-semibold transition-all hover:border-[#171F2C] flex items-center justify-between group"
-                >
-                  <span>The 8-Step Relay Journey</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-[#171F2C]" />
+                  Post a Referral Requirement
                 </Link>
               </div>
             </div>
           </section>
+
         </div>
       </main>
     </div>

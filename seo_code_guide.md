@@ -1,491 +1,481 @@
 When designing the page use the color scheme present in color_scheme.md
 
-I audited the latest push directly in GitHub.
+I checked the pushed `/how-to-find-distribution-partners` directly in the repo.
 
-### Cluster 3 is now complete
+### Cluster 4, Page 1: approved
 
-`/agency-lead-exchange` ✅  
-`/what-to-do-with-unqualified-leads` ✅  
-`/how-to-monetize-unqualified-leads` ✅  
-`/how-to-exchange-business-leads` ✅
+It now has the correct **“how do I find/evaluate distributors?”** intent and is clearly separated from `/distribution-partners`.
 
-The final how-to page now has the correct procedural intent, crawlable FAQ, and the legacy cryptographic/NCND/fixed-fee claims are gone. There is one harmless phrase about “finder fees” in an FAQ, but it is not a platform claim or percentage claim, so it does not block the cluster.
+One important issue remains elsewhere before we proceed: the next page, **`/how-to-find-b2b-referral-partners`**, still contains several legacy claims that we should remove rather than carry forward:
 
-Now we move to **Cluster 4: Partner Discovery Guides**.
+- “Most B2B organizations” should have a 3–7 partner optimum
+- “high-performing” partner claims
+- 24–48 hour response expectations presented as a standard
+- “pre-vetted” ecosystem-directory language
+- “zero deal flow” claims about large brands
+- conversion-rate / win-rate framing
+- “verified client references”
+- some terminology that makes the page sound like a performance guarantee rather than a sourcing guide
 
-The first page should be:
+The underlying structure is actually good. Current 2026 referral-partner guidance also emphasizes **starting with complementary businesses serving the same customer, defining an ideal partner profile, researching candidates, validating fit, and then building the relationship**. :chatgpt-content-reference{index="0"}
 
-**`/how-to-find-distribution-partners`**
+So we should **polish/rewrite the existing referral-partner guide**, not redesign its architecture.
 
-This deserves a rewrite because the current page still contains unsupported margin percentages, “enforceable” commitments, “verified handshakes,” and other language that conflicts with the cleaner `/distribution-partners` page.
+### Next step: `/how-to-find-b2b-referral-partners`
 
-The current search landscape for this topic emphasizes a few recurring themes: **define the target territory/buyer, find candidates through industry networks/directories/referrals, verify actual market access and capability, align commercial expectations, and test the relationship before giving broad exclusivity**. :chatgpt-content-reference{index="0"}
+Send this to the agent:
 
-### Send this to the agent
-
-```text id="cluster4-distribution-guide"
+```text id="cluster4-referral-guide"
 Rewrite ONLY:
-src/routes/how-to-find-distribution-partners.tsx
+src/routes/how-to-find-b2b-referral-partners.tsx
 
-This is Cluster 4 — Partner Discovery Guides, page #1.
+This is Cluster 4 — Partner Discovery Guides, page #2.
 
-PRIMARY SEO INTENT
+IMPORTANT:
+Preserve the existing overall page structure and visual design where practical.
+This is a content/SEO quality rewrite, not a visual redesign.
+
+PRIMARY SEARCH INTENT
 
 Target:
-how to find distribution partners
+how to find B2B referral partners
 
 SECONDARY / SEMANTIC TERMS
 
-- how to find distribution partners
-- how to find B2B distribution partners
-- find distribution partners
-- B2B distribution partner search
-- distributor partner search
-- how to find a distributor
-- find B2B distributors
-- distribution partner discovery
-- distributor selection
-- distributor evaluation
-- distribution channel partners
-- regional distribution partners
-- how to choose a distributor
-
-IMPORTANT:
-This is an educational HOW-TO guide.
-
-It should NOT become another generic distribution landing page.
-It should answer:
-"How do I actually find and evaluate the right distribution partner?"
+- how to find B2B referral partners
+- how to find referral partners
+- B2B referral partners
+- referral partner network
+- find referral partners
+- B2B partner discovery
+- referral partner sourcing
+- referral partner outreach
+- referral partnership
+- complementary business partners
+- referral partner evaluation
 
 SEO METADATA
 
 Title:
-How to Find B2B Distribution Partners | The Relay
+How to Find B2B Referral Partners | The Relay
 
 Meta description:
-Learn how to find B2B distribution partners by defining your market, sourcing candidates, evaluating coverage and capability, and testing commercial fit.
+Learn how to find B2B referral partners by defining the right partner profile, sourcing candidates, evaluating fit, and building a practical referral relationship.
 
 H1:
-How to Find B2B Distribution Partners
+How to Find B2B Referral Partners
 
-CORE CONTENT POSITIONING
+CORE POSITIONING
 
-The guide should teach a repeatable partner-search process.
+This is a practical partner-discovery guide.
 
-The major sequence:
+It should answer:
 
-1. Define the market and buyer
-2. Determine the type of distribution partner required
-3. Build a candidate list
-4. Evaluate actual market access
-5. Evaluate operational capability
-6. Assess portfolio and conflict
-7. Discuss commercial expectations
-8. Run a controlled pilot
-9. Decide whether to expand the relationship
+"How does a business identify, evaluate, approach, and start working with the right referral partners?"
 
-Do NOT imply there is one universally "best" distributor.
+The fundamental model:
 
-Avoid rankings or claims that one model always works better.
+Your ideal referral partner often:
+- serves a similar customer
+- offers a complementary product or service
+- does not directly compete with you
+- encounters customer needs adjacent to yours
+- has a reason to make relevant introductions
+- is capable of delivering a good customer experience
 
-SECTION 1 — HERO
+Do not imply that every complementary company will become a referral partner.
 
-Eyebrow:
-B2B DISTRIBUTION PARTNER SEARCH
-
-H1:
-How to Find B2B Distribution Partners
-
-Opening copy:
-
-Explain that finding a distributor is not simply finding a company willing to carry the product.
-
-A suitable distribution partner depends on:
-- target territory
-- customer segment
-- product type
-- required sales model
-- physical/logistics requirements where relevant
-- technical support requirements
-- downstream channel access
-- commercial model
-
-The first step is therefore defining what "the right distributor" means for the business.
-
-CTA:
-Explore Distribution Opportunities
-
-Secondary:
-Post a Distribution Opportunity
-
-SECTION 2 — DEFINE THE TARGET MARKET
+SECTION 1 — START WITH THE CUSTOMER
 
 H2:
-Step 1: Define Your Target Market Before Searching
+Start With the Customer, Not the Partner List
 
-Explain that the search becomes much more useful when the company specifies:
+Explain that partner discovery should start with the customer journey.
 
-- target country or region
-- industry / vertical
-- customer size
-- buying role
-- sales channel
-- product category
-- expected delivery model
-- required local capabilities
+Ask:
+- Who does the customer speak to before us?
+- Who do they need after us?
+- Which services are adjacent to ours?
+- Which businesses already work with our target customer?
+- Where do customer needs overlap without direct competition?
 
-Give a concrete example:
+Give one or two illustrative examples.
 
-Instead of:
-"Find us a distributor in Europe."
+Example:
+A B2B software implementation company may identify cybersecurity consultants, cloud consultants, or ERP specialists as adjacent businesses depending on its customer journey.
 
-Use:
-"We need a partner covering mid-market industrial buyers in Germany and Austria with established access to electrical contractors."
+Do not claim any category is universally ideal.
 
-Keep it illustrative.
-
-SECTION 3 — CHOOSE THE RIGHT PARTNER TYPE
+SECTION 2 — DEFINE THE IDEAL REFERRAL PARTNER
 
 H2:
-Step 2: Decide What Type of Distribution Partner You Need
+Define Your Ideal Referral Partner Profile
 
-Distinguish:
+Create a framework around:
 
-- Regional distributor
-- National distributor
-- Master distributor
-- Wholesale distributor
-- Value-added distributor
-- Reseller / VAR
-- Channel sales partner
+- customer overlap
+- service complementarity
+- industry expertise
+- geography
+- company size
+- target buyer
+- delivery quality
+- capacity
+- willingness to collaborate
+- commercial compatibility
 
-Explain that these roles overlap in some markets and industries, so businesses should define the functions they actually need rather than choosing a label first.
+Explain that a partner profile makes research more focused.
 
-Link to:
- /distribution-partners
- /channel-partnerships
+Do not use a numerical "ideal score."
 
-SECTION 4 — WHERE TO FIND DISTRIBUTION PARTNERS
-
-H2:
-Step 3: Build a Distribution Partner Shortlist
-
-Discuss legitimate sourcing channels such as:
-
-- industry directories
-- trade associations
-- existing vendor ecosystems
-- referrals from suppliers and industry contacts
-- trade events
-- regional business networks
-- B2B marketplaces
-- direct research of companies already selling complementary products
-
-Current search results commonly emphasize these channels for distributor discovery. :chatgpt-content-reference{index="1"}
-
-Do NOT claim any one source is universally superior.
-
-SECTION 5 — SEARCH BY CAPABILITY, NOT JUST NAME
+SECTION 3 — WHERE TO FIND THEM
 
 H2:
-Step 4: Look for Relevant Market Access
+Where to Find B2B Referral Partners
 
-Explain that country presence alone does not demonstrate useful market access.
+Cover practical sourcing channels:
 
-Evaluate whether the candidate actually reaches:
-- target customer type
-- target geography
-- relevant industries
-- relevant buying roles
-- relevant sales channels
+1. Existing client relationships
+2. Suppliers and vendors
+3. Professional networks
+4. LinkedIn
+5. Industry associations
+6. Trade groups and events
+7. Technology/ecosystem directories
+8. Search engines and niche directories
+9. Partner communities
+10. Structured opportunity/discovery platforms
 
-Questions to ask:
+Explain the trade-off between:
+- warm existing relationships
+- researched cold candidates
+- structured discovery platforms
 
-"Who do you already sell to?"
-"Which regions do you actively cover?"
-"Which complementary products do you represent?"
-"What type of customers do you typically serve?"
+Do not claim one channel is universally best.
 
-Emphasize evidence over marketing language.
+Current 2026 referral-partner guidance commonly emphasizes complementary businesses, customer overlap, systematic candidate research, and relationship development. :chatgpt-content-reference{index="1"}
 
-A recent distribution-partner search guide similarly emphasizes validating actual customer access and sales capability rather than relying on a company's website claims. :chatgpt-content-reference{index="2"}
-
-SECTION 6 — EVALUATE OPERATIONAL CAPABILITY
+SECTION 4 — RESEARCH THE CANDIDATE
 
 H2:
-Step 5: Evaluate Distribution Capability
+How to Research a Potential Referral Partner
 
-Cover relevant areas:
+Look for evidence such as:
 
-- sales coverage
-- downstream reseller relationships
-- technical support
-- inventory handling where required
-- warehousing where required
-- fulfillment/logistics where required
-- local language capability
-- customer service
-- reporting
-- onboarding/support resources
+- services offered
+- target industries
+- target customers
+- geographic coverage
+- existing partnerships
+- ecosystem participation
+- case studies/work examples
+- customer reviews where relevant
+- leadership/contact information
+- signs that they actually collaborate with outside businesses
 
 Important:
-Not every distributor provides all of these.
+Research evidence is not proof that a company will refer business.
 
-Use:
-"Depending on the product and model..."
+Do NOT say directories are "pre-vetted" unless the specific directory's verification process is actually known.
 
-SECTION 7 — CHECK PORTFOLIO CONFLICTS
+Do not claim reviews are definitive evidence of quality.
+
+SECTION 5 — CHECK FOR REFERRAL SIGNALS
 
 H2:
-Step 6: Check Portfolio Fit and Channel Conflicts
+What Signals Suggest a Business Could Be a Good Referral Partner?
+
+Useful signals:
+
+- complementary offering
+- shared customer base
+- visible partner ecosystem
+- existing strategic partnerships
+- content discussing adjacent services
+- repeat exposure to the same customer problems
+- clear reason for both businesses to collaborate
+
+Avoid:
+"signals that predict referrals."
+
+We are identifying plausible fit, not predicting outcomes.
+
+SECTION 6 — QUALIFY THE PARTNER
+
+H2:
+How to Evaluate a Referral Partner
+
+Use a practical evaluation framework:
+
+1. Customer overlap
+2. Service complementarity
+3. Reputation and delivery quality
+4. Relevant experience
+5. Geographic fit
+6. Capacity
+7. Communication
+8. Commercial alignment
+
+For each, provide:
+- the question to ask
+- why it matters
+- what evidence might help
+
+Do not turn this into a ranking or scorecard with arbitrary numbers.
+
+SECTION 7 — CHECK FOR COMPETITION
+
+H2:
+How to Identify Referral vs Competitor Relationships
+
+Explain that not all overlap means direct competition.
+
+Check:
+- core services
+- target buyer
+- customer segment
+- geographic market
+- adjacent services
+- potential scope conflicts
+
+A company can be partially overlapping and still have a useful complementary relationship.
+
+Do not claim large companies or small firms are inherently better partners.
+
+SECTION 8 — DECIDE WHETHER THE RELATIONSHIP CAN BE RECIPROCAL
+
+H2:
+Can the Referral Relationship Be Reciprocal?
+
+Explain two models:
+
+One-way:
+A partner primarily refers opportunities to you.
+
+Reciprocal:
+Both businesses can identify relevant opportunities for one another.
+
+Explain that reciprocity is useful only when customer journeys naturally overlap.
+
+Do not imply every partnership should produce equal volumes of referrals.
+
+SECTION 9 — HOW TO APPROACH A REFERRAL PARTNER
+
+H2:
+How to Approach a Potential Referral Partner
+
+Give an actual practical process:
+
+1. Research the business.
+2. Identify the shared customer problem.
+3. Explain why the relationship makes sense.
+4. Offer a concrete referral scenario.
+5. Suggest a short exploratory conversation.
+6. Avoid asking for client leads immediately.
+7. Give the relationship a chance to develop.
+
+Include a short example outreach structure, but do not write spammy mass-outreach copy.
+
+Example:
+
+"Hi [Name], we work with [customer type] on [specific problem]. I noticed your team helps those same businesses with [adjacent need]. There may be situations where our clients need each other's services. Would you be open to a short conversation about whether a referral relationship makes sense?"
+
+SECTION 10 — DEFINE THE FIRST REFERRAL
+
+H2:
+Define What a Referral Means Before Sending One
+
+Explain that businesses may want to clarify:
+
+- what qualifies as a referral
+- how introductions happen
+- who communicates with the client
+- attribution
+- whether compensation exists
+- payment timing if compensation exists
+- what happens with duplicate leads
+- customer ownership expectations
+
+Do not prescribe commission percentages.
+
+Do not claim these terms are automatically enforced by Relay.
+
+Do not use NCND or cryptographic/legal-enforcement language.
+
+SECTION 11 — START SMALL
+
+H2:
+Start With a Small Referral Pilot
+
+The existing page contains "3 to 5" and "2 to 4" partner recommendations. Remove arbitrary numeric prescriptions.
+
+Instead say:
+
+"Start with a small number of highly relevant businesses."
 
 Explain:
+- test one or a few real introductions
+- observe communication
+- gather feedback
+- assess customer fit
+- improve the process
+- expand only when the relationship is working
 
-Look for:
-- direct competitors
-- complementary products
-- competing priorities
-- overlapping territories
-- conflicts with existing channel partners
-- whether the distributor has a reason to invest in the new line
+Do not claim a pilot guarantees better results.
 
-Do not claim competitors automatically make a distributor unsuitable.
-
-SECTION 8 — ASSESS COMMERCIAL FIT
+SECTION 12 — TRACK THE RELATIONSHIP
 
 H2:
-Step 7: Discuss Commercial Expectations
+Track Referral Activity and Relationship Health
 
-Cover topics businesses may need to agree:
+Useful metrics:
 
-- wholesale or resale pricing
-- margins/discount structure
-- payment terms
-- minimum commitments
-- territory
-- marketing responsibilities
-- support responsibilities
-- reporting
-- customer ownership
-- inventory responsibility where relevant
+- referrals sent
+- referrals received
+- accepted introductions
+- response time
+- qualified opportunities
+- closed opportunities
+- commercial value generated
+- qualitative partner/client feedback
 
-IMPORTANT:
-Do NOT provide invented percentages.
+Important:
+Do not present "win rate" or conversion rate as evidence that a partner will perform in the future.
 
-Do NOT claim standard margins like:
-15–30%
-25–45%
-10–20%
+Avoid arbitrary benchmarks.
 
-Terms vary substantially by market and product.
+"Response SLA" should be replaced with:
+"response time" or "agreed response expectations."
 
-Also do not use:
-- "enforceable minimums"
-- legal guarantees
-- automatic exclusivity
-- binding Relay agreements
-
-Explain that businesses should agree and document their own commercial terms.
-
-SECTION 9 — PILOT BEFORE LARGE COMMITMENT
+SECTION 13 — COMMON MISTAKES
 
 H2:
-Step 8: Test the Partnership Before Expanding It
-
-Explain the logic of a controlled pilot:
-
-- limited geography
-- limited product line
-- defined period
-- agreed activities
-- agreed reporting
-- measurable operating expectations
-
-The objective is to learn whether the relationship works before granting broader territory or deeper commitments.
-
-Do NOT say a pilot always guarantees better outcomes.
-
-A recent 2026 distribution guide similarly recommends testing a relationship before broad exclusivity. :chatgpt-content-reference{index="3"}
-
-SECTION 10 — HOW TO COMPARE CANDIDATES
-
-H2:
-How to Compare Potential Distribution Partners
-
-Create a simple evaluation table:
-
-Criterion | Questions
-
-Market access | Do they actually reach the target buyers?
-
-Geographic coverage | Do they actively operate in the required territory?
-
-Product/category fit | Do they already understand the market?
-
-Sales capability | Do they have relevant commercial resources?
-
-Operational capability | Can they support the delivery model?
-
-Portfolio conflict | Are there meaningful competing priorities?
-
-Commercial fit | Can both sides agree on workable terms?
-
-Strategic alignment | Is there a reason for both sides to invest?
-
-Do NOT create a numerical "score" or rank specific types as better.
-
-This is a framework, not a ranking.
-
-SECTION 11 — RED FLAGS
-
-H2:
-Distribution Partner Red Flags to Watch For
-
-Examples:
-
-- claims of broad market access without evidence
-- unclear customer coverage
-- inability to explain how the product will be sold
-- excessive focus on exclusivity before proving fit
-- unclear support ownership
-- portfolio conflicts
-- weak reporting expectations
-- unwillingness to define responsibilities
-
-Keep this practical.
-
-SECTION 12 — COMMON MISTAKES
-
-H2:
-Common Mistakes When Finding Distribution Partners
+Common Mistakes When Finding Referral Partners
 
 Cover:
 
-1. Choosing the first company that responds.
-2. Assuming country presence equals customer access.
-3. Choosing based only on headline margin.
-4. Giving large territories too early.
-5. Ignoring portfolio conflicts.
-6. Failing to define support responsibilities.
-7. Not validating actual sales coverage.
-8. Choosing a distributor without a clear internal route-to-market strategy.
+1. Choosing businesses simply because they are well known.
+2. Ignoring customer overlap.
+3. Treating every complementary business as a potential partner.
+4. Asking for referrals before establishing value.
+5. Ignoring competitive overlap.
+6. Failing to define what a referral actually means.
+7. Sharing too much client information too early.
+8. Never following up after an introduction.
+9. Expecting equal referral volume from both sides.
 
-These themes are consistent with current distributor-search guidance. :chatgpt-content-reference{index="4"}
+Remove absolute statements such as:
+- "giant enterprise brands result in zero deal flow"
+- "high-performing networks are..."
+- "the best partners always..."
 
-SECTION 13 — WHERE THE RELAY FITS
+Use evidence-based, conditional language.
+
+SECTION 14 — WHERE THE RELAY FITS
 
 H2:
-Where The Relay Fits in Distribution Partner Discovery
-
-This should be concise.
+Where The Relay Fits in Referral Partner Discovery
 
 Explain:
 
-Traditional search can involve directories, events, referrals, research, and direct outreach.
+Businesses can traditionally find referral partners through:
+- existing relationships
+- associations
+- professional networks
+- directories
+- LinkedIn
+- direct outreach
+- events
 
 The Relay provides another discovery route:
-- businesses can post structured distribution requirements
-- potential counterparties can discover relevant opportunities
-- interested businesses can evaluate the requirement
-- the participating businesses decide whether to continue
+businesses can discover structured commercial opportunities and potentially identify businesses with complementary capabilities.
 
 The Relay does NOT:
-- certify that a distributor is perfect for a business
-- guarantee market penetration
-- guarantee customer access
-- guarantee sales
-- guarantee acceptance
-- negotiate legal agreements automatically
-- operate the distribution relationship
+- guarantee a referral partner
+- guarantee referrals
+- guarantee lead volume
+- guarantee revenue
+- guarantee partner quality
+- guarantee conversion
+
+Position Relay as a discovery layer, not a referral-performance guarantee.
 
 Internal links:
-- /distribution-partners
-- /channel-partnerships
+- /b2b-referral-network
+- /referral-partnerships
 - /b2b-partnership-network
 - /b2b-opportunity-exchange
+- /agency-lead-exchange
 - /8-step-journey
 
-SECTION 14 — ILLUSTRATIVE SEARCH SCENARIOS
+SECTION 15 — ILLUSTRATIVE EXAMPLES
 
 H2:
-Illustrative Distribution Partner Search Scenarios
+Illustrative B2B Referral Partner Examples
 
-Use 4 hypothetical examples.
+Use 5 hypothetical examples:
 
-1. SaaS company seeking regional implementation/channel coverage.
-2. Hardware manufacturer seeking a regional wholesale distributor.
-3. Industrial product company seeking distributors with established contractor relationships.
-4. B2B product company testing a limited territory before broader rollout.
+1. Web development company + branding studio
+2. ERP consultancy + cybersecurity specialist
+3. SaaS implementation firm + managed IT provider
+4. B2B marketing agency + specialist video/creative agency
+5. Compliance consultancy + technology implementation firm
 
-Label explicitly:
-"Illustrative scenario"
+For each:
+- shared customer
+- complementary need
+- why the relationship could make sense
 
-No fake clients.
-No fake statistics.
-No revenue claims.
+Clearly label:
+"Illustrative example"
 
-SECTION 15 — CHECKLIST
+Do not fabricate results or revenue.
 
-H2:
-B2B Distribution Partner Search Checklist
-
-Create a concise checklist:
-
-□ Target market defined
-□ Buyer segment defined
-□ Partner type defined
-□ Candidate list created
-□ Actual market access validated
-□ Operational capability checked
-□ Portfolio conflicts reviewed
-□ Commercial terms discussed
-□ Pilot structure considered
-□ Responsibilities documented
-
-SECTION 16 — FAQ
+SECTION 16 — REFERRAL PARTNER CHECKLIST
 
 H2:
-How to Find Distribution Partners FAQ
+B2B Referral Partner Checklist
+
+Create:
+
+□ Shared target customer
+□ Complementary offering
+□ Clear reason to collaborate
+□ Relevant expertise
+□ No unacceptable conflict
+□ Geographic fit
+□ Capacity considered
+□ Communication expectations discussed
+□ Referral definition understood
+□ Commercial terms discussed where relevant
+□ Client information handled appropriately
+
+SECTION 17 — FAQ
+
+H2:
+Referral Partner Sourcing FAQ
 
 At least 9 questions:
 
-1. How do I find a B2B distribution partner?
-2. Where can I find distribution partners?
-3. What should I look for in a distributor?
-4. How do I know whether a distributor has real market access?
-5. What is the difference between a distributor and a reseller?
-6. Should I give a distributor exclusive territory immediately?
-7. What commercial terms should I discuss with a distributor?
-8. How long should a distribution partner pilot last?
-9. Can The Relay help me find distribution partners?
-10. Does The Relay guarantee that a distributor will accept my opportunity?
+1. How do I find B2B referral partners?
+2. What makes a good referral partner?
+3. Where can I find referral partners?
+4. Should a referral partner serve the same customers as me?
+5. Should referral partners be non-competing?
+6. How do I approach a potential referral partner?
+7. Should referral partnerships involve commissions?
+8. How many referral partners should a business have?
+9. How should referral relationships be tracked?
+10. Can The Relay help businesses discover referral partners?
 
-FAQ answers MUST remain permanently rendered in the DOM.
+FAQ answers MUST ALWAYS exist in the DOM.
 
 Do NOT use:
 {isOpen && (...)}
 
 Use CSS/display state only.
 
-If FAQPage JSON-LD is used:
-- match visible questions exactly
-- match visible answers exactly
-
-SECTION 17 — FINAL CTA
-
-H2:
-Start Finding Distribution Partners That Fit Your Market
-
-Copy:
-A useful distributor search starts with a clearly defined market, a clear partner profile, and evidence that potential partners can serve the intended customer segment.
-
-The Relay provides an opportunity-based discovery route for businesses looking to explore distribution relationships.
-
-CTA:
-Explore Distribution Opportunities
-
-Secondary:
-Post a Distribution Opportunity
+FAQPage JSON-LD must match visible FAQ questions and answers exactly.
 
 TECHNICAL REQUIREMENTS
 
@@ -493,69 +483,62 @@ Keep:
 - TanStack route
 - createSeoMeta
 - canonical URL
-- current design system
-- responsive behavior
-- structured data
+- responsive design
+- existing visual system
 
-Use:
-HowTo schema only if it accurately matches the visible steps.
-WebPage
-BreadcrumbList
-FAQPage where appropriate.
+Schema:
+- WebPage
+- BreadcrumbList
+- FAQPage
+- Article if appropriate
 
-REMOVE ALL LEGACY UNSUPPORTED CONTENT
+REMOVE / REWRITE LEGACY CLAIMS
 
-Completely remove:
-- hard-coded margin percentages
-- 15–30% / 25–45% / 10–20% figures
-- enforceable minimum commitments
-- guaranteed market penetration
-- verified handshake claims
-- binding operational handshake
-- legal guarantees
-- fixed commercial guarantees
-- fake case-study statistics
-- "vetted" or "verified" distributor claims unless directly supported by actual product functionality
+Remove:
+- arbitrary "3 to 7" optimal partner claims
+- arbitrary "2 to 4" or "3 to 5" partner prescriptions
+- 24–48 hour universal response claims
+- "pre-vetted" directory claims
+- "zero deal flow" claims
+- conversion-rate promises
+- high-performing partner guarantees
+- high-intent outcome promises
+- claims that specific partner types are inherently better
+- any legal enforcement/NCND/cryptographic language if present
 
-Do not invent statistics.
+Do not introduce replacement statistics.
 
 CANNIBALIZATION RULE
 
 This page owns:
-"How do I find and evaluate distribution partners?"
+"How do I find B2B referral partners?"
 
-Do NOT turn it into:
+It must remain distinct from:
 
-/distribution-partners
-= what distribution partners are and how distribution relationships work
+/b2b-referral-network
+= what a B2B referral network is / finding referral relationships
 
-/channel-partnerships
-= channel partner models
+/referral-partnerships
+= how to structure and govern referral partnerships
 
 /b2b-partnership-network
 = broad commercial partnership discovery
 
-/how-to-find-b2b-referral-partners
-= referral partner discovery
+/how-to-exchange-business-leads
+= mechanics of exchanging a business opportunity
 
-The article must remain a practical distribution-partner SEARCH GUIDE.
+/agency-lead-exchange
+= agency-specific lead exchange
 
-FINAL QA
-
-Before pushing:
-
-1. Primary keyword is in title.
-2. Primary keyword appears naturally in H1 and introduction.
-3. Page genuinely teaches partner discovery.
-4. No invented margin percentages.
-5. No legal/enforceability claims.
-6. No guaranteed outcomes.
-7. FAQ answers permanently exist in DOM.
-8. Internal links connect to the distribution and channel hub pages.
-9. No fake statistics or customer stories.
-10. The Relay is positioned as one discovery route, not the guaranteed answer.
+Keep this page focused on:
+DISCOVERY → RESEARCH → EVALUATION → OUTREACH → PILOT
 
 Push the completed file.
 ```
 
-This gives us a much cleaner Cluster 4 structure: **the existing `/distribution-partners` page explains the category, while `/how-to-find-distribution-partners` explains the actual search and evaluation process.** :chatgpt-content-reference{index="5"}
+After this page is pushed and audited, **Cluster 4 will be complete** because its two guides will have clear ownership:
+
+`/how-to-find-distribution-partners` → finding/evaluating distributors  
+`/how-to-find-b2b-referral-partners` → finding/evaluating referral partners
+
+That distinction is also consistent with current referral-partner guidance, which centers on customer overlap, complementary capabilities, partner research, and deliberate relationship building.
