@@ -35,7 +35,8 @@ import {
   GitMerge,
   Workflow,
 } from "lucide-react";
-import { createSeoMeta } from "@/lib/seo";
+import { cn } from "@/lib/utils";
+import { createSeoMeta, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/b2b-partnership-network")({
   head: () =>

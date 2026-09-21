@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import { createSeoMeta } from "@/lib/seo";
+import { createSeoMeta, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/b2b-referral-network")({
   head: () =>
