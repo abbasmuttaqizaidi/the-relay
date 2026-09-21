@@ -1,130 +1,109 @@
 When designing the page use the color scheme present in color_scheme.md
 
-I checked the pushed code directly.
+I checked the pushed version directly.
 
-### Page 2 is now in good shape
+### Cluster 3 status
 
-`/what-to-do-with-unqualified-leads` now has the right search intent:
+`/what-to-do-with-unqualified-leads` is now **done** and properly differentiated from the agency and monetization pages.
 
-**diagnose → decide → disqualify / nurture / recycle / refer / exchange**
+The latest monetization page is also structurally much better, but the remaining phrase about **“guaranteed returns” is inside a “common mistakes” warning**, so it is not actually making a guarantee. I would leave that.
 
-It is clearly differentiated from `/agency-lead-exchange`, which is exactly what we wanted.
+However, there is now one page that clearly needs the next rewrite:
 
-One important thing: the **next page still contains the old problematic monetization copy**, so we should not leave it as-is. The current `/how-to-monetize-unqualified-leads` still has fixed `5–15%` / `5–10%` figures, NCND claims, “Master NCND Protected,” conditional FAQ rendering, and legal-style language. I checked it directly in the repo.
+**`/how-to-exchange-business-leads`**
 
-Current search results for this topic tend to frame monetization around **referral partnerships, routing unsuitable prospects to another provider, and creating commercial value from leads that do not fit the original business**. :chatgpt-content-reference{index="0"}
+The current version still contains the old product-heavy claims around cryptographic handshakes, non-circumvention, fixed finder fees, “binding” commitments, and audit-log enforcement. It also has a very thin content structure compared with the other Cluster 3 pages.
 
-So the next page should be:
+This should become the **pure how-to/process page**.
 
-## `/how-to-monetize-unqualified-leads`
+### Cluster 3 architecture now
 
-This page should answer:
+| URL | Owns |
+|---|---|
+| `/agency-lead-exchange` | Agency-specific commercial landing page |
+| `/what-to-do-with-unqualified-leads` | What to do when a lead is unqualified |
+| `/how-to-monetize-unqualified-leads` | How suitable unfulfilled leads may create commercial value |
+| `/how-to-exchange-business-leads` | How the business-lead exchange process works |
 
-> **“When can an unqualified lead have commercial value, and what are the legitimate ways to create that value?”**
+So this is the final Cluster 3 rewrite.
 
-Not:
+Send the agent:
 
-> “Every unqualified lead can be monetized.”
-
-Send this to the agent:
-
-```text
+```text id="cluster3-page4"
 Rewrite ONLY:
-src/routes/how-to-monetize-unqualified-leads.tsx
+src/routes/how-to-exchange-business-leads.tsx
 
-This is Cluster 3 — informational/commercial page #3.
+This is Cluster 3 — informational page #4 and the final page in this cluster.
 
 PRIMARY SEARCH INTENT
 
 Target:
-how to monetize unqualified leads
+how to exchange business leads
 
 SECONDARY / SEMANTIC TERMS
 
-- how to monetize unqualified leads
-- monetize unqualified B2B leads
-- monetize out-of-scope leads
-- monetize leads your business cannot fulfil
-- monetize unserviceable leads
-- lead referral monetization
+- how to exchange business leads
+- how to exchange B2B leads
+- business lead exchange
+- B2B lead exchange process
+- lead sharing between businesses
+- business referral process
+- how to refer business leads
 - B2B lead referral
-- referral partnerships
-- commercial value from unqualified leads
-- monetize rejected leads
-- monetize unused leads
+- lead exchange workflow
+- exchanging qualified business leads
+- lead sharing best practices
+- business lead referral agreement
 
-CORE POSITIONING
+CORE SEARCH PURPOSE
 
-This page must explain WHEN an unqualified lead may have commercial value and HOW businesses can potentially create that value.
+This page should answer:
 
-Do NOT claim every unqualified lead can be monetized.
+"How does a business safely and practically exchange a genuine commercial lead with another business?"
 
-Make this distinction very clear:
+It should be a PROCESS / HOW-TO guide.
 
-A lead can be unqualified for one business while still representing a legitimate opportunity for another business.
+Do NOT make this another:
+- B2B lead exchange landing page
+- agency lead exchange page
+- lead monetization article
+- unqualified lead decision guide
 
-Examples:
-- wrong service capability
-- wrong geography
-- insufficient delivery capacity
-- different specialization
-- commercial model mismatch
-
-But:
-- spam
-- fake enquiries
-- impossible requirements
-- no genuine business intent
-- fundamentally poor-fit prospects
-
-may have little or no referral value.
-
-The page should therefore teach the reader to identify whether the opportunity is actually monetizable before discussing referral or exchange mechanisms.
+Those already exist.
 
 SEO METADATA
 
 Title:
-How to Monetize Unqualified Leads | The Relay
+How to Exchange Business Leads | The Relay
 
 Meta description:
-Learn how to monetize suitable unqualified B2B leads through referrals, opportunity exchanges, and other agreed commercial arrangements without treating every lead as valuable.
+Learn how to exchange B2B leads through clear qualification, opportunity definition, counterpart evaluation, client consent, and agreed referral terms.
 
 H1:
-How to Monetize Unqualified B2B Leads
+How to Exchange Business Leads: A Practical B2B Guide
 
 SECTION 1 — HERO
 
 Eyebrow:
-B2B LEAD MONETIZATION
+B2B LEAD EXCHANGE GUIDE
 
 H1:
-How to Monetize Unqualified B2B Leads
+How to Exchange Business Leads: A Practical B2B Guide
 
-Opening copy:
+Opening:
 
-Explain that businesses spend time and money generating enquiries, but not every enquiry fits their current offer.
+Explain that lead exchange is not simply sending a contact to another company.
 
-Some are genuinely poor-fit leads.
+A useful B2B lead exchange requires:
+- a legitimate business need
+- enough context to understand the opportunity
+- a suitable receiving business
+- appropriate handling of client information
+- clear expectations between the participating businesses
+- a sensible handoff process
 
-Others are legitimate opportunities that simply cannot be fulfilled by the current business.
-
-That second category may sometimes support:
-- a referral
-- a partner introduction
-- a reciprocal lead exchange
-- another mutually agreed commercial arrangement
-
-Do NOT promise income.
-
-Do NOT say:
-"Turn every unqualified lead into revenue."
-
-Do NOT use:
-passive income
-predictable revenue
-guaranteed commission
-guaranteed monetization
-guaranteed conversion
+Emphasize:
+The objective is to create a useful commercial introduction, not simply move an unwanted lead out of the pipeline.
 
 CTA:
 Explore B2B Lead Opportunities
@@ -132,309 +111,365 @@ Explore B2B Lead Opportunities
 Secondary:
 Post an Opportunity
 
-SECTION 2 — THE MOST IMPORTANT DISTINCTION
+SECTION 2 — WHAT DOES IT MEAN TO EXCHANGE A BUSINESS LEAD?
 
 H2:
-Not Every Unqualified Lead Is Monetizable
+What Does It Mean to Exchange a Business Lead?
+
+Define lead exchange.
 
 Explain the difference between:
 
-A. Poor-fit lead
-No realistic fit for the current business or another provider.
-
-B. Out-of-scope opportunity
-Legitimate business requirement, but outside the current company's capabilities.
-
-C. Temporary capacity mismatch
-Legitimate opportunity that the current company cannot handle at the required time.
-
-D. Specialist requirement
-A legitimate project requiring expertise the current business does not provide.
-
-E. Geographic mismatch
-A real opportunity outside the company's operational market.
-
-Make clear:
-The latter categories are more likely to have referral/exchange potential than spam or fundamentally poor-fit enquiries.
-
-Link to:
- /what-to-do-with-unqualified-leads
-
-SECTION 3 — WHEN CAN AN UNQUALIFIED LEAD HAVE COMMERCIAL VALUE?
-
-H2:
-When Can an Unqualified Lead Have Commercial Value?
-
-Use practical criteria:
-
-1. Genuine business requirement
-2. Clear or sufficiently understood need
-3. Plausible provider fit
-4. The opportunity is still active
-5. Referral/exchange is appropriate
-6. Client information can be shared appropriately
-7. Commercial expectations are clear enough for both parties
-
-Do NOT say "verified buyer intent" as an absolute requirement.
-
-Do NOT promise that another business will accept the opportunity.
-
-SECTION 4 — WAYS TO CREATE COMMERCIAL VALUE
-
-H2:
-How Businesses Can Monetize Suitable Unqualified Leads
-
-Explain several models.
-
-A. Referral Fee
-The referring company and receiving business agree on a referral fee.
-
-Do NOT provide unsupported percentage ranges.
-
-State:
-"The amount, trigger, duration, and payment terms should be agreed directly between the participating businesses."
-
-B. Revenue Share
-A recurring commercial arrangement where both parties agree to share revenue arising from a referred relationship.
-
-Again, no invented percentages.
-
-C. Reciprocal Lead Exchange
-Instead of cash, businesses may exchange suitable opportunities.
-
-D. Strategic Partnership
-A lead may become the starting point for a broader commercial relationship.
-
-E. Specialist Referral
-A business routes an opportunity to a specialist provider whose services better match the requirement.
-
-Make it clear these arrangements depend on the businesses involved and are not guaranteed outcomes.
-
-SECTION 5 — REFERRAL VS LEAD SALE
-
-H2:
-Referral vs Selling a Lead
-
-This is important.
-
-Explain the difference between:
+Lead exchange:
+Two businesses identify opportunities they cannot or do not want to fulfil themselves and connect them with potentially suitable counterparties.
 
 Referral:
-A business introduces or routes a genuine opportunity to an appropriate provider.
+One business directly introduces an opportunity to a known partner.
 
-Lead sale:
-A business sells access to lead information as an asset.
+Lead marketplace:
+A system primarily focused on buying/selling access to lead information.
 
-Position Relay carefully:
-The Relay is an opportunity discovery/exchange environment, not a generic database for buying and selling personal contact information.
+Do NOT describe Relay as a conventional lead-selling database.
 
-Do not make claims about personal-data laws unless necessary.
+Explain that the value of a lead exchange comes from opportunity/context + business fit, not merely contact information.
+
+SECTION 3 — BEFORE YOU EXCHANGE A LEAD
+
+H2:
+Before You Exchange a Business Lead
+
+Create a checklist:
+
+1. Confirm the opportunity is genuine.
+2. Understand the business requirement.
+3. Determine why your company is not fulfilling it.
+4. Decide whether another provider could plausibly fit.
+5. Check whether referral is appropriate.
+6. Identify what information is actually necessary to share.
+7. Consider whether client consent is required before identifying information is disclosed.
+
+Important:
 Do not provide legal advice.
+Do not claim a particular legal consent rule universally applies.
 
-SECTION 6 — HOW TO DETERMINE WHETHER A LEAD IS WORTH REFERRING
-
-H2:
-How to Evaluate a Lead Before Trying to Monetize It
-
-Create a framework:
-
-01 — Understand the actual need
-02 — Confirm it is still active
-03 — Identify why your business cannot serve it
-04 — Identify the capabilities required
-05 — Determine whether another provider could plausibly fit
-06 — Remove unnecessary sensitive/client-identifying information
-07 — Decide whether referral or exchange is appropriate
-08 — Agree commercial terms before proceeding where necessary
-
-Emphasize that monetization comes AFTER suitability assessment.
-
-SECTION 7 — HOW REFERRAL VALUE IS STRUCTURED
+SECTION 4 — STEP-BY-STEP PROCESS
 
 H2:
-What Should a Lead Referral Arrangement Define?
+How to Exchange Business Leads Step by Step
 
-Explain that participating businesses may want to clarify:
+Use 7–8 clear steps.
 
-- what constitutes a referral
-- who owns the client relationship
+01 — Qualify the opportunity
+
+Confirm that the enquiry represents a real business need and is sufficiently understood.
+
+02 — Identify the reason for handoff
+
+Examples:
+- service mismatch
+- specialization gap
+- geographic limitation
+- capacity constraint
+- commercial model mismatch
+
+03 — Prepare an opportunity summary
+
+Describe:
+- type of business
+- broad requirement
+- expected scope
+- relevant technology/service
+- geography
+- timeline
+- other non-sensitive context
+
+Do not encourage unnecessary personal/contact information.
+
+04 — Identify potential counterparties
+
+Evaluate businesses based on:
+- relevant capabilities
+- industry experience
+- geography
+- capacity
+- commercial fit
+
+Do not claim Relay "guarantees" counterpart quality.
+
+05 — Signal or communicate interest
+
+Describe how both businesses can establish that there is enough mutual interest to continue.
+
+06 — Agree the referral structure
+
+Where relevant, discuss:
+- referral arrangement
+- attribution
+- payment terms
+- client ownership expectations
 - introduction process
-- attribution period
-- payment trigger
-- payment timing
-- scope of the arrangement
-- what happens if the opportunity does not close
-- what information can be disclosed
-- how the relationship can be terminated
 
-Do NOT claim these terms are legally enforceable through Relay.
+Do NOT provide arbitrary commission percentages.
 
-Do NOT use NCND.
+07 — Handle client consent and disclosure appropriately
 
-Do NOT imply The Relay automatically enforces these terms.
+Explain that identifying client information should not be disclosed unnecessarily.
+Where client permission is needed, obtain it before making an identifiable introduction.
 
-State that businesses should document and agree their own commercial arrangements.
+08 — Make the introduction
 
-SECTION 8 — HOW THE RELAY FITS
+Once both sides are comfortable proceeding, introduce the relevant parties and let them handle the client relationship and commercial execution.
+
+SECTION 5 — WHAT INFORMATION SHOULD BE SHARED?
 
 H2:
-Where The Relay Fits in Lead Monetization
+What Information Should You Share in a Business Lead Exchange?
 
-Position Relay as:
+Create a practical "share initially" vs "share later" structure.
+
+Initial opportunity information may include:
+- industry
+- company type
+- problem/requirement
+- broad scope
+- geography
+- estimated timeline
+- technology/service requirement
+
+Avoid sharing initially:
+- unnecessary personal contact information
+- private internal notes
+- confidential commercial documents
+- sensitive customer details
+
+Explain:
+The principle is minimum necessary information until there is a legitimate reason for more disclosure.
+
+Do not make legal/privacy claims you cannot substantiate.
+
+SECTION 6 — HOW TO CHOOSE THE RECEIVING BUSINESS
+
+H2:
+How to Evaluate a Business Before Referring a Lead
+
+Criteria:
+- service capability
+- relevant specialization
+- geographic coverage
+- delivery capacity
+- experience with similar requirements
+- communication quality
+- willingness to accept the opportunity
+- commercial alignment
+
+Explain:
+A referral should be based on plausible fit, not simply on finding someone willing to receive the lead.
+
+SECTION 7 — WHAT SHOULD THE TWO BUSINESSES AGREE?
+
+H2:
+What Should Businesses Agree Before Exchanging a Lead?
+
+Possible subjects:
+
+- what counts as the referred opportunity
+- who makes the introduction
+- how attribution is handled
+- whether a referral fee exists
+- when payment would occur
+- how long attribution remains relevant
+- who communicates with the client
+- what happens if the project changes
+- what information may be shared
+
+Important:
+These are commercial topics to discuss and document between businesses.
+
+Do NOT claim The Relay automatically creates legally enforceable agreements.
+Do NOT mention NCND.
+Do NOT mention cryptographic enforcement.
+Do NOT mention immutable/audit-log enforcement unless actually implemented and documented.
+
+SECTION 8 — COMMON LEAD EXCHANGE MISTAKES
+
+H2:
+Common Mistakes When Exchanging Business Leads
+
+Cover:
+
+1. Sending leads without understanding the requirement.
+2. Referring a lead to a poor-fit provider.
+3. Sharing too much information too early.
+4. Failing to clarify who owns the client relationship.
+5. Assuming another business has capacity.
+6. Failing to discuss referral economics where relevant.
+7. Treating the lead as a commodity rather than a real business opportunity.
+8. Focusing on commission before client experience.
+9. Referring a lead that is actually spam or fundamentally poor-fit.
+
+SECTION 9 — REFERRAL VS EXCHANGE
+
+H2:
+Business Lead Referral vs Lead Exchange
+
+Explain clearly:
+
+Referral:
+You already know exactly who should receive the opportunity.
+
+Lead exchange:
+You are looking to discover another business that may be suitable.
+
+This distinction should link to:
+- /b2b-referral-network
+- /agency-lead-exchange
+- /b2b-lead-exchange
+
+SECTION 10 — WHERE THE RELAY FITS
+
+H2:
+Where The Relay Fits in the Lead Exchange Process
+
+Describe Relay as:
 
 - opportunity discovery
-- counterpart discovery
 - structured opportunity presentation
+- potential counterpart discovery
 - interest signalling
 - commercial relationship discovery
 
-Explain:
+Process:
 
-A business can post an opportunity it cannot fulfil.
-Other businesses can discover it.
-Interested businesses can assess the requirement.
-The participating companies can then explore their own referral or commercial arrangement.
+1. A business posts an opportunity.
+2. Other businesses discover it.
+3. Interested businesses review the requirement.
+4. The businesses evaluate fit.
+5. They decide whether to continue.
+6. They manage any client introduction and commercial arrangement directly.
 
-The Relay does NOT guarantee:
-- a buyer
-- a referral partner
-- a payout
-- a commission
+Explicit limitations:
+
+The Relay does not guarantee:
+- a receiving business
+- a successful introduction
 - a closed deal
-- successful fulfilment
+- a referral fee
+- a payout
+- client conversion
+- successful project fulfilment
 
-The Relay does NOT replace:
-- CRM qualification
-- legal agreements
+The Relay does not replace:
+- internal sales qualification
+- CRM
 - client consent
+- legal review
 - commercial negotiation
 
 Internal links:
 - /b2b-lead-exchange
-- /what-to-do-with-unqualified-leads
 - /agency-lead-exchange
-- /how-to-exchange-business-leads
+- /what-to-do-with-unqualified-leads
+- /how-to-monetize-unqualified-leads
 - /b2b-opportunity-exchange
+- /trust-and-safety
 - /8-step-journey
 
-SECTION 9 — EXAMPLES
+SECTION 11 — ILLUSTRATIVE EXAMPLES
 
 H2:
-Examples of Monetizing Suitable Unqualified Leads
+Illustrative Business Lead Exchange Examples
 
-Use 5 clearly hypothetical examples.
+Use 5 hypothetical scenarios.
 
 Example 1:
-A web agency gets a legitimate mobile-app requirement outside its technical capability.
-→ Could refer it to a specialist agency under an agreed arrangement.
+A web agency receives a mobile application requirement outside its technical specialization.
+→ It identifies a specialist agency.
 
 Example 2:
-A consulting firm receives a project outside its geography.
-→ Could introduce a suitable regional provider.
+A consultancy receives a project in a geography it does not serve.
+→ It explores a regional provider.
 
 Example 3:
-A SaaS company receives a requirement for implementation services it does not provide.
-→ Could explore a specialist implementation partner.
+A software company receives a legitimate implementation requirement outside its service offering.
+→ It identifies an implementation specialist.
 
 Example 4:
-An agency cannot take on a legitimate project because of current capacity.
-→ Could refer or exchange the opportunity.
+A services firm has a valid opportunity but no immediate capacity.
+→ It considers whether a suitable partner can fulfil it.
 
 Example 5:
-A business receives a spam enquiry.
-→ Not a monetization opportunity; discard/disqualify appropriately.
+A company receives a spam enquiry.
+→ It should not be exchanged.
 
 Clearly label:
-"Illustrative examples"
+"Íllustrative examples"
 
 No fake companies.
-No fake statistics.
-No fake revenue.
-No invented commission figures.
+No fake case studies.
+No exact revenue.
+No commission percentages.
 
-SECTION 10 — COMMON MISTAKES
-
-H2:
-Common Mistakes When Trying to Monetize Unqualified Leads
-
-Cover:
-
-- treating every unqualified lead as valuable
-- referring leads without checking fit
-- confusing low quality with out-of-scope
-- sharing too much client information too early
-- failing to agree referral attribution
-- focusing on monetization before client experience
-- assuming another provider will accept the lead
-- promising revenue before the receiving business agrees
-
-SECTION 11 — DECISION MATRIX
+SECTION 12 — A SIMPLE LEAD EXCHANGE CHECKLIST
 
 H2:
-Should You Monetize, Refer, Nurture, or Disqualify?
+B2B Lead Exchange Checklist
 
-Create a table:
+Create a concise checklist:
 
-Situation | Possible action
+□ Is the opportunity genuine?
+□ Is the need sufficiently understood?
+□ Why can't we fulfil it?
+□ Who could realistically serve it?
+□ What information is necessary to share?
+□ Is client disclosure appropriate?
+□ Have commercial expectations been discussed?
+□ Is the receiving business actually interested?
+□ Is the introduction beneficial to the client?
 
-Poor-fit prospect | Disqualify
-Spam/fake enquiry | Disqualify
-Missing information | Qualify further
-Good fit, not ready | Nurture/recycle
-Good opportunity, wrong service | Refer/exchange
-Good opportunity, wrong geography | Refer/exchange
-Good opportunity, temporary capacity issue | Refer/exchange/revisit
-Specialist requirement | Refer/exchange
-Commercial mismatch | Disqualify, renegotiate, or refer depending on context
+This gives the page a highly useful practical element.
 
-Make clear that these are examples, not universal rules.
-
-SECTION 12 — FAQ
+SECTION 13 — FAQ
 
 H2:
-How to Monetize Unqualified Leads FAQ
+How to Exchange Business Leads FAQ
 
 At least 9 questions:
 
-1. Can every unqualified lead be monetized?
-2. What makes an unqualified lead worth referring?
-3. What is the difference between an unqualified lead and an out-of-scope opportunity?
-4. How can businesses monetize leads they cannot fulfil?
-5. What is a referral fee?
-6. What is revenue sharing in a lead referral?
-7. Should referral terms be agreed before making an introduction?
-8. Is selling a lead the same as referring a lead?
-9. Does The Relay guarantee payment or commissions?
-10. Does The Relay fulfil the referred opportunity?
+1. What is a business lead exchange?
+2. What is the difference between a lead referral and a lead exchange?
+3. What information should I include when exchanging a lead?
+4. Should I share the client's contact information immediately?
+5. How do I choose a business to receive a lead?
+6. Should businesses agree on referral terms before an introduction?
+7. Can companies exchange leads without paying a referral fee?
+8. What kinds of leads should not be exchanged?
+9. Does The Relay guarantee that another company will accept a lead?
+10. Does The Relay handle the client relationship?
 
-FAQ ANSWERS MUST ALWAYS BE RENDERED IN THE DOM.
-
-Use CSS/display state for accordion behavior.
+FAQ answers MUST remain permanently in the DOM.
 
 Do NOT use:
 {isOpen && (...)}
 
-If FAQPage schema is included:
-- FAQ questions must exactly match visible questions
-- answers must exactly match visible answers
+Use CSS/display state only.
 
-SECTION 13 — FINAL CTA
+If FAQPage JSON-LD is used, ensure the schema matches the visible FAQ exactly.
+
+SECTION 14 — FINAL CTA
 
 H2:
-Have a Lead Your Business Cannot Fulfil?
+Ready to Exchange a Business Opportunity?
 
-Copy should say:
+Copy:
+A useful lead exchange starts with a genuine opportunity, a clear requirement, and a business that is a plausible fit.
 
-Some unqualified leads have no meaningful next step.
-Others represent legitimate opportunities that simply do not fit your current capabilities.
-
-When there is a plausible business fit elsewhere, referral or opportunity exchange may create commercial value for both sides.
+The Relay provides a structured environment for discovering and exploring those commercial connections.
 
 CTA:
 Explore B2B Lead Opportunities
 
 Secondary:
-Learn How to Exchange Business Leads
+Post a Business Opportunity
 
 TECHNICAL REQUIREMENTS
 
@@ -442,72 +477,72 @@ Keep:
 - TanStack route
 - createSeoMeta
 - canonical URL
-- current visual design system
-- responsive design
-- structured data
+- current design system
+- responsive implementation
+- structured data where appropriate
 
 Use:
 WebPage
 BreadcrumbList
-FAQPage if appropriate
+FAQPage where appropriate
 
-REMOVE ALL OLD UNSUPPORTED CONTENT
+REMOVE ALL LEGACY UNSUPPORTED CLAIMS
 
 Completely remove:
-- 5%–15% referral fees
-- 5%–10% revenue share
-- 12–24 month commission claims
+- cryptographic handshake
+- cryptographically logged handshake
 - Master NCND
-- NCND Protected
-- cryptographic/protocol protection
-- legal attribution guarantees
-- "binding commercial alignment"
-- guaranteed monetization
+- non-circumvention safeguards as a guaranteed platform feature
+- 10%–20% finder fees
+- fixed referral percentages
+- binding commercial commitments
+- audit-log enforcement claims
+- double-blind vetting unless this is actually implemented
+- guaranteed partner quality
+- guaranteed lead acceptance
+- guaranteed commission
 - guaranteed revenue
-- guaranteed payouts
-- fixed commission claims
-- "zero risk"
-- "predictable revenue"
-- "passive revenue"
+- guaranteed conversion
 
-Do not introduce replacement numerical claims.
+Do not invent statistics.
 
-IMPORTANT CANNIBALIZATION RULE
+CANNIBALIZATION RULE
 
 This page owns:
-"How can a business create commercial value from a suitable unqualified/out-of-scope lead?"
+"How do I exchange business leads?"
 
-It must NOT become:
-
-/what-to-do-with-unqualified-leads
-= what should I do with an unqualified lead?
-
-/agency-lead-exchange
-= agency-specific opportunity exchange
-
-/how-to-exchange-business-leads
-= mechanics of exchanging leads
+It must NOT own:
 
 /b2b-lead-exchange
-= core product/category landing page
+= core B2B lead exchange category/product page
 
-Make the monetization angle the defining purpose of this page.
+/agency-lead-exchange
+= agency-specific application
+
+/what-to-do-with-unqualified-leads
+= what to do with an unqualified lead
+
+/how-to-monetize-unqualified-leads
+= how commercial value may be created from suitable unqualified opportunities
+
+Keep the article procedural and educational.
 
 FINAL QA
 
 Before pushing:
+
 1. Primary keyword is in title.
-2. Primary keyword appears naturally in H1 and opening section.
-3. Page clearly distinguishes poor-fit leads from commercially useful out-of-scope opportunities.
-4. No invented financial percentages.
+2. Primary keyword appears naturally in H1 and introduction.
+3. Content is genuinely step-by-step.
+4. No fixed commission percentages.
 5. No unsupported legal/security claims.
-6. FAQ answers remain in DOM.
-7. Internal links to all relevant Cluster 3 pages exist.
-8. The Relay is presented as an opportunity discovery/exchange layer, not a guaranteed lead-buying marketplace.
-9. No fake case studies/statistics.
-10. Page remains genuinely useful even without mentioning The Relay.
+6. No fake case studies/statistics.
+7. FAQ answers are permanently in DOM.
+8. Internal links to relevant Cluster 3 pages exist.
+9. The Relay is presented as a discovery/exchange layer.
+10. The page remains useful even without mentioning The Relay.
 
 Push the completed file.
 ```
 
-This is the right next move because the current page's concept is sound, but the old implementation is mixing **education, financial claims, and unsupported contractual guarantees**. The rewrite should preserve the commercially interesting topic while making the actual search answer much more credible. Current web results show referral partnerships are indeed a common way businesses describe monetizing leads that fall outside their normal service scope. :chatgpt-content-reference{index="1"}
+Once this is pushed, **Cluster 3 will be complete**. Then we can move to the next SEO cluster rather than endlessly polishing the same group.
