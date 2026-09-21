@@ -928,7 +928,7 @@ export function DistributionPartnersPage() {
                 },
                 {
                   title: "You Require Direct Enterprise Co-Selling",
-                  desc: "When pitching multi-million-dollar executive transformation deals alongside a complementary software vendor, a bilateral co-selling alliance provides tighter alignment than an intermediary distributor.",
+                  desc: "When pitching large executive transformation deals alongside a complementary software vendor, a bilateral co-selling alliance provides tighter alignment than an intermediary distributor.",
                   alt: "Better Model: Strategic Alliance / Co-Selling",
                   link: "/b2b-partnership-network",
                 },
