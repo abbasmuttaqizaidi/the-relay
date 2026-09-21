@@ -61,6 +61,8 @@ import {
   Radio,
   CheckCircle,
   BarChart3,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   Dialog,
@@ -884,6 +886,23 @@ export function OpportunitiesPage() {
     return counts;
   }, [dbOpps, industry, geo, q]);
 
+  // Pagination helper to generate responsive page range with ellipsis
+  const getPaginationRange = (
+    current: number,
+    total: number,
+  ): (number | "ellipsis-start" | "ellipsis-end")[] => {
+    if (total <= 6) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    if (current <= 3) {
+      return [1, 2, 3, 4, "ellipsis-end", total];
+    }
+    if (current >= total - 2) {
+      return [1, "ellipsis-start", total - 3, total - 2, total - 1, total];
+    }
+    return [1, "ellipsis-start", current - 1, current, current + 1, "ellipsis-end", total];
+  };
+
   // Pagination (4 items per page to match V2 design)
   const ITEMS_PER_PAGE = 4;
   const totalPages = Math.max(1, Math.ceil(sortedOpps.length / ITEMS_PER_PAGE));
@@ -1299,10 +1318,10 @@ export function OpportunitiesPage() {
                 </div>
               )}
 
-              {/* Streamlined Pagination (Only for Authenticated Users) */}
+              {/* Responsive Pagination (Only for Authenticated Users) */}
               {isSignedIn && sortedOpps.length > 0 && (
-                <div className="flex items-center justify-between bg-white border border-[#E2E8F0] rounded-[4px] px-5 py-3.5 text-xs text-[#64748B] shadow-2xs">
-                  <div>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border border-[#E2E8F0] rounded-[4px] px-4 py-3 sm:px-5 sm:py-3.5 text-xs text-[#64748B] shadow-2xs w-full">
+                  <div className="text-center sm:text-left">
                     Showing{" "}
                     <span className="font-semibold text-[#171F2C]">
                       {(currentPage - 1) * ITEMS_PER_PAGE + 1} –{" "}
@@ -1312,63 +1331,83 @@ export function OpportunitiesPage() {
                     listings
                   </div>
 
-                  <div className="flex items-center gap-1 font-mono">
+                  <div className="flex items-center justify-center sm:justify-end gap-1 font-mono w-full sm:w-auto flex-wrap sm:flex-nowrap">
                     <button
                       type="button"
+                      aria-label="Previous page"
                       disabled={currentPage <= 1}
                       onClick={() =>
                         navigate({
                           search: (prev: SearchParams) => ({
                             ...prev,
-                            page: currentPage - 1,
+                            page: Math.max(1, currentPage - 1),
                           }),
                         })
                       }
-                      className="px-2.5 py-1.5 rounded-[4px] border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors"
+                      className="inline-flex items-center justify-center gap-1 h-8 px-2.5 rounded-[4px] border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors text-xs font-medium shrink-0"
                     >
-                      Previous
+                      <ChevronLeft className="w-3.5 h-3.5 shrink-0" />
+                      <span className="hidden xs:inline">Previous</span>
+                      <span className="inline xs:hidden">Prev</span>
                     </button>
 
-                    {Array.from({ length: totalPages }).map((_, idx) => {
-                      const pageNum = idx + 1;
-                      const isCurrent = pageNum === currentPage;
-                      return (
-                        <button
-                          key={pageNum}
-                          type="button"
-                          onClick={() =>
-                            navigate({
-                              search: (prev: SearchParams) => ({
-                                ...prev,
-                                page: pageNum,
-                              }),
-                            })
-                          }
-                          className={`px-3 py-1.5 rounded-[4px] font-medium cursor-pointer transition-colors ${
-                            isCurrent
-                              ? "bg-[#000000] text-white"
-                              : "border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C]"
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
+                    <div className="flex items-center gap-1">
+                      {getPaginationRange(currentPage, totalPages).map((item, idx) => {
+                        if (typeof item === "string") {
+                          return (
+                            <span
+                              key={`ellipsis-${idx}`}
+                              className="w-6 sm:w-7 h-8 flex items-center justify-center text-[#94A3B8] select-none text-xs"
+                            >
+                              …
+                            </span>
+                          );
+                        }
+                        const isCurrent = item === currentPage;
+                        return (
+                          <button
+                            key={item}
+                            type="button"
+                            aria-label={`Page ${item}`}
+                            aria-current={isCurrent ? "page" : undefined}
+                            onClick={() =>
+                              navigate({
+                                search: (prev: SearchParams) => ({
+                                  ...prev,
+                                  page: item,
+                                }),
+                              })
+                            }
+                            className={cn(
+                              "min-w-[30px] sm:min-w-[32px] h-8 px-2 flex items-center justify-center rounded-[4px] font-mono text-xs font-medium cursor-pointer transition-colors shrink-0",
+                              isCurrent
+                                ? "bg-[#000000] text-white border border-[#000000]"
+                                : "border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C]",
+                            )}
+                          >
+                            {item}
+                          </button>
+                        );
+                      })}
+                    </div>
 
                     <button
                       type="button"
+                      aria-label="Next page"
                       disabled={currentPage >= totalPages}
                       onClick={() =>
                         navigate({
                           search: (prev: SearchParams) => ({
                             ...prev,
-                            page: currentPage + 1,
+                            page: Math.min(totalPages, currentPage + 1),
                           }),
                         })
                       }
-                      className="px-2.5 py-1.5 rounded-[4px] border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors"
+                      className="inline-flex items-center justify-center gap-1 h-8 px-2.5 rounded-[4px] border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#171F2C] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors text-xs font-medium shrink-0"
                     >
-                      Next
+                      <span className="hidden xs:inline">Next</span>
+                      <span className="inline xs:hidden">Next</span>
+                      <ChevronRight className="w-3.5 h-3.5 shrink-0" />
                     </button>
                   </div>
                 </div>
