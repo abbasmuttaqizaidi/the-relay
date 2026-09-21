@@ -640,7 +640,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
   // Withdrawn requests are excluded from active pipeline & opportunities view
   const allCombinedRequests = useMemo(() => {
     const inbound = incomingRequests
-      .filter((r) => r.status !== "withdrawn")
+      .filter((r) => r.status !== "withdrawn" && r.status !== "pending")
       .map((r) => ({
         ...r,
         direction: "inbound" as const,
