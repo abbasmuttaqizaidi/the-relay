@@ -98,18 +98,6 @@ export function TrustAndSafetyPage() {
         ],
       },
       {
-        "@type": "FAQPage",
-        "@id": `${SITE_URL}/trust-and-safety#faq`,
-        mainEntity: faqs.map((faq) => ({
-          "@type": "Question",
-          name: faq.q,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: faq.a,
-          },
-        })),
-      },
-      {
         "@type": "Organization",
         "@id": `${SITE_URL}/#organization`,
         name: "The Relay",
@@ -178,7 +166,7 @@ export function TrustAndSafetyPage() {
                   B2B Business Verification and Identity
                 </h2>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
-                  Relay is designed around authenticated corporate attribution. Every participant is audited against statutory corporate registries (Know Your Business - KYB) and authorized corporate email DNS records. Sole proprietors, shell entities, and automated scrapers are permanently prevented from accessing platform dealflow.
+                  Relay is designed around authenticated corporate attribution. Rigorous business verification establishes foundational trust within our B2B marketplace and B2B opportunity exchange. Every participant is audited against statutory corporate registries (Know Your Business - KYB) and authorized corporate email DNS records. Sole proprietors, shell entities, and automated scrapers are permanently prevented from accessing platform dealflow.
                 </p>
               </div>
               <div className="pt-4 border-t border-[#E2E8F0] flex items-center gap-2 text-[11px] font-mono text-[#171F2C] font-semibold">
@@ -202,7 +190,7 @@ export function TrustAndSafetyPage() {
                   Controlled Information Disclosure for B2B Opportunities
                 </h2>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
-                  Personal and sensitive commercial details are never exposed simply because someone is browsing an opportunity. Company brand trademarks, executive names, and underlying client records remain strictly masked during exploration and preliminary evaluation. Disclosure is a deliberate, gated milestone.
+                  Personal and sensitive commercial details are never exposed simply because someone is browsing a commercial opportunity. To guarantee B2B opportunity privacy and commercial confidentiality, company brand trademarks, executive names, and underlying client records remain strictly masked during exploration and preliminary evaluation. Disclosure is a deliberate, gated milestone.
                 </p>
               </div>
               <div className="pt-4 border-t border-[#E2E8F0] flex items-center gap-2 text-[11px] font-mono text-[#171F2C] font-semibold">
@@ -361,6 +349,9 @@ export function TrustAndSafetyPage() {
               <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#171F2C] tracking-tight">
                 Commercial Safeguards and B2B Due Diligence
               </h2>
+              <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
+                Institutional protections maintaining B2B marketplace security and thorough B2B due diligence before organizations enter high-value commercial partnerships.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -371,7 +362,7 @@ export function TrustAndSafetyPage() {
                 </div>
                 <h3 className="text-base font-bold text-[#171F2C]">Master NCND Covenants</h3>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
-                  Every mutual agreement triggers standardized bilateral non-circumvention terms that strictly prevent counterparties from bypassing the introducing party or cutting out contracted rev-shares.
+                  Every mutual agreement triggers standardized bilateral non-circumvention terms that strictly prevent counterparties from bypassing the introducing party or cutting out contracted rev-shares when establishing commercial partnerships.
                 </p>
               </div>
 
