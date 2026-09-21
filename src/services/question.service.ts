@@ -5,6 +5,8 @@ import {
   UpdateQuestionDTO,
   ListQuestionsFilters,
 } from "../types";
+import { submitToIndexNow } from "../lib/indexnow.server";
+import { SITE_URL } from "../lib/seo";
 
 const SAFE_BUSINESS_SELECT = {
   id: true,
@@ -77,6 +79,11 @@ export class QuestionService {
       } catch (logErr) {
         console.warn("[QuestionService.createQuestion] Failed to log activity:", logErr);
       }
+
+      // 4. Notify search engines via IndexNow asynchronously
+      submitToIndexNow(`${SITE_URL}/insights/${question.id}`).catch((err) => {
+        console.warn("[QuestionService.createQuestion] IndexNow notification failed:", err);
+      });
 
       return QuestionService.mapQuestionModel(question);
     } catch (error: any) {
@@ -243,6 +250,11 @@ export class QuestionService {
       } catch (logErr) {
         console.warn("[QuestionService.updateQuestion] Failed to log activity:", logErr);
       }
+
+      // Notify search engines via IndexNow asynchronously
+      submitToIndexNow(`${SITE_URL}/insights/${updated.id}`).catch((err) => {
+        console.warn("[QuestionService.updateQuestion] IndexNow notification failed:", err);
+      });
 
       return QuestionService.mapQuestionModel(updated);
     } catch (error: any) {

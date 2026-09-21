@@ -5,6 +5,8 @@ import {
   UpdateKnowledgeInsightDTO,
   ListKnowledgeInsightsFilters,
 } from "../types";
+import { submitToIndexNow } from "../lib/indexnow.server";
+import { SITE_URL } from "../lib/seo";
 
 const SAFE_BUSINESS_SELECT = {
   id: true,
@@ -82,6 +84,16 @@ export class KnowledgeService {
           "[KnowledgeService.createKnowledgeInsight] Failed to log activity:",
           logErr,
         );
+      }
+
+      // 4. Notify search engines via IndexNow asynchronously if published
+      if (insight.status === "published") {
+        submitToIndexNow(`${SITE_URL}/insights/knowledge/${insight.id}`).catch((err) => {
+          console.warn(
+            "[KnowledgeService.createKnowledgeInsight] IndexNow notification failed:",
+            err
+          );
+        });
       }
 
       return KnowledgeService.mapInsightModel(insight);
@@ -241,6 +253,16 @@ export class KnowledgeService {
           "[KnowledgeService.updateKnowledgeInsight] Failed to log activity:",
           logErr,
         );
+      }
+
+      // Notify search engines via IndexNow asynchronously if published
+      if (updated.status === "published") {
+        submitToIndexNow(`${SITE_URL}/insights/knowledge/${updated.id}`).catch((err) => {
+          console.warn(
+            "[KnowledgeService.updateKnowledgeInsight] IndexNow notification failed:",
+            err,
+          );
+        });
       }
 
       return KnowledgeService.mapInsightModel(updated);

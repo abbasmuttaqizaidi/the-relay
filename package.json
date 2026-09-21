@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "seo:indexnow": "node --env-file=.env scripts/submit-indexnow.mjs",
     "prepare": "husky"
   },
   "dependencies": {
