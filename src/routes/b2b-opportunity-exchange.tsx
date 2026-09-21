@@ -165,38 +165,43 @@ export function B2BOpportunityExchangePage() {
   const workflows = [
     {
       num: "01",
-      title: "Post",
-      desc: "Describe the commercial opportunity and what kind of business would be relevant.",
+      title: "Verify",
+      desc: "Verify your business identity and establish verified platform status before transacting.",
     },
     {
       num: "02",
-      title: "Discover",
-      desc: "Other businesses can discover opportunities that match their capabilities and interests.",
+      title: "Post",
+      desc: "Publish a blinded commercial requirement with explicit exchange parameters.",
     },
     {
       num: "03",
-      title: "Express interest",
-      desc: "A business indicates that it is interested in pursuing the opportunity.",
+      title: "Discover",
+      desc: "Discover verified opportunities matching your industry, capabilities, and geography.",
     },
     {
       num: "04",
-      title: "Discuss",
-      desc: "The businesses discuss fit, requirements and potential commercial terms.",
+      title: "Express Interest",
+      desc: "Propose a structured reciprocal offer or commercial terms to the listing owner.",
     },
     {
       num: "05",
-      title: "Agree",
-      desc: "Both sides determine whether the relationship makes sense.",
+      title: "Acknowledge",
+      desc: "The listing creator reviews your incoming proposal and confirms operational interest.",
     },
     {
       num: "06",
-      title: "Consent",
-      desc: "Relevant information can be disclosed once both sides are ready.",
+      title: "Negotiate",
+      desc: "Both counterparties discuss fit, refine commercial terms, and align on delivery scope.",
     },
     {
       num: "07",
+      title: "Agree",
+      desc: "Lock bilateral terms in a structured deal memo before identities unmask.",
+    },
+    {
+      num: "08",
       title: "Handshake",
-      desc: "The businesses move forward directly with the relationship they agreed to pursue.",
+      desc: "Secure client consent and execute the warm executive introduction directly.",
     },
   ];
 
@@ -253,10 +258,7 @@ export function B2BOpportunityExchangePage() {
               </li>
               <li className="text-[#94A3B8]">/</li>
               <li>
-                <Link
-                  to="/solutions"
-                  className="hover:text-[#171F2C] transition-colors"
-                >
+                <Link to="/solutions" className="hover:text-[#171F2C] transition-colors">
                   Solutions
                 </Link>
               </li>
@@ -283,23 +285,19 @@ export function B2BOpportunityExchangePage() {
               </h1>
 
               <div className="space-y-4 text-base sm:text-lg text-[#64748B] leading-relaxed max-w-3xl">
+                <p>Every business receives opportunities it cannot pursue.</p>
                 <p>
-                  Every business receives opportunities it cannot pursue.
-                </p>
-                <p>
-                  A project may fall outside your capabilities. A customer may
-                  need a service you don't offer. Your team may be at capacity.
-                  A potential partnership may make more sense for another company
-                  in your network.
+                  A project may fall outside your capabilities. A customer may need a service you
+                  don't offer. Your team may be at capacity. A potential partnership may make more
+                  sense for another company in your network.
                 </p>
                 <p className="font-semibold text-[#171F2C] border-l-2 border-[#171F2C] pl-4 py-0.5">
-                  The Relay gives businesses a structured way to exchange those
-                  opportunities with other verified businesses.
+                  The Relay gives businesses a structured way to exchange those opportunities with
+                  other verified businesses.
                 </p>
                 <p className="text-sm sm:text-base text-[#64748B]">
-                  Discover opportunities that fit your business. Express
-                  interest. Discuss the relationship. Share the relevant
-                  information only when both sides are ready.
+                  Discover opportunities that fit your business. Express interest. Discuss the
+                  relationship. Share the relevant information only when both sides are ready.
                 </p>
               </div>
 
@@ -334,27 +332,24 @@ export function B2BOpportunityExchangePage() {
               </h2>
               <div className="space-y-4 text-[#64748B] leading-relaxed">
                 <p className="text-base sm:text-lg">
-                  A <strong className="text-[#171F2C] font-semibold">B2B opportunity exchange</strong> is a
-                  structured environment where businesses can share commercial
-                  opportunities with other businesses that may be able to pursue
-                  them.
+                  A{" "}
+                  <strong className="text-[#171F2C] font-semibold">B2B opportunity exchange</strong>{" "}
+                  is a structured environment where businesses can share commercial opportunities
+                  with other businesses that may be able to pursue them.
                 </p>
                 <p>
                   Instead of every business opportunity ending in either{" "}
                   <strong className="text-[#171F2C] font-semibold">"we'll take it"</strong> or{" "}
-                  <strong className="text-[#171F2C] font-semibold">"we can't help,"</strong> there is another
-                  option:
+                  <strong className="text-[#171F2C] font-semibold">"we can't help,"</strong> there
+                  is another option:
                 </p>
                 <div className="p-4 bg-white border border-[#E2E8F0] rounded-[4px]">
-                  <p className="text-lg font-bold text-[#171F2C]">
-                    Find a business that can.
-                  </p>
+                  <p className="text-lg font-bold text-[#171F2C]">Find a business that can.</p>
                 </div>
                 <p>
-                  That could mean referring a customer to a complementary
-                  provider, finding a partner for a project, discovering a
-                  distribution relationship, locating a vendor, or passing an
-                  opportunity to another business because it falls outside your
+                  That could mean referring a customer to a complementary provider, finding a
+                  partner for a project, discovering a distribution relationship, locating a vendor,
+                  or passing an opportunity to another business because it falls outside your
                   current scope.
                 </p>
                 <p className="font-semibold text-[#171F2C]">
@@ -376,8 +371,8 @@ export function B2BOpportunityExchangePage() {
                 Turn opportunities you cannot pursue into opportunities someone else can
               </h2>
               <p className="text-[#64748B] leading-relaxed">
-                Businesses regularly encounter commercial demand that doesn't fit
-                their current operation.
+                Businesses regularly encounter commercial demand that doesn't fit their current
+                operation.
               </p>
             </div>
 
@@ -391,13 +386,12 @@ export function B2BOpportunityExchangePage() {
                   </h3>
                 </div>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
-                  The client is genuine and the project is valuable, but the
-                  required capability isn't part of the agency's service
-                  offering.
+                  The client is genuine and the project is valuable, but the required capability
+                  isn't part of the agency's service offering.
                 </p>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
-                  Instead of simply declining it, the opportunity can be surfaced
-                  to a business that provides the required service.
+                  Instead of simply declining it, the opportunity can be surfaced to a business that
+                  provides the required service.
                 </p>
                 <Link
                   to="/agency-lead-exchange"
@@ -416,13 +410,11 @@ export function B2BOpportunityExchangePage() {
                   </h3>
                 </div>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
-                  A company may be able to solve one part of a customer's
-                  problem while another business is better suited to solve the
-                  next part.
+                  A company may be able to solve one part of a customer's problem while another
+                  business is better suited to solve the next part.
                 </p>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
-                  The opportunity can become a referral or partnership instead of
-                  a dead end.
+                  The opportunity can become a referral or partnership instead of a dead end.
                 </p>
                 <Link
                   to="/b2b-referral-network"
@@ -441,12 +433,12 @@ export function B2BOpportunityExchangePage() {
                   </h3>
                 </div>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
-                  A company may have the product but lack distribution, local
-                  expertise, implementation capability or channel relationships.
+                  A company may have the product but lack distribution, local expertise,
+                  implementation capability or channel relationships.
                 </p>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
-                  Finding the right business partner can turn that gap into a
-                  commercial opportunity.
+                  Finding the right business partner can turn that gap into a commercial
+                  opportunity.
                 </p>
                 <Link
                   to="/distribution-partners"
@@ -465,9 +457,8 @@ export function B2BOpportunityExchangePage() {
                   </h3>
                 </div>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
-                  The opportunity may be valuable but poorly timed,
-                  geographically unsuitable or outside the company's current
-                  priorities.
+                  The opportunity may be valuable but poorly timed, geographically unsuitable or
+                  outside the company's current priorities.
                 </p>
                 <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
                   Another business may be better positioned to pursue it.
@@ -494,9 +485,8 @@ export function B2BOpportunityExchangePage() {
                 What can businesses exchange on Relay?
               </h2>
               <p className="text-[#64748B] leading-relaxed">
-                The Relay isn't limited to one type of lead. Businesses can use
-                the exchange for different types of commercial relationships,
-                including:
+                The Relay isn't limited to one type of lead. Businesses can use the exchange for
+                different types of commercial relationships, including:
               </p>
             </div>
 
@@ -512,12 +502,8 @@ export function B2BOpportunityExchangePage() {
                       <div className="w-9 h-9 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#171F2C]">
                         <Icon className="w-5 h-5" />
                       </div>
-                      <h3 className="text-base font-bold text-[#171F2C]">
-                        {item.title}
-                      </h3>
-                      <p className="text-xs text-[#64748B] leading-relaxed">
-                        {item.desc}
-                      </p>
+                      <h3 className="text-base font-bold text-[#171F2C]">{item.title}</h3>
+                      <p className="text-xs text-[#64748B] leading-relaxed">{item.desc}</p>
                     </div>
 
                     <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between text-[11px] font-mono">
@@ -558,8 +544,8 @@ export function B2BOpportunityExchangePage() {
                 How a B2B opportunity exchange works
               </h2>
               <p className="text-[#64748B] leading-relaxed">
-                The Relay keeps the process structured around the opportunity
-                rather than around social networking.
+                The Relay keeps the process structured around the opportunity rather than around
+                social networking.
               </p>
             </div>
 
@@ -567,40 +553,36 @@ export function B2BOpportunityExchangePage() {
               {workflows.map((step) => (
                 <div
                   key={step.num}
-                  className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] space-y-2"
+                  className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] space-y-2 shadow-2xs"
                 >
-                  <span className="text-xl font-mono font-bold text-[#171F2C]">
-                    {step.num}
-                  </span>
-                  <h3 className="font-bold text-[#171F2C] text-sm">
-                    {step.title}
-                  </h3>
-                  <p className="text-xs text-[#64748B] leading-relaxed">
-                    {step.desc}
-                  </p>
+                  <span className="text-xl font-mono font-bold text-[#171F2C]">{step.num}</span>
+                  <h3 className="font-bold text-[#171F2C] text-sm">{step.title}</h3>
+                  <p className="text-xs text-[#64748B] leading-relaxed">{step.desc}</p>
                 </div>
               ))}
+            </div>
 
-              {/* 8-Step Complete Workflow Link Card */}
-              <div className="p-5 bg-[#171F2C] text-white rounded-[4px] border border-[#171F2C] space-y-3 flex flex-col justify-between">
-                <div className="space-y-2">
-                  <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.04em] text-[#94A3B8]">
-                    Complete Specification
-                  </span>
-                  <h3 className="font-bold text-sm text-white">
-                    Want the complete process?
-                  </h3>
-                  <p className="text-xs text-[#E2E8F0] leading-relaxed">
-                    Read the detailed breakdown from origin posting to bilateral handshake completion.
-                  </p>
-                </div>
-                <Link
-                  to="/8-step-journey"
-                  className="inline-flex items-center text-xs font-mono font-bold uppercase tracking-[0.04em] text-white hover:underline"
-                >
-                  See the 8-Step Relay Journey →
-                </Link>
+            {/* 8-Step Complete Workflow Link Strip */}
+            <div className="p-5 bg-[#171F2C] text-white rounded-[4px] border border-[#171F2C] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#F97316]">
+                  Complete Operational Specification
+                </span>
+                <h3 className="font-bold text-sm text-white">
+                  Want the detailed step-by-step breakdown?
+                </h3>
+                <p className="text-xs text-[#CBD5E1] leading-relaxed">
+                  Read the complete architecture from origin posting and consensus to bilateral
+                  handshake execution.
+                </p>
               </div>
+              <Link
+                to="/8-step-journey"
+                className="shrink-0 inline-flex items-center gap-2 bg-white hover:bg-[#F8FAFC] text-[#171F2C] px-5 py-2.5 rounded-[4px] text-xs font-mono font-bold uppercase tracking-[0.04em] transition-colors"
+              >
+                <span>The 8-Step Relay Journey</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </section>
 
@@ -616,23 +598,21 @@ export function B2BOpportunityExchangePage() {
                 An opportunity exchange is different from a lead list
               </h2>
               <div className="space-y-4 text-[#64748B] leading-relaxed text-sm sm:text-base">
-                <p>
-                  A lead list gives you contacts.
-                </p>
+                <p>A lead list gives you contacts.</p>
                 <p className="text-lg font-bold text-[#171F2C]">
                   An opportunity exchange starts with commercial intent.
                 </p>
                 <p>
-                  That distinction matters. A business opportunity can carry
-                  context about what is needed, what type of capability is
-                  relevant and what kind of relationship may make sense.
+                  That distinction matters. A business opportunity can carry context about what is
+                  needed, what type of capability is relevant and what kind of relationship may make
+                  sense.
                 </p>
                 <p>
-                  The Relay is designed around that context and the businesses'
-                  decision to engage.
+                  The Relay is designed around that context and the businesses' decision to engage.
                 </p>
                 <p className="text-xs sm:text-sm font-mono text-[#64748B] bg-[#F8FAFC] p-3.5 border border-[#E2E8F0] rounded-[4px]">
-                  It's not intended to be a directory of random contacts or a feed of promotional posts.
+                  It's not intended to be a directory of random contacts or a feed of promotional
+                  posts.
                 </p>
               </div>
             </div>
@@ -650,8 +630,8 @@ export function B2BOpportunityExchangePage() {
                 Built for businesses that create and receive commercial opportunities
               </h2>
               <p className="text-[#64748B] leading-relaxed">
-                Relay can be useful for businesses that regularly work through
-                partners, referrals or complementary providers. That includes:
+                Relay can be useful for businesses that regularly work through partners, referrals
+                or complementary providers. That includes:
               </p>
             </div>
 
@@ -662,12 +642,8 @@ export function B2BOpportunityExchangePage() {
                   className="p-6 bg-white border border-[#E2E8F0] hover:border-[#171F2C] transition-colors rounded-[4px] flex flex-col justify-between space-y-4"
                 >
                   <div className="space-y-2">
-                    <h3 className="font-bold text-[#171F2C] text-base">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs text-[#64748B] leading-relaxed">
-                      {item.desc}
-                    </p>
+                    <h3 className="font-bold text-[#171F2C] text-base">{item.title}</h3>
+                    <p className="text-xs text-[#64748B] leading-relaxed">{item.desc}</p>
                   </div>
                   <Link
                     to={item.link as any}
@@ -681,7 +657,8 @@ export function B2BOpportunityExchangePage() {
 
             <div className="p-4 bg-white border border-[#171F2C] rounded-[4px]">
               <p className="text-xs sm:text-sm font-semibold text-[#171F2C]">
-                The common factor is simple: Your business has commercial relationships worth exchanging.
+                The common factor is simple: Your business has commercial relationships worth
+                exchanging.
               </p>
             </div>
           </section>
@@ -698,20 +675,15 @@ export function B2BOpportunityExchangePage() {
                 Why use an opportunity exchange instead of social media?
               </h2>
               <div className="space-y-4 text-[#64748B] leading-relaxed">
-                <p>
-                  Social platforms are designed around people, content and
-                  engagement.
-                </p>
+                <p>Social platforms are designed around people, content and engagement.</p>
                 <p className="text-lg font-bold text-[#171F2C]">
                   Relay is designed around commercial opportunities.
                 </p>
                 <p>
-                  There is no requirement to build an audience, publish content
-                  every day or compete for attention in a feed.
+                  There is no requirement to build an audience, publish content every day or compete
+                  for attention in a feed.
                 </p>
-                <p className="font-semibold text-[#171F2C]">
-                  The objective is more direct:
-                </p>
+                <p className="font-semibold text-[#171F2C]">The objective is more direct:</p>
                 <ul className="space-y-2 text-sm text-[#171F2C] pl-2 font-mono">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-none bg-[#171F2C]" />
@@ -746,8 +718,8 @@ export function B2BOpportunityExchangePage() {
                 The Relay opportunity exchange
               </h2>
               <p className="text-[#64748B] leading-relaxed">
-                The Relay combines opportunity discovery with a structured path
-                toward a commercial relationship. Businesses can:
+                The Relay combines opportunity discovery with a structured path toward a commercial
+                relationship. Businesses can:
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
@@ -786,20 +758,15 @@ export function B2BOpportunityExchangePage() {
               </div>
 
               <p className="text-sm font-semibold text-[#171F2C] pt-2">
-                The platform facilitates the process. The businesses decide what relationship they actually want.
+                The platform facilitates the process. The businesses decide what relationship they
+                actually want.
               </p>
 
               <div className="pt-2 flex items-center gap-4 text-xs font-mono">
-                <Link
-                  to="/trust-and-safety"
-                  className="text-[#171F2C] hover:underline font-bold"
-                >
+                <Link to="/trust-and-safety" className="text-[#171F2C] hover:underline font-bold">
                   Trust & Safety Architecture →
                 </Link>
-                <Link
-                  to="/insights"
-                  className="text-[#171F2C] hover:underline font-bold"
-                >
+                <Link to="/insights" className="text-[#171F2C] hover:underline font-bold">
                   Operator Insights Hub →
                 </Link>
               </div>
@@ -818,8 +785,8 @@ export function B2BOpportunityExchangePage() {
                 What makes an opportunity worth exchanging?
               </h2>
               <p className="text-[#64748B] leading-relaxed">
-                Not every lead belongs on an opportunity exchange. A useful
-                opportunity usually has some combination of:
+                Not every lead belongs on an opportunity exchange. A useful opportunity usually has
+                some combination of:
               </p>
             </div>
 
@@ -827,21 +794,15 @@ export function B2BOpportunityExchangePage() {
               <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] space-y-1.5">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#171F2C] shrink-0" />
-                  <h3 className="font-bold text-[#171F2C] text-sm">
-                    A defined business need
-                  </h3>
+                  <h3 className="font-bold text-[#171F2C] text-sm">A defined business need</h3>
                 </div>
-                <p className="text-xs text-[#64748B] pl-6">
-                  Someone actually needs something.
-                </p>
+                <p className="text-xs text-[#64748B] pl-6">Someone actually needs something.</p>
               </div>
 
               <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] space-y-1.5">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#171F2C] shrink-0" />
-                  <h3 className="font-bold text-[#171F2C] text-sm">
-                    A potential business fit
-                  </h3>
+                  <h3 className="font-bold text-[#171F2C] text-sm">A potential business fit</h3>
                 </div>
                 <p className="text-xs text-[#64748B] pl-6">
                   Another company could realistically fulfil that need.
@@ -851,12 +812,11 @@ export function B2BOpportunityExchangePage() {
               <div className="p-5 bg-white border border-[#E2E8F0] rounded-[4px] space-y-1.5">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#171F2C] shrink-0" />
-                  <h3 className="font-bold text-[#171F2C] text-sm">
-                    Commercial relevance
-                  </h3>
+                  <h3 className="font-bold text-[#171F2C] text-sm">Commercial relevance</h3>
                 </div>
                 <p className="text-xs text-[#64748B] pl-6">
-                  There is a possible referral, project, partnership, distribution or vendor relationship.
+                  There is a possible referral, project, partnership, distribution or vendor
+                  relationship.
                 </p>
               </div>
 
@@ -868,13 +828,15 @@ export function B2BOpportunityExchangePage() {
                   </h3>
                 </div>
                 <p className="text-xs text-[#64748B] pl-6">
-                  The receiving business can understand the opportunity without requiring unnecessary disclosure upfront.
+                  The receiving business can understand the opportunity without requiring
+                  unnecessary disclosure upfront.
                 </p>
               </div>
             </div>
 
             <p className="text-xs font-mono text-[#64748B]">
-              That's why Relay focuses on structured opportunities rather than simply collecting contact details.
+              That's why Relay focuses on structured opportunities rather than simply collecting
+              contact details.
             </p>
           </section>
 
@@ -905,13 +867,11 @@ export function B2BOpportunityExchangePage() {
                       aria-expanded={isOpen}
                       className="w-full p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-[#F8FAFC] transition-colors"
                     >
-                      <span className="text-sm sm:text-base font-bold text-[#171F2C]">
-                        {faq.q}
-                      </span>
+                      <span className="text-sm sm:text-base font-bold text-[#171F2C]">{faq.q}</span>
                       <ChevronDown
                         className={cn(
                           "w-4 h-4 text-[#64748B] shrink-0 transition-transform duration-200",
-                          isOpen && "rotate-180 text-[#171F2C]"
+                          isOpen && "rotate-180 text-[#171F2C]",
                         )}
                       />
                     </button>
@@ -922,7 +882,7 @@ export function B2BOpportunityExchangePage() {
                         "grid transition-all duration-200 ease-in-out px-5",
                         isOpen
                           ? "grid-rows-[1fr] opacity-100 pb-5 pt-1 border-t border-[#E2E8F0]"
-                          : "grid-rows-[0fr] opacity-0 pointer-events-none"
+                          : "grid-rows-[0fr] opacity-0 pointer-events-none",
                       )}
                     >
                       <div className="overflow-hidden text-xs sm:text-sm text-[#64748B] leading-relaxed">
@@ -947,16 +907,13 @@ export function B2BOpportunityExchangePage() {
                 Don't let a good opportunity stop at "we don't do that."
               </h2>
               <div className="space-y-3 text-[#E2E8F0] text-sm sm:text-base leading-relaxed">
-                <p>
-                  Some opportunities aren't wrong for your business.
-                </p>
+                <p>Some opportunities aren't wrong for your business.</p>
                 <p className="text-white font-bold">
                   They're simply better suited to another business.
                 </p>
                 <p>
-                  The Relay gives you a structured way to exchange those
-                  opportunities and discover commercial relationships that fit
-                  what you can actually do.
+                  The Relay gives you a structured way to exchange those opportunities and discover
+                  commercial relationships that fit what you can actually do.
                 </p>
               </div>
 
