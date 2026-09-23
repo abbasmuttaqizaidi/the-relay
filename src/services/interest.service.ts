@@ -2,6 +2,7 @@ import { prisma } from "../db/prisma.server";
 import { Interest, ExpressInterestDTO } from "../types";
 import { NotificationService } from "./notification.service";
 import { EmailService } from "./email.service";
+import { clerkClient } from "@clerk/tanstack-react-start/server";
 
 export class InterestService {
   /**
@@ -18,6 +19,14 @@ export class InterestService {
               id: true,
               company_name: true,
               owner_user_id: true,
+              contact_email: true,
+              owner: {
+                select: {
+                  id: true,
+                  email: true,
+                  clerk_user_id: true,
+                },
+              },
             },
           },
         },
@@ -49,6 +58,25 @@ export class InterestService {
         throw new Error("Only approved businesses can express interest.");
       }
 
+      // Resolve recipient email for opportunity owner
+      let receiverEmail =
+        opportunity.business.contact_email ||
+        opportunity.business.owner?.email ||
+        null;
+
+      if (!receiverEmail && opportunity.business.owner?.clerk_user_id) {
+        try {
+          const client = clerkClient();
+          const clerkUser = await client.users.getUser(opportunity.business.owner.clerk_user_id);
+          receiverEmail =
+            clerkUser.emailAddresses.find((e: any) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress ||
+            clerkUser.emailAddresses[0]?.emailAddress ||
+            null;
+        } catch (clerkErr) {
+          console.error("[InterestService] Failed to resolve Clerk owner email:", clerkErr);
+        }
+      }
+
       // 4. Check for duplicate interest (both active or inactive)
       const existing = await prisma.interest.findUnique({
         where: {
@@ -66,9 +94,39 @@ export class InterestService {
             where: { id: existing.id },
             data: {
               status: "pending",
-              message: dto.message || null,
+              message: dto.message || dto.proposed_terms || null,
+              value_categories: dto.value_categories || [],
+              delivery_methods: dto.delivery_methods || [],
+              proposed_terms: dto.proposed_terms || dto.message || null,
+              highlighted_terms: dto.highlighted_terms || [],
             },
           });
+
+          // Create notification & email on reactivation
+          try {
+            await NotificationService.createNotification({
+              user_id: opportunity.business.owner_user_id,
+              title: "New Interest Received",
+              description: `${pitchingBusiness.company_name} has re-opened proposal interest in: "${opportunity.title}"`,
+            });
+          } catch (notifErr) {
+            console.error("[InterestService.expressInterest] Notification failed:", notifErr);
+          }
+
+          if (receiverEmail) {
+            try {
+              await EmailService.sendInterestReceived({
+                targetOwnerEmail: receiverEmail,
+                opportunityTitle: opportunity.title,
+                pitchingCompanyName: pitchingBusiness.company_name,
+                proposedTerms: dto.proposed_terms || dto.message || null,
+                valueCategories: dto.value_categories || [],
+                deliveryMethods: dto.delivery_methods || [],
+              });
+            } catch (emailErr) {
+              console.error("[InterestService.expressInterest] Email failed:", emailErr);
+            }
+          }
 
           // Log activity
           await prisma.activityLog.create({
@@ -84,6 +142,10 @@ export class InterestService {
             requesting_business_id: updated.requesting_business_id,
             message: updated.message,
             status: updated.status as any,
+            value_categories: updated.value_categories,
+            delivery_methods: updated.delivery_methods,
+            proposed_terms: updated.proposed_terms,
+            highlighted_terms: updated.highlighted_terms,
             created_at: updated.created_at.toISOString(),
             updated_at: updated.updated_at.toISOString(),
           };
@@ -97,7 +159,11 @@ export class InterestService {
         data: {
           opportunity_id: dto.opportunity_id,
           requesting_business_id: dto.business_id,
-          message: dto.message || null,
+          message: dto.message || dto.proposed_terms || null,
+          value_categories: dto.value_categories || [],
+          delivery_methods: dto.delivery_methods || [],
+          proposed_terms: dto.proposed_terms || dto.message || null,
+          highlighted_terms: dto.highlighted_terms || [],
           status: "pending",
         },
       });
@@ -113,15 +179,24 @@ export class InterestService {
         console.error("[InterestService.expressInterest] Notification failed:", notifErr);
       }
 
-      // 7. Trigger email
-      try {
-        await EmailService.sendInterestReceived(
-          "owner@example.com", // Placeholder
-          opportunity.title,
-          pitchingBusiness.company_name,
+      // 7. Trigger email to opportunity owner
+      if (receiverEmail) {
+        try {
+          await EmailService.sendInterestReceived({
+            targetOwnerEmail: receiverEmail,
+            opportunityTitle: opportunity.title,
+            pitchingCompanyName: pitchingBusiness.company_name,
+            proposedTerms: dto.proposed_terms || dto.message || null,
+            valueCategories: dto.value_categories || [],
+            deliveryMethods: dto.delivery_methods || [],
+          });
+        } catch (emailErr) {
+          console.error("[InterestService.expressInterest] Email failed:", emailErr);
+        }
+      } else {
+        console.warn(
+          `[InterestService.expressInterest] No recipient email found for owner user ${opportunity.business.owner_user_id}`,
         );
-      } catch (emailErr) {
-        console.error("[InterestService.expressInterest] Email failed:", emailErr);
       }
 
       // 8. Log activity
@@ -398,14 +473,20 @@ export class InterestService {
       // Server-side authorization check: Only reveal contact email if request is accepted
       for (const item of results) {
         if (item.status !== "accepted") {
-          item.requesting_business.contact_email = null;
-          if (item.requesting_business.owner) {
-            item.requesting_business.owner.email = null;
+          if (item.requesting_business) {
+            item.requesting_business.contact_email = null;
+            if (item.requesting_business.owner) {
+              item.requesting_business.owner.email = null;
+            }
           }
         }
       }
 
-      return results;
+      return results.map((item) => ({
+        ...item,
+        created_at: item.created_at ? item.created_at.toISOString() : new Date().toISOString(),
+        updated_at: item.updated_at ? item.updated_at.toISOString() : new Date().toISOString(),
+      }));
     } catch (error) {
       console.error("[InterestService.getIncomingForBusinessIds] Error:", error);
       throw error;
@@ -449,14 +530,20 @@ export class InterestService {
       // Server-side authorization check: Only reveal target business email if request is accepted
       for (const item of results) {
         if (item.status !== "accepted") {
-          item.opportunity.business.contact_email = null;
-          if (item.opportunity.business.owner) {
-            item.opportunity.business.owner.email = null;
+          if (item.opportunity?.business) {
+            item.opportunity.business.contact_email = null;
+            if (item.opportunity.business.owner) {
+              item.opportunity.business.owner.email = null;
+            }
           }
         }
       }
 
-      return results;
+      return results.map((item) => ({
+        ...item,
+        created_at: item.created_at ? item.created_at.toISOString() : new Date().toISOString(),
+        updated_at: item.updated_at ? item.updated_at.toISOString() : new Date().toISOString(),
+      }));
     } catch (error) {
       console.error("[InterestService.getSentForBusinessIds] Error:", error);
       throw error;
@@ -502,7 +589,7 @@ export class InterestService {
    */
   static async getRequestById(interestId: string) {
     try {
-      return await prisma.interest.findUnique({
+      const result = await prisma.interest.findUnique({
         where: { id: interestId },
         include: {
           requesting_business: {
@@ -521,8 +608,49 @@ export class InterestService {
           },
         },
       });
+
+      if (!result) return null;
+
+      return {
+        ...result,
+        created_at: result.created_at ? result.created_at.toISOString() : new Date().toISOString(),
+        updated_at: result.updated_at ? result.updated_at.toISOString() : new Date().toISOString(),
+      };
     } catch (error) {
       console.error("[InterestService.getRequestById] Error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gets full proposal history for an opportunity (all statuses: pending, accepted, declined, withdrawn).
+   */
+  static async getOpportunityProposalHistory(opportunityId: string) {
+    try {
+      const results = await prisma.interest.findMany({
+        where: {
+          opportunity_id: opportunityId,
+        },
+        include: {
+          requesting_business: {
+            include: {
+              owner: true,
+            },
+          },
+          opportunity: true,
+        },
+        orderBy: {
+          created_at: "desc",
+        },
+      });
+
+      return results.map((item) => ({
+        ...item,
+        created_at: item.created_at ? item.created_at.toISOString() : new Date().toISOString(),
+        updated_at: item.updated_at ? item.updated_at.toISOString() : new Date().toISOString(),
+      }));
+    } catch (error) {
+      console.error("[InterestService.getOpportunityProposalHistory] Error:", error);
       throw error;
     }
   }

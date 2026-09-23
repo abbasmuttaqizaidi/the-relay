@@ -10,10 +10,6 @@ export function PostTypeSelection({ onSelect }: PostTypeSelectionProps) {
     <div className="w-full max-w-5xl mx-auto py-6 md:py-10 font-sans">
       {/* Header section matching Monochrome Executive typography */}
       <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12 space-y-3">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] bg-[#FFFFFF] border border-[#E2E8F0] text-[#64748B] font-mono text-[11px] font-semibold uppercase tracking-[0.04em]">
-          <Sparkles className="w-3.5 h-3.5 text-[#171F2C]" />
-          <span>Listing Type Selector</span>
-        </div>
         <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[#171F2C]">
           What Do You Want to Post?
         </h1>

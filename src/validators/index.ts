@@ -77,7 +77,11 @@ export const updateOpportunitySchema = z.object({
 
 export const expressInterestSchema = z.object({
   opportunity_id: uuidSchema,
-  message: z.string().max(500, "Message cannot exceed 500 characters").optional(),
+  message: z.string().max(3000, "Message cannot exceed 3000 characters").optional(),
+  value_categories: z.array(z.string()).optional(),
+  delivery_methods: z.array(z.string()).optional(),
+  proposed_terms: z.string().max(3000, "Proposed terms cannot exceed 3000 characters").optional(),
+  highlighted_terms: z.array(z.string()).optional(),
 });
 
 export const approveBusinessSchema = z.object({

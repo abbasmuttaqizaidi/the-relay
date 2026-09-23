@@ -224,11 +224,11 @@ export function OpportunityCard({
               {/* Chevron Expand/Collapse Indicator */}
               <div
                 className={cn(
-                  "w-8 h-8 rounded-[4px] bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#E2E8F0] flex items-center justify-center text-[#171F2C] transition-transform duration-200 shrink-0",
-                  isOpen && "rotate-180 bg-[#E2E8F0]",
+                  "w-8 h-8 rounded-full bg-[#171F2C] hover:bg-black border border-[#171F2C] flex items-center justify-center text-white transition-transform duration-200 shrink-0 shadow-xs",
+                  isOpen && "rotate-180",
                 )}
               >
-                <ChevronDown className="w-4 h-4 text-[#171F2C] stroke-[2.2]" />
+                <ChevronDown className="w-4 h-4 text-white stroke-[2.2]" />
               </div>
             </div>
           </div>
@@ -238,39 +238,7 @@ export function OpportunityCard({
             2. EXPANDED STATE (COLLAPSIBLE DETAILS BODY)
             ══════════════════════════════════════════════════════════════════ */}
         <CollapsibleContent className="border-t border-[#E2E8F0] p-5 sm:p-6 flex flex-col gap-4 bg-white transition-all data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0">
-          {/* A. Counterparty Detail Strip */}
-          <div className="flex items-center justify-between gap-3 p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-[4px] bg-[#171F2C] text-white text-xs font-semibold flex items-center justify-center shrink-0 border border-[#171F2C]">
-                {getCompanyInitials(displayCompany)}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="font-semibold text-xs sm:text-sm text-[#171F2C] truncate">
-                    {displayCompany}
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-medium shrink-0">
-                    <VerifiedBadge size={13} /> Verified
-                  </span>
-                  <span className="text-[#CBD5E1]">•</span>
-                  <span className="text-xs text-[#64748B] shrink-0">
-                    {shouldHide ? "Blinded Mode Active" : "Direct Bilateral Partner"}
-                  </span>
-                </div>
-                <div className="text-xs text-[#64748B] truncate mt-0.5">
-                  {opp.location || opp.geo || "Remote / Global"} • {opp.industry}
-                </div>
-              </div>
-            </div>
-            <div className="text-right text-xs text-[#64748B] shrink-0">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8] block">
-                Turnaround
-              </span>
-              <span className="font-medium text-[#171F2C] font-mono">&lt; 2 hours</span>
-            </div>
-          </div>
-
-          {/* B. Opportunity Description & Requirements */}
+          {/* Opportunity Description & Requirements */}
           <div className="flex flex-col gap-1.5">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">
               Opportunity Overview &amp; Requirements
@@ -278,11 +246,11 @@ export function OpportunityCard({
             <p className="text-sm text-[#334155] leading-relaxed">{opp.description}</p>
           </div>
 
-          {/* C. Bilateral Value Proposition (What We Offer) */}
+          {/* C. Bilateral Value Proposition (What We Are Expecting) */}
           <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] p-4 flex flex-col gap-1.5">
             <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#171F2C]">
               <Repeat className="w-4 h-4 text-[#F97316]" />
-              <span>What We Offer in Bilateral Exchange</span>
+              <span>What We Are Expecting</span>
             </div>
             <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
               {opp.offer_text ||

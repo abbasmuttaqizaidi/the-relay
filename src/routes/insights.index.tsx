@@ -45,6 +45,7 @@ import { AdminCreateKnowledgeDialog } from "../components/admin/AdminCreateKnowl
 import { CompanyLogo } from "../components/company-logo";
 import { getCompanyInitials } from "@/lib/utils";
 import { createSeoMeta } from "@/lib/seo";
+import { ExecutiveTabs } from "@/design-system";
 import {
   Question,
   KnowledgeInsight,
@@ -475,50 +476,16 @@ export function InsightsIndexPage() {
           
           {/* Tab Switcher & Sleek Filter Bar */}
           <div className="flex flex-col gap-4">
-            {/* Tab Switcher */}
-            <div className="flex items-center gap-6 border-b border-[#e2e8f0] overflow-x-auto scrollbar-none">
-              <button
-                id="tab-questions"
-                onClick={() => handleTabChange("questions")}
-                className={`category-pill flex items-center gap-2 pb-3 pt-1 text-sm font-bold border-b-2 transition-colors shrink-0 cursor-pointer ${
-                  activeTab === "questions"
-                    ? "text-[#0b1c30] border-[#0b1c30]"
-                    : "text-[#575f6e] hover:text-[#0b1c30] border-transparent hover:border-[#cbd5e1]"
-                }`}
-              >
-                <span>Questions</span>
-                <span
-                  className={`font-mono text-xs font-medium px-2 py-0.5 rounded-full ${
-                    activeTab === "questions"
-                      ? "bg-slate-900 text-white"
-                      : "bg-[#f1f5f9] text-[#575f6e]"
-                  }`}
-                >
-                  {totalQuestionsCount}
-                </span>
-              </button>
-
-              <button
-                id="tab-knowledge"
-                onClick={() => handleTabChange("knowledge")}
-                className={`category-pill flex items-center gap-2 pb-3 pt-1 text-sm font-bold border-b-2 transition-colors shrink-0 cursor-pointer ${
-                  activeTab === "knowledge"
-                    ? "text-[#0b1c30] border-[#0b1c30]"
-                    : "text-[#575f6e] hover:text-[#0b1c30] border-transparent hover:border-[#cbd5e1]"
-                }`}
-              >
-                <span>Knowledge Articles</span>
-                <span
-                  className={`font-mono text-xs font-medium px-2 py-0.5 rounded-full ${
-                    activeTab === "knowledge"
-                      ? "bg-slate-900 text-white"
-                      : "bg-[#f1f5f9] text-[#575f6e]"
-                  }`}
-                >
-                  {totalKnowledgeCount}
-                </span>
-              </button>
-            </div>
+            {/* Tab Switcher using Design System */}
+            <ExecutiveTabs
+              variant="underline"
+              activeTab={activeTab}
+              onTabChange={(tabId) => handleTabChange(tabId as "questions" | "knowledge")}
+              tabs={[
+                { id: "questions", label: "Questions", count: totalQuestionsCount },
+                { id: "knowledge", label: "Knowledge Articles", count: totalKnowledgeCount },
+              ]}
+            />
 
             {/* Single Sleek Search and Filter Bar */}
             <div className="bg-white border border-[#e2e8f0] rounded-xl p-3 flex flex-col md:flex-row items-center gap-3 shadow-2xs">
@@ -1018,7 +985,7 @@ export function InsightsIndexPage() {
               {/* 3. Opportunity Board Callout Card */}
               <div className="bg-[#171F2C] text-white rounded-xl p-5 shadow-sm">
                 <span className="text-[10px] font-semibold tracking-wider text-[#94a3b8] uppercase">
-                  Reciprocal Dealflow
+                  Strategic Dealflow
                 </span>
                 <h4 className="font-display font-bold text-base text-white mt-1">
                   Need Strategic Partners?

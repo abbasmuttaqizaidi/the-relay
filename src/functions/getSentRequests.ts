@@ -5,13 +5,19 @@ import { InterestService } from "../services/interest.service";
 
 export const getSentRequests = createServerFn({ method: "GET" })
   .handler(async () => {
-    const user = await getAuthenticatedUser();
-    const businessIds = await BusinessService.getUserBusinessIds(user.id);
-    if (businessIds.length === 0) {
-      const business = await BusinessService.getBusinessByOwner(user.id);
-      if (!business) return [];
-      return await InterestService.getSent(business.id);
+    try {
+      const user = await getAuthenticatedUser();
+      const businessIds = await BusinessService.getUserBusinessIds(user.id);
+      if (businessIds.length === 0) {
+        const business = await BusinessService.getBusinessByOwner(user.id);
+        if (!business) return [];
+        return await InterestService.getSent(business.id);
+      }
+      return await InterestService.getSentForBusinessIds(businessIds);
+    } catch (err: any) {
+      console.warn("[getSentRequests] Unauthenticated or error:", err.message);
+      return [];
     }
-    return await InterestService.getSentForBusinessIds(businessIds);
   });
+
 export type GetSentRequestsFn = typeof getSentRequests;

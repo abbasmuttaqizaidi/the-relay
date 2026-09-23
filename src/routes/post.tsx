@@ -3,6 +3,7 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
 import { PostTypeSelection } from "@/components/post/PostTypeSelection";
 import { OpportunityFormFlow } from "@/components/post/OpportunityFormFlow";
@@ -10,6 +11,7 @@ import { OfferFormFlow } from "@/components/post/OfferFormFlow";
 
 const postSearchSchema = z.object({
   type: fallback(z.enum(["opportunity", "offer"]).optional(), undefined).default(undefined),
+  edit: fallback(z.string().optional(), undefined).default(undefined),
 });
 
 export const Route = createFileRoute("/post")({
@@ -30,46 +32,35 @@ export const Route = createFileRoute("/post")({
 });
 
 function PostPage() {
-  const { isSignedIn } = useAuth();
+  const { userId, isLoaded, isSignedIn } = useAuth();
   const search = Route.useSearch();
   const navigate = useNavigate();
 
   // Active view: "selection" | "opportunity" | "offer"
   const [activeType, setActiveType] = useState<"selection" | "opportunity" | "offer">(
-    search.type === "opportunity" || search.type === "offer"
-      ? search.type
-      : "selection"
+    search.edit
+      ? "opportunity"
+      : search.type === "opportunity" || search.type === "offer"
+        ? search.type
+        : "selection"
   );
 
   // Prefill state (preserves title & description if user converts between forms)
   const [prefillTitle, setPrefillTitle] = useState("");
   const [prefillDescription, setPrefillDescription] = useState("");
 
-  // Business profile state
-  const [business, setBusiness] = useState<any>(null);
-  const [loadingBusiness, setLoadingBusiness] = useState(true);
+  // Business profile state via React Query cache
+  const { data: onboardingData, isLoading: loadingBusiness } = useQuery({
+    queryKey: ["onboarding-status", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return null;
+      return await checkOnboardingStatus();
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60 * 1, // 1 minute fresh window
+  });
 
-  useEffect(() => {
-    let mounted = true;
-    async function loadProfile() {
-      try {
-        const res = await checkOnboardingStatus();
-        if (mounted && res?.business) {
-          setBusiness(res.business);
-        }
-      } catch (err) {
-        console.error("Error loading profile for post page:", err);
-      } finally {
-        if (mounted) {
-          setLoadingBusiness(false);
-        }
-      }
-    }
-    loadProfile();
-    return () => {
-      mounted = false;
-    };
-  }, [isSignedIn]);
+  const business = onboardingData?.business || null;
 
   // Handle type selection from the initial cards
   const handleSelectType = (type: "opportunity" | "offer") => {
@@ -114,8 +105,10 @@ function PostPage() {
           <OpportunityFormFlow
             business={business}
             isSignedIn={!!isSignedIn}
+            isLoadingBusiness={!isLoaded || loadingBusiness}
             initialTitle={prefillTitle}
             initialDescription={prefillDescription}
+            editId={search.edit}
             onBack={handleBackToSelection}
             onSwitchToOffer={handleSwitchToOffer}
           />

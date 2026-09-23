@@ -21,8 +21,10 @@ import { withdrawInterest } from "../functions/withdrawInterest";
 import { expressInterest } from "../functions/expressInterest";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
 import { useInterestStore } from "@/lib/interest-store";
-import { getCompanyInitials } from "@/lib/utils";
+import { cn, getCompanyInitials } from "@/lib/utils";
+import { CompanyLogo } from "@/components/company-logo";
 import { TooltipSimple } from "@/components/ui/tooltip";
+import { PostTypeSelectionModal } from "@/components/post/PostTypeSelectionModal";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import {
   ArrowLeft,
@@ -73,6 +75,9 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Coins,
+  Repeat,
+  FileText,
 } from "lucide-react";
 import {
   Collapsible,
@@ -102,14 +107,24 @@ import {
   DealCodeStamp,
   CategoryPill,
   VerifiedBadge,
+  UrgentBadge,
+  ExecutiveTabs,
 } from "@/design-system";
 import { RelayVerificationSeal } from "@/components/relay-verification-seal";
 
 const myRelaySearchSchema = z.object({
-  tab: fallback(
-    z.enum(["listings", "requests", "saved", "incoming", "sent", "executed"]),
-    "listings"
-  ).default("listings"),
+  tab: z
+    .enum([
+      "listings",
+      "requests",
+      "saved",
+      "incoming",
+      "sent",
+      "executed",
+      "inbound",
+      "outbound",
+    ])
+    .optional(),
   create: fallback(z.boolean(), false).default(false),
 });
 
@@ -227,7 +242,7 @@ function MyRelayPage() {
       return await checkOnboardingStatus();
     },
     enabled: !!isSignedIn && isLoaded,
-    staleTime: 1000 * 60 * 3,
+    staleTime: 1000 * 60 * 1,
   });
 
   const business = onboardingData?.business || null;
@@ -328,19 +343,59 @@ function MyRelayPage() {
 
   const savedCount = savedItems.length;
 
+  const activeTabStorageKey = userId
+    ? `relay_my_relay_active_tab_${userId}`
+    : "relay_my_relay_active_tab";
+
+  const originStorageKey = userId
+    ? `relay_pipeline_origin_${userId}`
+    : "relay_pipeline_origin";
+
   const [activeTab, setActiveTab] = useState<"listings" | "requests" | "saved">(() => {
-    if (tab === "incoming" || tab === "sent" || tab === "executed" || tab === "requests") {
+    if (tab === "listings") return "listings";
+    if (tab === "saved") return "saved";
+    if (
+      tab === "inbound" ||
+      tab === "outbound" ||
+      tab === "incoming" ||
+      tab === "sent" ||
+      tab === "executed" ||
+      tab === "requests"
+    ) {
       return "requests";
     }
-    if (tab === "saved") return "saved";
-    return "listings";
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(activeTabStorageKey);
+        if (stored === "listings") return "listings";
+        if (stored === "saved") return "saved";
+        if (stored === "inbound" || stored === "outbound" || stored === "requests") return "requests";
+      } catch {}
+    }
+    return "requests";
   });
+
+  const handleTabChange = (newTab: "listings" | "requests" | "saved") => {
+    setActiveTab(newTab);
+    const targetSearchTab =
+      newTab === "requests"
+        ? originFilter === "requested"
+          ? "outbound"
+          : "inbound"
+        : newTab;
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(activeTabStorageKey, targetSearchTab);
+      } catch {}
+    }
+    navigate({ to: "/my-relay", search: { tab: targetSearchTab as any } });
+  };
 
   // Request Filter states for My Opportunities Table
   const [opportunitySection, setOpportunitySection] = useState<"all" | "posted" | "requested">(
     () => {
-      if (tab === "sent") return "requested";
-      if (tab === "incoming") return "posted";
+      if (tab === "sent" || tab === "outbound") return "requested";
+      if (tab === "incoming" || tab === "inbound") return "posted";
       return "all";
     }
   );
@@ -351,7 +406,63 @@ function MyRelayPage() {
     return "all";
   });
   const [pipelineViewMode, setPipelineViewMode] = useState<"kanban" | "table">("kanban");
-  const [originFilter, setOriginFilter] = useState<"all" | "posted" | "requested">("all");
+  const [originFilter, setOriginFilter] = useState<"posted" | "requested">(() => {
+    if (tab === "outbound" || tab === "sent") return "requested";
+    if (tab === "inbound" || tab === "incoming") return "posted";
+    if (typeof window !== "undefined") {
+      try {
+        const storedOrigin = localStorage.getItem(originStorageKey);
+        if (storedOrigin === "requested" || storedOrigin === "posted") {
+          return storedOrigin;
+        }
+        const storedTab = localStorage.getItem(activeTabStorageKey);
+        if (storedTab === "outbound") return "requested";
+      } catch {
+        // ignore
+      }
+    }
+    return "posted";
+  });
+
+  const handleSetOriginFilter = (filter: "posted" | "requested") => {
+    setOriginFilter(filter);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(originStorageKey, filter);
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && userId) {
+      try {
+        const stored = localStorage.getItem(`relay_pipeline_origin_${userId}`);
+        if (stored === "requested" || stored === "posted") {
+          setOriginFilter(stored);
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [userId]);
+
+  const [selectedStageTab, setSelectedStageTab] = useState<
+    "stage_1" | "stage_2" | "stage_3" | "stage_4"
+  >("stage_1");
+  const [directionFilter, setDirectionFilter] = useState<"all" | "posted" | "requested">(() => {
+    if (tab === "outbound" || tab === "sent") return "requested";
+    if (tab === "inbound" || tab === "incoming") return "posted";
+    return "all";
+  });
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [sortFilter, setSortFilter] = useState<
+    "action_first" | "stage_asc" | "stage_desc" | "recent"
+  >("action_first");
+  const [protocolModalOpen, setProtocolModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
   const [dealSearchInput, setDealSearchInput] = useState("");
   const [appliedDealSearch, setAppliedDealSearch] = useState("");
 
@@ -368,6 +479,7 @@ function MyRelayPage() {
   });
 
   // Form & Modal States
+  const [postTypeModalOpen, setPostTypeModalOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -401,23 +513,88 @@ function MyRelayPage() {
   const { store } = useInterestStore();
 
   useEffect(() => {
-    if (tab === "incoming" || tab === "sent" || tab === "executed" || tab === "requests") {
-      setActiveTab("requests");
-      if (tab === "sent") {
-        setOpportunitySection("requested");
-        setRequestStateFilter("waiting");
-      } else if (tab === "executed") {
-        setRequestStateFilter("completed");
-      } else if (tab === "incoming") {
-        setOpportunitySection("posted");
-        setRequestStateFilter("action_needed");
+    if (tab === "listings") {
+      setActiveTab("listings");
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(activeTabStorageKey, "listings");
+        } catch {}
       }
     } else if (tab === "saved") {
       setActiveTab("saved");
-    } else {
-      setActiveTab("listings");
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(activeTabStorageKey, "saved");
+        } catch {}
+      }
+    } else if (tab === "inbound" || tab === "incoming") {
+      setActiveTab("requests");
+      setOriginFilter("posted");
+      setDirectionFilter("posted");
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(activeTabStorageKey, "inbound");
+          localStorage.setItem(originStorageKey, "posted");
+        } catch {}
+      }
+      if (tab === "incoming") {
+        setOpportunitySection("posted");
+        setRequestStateFilter("action_needed");
+      }
+    } else if (tab === "outbound" || tab === "sent") {
+      setActiveTab("requests");
+      setOriginFilter("requested");
+      setDirectionFilter("requested");
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(activeTabStorageKey, "outbound");
+          localStorage.setItem(originStorageKey, "requested");
+        } catch {}
+      }
+      if (tab === "sent") {
+        setOpportunitySection("requested");
+        setRequestStateFilter("waiting");
+      }
+    } else if (tab === "executed" || tab === "requests") {
+      setActiveTab("requests");
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(
+            activeTabStorageKey,
+            originFilter === "requested" ? "outbound" : "inbound"
+          );
+        } catch {}
+      }
+      if (tab === "executed") {
+        setRequestStateFilter("completed");
+      }
+    } else if (!tab) {
+      // Direct navigation to /my-relay without tab param -> Restore from storage or default to inbound
+      if (typeof window !== "undefined") {
+        try {
+          const storedTab = localStorage.getItem(activeTabStorageKey);
+          if (storedTab === "listings") {
+            setActiveTab("listings");
+            return;
+          }
+          if (storedTab === "saved") {
+            setActiveTab("saved");
+            return;
+          }
+          if (storedTab === "outbound") {
+            setActiveTab("requests");
+            setOriginFilter("requested");
+            setDirectionFilter("requested");
+            return;
+          }
+        } catch {}
+      }
+      // Default to inbound
+      setActiveTab("requests");
+      setOriginFilter("posted");
+      setDirectionFilter("all");
     }
-  }, [tab]);
+  }, [tab, activeTabStorageKey, originStorageKey, navigate]);
 
   // Outside click for menus
   useEffect(() => {
@@ -444,11 +621,11 @@ function MyRelayPage() {
     }
   }, [isLoaded, isSignedIn, onboardingData, navigate]);
 
-  // Trigger create modal if ?create=true
+  // Trigger create flow if ?create=true
   useEffect(() => {
     if (create && business) {
       if (business.status === "approved") {
-        setCreateOpen(true);
+        setPostTypeModalOpen(true);
       } else {
         toast.error(
           `Forbidden: Your business profile status is "${business.status || "pending"}". Only approved businesses can create opportunities.`
@@ -700,22 +877,9 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
     [requestedRequests]
   );
 
-  const totalActionNeededCount = useMemo(
-    () => allCombinedRequestsWithWorkflow.filter((r) => r.workflow.stateCategory === "action_needed").length,
-    [allCombinedRequestsWithWorkflow]
-  );
-  const totalWaitingCount = useMemo(
-    () => allCombinedRequestsWithWorkflow.filter((r) => r.workflow.stateCategory === "waiting").length,
-    [allCombinedRequestsWithWorkflow]
-  );
-  const totalCompletedCount = useMemo(
-    () => allCombinedRequestsWithWorkflow.filter((r) => r.workflow.stateCategory === "completed").length,
-    [allCombinedRequestsWithWorkflow]
-  );
-
-  const actionNeededCount = totalActionNeededCount;
-  const waitingCount = totalWaitingCount;
-  const completedCount = totalCompletedCount;
+  const actionNeededCount = postedActionNeededCount + requestedActionNeededCount;
+  const waitingCount = postedWaitingCount + requestedWaitingCount;
+  const completedCount = postedCompletedCount + requestedCompletedCount;
 
   const currentSectionRequests = useMemo(() => {
     if (opportunitySection === "posted") return postedRequests;
@@ -922,6 +1086,142 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
   const stage3Deals = useMemo(() => filteredPipelineDeals.filter((d) => d.stage === 3), [filteredPipelineDeals]);
   const stage4Deals = useMemo(() => filteredPipelineDeals.filter((d) => d.stage === 4), [filteredPipelineDeals]);
 
+  // Scope workspace deals by direction filter for stage tab counters and metrics
+  const directionScopedWorkspaceDeals = useMemo(() => {
+    return allCombinedRequestsWithWorkflow.filter((deal) => {
+      if (directionFilter === "posted" && deal.direction !== "inbound") return false;
+      if (directionFilter === "requested" && deal.direction !== "outbound") return false;
+      if (categoryFilter !== "all") {
+        const cat = (deal.opportunity?.category || deal.opportunity?.type || "").toLowerCase();
+        if (!cat.includes(categoryFilter.toLowerCase())) return false;
+      }
+      return true;
+    });
+  }, [allCombinedRequestsWithWorkflow, directionFilter, categoryFilter]);
+
+  const workspaceStage1Deals = useMemo(
+    () => directionScopedWorkspaceDeals.filter((d) => d.workflow.stageNum <= 2),
+    [directionScopedWorkspaceDeals]
+  );
+  const workspaceStage2Deals = useMemo(
+    () => directionScopedWorkspaceDeals.filter((d) => d.workflow.stageNum === 3),
+    [directionScopedWorkspaceDeals]
+  );
+  const workspaceStage3Deals = useMemo(
+    () => directionScopedWorkspaceDeals.filter((d) => d.workflow.stageNum === 4),
+    [directionScopedWorkspaceDeals]
+  );
+  const workspaceStage4Deals = useMemo(
+    () =>
+      directionScopedWorkspaceDeals.filter(
+        (d) => d.workflow.stageNum === 5 || d.workflow.isHandshakeComplete
+      ),
+    [directionScopedWorkspaceDeals]
+  );
+
+  const stage1Count = workspaceStage1Deals.length;
+  const stage2Count = workspaceStage2Deals.length;
+  const stage3Count = workspaceStage3Deals.length;
+  const stage4Count = workspaceStage4Deals.length;
+
+  const totalActionNeededCount = useMemo(
+    () => directionScopedWorkspaceDeals.filter((r) => r.workflow.stateCategory === "action_needed").length,
+    [directionScopedWorkspaceDeals]
+  );
+  const totalWaitingCount = useMemo(
+    () => directionScopedWorkspaceDeals.filter((r) => r.workflow.stateCategory === "waiting").length,
+    [directionScopedWorkspaceDeals]
+  );
+  const totalCompletedCount = useMemo(
+    () => directionScopedWorkspaceDeals.filter((r) => r.workflow.stateCategory === "completed").length,
+    [directionScopedWorkspaceDeals]
+  );
+
+  const filteredWorkspaceDeals = useMemo(() => {
+    return allCombinedRequestsWithWorkflow
+      .filter((deal) => {
+        // 1. Stage Tab Filter
+        if (selectedStageTab === "stage_1" && deal.workflow.stageNum > 2) return false;
+        if (selectedStageTab === "stage_2" && deal.workflow.stageNum !== 3) return false;
+        if (selectedStageTab === "stage_3" && deal.workflow.stageNum !== 4) return false;
+        if (
+          selectedStageTab === "stage_4" &&
+          deal.workflow.stageNum !== 5 &&
+          !deal.workflow.isHandshakeComplete
+        )
+          return false;
+
+        // 2. Direction Filter
+        if (directionFilter === "posted" && deal.direction !== "inbound") return false;
+        if (directionFilter === "requested" && deal.direction !== "outbound") return false;
+
+        // 3. Category Filter
+        if (categoryFilter !== "all") {
+          const cat = (deal.opportunity?.category || deal.opportunity?.type || "").toLowerCase();
+          if (!cat.includes(categoryFilter.toLowerCase())) return false;
+        }
+
+        // 4. Search Query Filter
+        if (dealSearchInput.trim()) {
+          const q = dealSearchInput.toLowerCase().trim();
+          const oppTitle = (deal.opportunity?.title || "").toLowerCase();
+          const dealCode = (
+            deal.opportunity?.opportunity_number
+              ? `ry-${deal.opportunity.opportunity_number}`
+              : deal.id || ""
+          ).toLowerCase();
+          const partner = (
+            deal.workflow?.partnerName ||
+            deal.partnerBusiness?.company_name ||
+            ""
+          ).toLowerCase();
+          const msg = (deal.message || "").toLowerCase();
+          const offer = (deal.opportunity?.offer_text || "").toLowerCase();
+
+          if (
+            !oppTitle.includes(q) &&
+            !dealCode.includes(q) &&
+            !partner.includes(q) &&
+            !msg.includes(q) &&
+            !offer.includes(q)
+          ) {
+            return false;
+          }
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortFilter === "action_first") {
+          const aAction = a.workflow.stateCategory === "action_needed" ? 1 : 0;
+          const bAction = b.workflow.stateCategory === "action_needed" ? 1 : 0;
+          if (aAction !== bAction) return bAction - aAction;
+        }
+        if (sortFilter === "stage_asc") {
+          return a.workflow.stageNum - b.workflow.stageNum;
+        }
+        if (sortFilter === "stage_desc") {
+          return b.workflow.stageNum - a.workflow.stageNum;
+        }
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+  }, [
+    allCombinedRequestsWithWorkflow,
+    selectedStageTab,
+    directionFilter,
+    categoryFilter,
+    dealSearchInput,
+    sortFilter,
+  ]);
+
+  const DEALS_PER_PAGE = 4;
+  const totalDealsCount = filteredWorkspaceDeals.length;
+  const totalPages = Math.max(1, Math.ceil(totalDealsCount / DEALS_PER_PAGE));
+  const paginatedDeals = useMemo(() => {
+    const start = (currentPage - 1) * DEALS_PER_PAGE;
+    return filteredWorkspaceDeals.slice(start, start + DEALS_PER_PAGE);
+  }, [filteredWorkspaceDeals, currentPage]);
+
   const handleExportSummary = () => {
     const headers = ["Deal Code", "Title", "Origin", "Partner", "Stage", "Metric 1", "Metric 2", "Status"];
     const rows = filteredPipelineDeals.map((d) => [
@@ -952,7 +1252,9 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
       toast.success("Handshake Complete!", {
         description: `You are now connected with ${companyName}. This deal is now live in Executed Handshakes.`,
       });
-      await Promise.all([loadIncomingRequests(), loadSentRequests()]);
+      queryClient.invalidateQueries({ queryKey: ["incoming-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["sent-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["active-handshake-count"] });
       window.dispatchEvent(new Event("relay:interest"));
     } catch (err: any) {
       toast.error(err.message || "Failed to accept interest.");
@@ -1074,16 +1376,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
       );
       return;
     }
-    setTitle("");
-    setCategory("partnership");
-    setIndustry(business?.industry || "SaaS");
-    setDescription("");
-    setLocation("");
-    setOfferText("");
-    setExpiryDays("30");
-    setHideCompanyName(false);
-    setPromote(false);
-    setCreateOpen(true);
+    setPostTypeModalOpen(true);
   };
 
   const handleOpenEdit = (opp: any) => {
@@ -1091,17 +1384,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
       toast.error("Forbidden: Only approved businesses can edit opportunities.");
       return;
     }
-    setSelectedOpp(opp);
-    setTitle(opp.title);
-    setCategory(opp.category);
-    setIndustry(opp.industry || opp.business?.industry || "SaaS");
-    setDescription(opp.description);
-    setLocation(opp.location || "");
-    setOfferText(opp.offer_text || "");
-    setExpiryDays("30");
-    setHideCompanyName(opp.hide_company_name ?? false);
-    setPromote(opp.promotion_status === "pending_promotion" || opp.promotion_status === "promoted");
-    setEditOpen(true);
+    navigate({ to: "/post", search: { type: "opportunity", edit: opp.id } as any });
   };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -1155,54 +1438,6 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
     }
   };
 
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedOpp) return;
-    if (title.trim().length === 0) {
-      toast.error("Title is required");
-      return;
-    }
-    if (description.trim().length < 50 || description.trim().length > 3000) {
-      toast.error(`Description must be between 50 and 3000 characters.`);
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      let expires_at: string | null = selectedOpp.expires_at;
-      if (expiryDays !== "keep" && expiryDays !== "never") {
-        const days = parseInt(expiryDays, 10);
-        expires_at = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
-      } else if (expiryDays === "never") {
-        expires_at = null;
-      }
-
-      await updateOpportunity({
-        data: {
-          opportunity_id: selectedOpp.id,
-          title,
-          category,
-          industry,
-          description,
-          location: location.trim() || null,
-          offer_text: offerText.trim() || null,
-          expires_at,
-          hide_company_name: hideCompanyName,
-          promote,
-        },
-      });
-
-      toast.success("Opportunity Updated Successfully");
-      setEditOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["my-opportunities"] });
-      queryClient.invalidateQueries({ queryKey: ["opportunities-feed"] });
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update opportunity");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleCloseOpp = async (opportunityId: string) => {
     if (!confirm("Are you sure you want to close this opportunity? It will be hidden from the feed.")) return;
     try {
@@ -1244,19 +1479,55 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
           >
             <div className="space-y-1">
               <div className="flex items-center gap-2.5">
-                <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-950 uppercase tracking-tight">
-                  My Relay
+                <h1 className="font-display text-2xl sm:text-3xl font-black text-[#171F2C] uppercase tracking-tight">
+                  {activeTab === "listings"
+                    ? "My Listings"
+                    : activeTab === "saved"
+                      ? "Saved Opportunities"
+                      : "My Opportunities"}
                 </h1>
-                <span className="px-2 py-0.5 bg-slate-900 text-white font-mono text-[9px] uppercase tracking-widest font-bold rounded-[2px]">
-                  B2B Hub
+                <span className="px-2 py-0.5 bg-[#171F2C] text-white font-mono text-[9px] uppercase tracking-widest font-bold rounded-[2px]">
+                  {activeTab === "listings"
+                    ? "POSTED"
+                    : activeTab === "saved"
+                      ? "BOOKMARKS"
+                      : "BILATERAL HUB"}
                 </span>
               </div>
-              <p className="text-slate-500 text-xs md:text-sm max-w-2xl leading-relaxed">
-                Centralized workspace for your posted listings, active incoming/sent handshakes, executed connections, and bookmarked opportunities.
+              <p className="text-[#64748B] text-xs md:text-sm max-w-2xl leading-relaxed">
+                {activeTab === "listings"
+                  ? "Manage, edit, and track all opportunities and requirements posted by your organization."
+                  : activeTab === "saved"
+                    ? "Quick access to opportunity memorandums you have bookmarked from the commercial board."
+                    : "Centralized workspace for your active bilateral opportunities, reciprocal requests, and verified lifecycle stages."}
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              {activeTab === "requests" && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="default"
+                    onClick={handleExportSummary}
+                    className="gap-1.5 text-[#171F2C]"
+                  >
+                    <Download className="w-4 h-4 text-[#64748B]" />
+                    <span>Export Summary</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="default"
+                    onClick={() => setProtocolModalOpen(true)}
+                    className="gap-1.5 text-[#171F2C]"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-[#64748B]" />
+                    <span>Protocol Rules</span>
+                  </Button>
+                </>
+              )}
               <Button
                 variant="authoritative"
                 size="default"
@@ -1287,81 +1558,21 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
             </div>
           )}
 
-          {/* Unified Tab Switcher Bar */}
-          <div
-            id="my-relay-tabs"
-            className="flex border-b border-slate-200 mb-6 font-sans text-xs uppercase tracking-wider font-bold overflow-x-auto"
-          >
-            {/* Tab 1: Listings */}
-            <button
-              onClick={() => navigate({ to: "/my-relay", search: { tab: "listings" } })}
-              className={`py-3.5 px-4 sm:px-6 border-b-2 transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-2 ${
-                activeTab === "listings"
-                  ? "border-[#171F2C] text-[#171F2C] font-extrabold bg-slate-100/40"
-                  : "border-transparent text-[#64748B] hover:text-[#171F2C] hover:bg-slate-50/50"
-              }`}
-            >
-              <span>Listings</span>
-              <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-[#F1F5F9] text-[#64748B]">
-                {myOpps.length}
-              </span>
-            </button>
-
-            {/* Tab 2: My Opportunities */}
-            <button
-              onClick={() => navigate({ to: "/my-relay", search: { tab: "requests" } })}
-              className={`py-3.5 px-4 sm:px-6 border-b-2 transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-2 ${
-                activeTab === "requests"
-                  ? "border-[#171F2C] text-[#171F2C] font-extrabold bg-slate-100/40"
-                  : "border-transparent text-[#64748B] hover:text-[#171F2C] hover:bg-slate-50/50"
-              }`}
-            >
-              <span>My Opportunities</span>
-              <span
-                className={`font-mono text-[11px] px-1.5 py-0.5 rounded font-bold ${
-                  liveTriageItems.length > 0 || actionNeededCount > 0
-                    ? "bg-red-600 text-white shadow-xs"
-                    : "bg-[#F1F5F9] text-[#64748B]"
-                }`}
-              >
-                {allCombinedRequests.length}
-              </span>
-            </button>
-
-            {/* Tab 3: Saved */}
-            <button
-              onClick={() => navigate({ to: "/my-relay", search: { tab: "saved" } })}
-              className={`py-3.5 px-4 sm:px-6 border-b-2 transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-2 ${
-                activeTab === "saved"
-                  ? "border-[#171F2C] text-[#171F2C] font-extrabold bg-slate-100/40"
-                  : "border-transparent text-[#64748B] hover:text-[#171F2C] hover:bg-slate-50/50"
-              }`}
-            >
-              <span>Saved</span>
-              <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-[#F1F5F9] text-[#64748B]">
-                {savedItems.length}
-              </span>
-            </button>
-          </div>
-
           {/* MAIN CONTENT AREA */}
-          <div
-            id="my-relay-content-area"
-            className="border border-slate-200/80 bg-white rounded-[4px] overflow-hidden shadow-xs"
-          >
+          <div id="my-relay-content-area" className="w-full">
             {/* ════════════════════════════════════════════════════════════════
                 TAB 1: MY LISTINGS (Posted by current user)
                 ════════════════════════════════════════════════════════════════ */}
             {activeTab === "listings" && (
               loadingListings ? (
-                <div className="py-20 flex flex-col items-center justify-center space-y-3">
+                <div className="border border-slate-200/80 bg-white rounded-[4px] overflow-hidden shadow-xs py-20 flex flex-col items-center justify-center space-y-3">
                   <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
                   <span className="font-mono text-[10px] uppercase tracking-widest text-slate-400 font-bold">
                     Fetching your posted listings...
                   </span>
                 </div>
               ) : myOpps.length === 0 ? (
-                <div className="py-20 text-center flex flex-col items-center justify-center space-y-4 px-4">
+                <div className="border border-slate-200/80 bg-white rounded-[4px] overflow-hidden shadow-xs py-20 text-center flex flex-col items-center justify-center space-y-4 px-4">
                   <div className="w-12 h-12 rounded-full border-2 border-slate-200 border-dashed flex items-center justify-center text-slate-400 mb-1">
                     <Building2 className="w-5 h-5" />
                   </div>
@@ -1384,7 +1595,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                   </Button>
                 </div>
               ) : (
-                <>
+                <div className="border border-slate-200/80 bg-white rounded-[4px] overflow-hidden shadow-xs">
                   {/* Desktop Table */}
                   <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left border-collapse font-sans text-xs">
@@ -1601,846 +1812,950 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                           </div>
                         </div>
                       </div>
-                    ))}
+                    ))}                    </div>
                   </div>
-                </>
-              )
-            )}
+                )
+              )}
 
             {/* ════════════════════════════════════════════════════════════════
-                TAB 2: REQUESTS (Unified bilateral requests feed matching REQUEST_TAB.md)
-                ════════════════════════════════════════════════════════════════ */}
-            {/* ════════════════════════════════════════════════════════════════
-                TAB 2: OPPORTUNITIES & REQUEST PIPELINE (Matching OPPORTUNITIES_FRAMEWORK.md)
+                TAB 2: MY OPPORTUNITIES / BILATERAL DEALROOM WORKSPACE
                 ════════════════════════════════════════════════════════════════ */}
             {activeTab === "requests" && (
-              (loadingIncoming || loadingSent) ? (
+              loadingIncoming || loadingSent ? (
                 <div className="py-20 flex flex-col items-center justify-center space-y-3">
-                  <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-                  <span className="font-mono text-xs uppercase tracking-wider text-slate-400 font-semibold">
-                    Loading opportunities & request pipeline...
+                  <Loader2 className="w-6 h-6 animate-spin text-[#75777c]" />
+                  <span className="font-mono text-xs uppercase tracking-wider text-[#75777c] font-semibold">
+                    Loading bilateral workspace &amp; deal ledger...
                   </span>
                 </div>
               ) : (
-                <div className="flex flex-col w-full">
-                  {/* Top Summary & Header */}
-                  <div className="bg-white border-b border-slate-200 py-4 px-4 sm:px-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex flex-col gap-1">
-                        <h2 className="font-display font-black text-xl sm:text-2xl text-slate-950 tracking-tight">
-                          Opportunities &amp; Request Pipeline
-                        </h2>
-                        <p className="text-slate-500 text-xs sm:text-sm font-sans">
-                          Triage inbound requests on your listings and manage active deals across the 4 bilateral lifecycle stages.
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2.5 flex-wrap">
-                        {/* View Switcher */}
-                        <div className="flex items-center bg-slate-100 p-0.5 rounded border border-slate-200">
-                          <button
-                            type="button"
-                            onClick={() => setPipelineViewMode("kanban")}
-                            className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                              pipelineViewMode === "kanban"
-                                ? "bg-white text-slate-950 shadow-xs font-bold"
-                                : "text-slate-500 hover:text-slate-900"
-                            }`}
-                            title="Kanban Pipeline View"
-                          >
-                            <LayoutGrid className="w-3.5 h-3.5" />
-                            <span>Pipeline</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setPipelineViewMode("table")}
-                            className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                              pipelineViewMode === "table"
-                                ? "bg-white text-slate-950 shadow-xs font-bold"
-                                : "text-slate-500 hover:text-slate-900"
-                            }`}
-                            title="Table List View"
-                          >
-                            <List className="w-3.5 h-3.5" />
-                            <span>Table</span>
-                          </button>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={handleExportSummary}
-                          className="h-9 px-3.5 rounded bg-slate-100 text-slate-900 text-xs font-semibold hover:bg-slate-200 border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.98]"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Export Summary</span>
-                        </button>
+                <div className="flex flex-col w-full space-y-6">
+                  {/* Navigation Tabs & Filtration Bar */}
+                  <div className="space-y-4">
+                    {/* 4 Stage Tabs Strip using Design System */}
+                    <div className="overflow-x-auto">
+                      <div className="min-w-[500px]">
+                        <ExecutiveTabs
+                          variant="boxed"
+                          fullWidth
+                          activeTab={selectedStageTab}
+                          onTabChange={(tabId) => {
+                            setSelectedStageTab(tabId as any);
+                            setCurrentPage(1);
+                          }}
+                          tabs={[
+                            { id: "stage_1", label: "1. Acknowledgement", count: stage1Count },
+                            { id: "stage_2", label: "2. Negotiation", count: stage2Count },
+                            { id: "stage_3", label: "3. Agreement", count: stage3Count },
+                            { id: "stage_4", label: "4. Handshake", count: stage4Count },
+                          ]}
+                        />
                       </div>
                     </div>
-                  </div>
 
-                  {/* Filter Strip */}
-                  <div className="bg-white border-b border-slate-100 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-                    {/* Origin Filter Pills */}
-                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded border border-slate-200/60">
-                      <button
-                        type="button"
-                        onClick={() => setOriginFilter("all")}
-                        className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                          originFilter === "all"
-                            ? "bg-white text-slate-950 shadow-xs font-bold"
-                            : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        <span>All ({allPipelineDeals.length})</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setOriginFilter("posted")}
-                        className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                          originFilter === "posted"
-                            ? "bg-white text-slate-950 shadow-xs font-bold"
-                            : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        <span className="w-2 h-2 rounded-full bg-slate-950"></span>
-                        <span>Posted ({postedPipelineCount})</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setOriginFilter("requested")}
-                        className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                          originFilter === "requested"
-                            ? "bg-white text-slate-950 shadow-xs font-bold"
-                            : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-                        <span>Requested ({requestedPipelineCount})</span>
-                      </button>
-                    </div>
-
-                    {/* Quick Search on Enter (Title & ID) */}
-                    <div className="relative flex items-center">
-                      <Search className="w-3.5 h-3.5 absolute left-3 text-slate-400 pointer-events-none" />
-                      <input
-                        type="text"
-                        value={dealSearchInput}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setDealSearchInput(val);
-                          if (!val.trim()) {
-                            setAppliedDealSearch("");
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            setAppliedDealSearch(dealSearchInput.trim());
-                          }
-                        }}
-                        placeholder="Search title or ID (e.g. RY-0005)... ↵"
-                        className="w-72 h-9 pl-8.5 pr-14 bg-white rounded border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-800 outline-none transition-colors shadow-2xs"
-                      />
-                      <div className="absolute right-2.5 flex items-center gap-1">
+                    {/* Filtration Bar (Only Search Bar Active, Other Filters Commented) */}
+                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 bg-white border border-[#E2E8F0] rounded-[4px] p-2.5 shadow-2xs">
+                      <div className="flex items-center gap-2.5 px-3 py-1.5 bg-[#F8FAFC] border border-[#E2E8F0] focus-within:border-[#171F2C] rounded-[4px] flex-1 transition-colors">
+                        <Search className="w-4 h-4 text-[#94A3B8] shrink-0" />
+                        <input
+                          type="text"
+                          value={dealSearchInput}
+                          onChange={(e) => {
+                            setDealSearchInput(e.target.value);
+                            setCurrentPage(1);
+                          }}
+                          placeholder="Search by ID, deal title, counterparty, or terms..."
+                          className="bg-transparent border-0 outline-none text-[#171F2C] text-xs sm:text-sm w-full placeholder:text-[#94A3B8] focus:ring-0"
+                        />
                         {dealSearchInput && (
                           <button
                             type="button"
                             onClick={() => {
                               setDealSearchInput("");
-                              setAppliedDealSearch("");
+                              setCurrentPage(1);
                             }}
-                            className="text-slate-400 hover:text-slate-700 text-xs font-bold cursor-pointer p-0.5"
-                            title="Clear search"
+                            className="text-[#94A3B8] hover:text-[#171F2C] p-0.5 cursor-pointer"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         )}
-                        <kbd className="hidden sm:inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-mono text-slate-400 bg-slate-100 rounded border border-slate-200 pointer-events-none">
-                          ↵
-                        </kbd>
                       </div>
+                      {/*
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] px-3 py-1.5 text-xs text-[#171F2C]">
+                          <span className="font-mono text-[10px] uppercase text-[#64748B] tracking-wider font-semibold">
+                            DIRECTION:
+                          </span>
+                          <select
+                            value={directionFilter}
+                            onChange={(e: any) => {
+                              setDirectionFilter(e.target.value);
+                              setCurrentPage(1);
+                            }}
+                            className="bg-transparent border-none focus:outline-none font-medium text-xs cursor-pointer pr-1 text-[#171F2C]"
+                          >
+                            <option value="all">All (Inbound &amp; Outbound)</option>
+                            <option value="posted">Inbound Only</option>
+                            <option value="requested">Outbound Only</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] px-3 py-1.5 text-xs text-[#171F2C]">
+                          <span className="font-mono text-[10px] uppercase text-[#64748B] tracking-wider font-semibold">
+                            CATEGORY:
+                          </span>
+                          <select
+                            value={categoryFilter}
+                            onChange={(e) => {
+                              setCategoryFilter(e.target.value);
+                              setCurrentPage(1);
+                            }}
+                            className="bg-transparent border-none focus:outline-none font-medium text-xs cursor-pointer pr-1 text-[#171F2C]"
+                          >
+                            <option value="all">All Categories</option>
+                            <option value="distribution">Distribution &amp; Resell</option>
+                            <option value="referral">Client Referral</option>
+                            <option value="partnership">Strategic Partnership</option>
+                            <option value="vendor">Vendor / Services</option>
+                            <option value="hiring">Hiring / Co-Founder</option>
+                            <option value="investment">Investment / Capital</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] px-3 py-1.5 text-xs text-[#171F2C]">
+                          <span className="font-mono text-[10px] uppercase text-[#64748B] tracking-wider font-semibold">
+                            SORT:
+                          </span>
+                          <select
+                            value={sortFilter}
+                            onChange={(e: any) => {
+                              setSortFilter(e.target.value);
+                              setCurrentPage(1);
+                            }}
+                            className="bg-transparent border-none focus:outline-none font-medium text-xs cursor-pointer pr-1 text-[#171F2C]"
+                          >
+                            <option value="action_first">Action Required First</option>
+                            <option value="stage_asc">Stage (1 → 4)</option>
+                            <option value="stage_desc">Stage (4 → 1)</option>
+                            <option value="recent">Recently Updated</option>
+                          </select>
+                        </div>
+                      </div>
+                      */}
                     </div>
                   </div>
 
-                  {/* KANBAN PIPELINE VIEW */}
-                  {pipelineViewMode === "kanban" && (
-                    <div className="flex flex-col w-full">
-                      {/* Section 1: New Requests / Inbound Triage (Collapsible) */}
-                      {liveTriageItems.length > 0 && (
-                        <div className="p-4 sm:p-6 bg-white border-b border-slate-200/80">
-                          <Collapsible
-                            open={isTriageOpen}
-                            onOpenChange={setIsTriageOpen}
-                            className="bg-slate-50/80 rounded border border-slate-200 p-4 sm:p-5 shadow-xs flex flex-col gap-3 transition-all"
-                          >
-                            <div className="flex flex-wrap items-center justify-between gap-3">
+                  {/* Workspace Main Grid: 12 Columns (8 Col Cards Stream + 4 Col Right Rail) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Left 8 Columns: Dynamic Deal Stage Cards Stream */}
+                    <div className="lg:col-span-8 space-y-4">
+                      {/* If in Stage 1 & live triage requests exist, show Inbound Triage banner */}
+                      {selectedStageTab === "stage_1" && liveTriageItems.length > 0 && (
+                        <Collapsible
+                          open={isTriageOpen}
+                          onOpenChange={setIsTriageOpen}
+                          className="bg-white rounded-[4px] border border-[#E2E8F0] p-4 sm:p-5 shadow-2xs flex flex-col gap-3 transition-all"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <CollapsibleTrigger asChild>
+                              <button
+                                type="button"
+                                className="flex items-center gap-3 flex-wrap cursor-pointer text-left hover:opacity-85 transition-opacity"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Inbox className="w-5 h-5 text-[#171F2C]" />
+                                  <h3 className="font-display font-bold text-sm sm:text-base text-[#171F2C] tracking-tight">
+                                    New Incoming Pitches / Inbound Triage
+                                  </h3>
+                                </div>
+                                <span className="px-2.5 py-0.5 rounded-[4px] bg-[#171F2C] text-white font-mono text-[11px] font-bold flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                  {liveTriageItems.length} New Inbound
+                                </span>
+                              </button>
+                            </CollapsibleTrigger>
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-1.5 text-[#64748B] font-mono text-xs">
+                                <Clock className="w-3.5 h-3.5 text-[#94A3B8]" />
+                                <span>Response SLA: &lt; 48 hrs</span>
+                              </div>
                               <CollapsibleTrigger asChild>
                                 <button
                                   type="button"
-                                  className="flex items-center gap-3 flex-wrap cursor-pointer text-left hover:opacity-85 transition-opacity"
+                                  className="w-7 h-7 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] text-[#171F2C] flex items-center justify-center cursor-pointer hover:bg-[#F1F5F9]"
                                 >
-                                  <div className="flex items-center gap-2">
-                                    <Inbox className="w-5 h-5 text-slate-950" />
-                                    <h3 className="font-display font-bold text-base text-slate-950 tracking-tight">
-                                      New Requests / Inbound Triage
-                                    </h3>
-                                  </div>
-                                  <span className="px-2.5 py-0.5 rounded-full bg-red-600 text-white font-mono text-[11px] font-bold shadow-xs flex items-center gap-1.5">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                                    {liveTriageItems.length} New
-                                  </span>
+                                  {isTriageOpen ? (
+                                    <ChevronUp className="w-4 h-4" />
+                                  ) : (
+                                    <ChevronDown className="w-4 h-4" />
+                                  )}
                                 </button>
                               </CollapsibleTrigger>
-
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-1.5 text-slate-500 font-mono text-xs">
-                                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                                  <span>Response SLA: &lt; 48 hrs</span>
-                                </div>
-                                <CollapsibleTrigger asChild>
-                                  <button
-                                    type="button"
-                                    className="w-7 h-7 rounded-full bg-slate-950 hover:bg-slate-800 text-white flex items-center justify-center shadow-xs transition-all cursor-pointer active:scale-95 shrink-0"
-                                    title={isTriageOpen ? "Collapse" : "Expand"}
-                                  >
-                                    {isTriageOpen ? (
-                                      <ChevronUp className="w-4 h-4 text-white" />
-                                    ) : (
-                                      <ChevronDown className="w-4 h-4 text-white" />
-                                    )}
-                                  </button>
-                                </CollapsibleTrigger>
-                              </div>
                             </div>
+                          </div>
 
-                            <CollapsibleContent className="flex flex-col gap-4 pt-2 border-t border-slate-200/80">
-                              <p className="text-xs text-slate-500 font-sans">
-                                Inbound proposals and intro inquiries received on your posted listings awaiting your acceptance into Stage 1 (Acknowledgement) or direct decline.
-                              </p>
-
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {liveTriageItems.map((item) => (
-                                  <div
-                                    key={item.id}
-                                    className="bg-white rounded p-4 border border-slate-200 shadow-xs flex flex-col justify-between gap-3 hover:border-slate-300 transition-all text-left"
-                                  >
-                                    <div className="flex flex-col gap-2">
-                                      <div className="flex items-center justify-between">
-                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 text-slate-700 font-mono border border-slate-200">
-                                          {item.code}
-                                        </span>
-                                        <span className="text-[11px] text-slate-400 font-medium">
-                                          {item.timeAgo}
+                          <CollapsibleContent className="flex flex-col gap-4 pt-3 border-t border-[#E2E8F0]">
+                            <p className="text-xs text-[#64748B] font-sans">
+                              Inbound proposals and intro inquiries received on your posted listings awaiting your acceptance into Stage 1 (Acknowledgement) or direct decline.
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {liveTriageItems.map((item) => (
+                                <div
+                                  key={item.id}
+                                  className="bg-[#F8FAFC] rounded-[4px] p-4 border border-[#E2E8F0] flex flex-col justify-between gap-3 text-left"
+                                >
+                                  <div className="flex flex-col gap-2">
+                                    <div className="flex items-center justify-between">
+                                      <span className="px-2 py-0.5 rounded-[4px] font-mono font-bold text-[10px] bg-white text-[#171F2C] border border-[#E2E8F0]">
+                                        {item.code}
+                                      </span>
+                                      <span className="text-[11px] text-[#94A3B8] font-medium">
+                                        {item.timeAgo}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <div className="text-[#171F2C] font-display font-bold text-sm flex items-center gap-1.5">
+                                        <span>{item.partnerName}</span>
+                                        {item.isVerified && (
+                                          <RelayVerificationSeal className="w-3.5 h-3.5 shrink-0" title="Verified Business" />
+                                        )}
+                                      </div>
+                                      <div className="text-[#64748B] text-xs flex items-center gap-1 mt-0.5">
+                                        <ExternalLink className="w-3 h-3 text-[#94A3B8] shrink-0" />
+                                        <span className="truncate">
+                                          Target: {item.targetTitle} ({item.targetCode})
                                         </span>
                                       </div>
-                                      <div>
-                                        <div className="text-slate-950 font-display font-bold text-sm flex items-center gap-1.5">
-                                          <span>{item.partnerName}</span>
-                                          {item.isVerified && (
-                                            <RelayVerificationSeal className="w-3.5 h-3.5 shrink-0" title="Verified Business" />
+                                    </div>
+                                    <div className="bg-white p-2.5 rounded-[4px] border border-[#E2E8F0] text-xs">
+                                      <span className="text-[#94A3B8] block text-[10px] font-bold uppercase tracking-wide mb-1 font-mono">
+                                        Proposed Pitch / Terms
+                                      </span>
+                                      <p className="text-[#171F2C] leading-relaxed font-sans">
+                                        {item.proposedTerms}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 pt-2 border-t border-[#E2E8F0]">
+                                    <Button
+                                      type="button"
+                                      variant="monochrome"
+                                      size="sm"
+                                      onClick={() => handleAcceptTriage(item)}
+                                      className="flex-1 gap-1"
+                                    >
+                                      <span>Accept Pitch</span>
+                                      <ArrowRight className="w-3.5 h-3.5" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleDeclineTriage(item)}
+                                      className="text-[#64748B] hover:text-[#BA1A1A] hover:border-[#BA1A1A]"
+                                    >
+                                      Decline
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )}
+
+                      {/* Paginated Deal Cards Stream */}
+                      {paginatedDeals.length === 0 ? (
+                        <div className="bg-white border border-[#E2E8F0] rounded-[4px] p-12 text-center flex flex-col items-center justify-center space-y-3 shadow-2xs">
+                          <div className="w-12 h-12 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#64748B]">
+                            <Shield className="w-6 h-6" />
+                          </div>
+                          <h3 className="font-display font-bold text-base text-[#171F2C]">
+                            No bilateral opportunities in this view
+                          </h3>
+                          <p className="text-xs text-[#64748B] max-w-md">
+                            There are currently no active deals matching the selected stage and filter criteria. Adjust your filters or explore the Commercial Board.
+                          </p>
+                          <div className="flex items-center gap-2 pt-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedStageTab("stage_1");
+                                setDirectionFilter("all");
+                                setCategoryFilter("all");
+                                setDealSearchInput("");
+                                setCurrentPage(1);
+                              }}
+                            >
+                              Reset Filters
+                            </Button>
+                            <Button
+                              variant="authoritative"
+                              size="sm"
+                              onClick={handleOpenCreate}
+                            >
+                              Post Opportunity
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        paginatedDeals.map((deal) => {
+                          const isInbound = deal.direction === "inbound";
+                          const stageNum = deal.workflow?.stageNum ?? 1;
+                          const isActionRequired = deal.workflow?.stateCategory === "action_needed";
+                          const dealCode = deal.opportunity?.opportunity_number
+                            ? `RY-${String(deal.opportunity.opportunity_number).padStart(4, "0")}`
+                            : `RY-${String(deal.id || "0000").substring(0, 4).toUpperCase()}`;
+                          const categoryName = (
+                            deal.opportunity?.category === "strategic_advice"
+                              ? "Strategic Advice"
+                              : deal.opportunity?.category || deal.opportunity?.type || "Bilateral Exchange"
+                          ).replace("_", " ").toUpperCase();
+                          const partnerName =
+                            deal.workflow?.partnerName ||
+                            (isInbound
+                              ? deal.requesting_business?.company_name
+                              : deal.opportunity?.business?.company_name) ||
+                            "Verified Counterparty";
+                          const matchPercentage = Math.min(99, 92 + (dealCode.length % 7));
+                          const headline = deal.opportunity?.title || deal.title || "Bilateral Commercial Opportunity";
+                          const contextText =
+                            deal.workflow?.stageContext ||
+                            deal.message ||
+                            deal.opportunity?.description ||
+                            "Mutual bilateral exchange protocol active.";
+                          const scopeTerms =
+                            deal.exchange_proposals?.[0]?.exchange_details ||
+                            (deal.exchange_proposals?.[0]?.revenue_percentage
+                              ? `${deal.exchange_proposals[0].revenue_percentage}% Net Rev-Share`
+                              : deal.opportunity?.offer_text || "Reciprocal lead exchange & bilateral engagement terms");
+                          const contractVal = deal.opportunity?.offer_text || (isInbound ? "€420,000 / YR" : "$1,850,000 TCV");
+
+                          // Progress bar calculation
+                          const pStage = stageNum <= 2 ? 1 : stageNum === 3 ? 2 : stageNum === 4 ? 3 : 4;
+
+                          const normalizedPipelineDeal: PipelineOpportunity = {
+                            id: deal.id,
+                            dealCode,
+                            title: headline,
+                            origin: isInbound ? "posted" : "requested",
+                            partner: partnerName,
+                            isVerified: Boolean(deal.workflow?.isVerified),
+                            isUnblinded: Boolean(stageNum >= 5 || deal.workflow?.isHandshakeComplete),
+                            stage: pStage as 1 | 2 | 3 | 4,
+                            metricLabel1: "Scope",
+                            metricValue1: scopeTerms,
+                            metricLabel2: "Value",
+                            metricValue2: contractVal,
+                            actionLabel: isActionRequired ? "Action Required" : "Awaiting Turn",
+                            actionType: isActionRequired ? "high-intent" : "view",
+                            actionLink: `/connections/${deal.id}`,
+                            rawRequest: deal,
+                          };
+
+                          return (
+                            <Collapsible key={deal.id} defaultOpen={isActionRequired} asChild>
+                              <article
+                                className={cn(
+                                  "bg-white rounded-[4px] border border-[#E2E8F0] shadow-2xs overflow-hidden transition-all hover:border-[#CBD5E1] flex flex-col select-none",
+                                  isActionRequired && "border-[#171F2C]/40 shadow-xs",
+                                )}
+                              >
+                                {/* ══════════════════════════════════════════════════════════════════
+                                    1. COLLAPSED STATE (CLICKABLE CARD HEADER)
+                                    ══════════════════════════════════════════════════════════════════ */}
+                                <CollapsibleTrigger asChild>
+                                  <div className="w-full p-4 sm:p-5 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3.5 hover:bg-[#F8FAFC]/70 transition-colors text-left">
+                                    <div className="flex items-start md:items-center gap-3.5 min-w-0 flex-1">
+                                      {/* Company Logo / Initials Avatar */}
+                                      <div className="relative shrink-0 mt-0.5 md:mt-0">
+                                        <CompanyLogo
+                                          src={deal.opportunity?.business?.logo_url || deal.requesting_business?.logo_url}
+                                          name={partnerName}
+                                          className="w-9 h-9 rounded-[4px] object-contain border border-[#E2E8F0] shrink-0 bg-white"
+                                          fallbackClassName="w-9 h-9 rounded-[4px] bg-[#171F2C] text-white flex items-center justify-center font-bold text-xs shrink-0 border border-[#171F2C]"
+                                          textClassName="text-xs font-mono font-bold"
+                                        />
+                                      </div>
+
+                                      {/* Core 3-Row Content Block */}
+                                      <div className="min-w-0 flex-1 flex flex-col gap-1">
+                                        {/* ── ROW 1: Opportunity ID & Category Tags ── */}
+                                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                          <DealCodeStamp code={dealCode} />
+                                          <CategoryPill category={deal.opportunity?.category === "strategic_advice" ? "Strategic Advice" : (deal.opportunity?.category || deal.opportunity?.type || "Bilateral Exchange")} />
+                                          <span
+                                            className={cn(
+                                              "text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-[4px] inline-flex items-center gap-1.5 shadow-2xs font-mono",
+                                              isInbound ? "bg-[#171F2C] text-white" : "bg-[#F8FAFC] text-[#171F2C] border border-[#E2E8F0]",
+                                            )}
+                                          >
+                                            {isInbound ? <ArrowDown className="w-3 h-3 text-white" /> : <ArrowUp className="w-3 h-3 text-[#171F2C]" />}
+                                            <span>{isInbound ? "Inbound" : "Outbound"}</span>
+                                          </span>
+                                          {isActionRequired && (
+                                            <span className="text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-[4px] bg-[#171F2C] text-white inline-flex items-center gap-1.5 shadow-2xs">
+                                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                              Action Required: 18h left
+                                            </span>
+                                          )}
+                                          {deal.workflow?.isHandshakeComplete && (
+                                            <span className="text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-[4px] bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
+                                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                              Handshake Complete
+                                            </span>
                                           )}
                                         </div>
-                                        <div className="text-slate-500 text-xs flex items-center gap-1 mt-0.5">
-                                          <ExternalLink className="w-3 h-3 text-slate-400 shrink-0" />
-                                          <span className="truncate">
-                                            Target: {item.targetTitle} ({item.targetCode})
+
+                                        {/* ── ROW 2: Opportunity Title ── */}
+                                        <h2 className="font-display font-semibold text-[15px] sm:text-[16px] text-[#171F2C] truncate tracking-tight pt-0.5">
+                                          {headline}
+                                        </h2>
+
+                                        {/* ── ROW 3: Business Name | Verified Icon | Location ── */}
+                                        <div className="flex items-center gap-2 text-xs text-[#64748B] truncate">
+                                          <span className="font-medium text-[#171F2C] truncate">{partnerName}</span>
+
+                                          {deal.workflow?.isVerified && (
+                                            <span className="inline-flex items-center gap-1 text-emerald-700 text-[10px] font-medium shrink-0">
+                                              <VerifiedBadge size={14} /> Verified
+                                            </span>
+                                          )}
+
+                                          <span className="text-[#CBD5E1]">|</span>
+
+                                          <span className="truncate">{deal.opportunity?.location || deal.opportunity?.geo || "Remote / Global"}</span>
+
+                                          {deal.opportunity?.industry && (
+                                            <>
+                                              <span className="text-[#CBD5E1]">•</span>
+                                              <span className="truncate text-[#64748B]">{deal.opportunity.industry}</span>
+                                            </>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Right Side: Parity Score, Expiry & Expand/Collapse Icon */}
+                                    <div className="flex items-center justify-between md:justify-end gap-4 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-[#E2E8F0]">
+                                      <div className="flex items-center gap-3 text-right">
+                                        <div className="flex flex-col items-end">
+                                          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">
+                                            Parity Score
+                                          </span>
+                                          <span className="font-mono text-xs font-bold text-[#171F2C]">
+                                            {matchPercentage}%
+                                          </span>
+                                        </div>
+                                        <div className="hidden sm:flex flex-col items-end">
+                                          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">
+                                            {isActionRequired ? "SLA Timer" : "Status"}
+                                          </span>
+                                          <span className="text-xs text-[#64748B] font-medium font-mono">
+                                            {isActionRequired ? "18h left" : stageNum >= 5 || deal.workflow?.isHandshakeComplete ? "Ratified" : "Active"}
                                           </span>
                                         </div>
                                       </div>
-                                      <div className="bg-slate-50 p-2.5 rounded border border-slate-100 text-xs">
-                                        <span className="text-slate-400 block text-[10px] font-bold uppercase tracking-wide mb-1 font-mono">
-                                          Proposed Terms
-                                        </span>
-                                        <p className="text-slate-800 leading-relaxed font-sans">
-                                          {item.proposedTerms}
-                                        </p>
+
+                                      {/* Chevron Expand/Collapse Indicator */}
+                                      <div className="w-8 h-8 rounded-full bg-[#171F2C] hover:bg-black border border-[#171F2C] flex items-center justify-center text-white transition-transform duration-200 shrink-0 shadow-xs group-data-[state=open]:rotate-180">
+                                        <ChevronDown className="w-4 h-4 text-white stroke-[2.2]" />
                                       </div>
                                     </div>
+                                  </div>
+                                </CollapsibleTrigger>
 
-                                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                                      <button
-                                        type="button"
-                                        onClick={() => handleAcceptTriage(item)}
-                                        className="flex-1 py-1.5 px-2 rounded bg-slate-950 hover:bg-slate-800 text-white font-semibold text-xs transition-colors text-center cursor-pointer shadow-xs active:scale-[0.98]"
-                                      >
-                                        Accept to Stage 1 →
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleDeclineTriage(item)}
-                                        className="py-1.5 px-3 rounded bg-white text-slate-600 border border-slate-200 hover:text-slate-900 hover:border-slate-300 font-medium text-xs transition-colors text-center cursor-pointer active:scale-[0.98]"
-                                      >
-                                        Decline
-                                      </button>
+                                {/* ══════════════════════════════════════════════════════════════════
+                                    2. EXPANDED STATE (COLLAPSIBLE DETAILS BODY)
+                                    ══════════════════════════════════════════════════════════════════ */}
+                                <CollapsibleContent className="border-t border-[#E2E8F0] p-5 sm:p-6 flex flex-col gap-4 bg-white transition-all data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0">
+                                  {/* A. Counterparty Detail Strip */}
+                                  <div className="flex items-center justify-between gap-3 p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div className="w-8 h-8 rounded-[4px] bg-[#171F2C] text-white text-xs font-semibold flex items-center justify-center shrink-0 border border-[#171F2C]">
+                                        {getCompanyInitials(partnerName)}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                          <span className="font-semibold text-xs sm:text-sm text-[#171F2C] truncate">
+                                            {partnerName}
+                                          </span>
+                                          {deal.workflow?.isVerified && (
+                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-medium shrink-0">
+                                              <VerifiedBadge size={13} /> Verified
+                                            </span>
+                                          )}
+                                          <span className="text-[#CBD5E1]">•</span>
+                                          <span className="text-xs text-[#64748B] shrink-0">
+                                            {stageNum >= 5 || deal.workflow?.isHandshakeComplete ? "Direct Unblinded Partner" : "Blinded Bilateral Partner"}
+                                          </span>
+                                        </div>
+                                        <div className="text-xs text-[#64748B] truncate mt-0.5">
+                                          {deal.opportunity?.location || deal.opportunity?.geo || "Remote / Global"} {deal.opportunity?.industry ? `• ${deal.opportunity.industry}` : ""}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="text-right text-xs text-[#64748B] shrink-0">
+                                      <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8] block">
+                                        Contract Value
+                                      </span>
+                                      <span className="font-medium text-[#171F2C] font-mono">{contractVal}</span>
                                     </div>
                                   </div>
-                                ))}
-                              </div>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        </div>
+
+                                  {/* B. Opportunity Description & Requirements */}
+                                  <div className="flex flex-col gap-1.5">
+                                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">
+                                      Opportunity Overview &amp; Requirements
+                                    </span>
+                                    <p className="text-sm text-[#334155] leading-relaxed">{contextText}</p>
+                                  </div>
+
+                                  {/* C. Bilateral Value Proposition (What We Offer) */}
+                                  <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] p-4 flex flex-col gap-1.5">
+                                    <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#171F2C]">
+                                      <Repeat className="w-4 h-4 text-[#F97316]" />
+                                      <span>What We Are Expecting</span>
+                                    </div>
+                                    <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
+                                      {scopeTerms}
+                                    </p>
+                                  </div>
+
+                                  {/* D. Lifecycle Stage Progress Tracker */}
+                                  <div className="border-t border-[#E2E8F0] pt-3 flex flex-col gap-2">
+                                    <div className="flex items-center justify-between text-xs">
+                                      <span className="uppercase tracking-wider text-[#94A3B8] font-mono text-[10px] font-semibold">
+                                        Current Lifecycle Stage
+                                      </span>
+                                      <span className="font-semibold text-[#171F2C] text-xs">
+                                        {deal.workflow?.stageHeadline || "Protocol Clearance"}
+                                      </span>
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2">
+                                      <div className={`h-1.5 rounded-[2px] ${pStage >= 1 ? "bg-[#171F2C]" : "bg-[#E2E8F0]"}`} />
+                                      <div className={`h-1.5 rounded-[2px] ${pStage >= 2 ? "bg-[#171F2C]" : "bg-[#E2E8F0]"}`} />
+                                      <div className={`h-1.5 rounded-[2px] ${pStage >= 3 ? "bg-[#171F2C]" : "bg-[#E2E8F0]"}`} />
+                                      <div className={`h-1.5 rounded-[2px] ${pStage >= 4 ? "bg-[#171F2C]" : "bg-[#E2E8F0]"}`} />
+                                    </div>
+                                    <div className="flex justify-between text-[11px] font-mono text-[#64748B]">
+                                      <span className={pStage === 1 ? "text-[#171F2C] font-bold" : "font-medium"}>
+                                        1. Acknowledged
+                                      </span>
+                                      <span className={pStage === 2 ? "text-[#171F2C] font-bold" : "font-medium"}>
+                                        2. Negotiation
+                                      </span>
+                                      <span className={pStage === 3 ? "text-[#171F2C] font-bold" : "font-medium"}>
+                                        3. Agreement
+                                      </span>
+                                      <span className={pStage === 4 ? "text-[#171F2C] font-bold" : "font-medium"}>
+                                        4. Handshake
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* E. Bottom Actions & Metadata */}
+                                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-[#E2E8F0]">
+                                    <div className="flex items-center gap-3 text-xs text-[#64748B] flex-wrap">
+                                      <span className="flex items-center gap-1 font-mono text-xs text-[#64748B]">
+                                        <Clock className="w-3.5 h-3.5 text-[#171F2C]" />
+                                        <span>
+                                          {isActionRequired
+                                            ? "Awaiting your countersignature or response within SLA"
+                                            : "Dual binding verification active • Legal hold applied"}
+                                        </span>
+                                      </span>
+                                      <span className="text-[#CBD5E1]">•</span>
+                                      <span className="text-[11px] font-medium text-[#64748B] uppercase font-mono">
+                                        {stageNum <= 2
+                                          ? "SHA256 Encrypted Protocol"
+                                          : stageNum === 3
+                                            ? "Dual-Signed Escrow Pending"
+                                            : stageNum === 4
+                                              ? "50% Signed (1/2)"
+                                              : "Permanent Audit Ledger #0x9F42"}
+                                      </span>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                                      {stageNum <= 2 ? (
+                                        isInbound ? (
+                                          <>
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => handleDeclineIncoming(deal.id, partnerName)}
+                                              className="text-[#64748B] hover:text-[#BA1A1A] hover:border-[#BA1A1A]"
+                                            >
+                                              Decline
+                                            </Button>
+                                            <Button
+                                              type="button"
+                                              variant="monochrome"
+                                              size="sm"
+                                              onClick={() => {
+                                                setSelectedPipelineDeal(normalizedPipelineDeal);
+                                                setNcndModalOpen(true);
+                                              }}
+                                              className="gap-1.5"
+                                            >
+                                              <span>Acknowledge Exchange</span>
+                                              <ArrowRight className="w-3.5 h-3.5" />
+                                            </Button>
+                                          </>
+                                        ) : (
+                                          <Button
+                                            type="button"
+                                            variant="monochrome"
+                                            size="sm"
+                                            onClick={() => navigate({ to: "/connections/$id", params: { id: deal.id } })}
+                                            className="gap-1.5"
+                                          >
+                                            <span>View in Dealroom</span>
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                          </Button>
+                                        )
+                                      ) : stageNum === 3 ? (
+                                        <>
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                              setSelectedPipelineDeal(normalizedPipelineDeal);
+                                              setCounterOfferModalOpen(true);
+                                            }}
+                                          >
+                                            Propose Terms
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            variant="monochrome"
+                                            size="sm"
+                                            onClick={() => {
+                                              setSelectedPipelineDeal(normalizedPipelineDeal);
+                                              setCounterOfferModalOpen(true);
+                                            }}
+                                            className="gap-1.5"
+                                          >
+                                            <span>Review Counter-Offer</span>
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                          </Button>
+                                        </>
+                                      ) : stageNum === 4 ? (
+                                        <>
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                              setSelectedPipelineDeal(normalizedPipelineDeal);
+                                              setRedlinesModalOpen(true);
+                                            }}
+                                            className="gap-1.5"
+                                          >
+                                            <Eye className="w-3.5 h-3.5" />
+                                            <span>View Agreement</span>
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            variant="monochrome"
+                                            size="sm"
+                                            onClick={() => {
+                                              setSelectedPipelineDeal(normalizedPipelineDeal);
+                                              setCountersignModalOpen(true);
+                                            }}
+                                            className="gap-1.5"
+                                          >
+                                            <span>Open Escrow Vault</span>
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                          </Button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setSelectedDetailOpp(deal.opportunity || deal)}
+                                            className="gap-1.5"
+                                          >
+                                            <FileText className="w-3.5 h-3.5" />
+                                            <span>Review Terms</span>
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            variant="monochrome"
+                                            size="sm"
+                                            onClick={() => navigate({ to: "/connections/$id", params: { id: deal.id } })}
+                                            className="gap-1.5"
+                                          >
+                                            <span>Open Dealroom</span>
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                          </Button>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                </CollapsibleContent>
+                              </article>
+                            </Collapsible>
+                          );
+                        })
                       )}
 
-                      {/* Section 2: 4 Stage Columns (Kanban Lanes) */}
-                      <div className="p-4 sm:p-6 bg-slate-50/50">
-                        <div
-                          id="pipeline-view"
-                          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start"
-                        >
-                          {/* STEP 1: Acknowledgement */}
-                          <div className="bg-slate-100/70 rounded p-4 flex flex-col gap-4 min-h-[640px] border border-slate-200/70">
-                            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-                              <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-slate-950 text-white text-[11px] font-bold flex items-center justify-center">
-                                  1
-                                </span>
-                                <span className="font-display font-bold text-sm text-slate-900">
-                                  Acknowledgement
-                                </span>
+                      {/* Pagination Controls */}
+                      {totalPages > 1 && (
+                        <div className="bg-white border border-[#E2E8F0] rounded-[4px] p-3.5 sm:px-5 sm:py-3.5 text-xs text-[#64748B] shadow-2xs flex flex-wrap items-center justify-between gap-3 font-mono">
+                          <span className="font-medium">
+                            Showing {Math.min((currentPage - 1) * DEALS_PER_PAGE + 1, totalDealsCount)} to{" "}
+                            {Math.min(currentPage * DEALS_PER_PAGE, totalDealsCount)} of {totalDealsCount} bilateral opportunities
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                              disabled={currentPage === 1}
+                              className="px-3 py-1.5 rounded-[4px] border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-[#171F2C] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors text-xs font-medium"
+                            >
+                              Previous
+                            </button>
+                            {Array.from({ length: totalPages }).map((_, idx) => {
+                              const p = idx + 1;
+                              const isCurrent = currentPage === p;
+                              return (
+                                <button
+                                  key={p}
+                                  type="button"
+                                  onClick={() => setCurrentPage(p)}
+                                  className={cn(
+                                    "min-w-[32px] h-8 px-2.5 flex items-center justify-center rounded-[4px] font-mono text-xs font-medium cursor-pointer transition-colors shrink-0",
+                                    isCurrent
+                                      ? "bg-[#171F2C] text-white border border-[#171F2C]"
+                                      : "border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-[#171F2C]",
+                                  )}
+                                >
+                                  {p}
+                                </button>
+                              );
+                            })}
+                            <button
+                              type="button"
+                              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                              disabled={currentPage === totalPages}
+                              className="px-3 py-1.5 rounded-[4px] border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-[#171F2C] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors text-xs font-medium"
+                            >
+                              Next
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right 4 Columns: Symmetrical Complementary Modules */}
+                    <div className="lg:col-span-4 space-y-4">
+                      {/* Module 1: Bilateral Dealroom Status (Vertical 4-Stage Stepper) */}
+                      <div className="bg-white border border-[#E2E8F0] rounded-[4px] p-5 sm:p-6 space-y-4 shadow-2xs">
+                        <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
+                          <h4 className="font-display font-bold text-sm sm:text-base text-[#171F2C] tracking-tight">
+                            Bilateral Dealroom Status
+                          </h4>
+                          <Layers className="w-5 h-5 text-[#64748B]" />
+                        </div>
+                        <p className="text-xs text-[#64748B] leading-relaxed font-sans">
+                          Every exchange proceeds under strict mutual assent. Identities remain blinded until Stage 4 agreement.
+                        </p>
+                        <div className="relative pt-2 pb-1">
+                          <div className="absolute left-[13px] top-5 bottom-6 w-0.5 bg-[#E2E8F0] z-0" />
+                          <div className="space-y-5 relative z-10">
+                            {/* Step 1 */}
+                            <div className="flex items-start gap-3">
+                              <div className="w-7 h-7 rounded-[4px] bg-[#171F2C] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                                1
                               </div>
-                              <span
-                                className={`px-2 py-0.5 rounded-full font-mono text-xs font-bold transition-colors ${
-                                  stage1Deals.length > 0
-                                    ? "bg-red-600 text-white border border-red-700 shadow-xs"
-                                    : "bg-white text-slate-900 border border-slate-200"
-                                }`}
-                              >
-                                {stage1Deals.length}
-                              </span>
+                              <div className="min-w-0 flex-1 pt-0.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-semibold text-xs text-[#171F2C]">
+                                    Acknowledgment
+                                  </span>
+                                  <span className="font-mono text-[11px] text-[#64748B] font-medium">
+                                    {stage1Count > 0 ? `${stage1Count} Active` : "Blind Match"}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-[#64748B] leading-snug mt-0.5 font-sans">
+                                  Mutual NCND generation &amp; handshake intent.
+                                </p>
+                              </div>
                             </div>
-
-                            {stage1Deals.length === 0 ? (
-                              <div className="py-12 text-center text-xs text-slate-400 font-sans border-2 border-dashed border-slate-200 rounded p-4">
-                                No deals in Stage 1
+                            {/* Step 2 */}
+                            <div className="flex items-start gap-3">
+                              <div className="w-7 h-7 rounded-[4px] bg-[#171F2C] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                                2
                               </div>
-                            ) : (
-                              stage1Deals.map((deal) => {
-                                const isPosted = deal.origin === "posted";
-                                return (
-                                  <div
-                                    key={deal.id}
-                                    className="deal-card bg-white rounded p-4 shadow-xs border border-slate-200 flex flex-col gap-3 hover:shadow-md hover:border-slate-300 transition-all text-left"
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <span
-                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${
-                                          isPosted
-                                            ? "bg-slate-950 text-white"
-                                            : "bg-slate-100 text-slate-800 border border-slate-200"
-                                        }`}
-                                      >
-                                        {isPosted ? (
-                                          <ArrowDown className="w-3 h-3 text-white" />
-                                        ) : (
-                                          <ArrowUp className="w-3 h-3 text-slate-700" />
-                                        )}
-                                        <span>{isPosted ? "Posted" : "Requested"}</span>
-                                      </span>
-                                      <span className="font-mono text-xs text-slate-500 font-bold">
-                                        {deal.dealCode}
-                                      </span>
-                                    </div>
+                              <div className="min-w-0 flex-1 pt-0.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-semibold text-xs text-[#171F2C]">
+                                    Negotiation
+                                  </span>
+                                  <span className="font-mono text-[11px] text-[#171F2C] font-bold bg-[#F1F5F9] px-2 py-0.5 rounded-[4px]">
+                                    {stage2Count} Active
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-[#64748B] leading-snug mt-0.5 font-sans">
+                                  Reciprocal terms revisions &amp; SLA timers.
+                                </p>
+                              </div>
+                            </div>
+                            {/* Step 3 */}
+                            <div className="flex items-start gap-3">
+                              <div className="w-7 h-7 rounded-[4px] bg-[#F1F5F9] border border-[#E2E8F0] text-[#171F2C] flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                                3
+                              </div>
+                              <div className="min-w-0 flex-1 pt-0.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-semibold text-xs text-[#171F2C]">
+                                    Agreement
+                                  </span>
+                                  <span className="font-mono text-[11px] text-[#64748B] font-medium">
+                                    {stage3Count} In Escrow
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-[#64748B] leading-snug mt-0.5 font-sans">
+                                  Dual sovereign escrow signing.
+                                </p>
+                              </div>
+                            </div>
+                            {/* Step 4 */}
+                            <div className="flex items-start gap-3">
+                              <div className="w-7 h-7 rounded-[4px] bg-[#F1F5F9] border border-[#E2E8F0] text-[#64748B] flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                                4
+                              </div>
+                              <div className="min-w-0 flex-1 pt-0.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-semibold text-xs text-[#64748B]">
+                                    Handshake
+                                  </span>
+                                  <span className="font-mono text-[11px] text-[#64748B] font-medium">
+                                    {stage4Count} Ratified
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-[#64748B] leading-snug mt-0.5 font-sans">
+                                  Direct unblinded C-suite exchange.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="pt-2 border-t border-[#E2E8F0]">
+                          <button
+                            type="button"
+                            onClick={() => setProtocolModalOpen(true)}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-[#171F2C] hover:underline group cursor-pointer"
+                          >
+                            <span>View Protocol Governance</span>
+                            <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform text-[#94A3B8]" />
+                          </button>
+                        </div>
+                      </div>
 
-                                    <div>
-                                      <h3 className="font-display font-bold text-slate-900 text-sm leading-snug">
-                                        {deal.title}
-                                      </h3>
-                                      <div className="flex items-center gap-1.5 mt-1 text-slate-500 text-xs">
-                                        <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                        <span className="font-medium text-slate-700 truncate max-w-[150px]">
-                                          {deal.partner}
-                                        </span>
-                                        {deal.isVerified && (
-                                          <RelayVerificationSeal className="w-3.5 h-3.5 shrink-0" title="Verified Business" />
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    <div className="bg-slate-50 p-2.5 rounded border border-slate-100 flex flex-col gap-1 text-xs">
-                                      <div className="flex justify-between items-center">
-                                        <span className="text-slate-500">{deal.metricLabel1}:</span>
-                                        <span className="text-slate-900 font-semibold">{deal.metricValue1}</span>
-                                      </div>
-                                      <div className="flex justify-between items-center">
-                                        <span className="text-slate-500">{deal.metricLabel2}:</span>
-                                        <span className="text-slate-900 font-semibold">{deal.metricValue2}</span>
-                                      </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-1 pt-0.5">
-                                      <div className="flex justify-between text-[11px] text-slate-500 font-medium">
-                                        <span>Stage 1 of 4</span>
-                                        <span className="text-slate-900 font-semibold">Acknowledgement</span>
-                                      </div>
-                                      <div className="flex items-center gap-1 w-full">
-                                        <div className="h-1.5 flex-1 bg-slate-950 rounded-full"></div>
-                                        <div className="h-1.5 flex-1 bg-slate-200 rounded-full"></div>
-                                        <div className="h-1.5 flex-1 bg-slate-200 rounded-full"></div>
-                                        <div className="h-1.5 flex-1 bg-slate-200 rounded-full"></div>
-                                      </div>
-                                    </div>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDealActionClick(deal)}
-                                      className={`mt-1 w-full py-2 px-3 rounded text-xs font-semibold transition-all text-center cursor-pointer ${
-                                        deal.actionType === "high-intent"
-                                          ? "bg-slate-950 text-white hover:bg-slate-800 shadow-xs active:scale-[0.98]"
-                                          : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
-                                      }`}
-                                    >
-                                      {deal.actionLabel}
-                                    </button>
-                                  </div>
-                                );
-                              })
-                            )}
+                      {/* Module 2: Active SLA Telemetry */}
+                      <div className="bg-white border border-[#E2E8F0] rounded-[4px] p-5 sm:p-6 space-y-4 shadow-2xs">
+                        <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
+                          <h4 className="font-display font-bold text-sm sm:text-base text-[#171F2C] tracking-tight">
+                            Active SLA Telemetry
+                          </h4>
+                          <Clock className="w-5 h-5 text-[#64748B]" />
+                        </div>
+                        <div className="space-y-3">
+                          <div className="p-3 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between">
+                            <div>
+                              <div className="font-mono text-[10px] uppercase tracking-wider text-[#64748B] font-semibold">
+                                Action Required
+                              </div>
+                              <div className="text-xs font-bold text-[#171F2C] mt-0.5">
+                                {totalActionNeededCount} deal{totalActionNeededCount === 1 ? "" : "s"} awaiting your turn
+                              </div>
+                            </div>
+                            <span className="px-2.5 py-1 rounded-[4px] bg-[#171F2C] text-white font-mono text-[10px] font-bold">
+                              18H REMAINING
+                            </span>
                           </div>
 
-                          {/* STEP 2: Negotiation */}
-                          <div className="bg-slate-100/70 rounded p-4 flex flex-col gap-4 min-h-[640px] border border-slate-200/70">
-                            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-                              <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-slate-950 text-white text-[11px] font-bold flex items-center justify-center">
-                                  2
-                                </span>
-                                <span className="font-display font-bold text-sm text-slate-900">
-                                  Negotiation
-                                </span>
+                          <div className="p-3 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between">
+                            <div>
+                              <div className="font-mono text-[10px] uppercase tracking-wider text-[#64748B] font-semibold">
+                                Counterparty Turn
                               </div>
-                              <span className="px-2 py-0.5 rounded-full bg-white text-slate-900 font-mono text-xs font-bold border border-slate-200">
-                                {stage2Deals.length}
-                              </span>
+                              <div className="text-xs font-bold text-[#171F2C] mt-0.5">
+                                {totalWaitingCount} deal{totalWaitingCount === 1 ? "" : "s"} in review
+                              </div>
                             </div>
-
-                            {stage2Deals.length === 0 ? (
-                              <div className="py-12 text-center text-xs text-slate-400 font-sans border-2 border-dashed border-slate-200 rounded p-4">
-                                No deals in Stage 2
-                              </div>
-                            ) : (
-                              stage2Deals.map((deal) => {
-                                const isPosted = deal.origin === "posted";
-                                return (
-                                  <div
-                                    key={deal.id}
-                                    className="deal-card bg-white rounded p-4 shadow-xs border border-slate-200 flex flex-col gap-3 hover:shadow-md hover:border-slate-300 transition-all text-left"
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <span
-                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${
-                                          isPosted
-                                            ? "bg-slate-950 text-white"
-                                            : "bg-slate-100 text-slate-800 border border-slate-200"
-                                        }`}
-                                      >
-                                        {isPosted ? (
-                                          <ArrowDown className="w-3 h-3 text-white" />
-                                        ) : (
-                                          <ArrowUp className="w-3 h-3 text-slate-700" />
-                                        )}
-                                        <span>{isPosted ? "Posted" : "Requested"}</span>
-                                      </span>
-                                      <span className="font-mono text-xs text-slate-500 font-bold">
-                                        {deal.dealCode}
-                                      </span>
-                                    </div>
-
-                                    <div>
-                                      <h3 className="font-display font-bold text-slate-900 text-sm leading-snug">
-                                        {deal.title}
-                                      </h3>
-                                      <div className="flex items-center gap-1.5 mt-1 text-slate-500 text-xs">
-                                        <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                        <span className="font-medium text-slate-700 truncate max-w-[150px]">
-                                          {deal.partner}
-                                        </span>
-                                        {deal.isVerified && (
-                                          <RelayVerificationSeal className="w-3.5 h-3.5 shrink-0" title="Verified Business" />
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    <div className="bg-slate-50 p-2.5 rounded border border-slate-100 flex flex-col gap-1 text-xs">
-                                      <div className="flex justify-between items-center">
-                                        <span className="text-slate-500">{deal.metricLabel1}:</span>
-                                        <span className="text-slate-900 font-semibold">{deal.metricValue1}</span>
-                                      </div>
-                                      <div className="flex justify-between items-center">
-                                        <span className="text-slate-500">{deal.metricLabel2}:</span>
-                                        <span className="text-slate-900 font-semibold">{deal.metricValue2}</span>
-                                      </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-1 pt-0.5">
-                                      <div className="flex justify-between text-[11px] text-slate-500 font-medium">
-                                        <span>Stage 2 of 4</span>
-                                        <span className="text-slate-900 font-semibold">Negotiation</span>
-                                      </div>
-                                      <div className="flex items-center gap-1 w-full">
-                                        <div className="h-1.5 flex-1 bg-slate-950 rounded-full"></div>
-                                        <div className="h-1.5 flex-1 bg-slate-950 rounded-full"></div>
-                                        <div className="h-1.5 flex-1 bg-slate-200 rounded-full"></div>
-                                        <div className="h-1.5 flex-1 bg-slate-200 rounded-full"></div>
-                                      </div>
-                                    </div>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDealActionClick(deal)}
-                                      className={`mt-1 w-full py-2 px-3 rounded text-xs font-semibold transition-all text-center cursor-pointer ${
-                                        deal.actionType === "high-intent"
-                                          ? "bg-slate-950 text-white hover:bg-slate-800 shadow-xs active:scale-[0.98]"
-                                          : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
-                                      }`}
-                                    >
-                                      {deal.actionLabel}
-                                    </button>
-                                  </div>
-                                );
-                              })
-                            )}
+                            <span className="px-2.5 py-1 rounded-[4px] bg-[#F1F5F9] text-[#64748B] font-mono text-[10px] font-medium border border-[#E2E8F0]">
+                              WITHIN SLA
+                            </span>
                           </div>
 
-                          {/* STEP 3: Agreement */}
-                          <div className="bg-slate-100/70 rounded p-4 flex flex-col gap-4 min-h-[640px] border border-slate-200/70">
-                            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-                              <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-slate-950 text-white text-[11px] font-bold flex items-center justify-center">
-                                  3
-                                </span>
-                                <span className="font-display font-bold text-sm text-slate-900">
-                                  Agreement
-                                </span>
+                          <div className="p-3 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between">
+                            <div>
+                              <div className="font-mono text-[10px] uppercase tracking-wider text-[#64748B] font-semibold">
+                                Average Turnaround
                               </div>
-                              <span className="px-2 py-0.5 rounded-full bg-white text-slate-900 font-mono text-xs font-bold border border-slate-200">
-                                {stage3Deals.length}
-                              </span>
+                              <div className="text-xs font-bold text-[#171F2C] mt-0.5">
+                                3.2 hours
+                              </div>
                             </div>
-
-                            {stage3Deals.length === 0 ? (
-                              <div className="py-12 text-center text-xs text-slate-400 font-sans border-2 border-dashed border-slate-200 rounded p-4">
-                                No deals in Stage 3
-                              </div>
-                            ) : (
-                              stage3Deals.map((deal) => {
-                                const isPosted = deal.origin === "posted";
-                                return (
-                                  <div
-                                    key={deal.id}
-                                    className="deal-card bg-white rounded p-4 shadow-xs border border-slate-200 flex flex-col gap-3 hover:shadow-md hover:border-slate-300 transition-all text-left"
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <span
-                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${
-                                          isPosted
-                                            ? "bg-slate-950 text-white"
-                                            : "bg-slate-100 text-slate-800 border border-slate-200"
-                                        }`}
-                                      >
-                                        {isPosted ? (
-                                          <ArrowDown className="w-3 h-3 text-white" />
-                                        ) : (
-                                          <ArrowUp className="w-3 h-3 text-slate-700" />
-                                        )}
-                                        <span>{isPosted ? "Posted" : "Requested"}</span>
-                                      </span>
-                                      <span className="font-mono text-xs text-slate-500 font-bold">
-                                        {deal.dealCode}
-                                      </span>
-                                    </div>
-
-                                    <div>
-                                      <h3 className="font-display font-bold text-slate-900 text-sm leading-snug">
-                                        {deal.title}
-                                      </h3>
-                                      <div className="flex items-center gap-1.5 mt-1 text-slate-500 text-xs">
-                                        <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                        <span className="font-medium text-slate-700 truncate max-w-[150px]">
-                                          {deal.partner}
-                                        </span>
-                                        {deal.isVerified && (
-                                          <RelayVerificationSeal className="w-3.5 h-3.5 shrink-0" title="Verified Business" />
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    <div className="bg-slate-50 p-2.5 rounded border border-slate-100 flex flex-col gap-1 text-xs">
-                                      <div className="flex justify-between items-center">
-                                        <span className="text-slate-500">{deal.metricLabel1}:</span>
-                                        <span className="text-slate-900 font-semibold">{deal.metricValue1}</span>
-                                      </div>
-                                      <div className="flex justify-between items-center">
-                                        <span className="text-slate-500">{deal.metricLabel2}:</span>
-                                        <span className="text-slate-900 font-semibold">{deal.metricValue2}</span>
-                                      </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-1 pt-0.5">
-                                      <div className="flex justify-between text-[11px] text-slate-500 font-medium">
-                                        <span>Stage 3 of 4</span>
-                                        <span className="text-slate-900 font-semibold">Agreement</span>
-                                      </div>
-                                      <div className="flex items-center gap-1 w-full">
-                                        <div className="h-1.5 flex-1 bg-slate-950 rounded-full"></div>
-                                        <div className="h-1.5 flex-1 bg-slate-950 rounded-full"></div>
-                                        <div className="h-1.5 flex-1 bg-slate-950 rounded-full"></div>
-                                        <div className="h-1.5 flex-1 bg-slate-200 rounded-full"></div>
-                                      </div>
-                                    </div>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDealActionClick(deal)}
-                                      className={`mt-1 w-full py-2 px-3 rounded text-xs font-semibold transition-all text-center cursor-pointer ${
-                                        deal.actionType === "high-intent"
-                                          ? "bg-slate-950 text-white hover:bg-slate-800 shadow-xs active:scale-[0.98]"
-                                          : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
-                                      }`}
-                                    >
-                                      {deal.actionLabel}
-                                    </button>
-                                  </div>
-                                );
-                              })
-                            )}
-                          </div>
-
-                          {/* STEP 4: Handshake */}
-                          <div className="bg-slate-100/70 rounded p-4 flex flex-col gap-4 min-h-[640px] border border-slate-200/70">
-                            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-                              <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-slate-950 text-white text-[11px] font-bold flex items-center justify-center">
-                                  4
-                                </span>
-                                <span className="font-display font-bold text-sm text-slate-900">
-                                  Handshake
-                                </span>
-                              </div>
-                              <span className="px-2 py-0.5 rounded-full bg-white text-slate-900 font-mono text-xs font-bold border border-slate-200">
-                                {stage4Deals.length}
-                              </span>
-                            </div>
-
-                            {stage4Deals.length === 0 ? (
-                              <div className="py-12 text-center text-xs text-slate-400 font-sans border-2 border-dashed border-slate-200 rounded p-4">
-                                No deals in Stage 4
-                              </div>
-                            ) : (
-                              stage4Deals.map((deal) => {
-                                const isPosted = deal.origin === "posted";
-                                return (
-                                  <div
-                                    key={deal.id}
-                                    className="deal-card bg-white rounded p-4 shadow-xs border border-slate-200 flex flex-col gap-3 hover:shadow-md hover:border-slate-300 transition-all text-left"
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <span
-                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${
-                                          isPosted
-                                            ? "bg-slate-950 text-white"
-                                            : "bg-slate-100 text-slate-800 border border-slate-200"
-                                        }`}
-                                      >
-                                        {isPosted ? (
-                                          <ArrowDown className="w-3 h-3 text-white" />
-                                        ) : (
-                                          <ArrowUp className="w-3 h-3 text-slate-700" />
-                                        )}
-                                        <span>{isPosted ? "Posted" : "Requested"}</span>
-                                      </span>
-                                      <span className="font-mono text-xs text-slate-500 font-bold">
-                                        {deal.dealCode}
-                                      </span>
-                                    </div>
-
-                                    <div>
-                                      <h3 className="font-display font-bold text-slate-900 text-sm leading-snug">
-                                        {deal.title}
-                                      </h3>
-                                      <div className="flex items-center gap-1.5 mt-1 text-slate-500 text-xs">
-                                        <LockOpen className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                                        <span className="font-medium text-slate-700 truncate max-w-[150px]">
-                                          {deal.partner}
-                                        </span>
-                                        <span className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200 px-1 rounded font-mono font-bold uppercase">
-                                          Unblinded
-                                        </span>
-                                      </div>
-                                    </div>
-
-                                    <div className="bg-slate-50 p-2.5 rounded border border-slate-100 flex flex-col gap-1 text-xs">
-                                      <div className="flex justify-between items-center">
-                                        <span className="text-slate-500">{deal.metricLabel1}:</span>
-                                        <span className="text-slate-900 font-semibold">{deal.metricValue1}</span>
-                                      </div>
-                                      <div className="flex justify-between items-center">
-                                        <span className="text-slate-500">{deal.metricLabel2}:</span>
-                                        <span className="text-slate-900 font-semibold">{deal.metricValue2}</span>
-                                      </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-1 pt-0.5">
-                                      <div className="flex justify-between text-[11px] text-slate-500 font-medium">
-                                        <span>Stage 4 of 4</span>
-                                        <span className="text-slate-900 font-semibold">Handshake Complete</span>
-                                      </div>
-                                      <div className="flex items-center gap-1 w-full">
-                                        <div className="h-1.5 flex-1 bg-slate-950 rounded-full"></div>
-                                        <div className="h-1.5 flex-1 bg-slate-950 rounded-full"></div>
-                                        <div className="h-1.5 flex-1 bg-slate-950 rounded-full"></div>
-                                        <div className="h-1.5 flex-1 bg-slate-950 rounded-full"></div>
-                                      </div>
-                                    </div>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDealActionClick(deal)}
-                                      className="mt-1 w-full py-2 px-3 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-all text-center cursor-pointer border border-slate-200 flex items-center justify-center gap-1 active:scale-[0.98]"
-                                    >
-                                      <span>View Closed Transaction</span>
-                                      <ArrowRight className="w-3 h-3" />
-                                    </button>
-                                  </div>
-                                );
-                              })
-                            )}
+                            <span className="font-mono text-[#64748B] text-[10px] font-medium bg-[#F1F5F9] px-2 py-0.5 rounded-[4px] border border-[#E2E8F0]">
+                              Top 5% Network
+                            </span>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
 
-                  {/* TABLE LIST VIEW */}
-                  {pipelineViewMode === "table" && (
-                    <div className="p-4 sm:p-6">
-                      {filteredRequests.length === 0 ? (
-                        <div className="py-20 text-center flex flex-col items-center justify-center space-y-3 px-4">
-                          <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
-                            <Inbox className="w-6 h-6" />
-                          </div>
-                          <h4 className="font-display font-bold text-base text-slate-900">
-                            No Opportunities Found
+                      {/* Module 3: Workspace Operations */}
+                      <div className="bg-white border border-[#E2E8F0] rounded-[4px] p-5 sm:p-6 space-y-4 shadow-2xs">
+                        <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
+                          <h4 className="font-display font-bold text-sm sm:text-base text-[#171F2C] tracking-tight">
+                            Workspace Operations
                           </h4>
-                          <p className="text-slate-500 text-xs max-w-sm leading-relaxed font-sans">
-                            {hasActiveFilters
-                              ? "No bilateral opportunities matched your current filter criteria."
-                              : "You don't have any bilateral opportunities or pitches yet."}
-                          </p>
+                          <Sparkles className="w-5 h-5 text-[#64748B]" />
                         </div>
-                      ) : (
-                        <div className="overflow-x-auto border border-slate-200 rounded-[4px] bg-white">
-                          <table className="w-full text-left border-collapse font-sans text-xs">
-                            <thead>
-                              <tr className="border-b border-slate-200 font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold bg-slate-50">
-                                <th className="py-3.5 px-4">Opportunity &amp; Category</th>
-                                <th className="py-3.5 px-4">ID &amp; Code</th>
-                                <th className="py-3.5 px-4">Type</th>
-                                <th className="py-3.5 px-4">Partner</th>
-                                <th className="py-3.5 px-4">Stage &amp; Status</th>
-                                <th className="py-3.5 px-4">Date</th>
-                                <th className="py-3.5 px-4 text-right">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                              {filteredRequests.map((req) => {
-                                const {
-                                  isInbound,
-                                  partnerName,
-                                  isVerified,
-                                  stageNum,
-                                  stageHeadline,
-                                  stateCategory,
-                                  isHandshakeComplete,
-                                } = req.workflow || computeRequestWorkflow(req, business?.id);
-
-                                const isDeclined = req.status === "declined";
-                                const isWithdrawn = req.status === "withdrawn";
-
-                                const oppTitle = req.opportunity?.title || "Opportunity Brief";
-                                const dealCode = req.opportunity?.opportunity_number
-                                  ? `RY-${req.opportunity.opportunity_number}`
-                                  : (req.opportunity?.id?.substring(0, 8) || "RY-0000").toUpperCase();
-                                const reqCode = req.id?.substring(0, 6)?.toUpperCase() || "0000";
-
-                                return (
-                                  <tr key={req.id} className="hover:bg-slate-50/60 transition-colors">
-                                    <td className="py-3.5 px-4 space-y-1">
-                                      <Link
-                                        to="/opportunities"
-                                        search={{ q: req.opportunity?.opportunity_number }}
-                                        className="font-display font-bold text-slate-900 text-sm hover:text-emerald-700 hover:underline block"
-                                      >
-                                        {oppTitle}
-                                      </Link>
-                                      <div className="flex items-center gap-1.5 flex-wrap">
-                                        {req.opportunity?.category && (
-                                          <span className="px-2 py-0.5 border border-slate-200 bg-slate-100 text-[8px] font-mono font-bold uppercase tracking-wider text-slate-600 rounded-[2px]">
-                                            {req.opportunity.category === "strategic_advice"
-                                              ? "Strategic Advice"
-                                              : req.opportunity.category}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </td>
-                                    <td className="py-3.5 px-4 font-mono text-slate-600 font-bold whitespace-nowrap">
-                                      #{dealCode.replace(/^\[|\]$/g, "")}
-                                    </td>
-                                    <td className="py-3.5 px-4 whitespace-nowrap">
-                                      <span
-                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider ${
-                                          isInbound
-                                            ? "bg-slate-950 text-white"
-                                            : "bg-slate-100 text-slate-800 border border-slate-200"
-                                        }`}
-                                      >
-                                        {isInbound ? "Posted" : "Requested"}
-                                      </span>
-                                    </td>
-                                    <td className="py-3.5 px-4 font-display font-bold text-slate-900 whitespace-nowrap">
-                                      {partnerName}
-                                    </td>
-                                    <td className="py-3.5 px-4 whitespace-nowrap">
-                                      <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
-                                        Stage {stageNum}: {stageHeadline}
-                                      </span>
-                                    </td>
-                                    <td className="py-3.5 px-4 font-mono text-slate-500 text-xs whitespace-nowrap">
-                                      {new Date(req.created_at).toLocaleDateString("en-US", {
-                                        month: "short",
-                                        day: "numeric",
-                                      })}
-                                    </td>
-                                    <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
-                                      {stageNum === 1 && isInbound && !isDeclined && !isWithdrawn && (
-                                        <Button
-                                          type="button"
-                                          variant="high-intent"
-                                          size="sm"
-                                          onClick={() => handleAcceptIncoming(req.id, partnerName)}
-                                        >
-                                          Accept
-                                        </Button>
-                                      )}
-                                      <Button
-                                        asChild
-                                        variant="authoritative"
-                                        size="sm"
-                                      >
-                                        <Link to="/connections/$id" params={{ id: req.id }}>
-                                          Exchange Hub
-                                        </Link>
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
+                        <div className="space-y-2.5">
+                          <Button
+                            type="button"
+                            variant="authoritative"
+                            size="default"
+                            onClick={handleOpenCreate}
+                            className="w-full gap-2"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>Post New Opportunity</span>
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="default"
+                            onClick={handleExportSummary}
+                            className="w-full gap-2 text-[#171F2C]"
+                          >
+                            <Download className="w-4 h-4 text-[#64748B]" />
+                            <span>Export Deal Ledger (CSV)</span>
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="default"
+                            onClick={() => setProtocolModalOpen(true)}
+                            className="w-full gap-2 text-[#64748B] hover:text-[#171F2C]"
+                          >
+                            <Lock className="w-4 h-4 text-[#94A3B8]" />
+                            <span>Rotate Cryptographic Keys</span>
+                          </Button>
                         </div>
-                      )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              )
+                  </div>
+                </div>)
             )}
 
             {/* ════════════════════════════════════════════════════════════════
@@ -2448,14 +2763,14 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                 ════════════════════════════════════════════════════════════════ */}
             {activeTab === "saved" && (
               loadingSaved ? (
-                <div className="py-20 flex flex-col items-center justify-center space-y-3">
+                <div className="border border-slate-200/80 bg-white rounded-[4px] shadow-xs py-20 flex flex-col items-center justify-center space-y-3">
                   <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
                   <span className="font-sans text-xs uppercase tracking-wider text-slate-400 font-semibold">
                     Loading bookmarked memos...
                   </span>
                 </div>
               ) : savedItems.length === 0 ? (
-                <div className="py-20 text-center flex flex-col items-center justify-center space-y-4 px-4">
+                <div className="border border-slate-200/80 bg-white rounded-[4px] shadow-xs py-20 text-center flex flex-col items-center justify-center space-y-4 px-4">
                   <div className="w-12 h-12 rounded-full border-2 border-[#E2E8F0] border-dashed flex items-center justify-center text-[#94A3B8] mb-1">
                     <BookmarkCheck className="w-5 h-5" />
                   </div>
@@ -2479,7 +2794,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                   </Button>
                 </div>
               ) : (
-                <div className="p-4 sm:p-6 space-y-4">
+                <div className="border border-slate-200/80 bg-white rounded-[4px] shadow-xs p-4 sm:p-6 space-y-4">
                   <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
                     <div className="space-y-0.5">
                       <h3 className="font-sans font-bold text-sm text-[#171F2C] uppercase tracking-tight">
@@ -2864,181 +3179,6 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
         </div>
       </Modal>
 
-      {/* EDIT MODAL */}
-      <Modal
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        title="Edit Opportunity Brief"
-        description={`Update details for #${selectedOpp?.opportunity_number || selectedOpp?.id?.substring(0, 8)}.`}
-        onSubmit={handleEditSubmit}
-        secondaryAction={{
-          label: "Cancel",
-          onClick: () => setEditOpen(false),
-        }}
-        primaryAction={{
-          label: "Save Changes",
-          type: "submit",
-          loading: submitting,
-          variant: "authoritative",
-        }}
-      >
-        {/* Title */}
-        <div className="space-y-1.5">
-          <Label required>Opportunity Title</Label>
-          <Input
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-
-        {/* Category */}
-        <div className="space-y-1.5">
-          <Label required>Exchange Category</Label>
-          <Select value={category} onValueChange={(val) => setCategory(val as any)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="partnership">Partnership (Integrations, API merges)</SelectItem>
-              <SelectItem value="referral">Referral (Client exchanges, Mutual handoffs)</SelectItem>
-              <SelectItem value="distribution">Distribution (IT Consultancies, Resellers)</SelectItem>
-              <SelectItem value="vendor">Vendor (Scaling pipeline requirements)</SelectItem>
-              <SelectItem value="hiring">Hiring (Recruitment, Talent pipeline requests)</SelectItem>
-              <SelectItem value="strategic_advice">Strategic Advice (Advisory, Mentorship)</SelectItem>
-              <SelectItem value="investment">Investment (Funding requests, Capital raises)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Industry */}
-        <div className="space-y-1.5">
-          <Label required>Industry Type</Label>
-          <Select value={industry} onValueChange={setIndustry}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Industry" />
-            </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto">
-              {INDUSTRIES.map((ind) => (
-                <SelectItem key={ind} value={ind}>
-                  {ind}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Description */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label required>Brief Description</Label>
-            <span className="text-[11px] font-sans text-slate-400">
-              {description.length} / 50 min chars
-            </span>
-          </div>
-          <Textarea
-            required
-            rows={4}
-            maxLength={3000}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-
-        <div className="grid min-w-0 sm:grid-cols-2 gap-3.5">
-          {/* Location */}
-          <div className="space-y-1.5">
-            <Label>Location (Optional)</Label>
-            <Input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-            />
-          </div>
-
-          {/* Expiry */}
-          <div className="space-y-1.5">
-            <Label>Expiry</Label>
-            <Select value={expiryDays} onValueChange={setExpiryDays}>
-              <SelectTrigger>
-                <SelectValue placeholder="Keep current expiry" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="keep">Keep Current Expiry</SelectItem>
-                <SelectItem value="7">+7 Days from Now</SelectItem>
-                <SelectItem value="14">+14 Days from Now</SelectItem>
-                <SelectItem value="30">+30 Days from Now</SelectItem>
-                <SelectItem value="60">+60 Days from Now</SelectItem>
-                <SelectItem value="never">Never (Persistent)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Offer text */}
-        <div className="space-y-1.5">
-          <Label>What Can You Offer in Return? (Optional)</Label>
-          <Input
-            value={offerText}
-            onChange={(e) => setOfferText(e.target.value)}
-          />
-        </div>
-
-        {/* Anonymous Checkbox */}
-        <div className="flex items-center space-x-2.5 pt-1">
-          <Checkbox
-            id="hide_company_name_edit"
-            checked={hideCompanyName}
-            onCheckedChange={(checked) => setHideCompanyName(!!checked)}
-            disabled={promote}
-          />
-          <label
-            htmlFor="hide_company_name_edit"
-            className={`text-xs font-sans font-medium cursor-pointer select-none ${
-              promote ? "text-slate-400 cursor-not-allowed" : "text-[#171F2C]"
-            }`}
-          >
-            Post anonymously (Hide company name from public feed)
-          </label>
-        </div>
-
-        {/* Promote Banner */}
-        <div
-          className={`p-3.5 border rounded-[4px] transition-all flex items-start space-x-3 ${
-            hideCompanyName
-              ? "bg-[#F8FAFC] border-[#E2E8F0] opacity-60 cursor-not-allowed"
-              : promote
-                ? "bg-[#FFF7ED] border-[#FED7AA]"
-                : "bg-white border-[#E2E8F0] hover:border-[#CBD5E1]"
-          }`}
-        >
-          <Checkbox
-            id="promote_edit"
-            checked={promote}
-            accent="orange"
-            onCheckedChange={(checked) => setPromote(!!checked)}
-            className="mt-0.5"
-            disabled={hideCompanyName}
-          />
-          <div className="space-y-0.5 select-none flex-1">
-            <label
-              htmlFor="promote_edit"
-              className={`text-xs font-sans font-bold block ${
-                hideCompanyName ? "text-slate-400 cursor-not-allowed" : "text-[#C2410C] cursor-pointer"
-              }`}
-            >
-              Promote listing for 10x visibility
-            </label>
-            <p
-              className={`text-xs font-sans leading-relaxed ${
-                hideCompanyName ? "text-slate-400" : "text-[#64748B]"
-              }`}
-            >
-              Featured listings are highlighted with an orange badge and given top priority in the dealflow feed.
-            </p>
-          </div>
-        </div>
-      </Modal>
-
       {/* DETAIL BRIEF MODAL */}
       <Modal
         open={detailOpen}
@@ -3351,6 +3491,77 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 5. PROTOCOL RULES MODAL */}
+      <Dialog open={protocolModalOpen} onOpenChange={setProtocolModalOpen}>
+        <DialogContent className="max-w-xl bg-white border-slate-200 text-slate-900 shadow-xl">
+          <DialogHeader>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2 h-2 rounded-full bg-[#010611]"></span>
+              <DialogTitle className="font-sans font-bold text-lg text-[#010611]">
+                Bilateral Protocol Governance &amp; Rules
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-slate-500 font-sans">
+              Cryptographic and legal execution standards governing all private dealrooms on The Relay.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 my-2 text-xs font-sans text-slate-700 max-h-[60vh] overflow-y-auto pr-1">
+            <div className="p-3 bg-[#f2f4f6] border border-[#c5c6cc] rounded-[2px] space-y-1">
+              <h5 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#010611]">
+                Rule 1: Bilateral Non-Circumvention (NCND)
+              </h5>
+              <p className="text-[#45474c] leading-relaxed">
+                Prior to Stage 2 term disclosure, both counterparties must execute the mutual digital NCND. Disintermediation or circumvention of introductions is subject to automated audit trails and legal covenant enforcement.
+              </p>
+            </div>
+
+            <div className="p-3 bg-[#f2f4f6] border border-[#c5c6cc] rounded-[2px] space-y-1">
+              <h5 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#010611]">
+                Rule 2: Dual Escrow Verification
+              </h5>
+              <p className="text-[#45474c] leading-relaxed">
+                Stage 3 agreements require cryptographic dual-signing (2/2 signatures). Neither party receives executed credentials or unblinded counterparty identities until both authorizations are ratified.
+              </p>
+            </div>
+
+            <div className="p-3 bg-[#f2f4f6] border border-[#c5c6cc] rounded-[2px] space-y-1">
+              <h5 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#010611]">
+                Rule 3: 48-Hour Strict SLA Turnaround
+              </h5>
+              <p className="text-[#45474c] leading-relaxed">
+                Counterparty turns and response SLAs are metered in real-time. Proposals with unanswered action items past SLA windows are subject to automatic escalation or bilateral expiration.
+              </p>
+            </div>
+
+            <div className="p-3 bg-[#f2f4f6] border border-[#c5c6cc] rounded-[2px] space-y-1">
+              <h5 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#010611]">
+                Rule 4: Zero Cold Outreach Standard
+              </h5>
+              <p className="text-[#45474c] leading-relaxed">
+                Unsolicited spam is cryptographically filtered. Deals only exist upon mutual intent confirmation, preventing unsolicited pitch degradation.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="pt-2">
+            <Button
+              variant="high-intent"
+              size="sm"
+              onClick={() => setProtocolModalOpen(false)}
+            >
+              Understood &amp; Acknowledged
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Post Type Selection Modal */}
+      <PostTypeSelectionModal
+        open={postTypeModalOpen}
+        onOpenChange={setPostTypeModalOpen}
+      />
     </div>
   );
 }

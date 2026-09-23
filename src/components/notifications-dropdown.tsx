@@ -71,19 +71,13 @@ export function NotificationsDropdown() {
     const setupRealtime = async () => {
       try {
         const config = await getSupabaseClientConfig();
-        console.log("[Supabase Realtime] Loaded configuration:", {
-          supabaseUrl: config.supabaseUrl,
-          hasAnonKey: !!config.supabaseAnonKey,
-        });
 
         if (!config.supabaseUrl || !config.supabaseAnonKey) {
-          console.warn("[Supabase Realtime] Supabase configuration missing on client.");
           return;
         }
 
         const res = await getNotifications();
         if (!res || !res.userId) {
-          console.warn("[Supabase Realtime] No user ID available for notifications subscription.");
           return;
         }
 
@@ -92,8 +86,6 @@ export function NotificationsDropdown() {
         setNotifications((res.notifications as any[]) || []);
 
         const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
-
-        console.log(`[Supabase Realtime] Subscribing to INSERTs on public.notifications with user_id=eq.${currentUserId}`);
 
         // Subscribe to real-time Postgres changes for this user's notifications
         activeChannel = supabase
@@ -107,7 +99,6 @@ export function NotificationsDropdown() {
               filter: `user_id=eq.${currentUserId}`,
             },
             (payload: any) => {
-              console.log("[Supabase Realtime] Received new notification insert event:", payload);
               const newNotif = payload.new;
               if (newNotif) {
                 setNotifications((prev) => {
@@ -128,19 +119,14 @@ export function NotificationsDropdown() {
               }
             }
           )
-          .subscribe((status: string, err?: any) => {
-            console.log(`[Supabase Realtime] Subscription status for user_id=${currentUserId}:`, status, err || "");
-          });
-      } catch (err) {
-        console.error("[Supabase Realtime] Failed to setup Supabase Realtime:", err);
-      }
+          .subscribe();
+      } catch (_) {}
     };
 
     setupRealtime();
 
     return () => {
       if (activeChannel) {
-        console.log("[Supabase Realtime] Unsubscribing from notifications channel.");
         activeChannel.unsubscribe();
       }
     };

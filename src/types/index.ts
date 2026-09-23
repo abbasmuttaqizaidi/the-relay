@@ -95,6 +95,10 @@ export interface Interest {
   opportunity_id: string; // UUID references opportunities.id
   requesting_business_id: string; // UUID references businesses.id
   message: string | null;
+  value_categories?: string[];
+  delivery_methods?: string[];
+  proposed_terms?: string | null;
+  highlighted_terms?: string[];
   status: InterestStatus;
   requester_acknowledged_at?: string | null;
   owner_acknowledged_at?: string | null;
@@ -148,6 +152,9 @@ export interface ExchangeProposal {
   receiving_business_id: string;
   exchange_type: ExchangeType;
   exchange_details: string;
+  value_categories?: string[];
+  delivery_methods?: string[];
+  highlighted_terms?: string[];
   revenue_percentage?: number | null;
   fixed_amount?: number | null;
   currency?: string | null;
@@ -336,6 +343,10 @@ export interface ExpressInterestDTO {
   opportunity_id: string;
   business_id: string;
   message?: string;
+  value_categories?: string[];
+  delivery_methods?: string[];
+  proposed_terms?: string;
+  highlighted_terms?: string[];
 }
 
 export interface CreateNotificationDTO {

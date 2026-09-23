@@ -25,8 +25,8 @@ import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { ReciprocityBadge } from "@/components/reciprocity-badge";
-import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import { createPrivateMeta } from "@/lib/seo";
+import { ExecutiveTabs } from "@/design-system";
 
 export const Route = createFileRoute("/requests/sent")({
   head: () => ({
@@ -129,20 +129,26 @@ function SentRequestsPage() {
             </p>
           </div>
 
-          {/* Sub Navigation Tabs */}
-          <div id="requests-tabs-row" className="w-full md:w-auto flex gap-1.5 bg-slate-100 p-1 rounded-[4px] border border-slate-200 font-mono text-[9.5px] uppercase tracking-wider font-bold">
-            <Link
-              to="/requests/incoming"
-              className="flex-1 md:flex-initial text-center px-4 py-2 text-slate-500 hover:text-slate-800 transition-colors"
-            >
-              Incoming
-            </Link>
-            <Link
-              to="/requests/sent"
-              className="flex-1 md:flex-initial text-center px-4 py-2 bg-white text-slate-900 border border-slate-200/50 shadow-sm rounded-[2px]"
-            >
-              Sent ({requests.length})
-            </Link>
+          {/* Sub Navigation Tabs using Design System */}
+          <div id="requests-tabs-row" className="w-full md:w-auto">
+            <ExecutiveTabs
+              variant="pill"
+              activeTab="sent"
+              onTabChange={(tabId) => {
+                if (tabId === "incoming") navigate({ to: "/requests/incoming" });
+              }}
+              tabs={[
+                {
+                  id: "incoming",
+                  label: "Incoming",
+                },
+                {
+                  id: "sent",
+                  label: "Sent",
+                  count: requests.length,
+                },
+              ]}
+            />
           </div>
         </div>
 

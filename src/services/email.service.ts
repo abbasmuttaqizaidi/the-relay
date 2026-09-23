@@ -238,30 +238,78 @@ export class EmailService {
   }
 
   static async sendInterestReceived(
-    targetOwnerEmail: string,
-    opportunityTitle: string,
-    pitchingCompanyName: string,
+    targetOwnerEmailOrParams:
+      | string
+      | {
+          targetOwnerEmail: string;
+          opportunityTitle: string;
+          pitchingCompanyName: string;
+          proposedTerms?: string | null;
+          valueCategories?: string[];
+          deliveryMethods?: string[];
+        },
+    opportunityTitle?: string,
+    pitchingCompanyName?: string,
   ) {
-    const subject = `New Interest in your Opportunity: ${opportunityTitle}`;
+    let toEmail = "";
+    let oppTitle = "";
+    let companyName = "";
+    let proposedTerms: string | null | undefined = null;
+    let valueCategories: string[] = [];
+    let deliveryMethods: string[] = [];
+
+    if (typeof targetOwnerEmailOrParams === "object") {
+      toEmail = targetOwnerEmailOrParams.targetOwnerEmail;
+      oppTitle = targetOwnerEmailOrParams.opportunityTitle;
+      companyName = targetOwnerEmailOrParams.pitchingCompanyName;
+      proposedTerms = targetOwnerEmailOrParams.proposedTerms;
+      valueCategories = targetOwnerEmailOrParams.valueCategories || [];
+      deliveryMethods = targetOwnerEmailOrParams.deliveryMethods || [];
+    } else {
+      toEmail = targetOwnerEmailOrParams;
+      oppTitle = opportunityTitle || "Opportunity";
+      companyName = pitchingCompanyName || "A verified partner";
+    }
+
+    if (!toEmail) {
+      console.warn("[EmailService.sendInterestReceived] Aborting: No recipient email provided.");
+      return;
+    }
+
+    const subject = `New Proposal Received: ${oppTitle}`;
     const appUrl = process.env.APP_URL || "https://usetherelay.com";
 
     const bodyHtml = `
-      <h2 style="color: #de5609;">New Interest Received!</h2>
-      <p>A verified operator from <strong>${pitchingCompanyName}</strong> has expressed interest in your opportunity: <strong>${opportunityTitle}</strong>.</p>
-      <p>Please log in to your dashboard to review their pitch and accept or decline the handshake.</p>
+      <h2 style="color: #de5609;">New Proposal Received!</h2>
+      <p>A verified operator from <strong>${companyName}</strong> has expressed interest and submitted terms for your opportunity: <strong>${oppTitle}</strong>.</p>
+      ${
+        proposedTerms
+          ? `<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 3px solid #de5609; border-radius: 4px; padding: 14px 18px; margin: 16px 0;">
+              <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">Proposed Terms</span>
+              <p style="font-size: 14px; color: #1e293b; margin: 0; line-height: 1.5; font-style: italic;">&ldquo;${proposedTerms}&rdquo;</p>
+            </div>`
+          : ""
+      }
+      <p>Log in to your dashboard to review their proposed exchange structure and accept or counter the proposal.</p>
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${appUrl}/requests/incoming" class="cta-button" style="color: #ffffff;">Review Handshake Request</a>
+        <a href="${appUrl}/proposals?tab=received" class="cta-button" style="color: #ffffff;">Review Received Proposal</a>
       </div>
     `;
 
-    const html = this.wrapInBrandTemplate("New Interest Received — The Relay", bodyHtml);
+    const html = this.wrapInBrandTemplate("New Proposal Received — The Relay", bodyHtml);
 
     await this.sendEmail({
-      to: targetOwnerEmail,
+      to: toEmail,
       subject,
       html,
       templateName: "interest_received",
-      variables: { opportunityTitle, pitchingCompanyName },
+      variables: {
+        opportunityTitle: oppTitle,
+        pitchingCompanyName: companyName,
+        proposedTerms,
+        valueCategories,
+        deliveryMethods,
+      },
     });
   }
 

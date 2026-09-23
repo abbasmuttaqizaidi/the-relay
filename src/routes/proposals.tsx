@@ -26,6 +26,7 @@ import {
   BadgeCheck,
   AlertCircle,
   TrendingUp,
+  History,
 } from "lucide-react";
 import { getIncomingRequests } from "../functions/getIncomingRequests";
 import { getSentRequests } from "../functions/getSentRequests";
@@ -43,6 +44,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { ExecutiveTabs } from "@/design-system";
+import { ProposalHistorySheet } from "@/components/proposals/ProposalHistorySheet";
 
 const searchParamsSchema = z.object({
   tab: fallback(z.enum(["received", "sent"]), "received").default("received"),
@@ -75,6 +78,11 @@ export function ProposalsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProposalForModal, setSelectedProposalForModal] = useState<any | null>(null);
   const [modalType, setModalType] = useState<"detail" | "accept" | "decline" | "withdraw" | null>(null);
+  const [historyOpportunity, setHistoryOpportunity] = useState<{
+    id: string;
+    title: string;
+    opportunity_number?: string;
+  } | null>(null);
 
   // Sync tab with URL search if changed
   useEffect(() => {
@@ -199,11 +207,13 @@ export function ProposalsPage() {
 
   // Derived Counts
   const pendingIncomingCount = useMemo(() => {
-    return incomingRequests.filter((r: any) => r.status === "pending").length;
+    if (!Array.isArray(incomingRequests)) return 0;
+    return incomingRequests.filter((r: any) => r && r.status === "pending").length;
   }, [incomingRequests]);
 
   const activeSentCount = useMemo(() => {
-    return sentRequests.filter((r: any) => r.status === "pending").length;
+    if (!Array.isArray(sentRequests)) return 0;
+    return sentRequests.filter((r: any) => r && r.status === "pending").length;
   }, [sentRequests]);
 
   // Accept Mutation
@@ -278,9 +288,11 @@ export function ProposalsPage() {
 
   // Filtered lists
   const filteredIncoming = useMemo(() => {
+    if (!Array.isArray(incomingRequests)) return [];
     const q = searchQuery.toLowerCase().trim();
     if (!q) return incomingRequests;
     return incomingRequests.filter((req: any) => {
+      if (!req) return false;
       const oppTitle = req.opportunity?.title?.toLowerCase() || "";
       const company = req.requesting_business?.company_name?.toLowerCase() || "";
       const msg = req.message?.toLowerCase() || "";
@@ -290,9 +302,11 @@ export function ProposalsPage() {
   }, [incomingRequests, searchQuery]);
 
   const filteredSent = useMemo(() => {
+    if (!Array.isArray(sentRequests)) return [];
     const q = searchQuery.toLowerCase().trim();
     if (!q) return sentRequests;
     return sentRequests.filter((req: any) => {
+      if (!req) return false;
       const oppTitle = req.opportunity?.title?.toLowerCase() || "";
       const company =
         req.opportunity?.business?.company_name?.toLowerCase() ||
@@ -304,19 +318,25 @@ export function ProposalsPage() {
     });
   }, [sentRequests, searchQuery]);
 
-  const formatDistance = (dateString: string) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
+  const formatDistance = (dateString: string | Date | undefined | null) => {
+    if (!dateString) return "recently";
+    try {
+      const now = new Date();
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "recently";
+      const diffMs = Math.max(0, now.getTime() - date.getTime());
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return "just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays === 1) return "1d ago";
-    return `${diffDays}d ago`;
+      if (diffMins < 1) return "just now";
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays === 1) return "1d ago";
+      return `${diffDays}d ago`;
+    } catch {
+      return "recently";
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -403,49 +423,15 @@ export function ProposalsPage() {
 
             {/* Filter Tabs & Search Bar (Only Received and Sent tabs) */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-[4px] border border-[#E2E8F0] w-fit">
-                <button
-                  type="button"
-                  onClick={() => handleTabChange("received")}
-                  className={`px-4 py-1.5 rounded-[4px] text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                    activeTab === "received"
-                      ? "bg-[#171F2C] text-white shadow-xs"
-                      : "text-[#64748B] hover:text-[#171F2C]"
-                  }`}
-                >
-                  <span>Received</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                      activeTab === "received"
-                        ? "bg-white/20 text-white"
-                        : "bg-slate-200 text-slate-700"
-                    }`}
-                  >
-                    {incomingRequests.length}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleTabChange("sent")}
-                  className={`px-4 py-1.5 rounded-[4px] text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                    activeTab === "sent"
-                      ? "bg-[#171F2C] text-white shadow-xs"
-                      : "text-[#64748B] hover:text-[#171F2C]"
-                  }`}
-                >
-                  <span>Sent</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                      activeTab === "sent"
-                        ? "bg-white/20 text-white"
-                        : "bg-slate-200 text-slate-700"
-                    }`}
-                  >
-                    {sentRequests.length}
-                  </span>
-                </button>
-              </div>
+              <ExecutiveTabs
+                variant="pill"
+                activeTab={activeTab}
+                onTabChange={(tabId) => handleTabChange(tabId as "received" | "sent")}
+                tabs={[
+                  { id: "received", label: "Received", count: incomingRequests.length },
+                  { id: "sent", label: "Sent", count: sentRequests.length },
+                ]}
+              />
 
               {/* Search Box */}
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-[4px] bg-white border border-[#E2E8F0] w-full sm:w-80 focus-within:border-[#171F2C] transition-colors shadow-xs">
@@ -589,75 +575,101 @@ export function ProposalsPage() {
                             </div>
 
                             {/* Actions for Received Proposals across all stages */}
-                            <div className="pt-2 border-t border-[#E2E8F0] flex items-center gap-2">
-                              {isPending ? (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedProposalForModal(req);
-                                      setModalType("accept");
-                                    }}
-                                    className="flex-1 py-2 px-3 rounded-[4px] bg-[#171F2C] hover:bg-black text-white text-xs font-semibold transition-colors cursor-pointer text-center"
-                                  >
-                                    Accept
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedProposalForModal(req);
-                                      setModalType("decline");
-                                    }}
-                                    className="flex-1 py-2 px-3 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#64748B] hover:text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer text-center"
-                                  >
-                                    Decline
-                                  </button>
+                            <div className="pt-2 border-t border-[#E2E8F0] space-y-2">
+                              {/* Primary Row: Accept / Decline / View */}
+                              <div className="flex items-center gap-2">
+                                {isPending ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedProposalForModal(req);
+                                        setModalType("accept");
+                                      }}
+                                      className="flex-1 py-2 px-3 rounded-[4px] bg-[#171F2C] hover:bg-black text-white text-xs font-semibold transition-colors cursor-pointer text-center"
+                                    >
+                                      Accept
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedProposalForModal(req);
+                                        setModalType("decline");
+                                      }}
+                                      className="flex-1 py-2 px-3 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#64748B] hover:text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer text-center"
+                                    >
+                                      Decline
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedProposalForModal(req);
+                                        setModalType("detail");
+                                      }}
+                                      className="p-2 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#64748B] hover:text-[#171F2C] transition-colors cursor-pointer"
+                                      title="View Full Pitch"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </button>
+                                  </>
+                                ) : isAccepted ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedProposalForModal(req);
+                                        setModalType("detail");
+                                      }}
+                                      className="flex-1 py-2 px-3 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                      <span>View Details</span>
+                                    </button>
+                                    <Link
+                                      to="/my-relay"
+                                      className="flex-1 py-2 px-3 rounded-[4px] bg-[#171F2C] hover:bg-black text-white text-xs font-semibold transition-colors text-center inline-flex items-center justify-center gap-1"
+                                    >
+                                      <span>Exchange</span>
+                                      <ArrowRight className="w-3 h-3" />
+                                    </Link>
+                                  </>
+                                ) : (
                                   <button
                                     type="button"
                                     onClick={() => {
                                       setSelectedProposalForModal(req);
                                       setModalType("detail");
                                     }}
-                                    className="p-2 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#64748B] hover:text-[#171F2C] transition-colors cursor-pointer"
-                                    title="View Full Pitch"
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                  </button>
-                                </>
-                              ) : isAccepted ? (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedProposalForModal(req);
-                                      setModalType("detail");
-                                    }}
-                                    className="flex-1 py-2 px-3 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
+                                    className="w-full py-2 px-3 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
                                   >
                                     <Eye className="w-3.5 h-3.5" />
-                                    <span>View Details</span>
+                                    <span>View Proposal Details</span>
                                   </button>
-                                  <Link
-                                    to="/my-relay"
-                                    className="flex-1 py-2 px-3 rounded-[4px] bg-[#171F2C] hover:bg-black text-white text-xs font-semibold transition-colors text-center inline-flex items-center justify-center gap-1"
-                                  >
-                                    <span>Exchange</span>
-                                    <ArrowRight className="w-3 h-3" />
-                                  </Link>
-                                </>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedProposalForModal(req);
-                                    setModalType("detail");
-                                  }}
-                                  className="w-full py-2 px-3 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
-                                >
-                                  <Eye className="w-3.5 h-3.5" />
-                                  <span>View Proposal Details</span>
-                                </button>
-                              )}
+                                )}
+                              </div>
+
+                              {/* Secondary Row: Full-Width Proposal History button */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (req.opportunity?.id) {
+                                    setHistoryOpportunity({
+                                      id: req.opportunity.id,
+                                      title: req.opportunity.title,
+                                      opportunity_number: req.opportunity.opportunity_number,
+                                    });
+                                  }
+                                }}
+                                className="w-full py-1.5 px-3 rounded-[4px] bg-slate-50 hover:bg-slate-100/90 border border-slate-200/90 hover:border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-medium transition-all cursor-pointer flex items-center justify-between group shadow-2xs"
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <History className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-800 transition-colors" />
+                                  <span className="font-semibold text-slate-800 text-[11px]">Proposal History</span>
+                                </div>
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-[3px] text-[9px] font-bold tracking-wider uppercase bg-amber-100 text-amber-900 border border-amber-300/80">
+                                  PRO
+                                </span>
+                              </button>
                             </div>
                           </div>
                         );
@@ -1062,6 +1074,23 @@ export function ProposalsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          PROPOSAL HISTORY & DEAL INTELLIGENCE SIDE SHEET (PRO TIER)
+          ═══════════════════════════════════════════════════════════════════ */}
+      <ProposalHistorySheet
+        open={!!historyOpportunity}
+        onOpenChange={(open) => {
+          if (!open) setHistoryOpportunity(null);
+        }}
+        opportunityId={historyOpportunity?.id || null}
+        opportunityTitle={historyOpportunity?.title}
+        opportunityNumber={historyOpportunity?.opportunity_number}
+        onViewProposalDetail={(proposal) => {
+          setSelectedProposalForModal(proposal);
+          setModalType("detail");
+        }}
+      />
     </div>
   );
 }

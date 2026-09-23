@@ -1,10 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth, useUser, useClerk } from "@clerk/tanstack-react-start";
 import { getAdminUsers } from "../functions/getAdminUsers";
 import { deleteUserFromAdmin } from "../functions/deleteUserFromAdmin";
 import { updateBusinessStatus } from "../functions/updateBusinessStatus";
 import { getAdminOpportunities } from "../functions/getAdminOpportunities";
+import { deleteOpportunityFromAdmin } from "../functions/deleteOpportunityFromAdmin";
+import { alterOpportunityStageFromAdmin } from "../functions/alterOpportunityStageFromAdmin";
+import { removeProposalFromAdmin } from "../functions/removeProposalFromAdmin";
 import { updatePromotionStatus } from "../functions/updatePromotionStatus";
 import { getAdminInsights } from "../functions/getAdminInsights";
 import { deleteAdminInsightItem } from "../functions/deleteAdminInsightItem";
@@ -35,6 +38,13 @@ import {
   HelpCircle,
   Lightbulb,
   Plus,
+  ChevronDown,
+  ChevronUp,
+  Workflow,
+  History,
+  AlertTriangle,
+  Layers,
+  ArrowRightLeft,
 } from "lucide-react";
 import { RelayVerificationSeal } from "@/components/relay-verification-seal";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
@@ -57,6 +67,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ExecutiveTabs } from "@/design-system";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -117,6 +128,43 @@ type AdminUser = {
   } | null;
 };
 
+type AdminInterest = {
+  id: string;
+  business_id: string;
+  status: string;
+  message: string | null;
+  created_at: string;
+  current_stage: number;
+  current_stage_label: string;
+  requesting_business: {
+    id: string;
+    company_name: string;
+    website: string;
+    industry: string;
+    logo_url: string | null;
+    status: string;
+  };
+  exchange_proposals: Array<{
+    id: string;
+    version: number;
+    proposed_terms: string;
+    status: string;
+    created_at: string;
+  }>;
+  exchange_agreement: {
+    id: string;
+    status: string;
+    created_at: string;
+    confirmed_at: string | null;
+  } | null;
+  contact_consents: Array<{
+    id: string;
+    business_id: string;
+    status: string;
+    created_at: string;
+  }>;
+};
+
 type AdminOpportunity = {
   id: string;
   opportunity_number: string;
@@ -135,6 +183,7 @@ type AdminOpportunity = {
     website: string;
     industry: string;
   };
+  interests?: AdminInterest[];
 };
 
 type AdminQuestion = {
@@ -303,6 +352,105 @@ function AdminDashboard() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
   const [updatingPromotionId, setUpdatingPromotionId] = useState<string | null>(null);
+  const [deletingOppId, setDeletingOppId] = useState<string | null>(null);
+  const [alteringStageInterestId, setAlteringStageInterestId] = useState<string | null>(null);
+  const [removingInterestId, setRemovingInterestId] = useState<string | null>(null);
+  const [expandedOppIds, setExpandedOppIds] = useState<Record<string, boolean>>({});
+
+  const toggleOppExpand = (oppId: string) => {
+    setExpandedOppIds((prev) => ({
+      ...prev,
+      [oppId]: !prev[oppId],
+    }));
+  };
+
+  const handleDeleteOpportunity = async (oppId: string, title: string) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to permanently delete opportunity "${title}"?\n\nThis will remove the opportunity and ALL attached interests, ongoing proposals, agreements, consents, and bookmarks. This action CANNOT be undone.`,
+      )
+    ) {
+      return;
+    }
+
+    setDeletingOppId(oppId);
+    try {
+      await deleteOpportunityFromAdmin({
+        data: { opportunity_id: oppId },
+      });
+      toast.success(`Opportunity "${title}" and all attached dealflow records deleted.`);
+      setOpportunities((prev) => prev.filter((o) => o.id !== oppId));
+    } catch (err: any) {
+      console.error("[Admin] Delete opportunity failed:", err);
+      toast.error(err?.message || "Failed to delete opportunity.");
+    } finally {
+      setDeletingOppId(null);
+    }
+  };
+
+  const handleAlterStage = async (
+    interestId: string,
+    newStage: 1 | 2 | 3 | 4,
+    companyName: string,
+  ) => {
+    const stageLabels: Record<number, string> = {
+      1: "Stage 1 (Acknowledgement)",
+      2: "Stage 2 (Negotiation)",
+      3: "Stage 3 (Agreement)",
+      4: "Stage 4 (Handshake)",
+    };
+
+    if (
+      !window.confirm(
+        `Are you sure you want to alter the stage for "${companyName}" to ${stageLabels[newStage]}?\n\nWARNING: If altering backward to a previous stage, all subsequent stage data (proposals, agreements, consents) will be permanently wiped.`,
+      )
+    ) {
+      return;
+    }
+
+    setAlteringStageInterestId(interestId);
+    try {
+      const res = await alterOpportunityStageFromAdmin({
+        data: {
+          interest_id: interestId,
+          new_stage: newStage,
+        },
+      });
+      toast.success(res.message || `Stage altered to ${stageLabels[newStage]}.`);
+      const oppsRes = await getAdminOpportunities();
+      setOpportunities(oppsRes.opportunities);
+    } catch (err: any) {
+      console.error("[Admin] Alter stage failed:", err);
+      toast.error(err?.message || "Failed to alter stage.");
+    } finally {
+      setAlteringStageInterestId(null);
+    }
+  };
+
+  const handleRemoveProposal = async (interestId: string, companyName: string) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to remove the proposal/interest from "${companyName}"?\n\nThis will reset any ongoing deal stages and delete associated proposals/agreements.`,
+      )
+    ) {
+      return;
+    }
+
+    setRemovingInterestId(interestId);
+    try {
+      const res = await removeProposalFromAdmin({
+        data: { interest_id: interestId },
+      });
+      toast.success(res.message || `Proposal from "${companyName}" removed.`);
+      const oppsRes = await getAdminOpportunities();
+      setOpportunities(oppsRes.opportunities);
+    } catch (err: any) {
+      console.error("[Admin] Remove proposal failed:", err);
+      toast.error(err?.message || "Failed to remove proposal.");
+    } finally {
+      setRemovingInterestId(null);
+    }
+  };
 
   const fetchAdminData = async () => {
     setLoading(true);
@@ -519,7 +667,12 @@ function AdminDashboard() {
       opp.description.toLowerCase().includes(q) ||
       opp.category.toLowerCase().includes(q) ||
       (opp.location && opp.location.toLowerCase().includes(q)) ||
-      opp.business.company_name.toLowerCase().includes(q)
+      opp.business.company_name.toLowerCase().includes(q) ||
+      opp.interests?.some(
+        (i) =>
+          i.requesting_business?.company_name.toLowerCase().includes(q) ||
+          i.current_stage_label?.toLowerCase().includes(q),
+      )
     );
   });
 
@@ -749,49 +902,28 @@ function AdminDashboard() {
           </div>
         </section>
 
-        {/* Tab Switcher */}
-        <div className="flex border-b border-[#1f25301f] font-mono text-xs uppercase tracking-wider gap-6">
-          <button
-            onClick={() => setActiveTab("users")}
-            className={`pb-3 border-b-2 font-bold transition-all -mb-px cursor-pointer ${
-              activeTab === "users"
-                ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            User Directory & Vetting
-          </button>
-          <button
-            onClick={() => setActiveTab("promotions")}
-            className={`pb-3 border-b-2 font-bold transition-all -mb-px cursor-pointer flex items-center gap-1.5 ${
-              activeTab === "promotions"
-                ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            Promotion Requests
-            {pendingPromotionsCount > 0 && (
-              <span className="px-1.5 py-0.5 bg-primary text-white text-[9px] font-bold rounded-full font-sans tracking-normal leading-none flex items-center justify-center">
-                {pendingPromotionsCount}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("insights")}
-            className={`pb-3 border-b-2 font-bold transition-all -mb-px cursor-pointer flex items-center gap-1.5 ${
-              activeTab === "insights"
-                ? "border-primary text-primary"
-                : "border-transparent text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            Insights & Knowledge
-            {adminQuestions.length + adminKnowledge.length > 0 && (
-              <span className="px-1.5 py-0.5 bg-slate-900 text-white text-[9px] font-bold rounded-full font-sans tracking-normal leading-none flex items-center justify-center">
-                {adminQuestions.length + adminKnowledge.length}
-              </span>
-            )}
-          </button>
-        </div>
+        {/* Tab Switcher using Design System */}
+        <ExecutiveTabs
+          variant="underline"
+          activeTab={activeTab}
+          onTabChange={(tabId) => setActiveTab(tabId as "users" | "promotions" | "insights")}
+          tabs={[
+            { id: "users", label: "User Directory & Vetting" },
+            {
+              id: "promotions",
+              label: "Opportunities & Deals",
+              count: pendingPromotionsCount > 0 ? pendingPromotionsCount : undefined,
+            },
+            {
+              id: "insights",
+              label: "Insights & Knowledge",
+              count:
+                adminQuestions.length + adminKnowledge.length > 0
+                  ? adminQuestions.length + adminKnowledge.length
+                  : undefined,
+            },
+          ]}
+        />
 
         {activeTab === "users" && (
           /* Directory Controls */
@@ -1158,14 +1290,14 @@ function AdminDashboard() {
         )}
 
         {activeTab === "promotions" && (
-          /* Promotion Requests Controls */
+          /* Opportunity Lifecycle & Dealflow Management */
           <section className="border border-[#1f25301f] bg-white rounded-[2px] overflow-hidden">
             <div className="p-5 border-b border-[#1f25300d] flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-50/50">
               <div className="relative w-full sm:max-w-md">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   type="text"
-                  placeholder="Search by Opp#, Title, Category, or Company..."
+                  placeholder="Search by Opp#, Title, Category, Owner, or Inquiring Business..."
                   value={oppsSearchQuery}
                   onChange={(e) => setOppsSearchQuery(e.target.value)}
                   className="w-full h-11 pl-10 pr-4 rounded-[2px] border border-[#1f25301f] bg-white text-slate-800 font-mono text-xs focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none"
@@ -1181,7 +1313,8 @@ function AdminDashboard() {
               <Table className="w-full border-collapse text-left text-xs">
                 <TableHeader className="bg-[#fafbfc] border-b border-[#1f253012] font-mono font-bold uppercase text-[9px] tracking-wider text-slate-500">
                   <TableRow>
-                    <TableHead className="p-4 pl-6">Opp ID & Title</TableHead>
+                    <TableHead className="p-4 pl-6 w-12"></TableHead>
+                    <TableHead className="p-4">Opp ID & Title</TableHead>
                     <TableHead className="p-4">Owner Business</TableHead>
                     <TableHead className="p-4">Category</TableHead>
                     <TableHead className="p-4">Promotion Status</TableHead>
@@ -1192,150 +1325,361 @@ function AdminDashboard() {
                 <TableBody className="divide-y divide-[#1f25300a]">
                   {filteredOpportunities.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="p-12 text-center text-slate-400 font-mono">
+                      <TableCell colSpan={7} className="p-12 text-center text-slate-400 font-mono">
                         No matching records found.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredOpportunities.map((opp) => (
-                      <TableRow key={opp.id} className="hover:bg-slate-50/50 transition-colors">
-                        <TableCell className="p-4 pl-6">
-                          <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                            <span className="font-mono text-[10px] text-slate-400 bg-slate-100 border border-slate-200 px-1 py-0.5 rounded-[2px] select-none font-medium">
-                              {opp.opportunity_number}
-                            </span>
-                            {opp.title}
-                          </div>
-                          <div className="text-[11px] text-slate-500 line-clamp-1 max-w-md mt-1 font-sans">
-                            {opp.description}
-                          </div>
-                        </TableCell>
-                        <TableCell className="p-4">
-                          <div className="font-bold text-slate-800 flex items-center gap-1">
-                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                            {opp.business.company_name}
-                          </div>
-                          <div className="font-mono text-[10px] text-slate-500 mt-0.5">
-                            <a
-                              href={opp.business.website}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-primary hover:underline flex items-center gap-0.5"
-                            >
-                              {opp.business.website.replace(/^https?:\/\//i, "")}
-                              <ExternalLink className="w-2.5 h-2.5" />
-                            </a>
-                          </div>
-                        </TableCell>
-                        <TableCell className="p-4 font-mono text-[10px] uppercase text-slate-600">
-                          {opp.category}
-                        </TableCell>
-                        <TableCell className="p-4">
-                          <Badge
-                            variant={
-                              opp.promotion_status === "promoted"
-                                ? "success"
-                                : opp.promotion_status === "pending_promotion"
-                                  ? "warning"
-                                  : "secondary"
-                            }
-                            className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase rounded-[2px] px-2 py-0.5"
-                          >
-                            {opp.promotion_status === "promoted" && (
-                              <Sparkles className="w-3 h-3" />
-                            )}
-                            {opp.promotion_status === "pending_promotion" && (
-                              <Clock className="w-3 h-3" />
-                            )}
-                            {opp.promotion_status === "none" ? "none" : opp.promotion_status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="p-4 font-mono text-[10px] text-slate-500">
-                          {new Date(opp.created_at).toLocaleDateString(undefined, {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </TableCell>
-                        <TableCell className="p-4 pr-6 text-right">
-                          <div className="flex items-center justify-end gap-2.5 flex-wrap">
-                            {opp.promotion_status === "pending_promotion" && (
-                              <>
-                                <Button
-                                  onClick={() =>
-                                    handlePromotionStatusChange(opp.id, "promoted", opp.title)
-                                  }
-                                  disabled={updatingPromotionId === opp.id}
-                                  className="h-8 px-3 rounded-[2px] bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
-                                >
-                                  Approve
-                                </Button>
-                                <Button
-                                  onClick={() =>
-                                    handlePromotionStatusChange(opp.id, "none", opp.title)
-                                  }
-                                  disabled={updatingPromotionId === opp.id}
-                                  variant="outline"
-                                  className="h-8 px-3 rounded-[2px] border-red-200 bg-red-50/20 hover:bg-red-50 text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
-                                >
-                                  Reject
-                                </Button>
-                              </>
-                            )}
+                    filteredOpportunities.map((opp) => {
+                      const isExpanded = !!expandedOppIds[opp.id];
+                      const interestsCount = opp.interests?.length || 0;
 
-                            {opp.promotion_status === "promoted" && (
+                      return (
+                        <React.Fragment key={opp.id}>
+                          <TableRow className="hover:bg-slate-50/50 transition-colors">
+                            <TableCell className="p-4 pl-6 w-12">
                               <Button
-                                onClick={() =>
-                                  handlePromotionStatusChange(opp.id, "none", opp.title)
-                                }
-                                disabled={updatingPromotionId === opp.id}
-                                variant="outline"
-                                className="h-8 px-3 rounded-[2px] border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleOppExpand(opp.id)}
+                                className="h-7 w-7 p-0 rounded-[2px] hover:bg-slate-200/60 text-slate-500 hover:text-slate-900 cursor-pointer"
+                                title={isExpanded ? "Collapse dealflow" : "Expand dealflow"}
                               >
-                                Revoke Promotion
-                              </Button>
-                            )}
-
-                            <Select
-                              value={opp.promotion_status}
-                              onValueChange={(val) =>
-                                handlePromotionStatusChange(
-                                  opp.id,
-                                  val as "none" | "pending_promotion" | "promoted",
-                                  opp.title,
-                                )
-                              }
-                              disabled={updatingPromotionId === opp.id}
-                            >
-                              <SelectTrigger className="w-[130px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0">
-                                {updatingPromotionId === opp.id ? (
-                                  <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
+                                {isExpanded ? (
+                                  <ChevronUp className="w-4 h-4" />
                                 ) : (
-                                  <SelectValue />
+                                  <ChevronDown className="w-4 h-4" />
                                 )}
-                              </SelectTrigger>
-                              <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
-                                <SelectItem value="none" className="cursor-pointer text-slate-600">
-                                  None
-                                </SelectItem>
-                                <SelectItem
-                                  value="pending_promotion"
-                                  className="cursor-pointer text-amber-600"
+                              </Button>
+                            </TableCell>
+                            <TableCell className="p-4">
+                              <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                                <span className="font-mono text-[10px] text-slate-400 bg-slate-100 border border-slate-200 px-1 py-0.5 rounded-[2px] select-none font-medium">
+                                  {opp.opportunity_number}
+                                </span>
+                                {opp.title}
+                              </div>
+                              <div className="text-[11px] text-slate-500 line-clamp-1 max-w-md mt-1 font-sans">
+                                {opp.description}
+                              </div>
+                              <div className="mt-1.5 flex items-center gap-2">
+                                <Badge
+                                  variant="outline"
+                                  onClick={() => toggleOppExpand(opp.id)}
+                                  className="cursor-pointer hover:bg-slate-100 text-[9px] font-mono uppercase tracking-wider text-slate-600 border-slate-200 py-0 px-1.5"
                                 >
-                                  Pending
-                                </SelectItem>
-                                <SelectItem
-                                  value="promoted"
-                                  className="cursor-pointer text-emerald-600"
+                                  <Workflow className="w-2.5 h-2.5 mr-1 text-orange-600" />
+                                  {interestsCount} {interestsCount === 1 ? "Deal / Proposal" : "Deals / Proposals"}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            <TableCell className="p-4">
+                              <div className="font-bold text-slate-800 flex items-center gap-1">
+                                <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                                {opp.business.company_name}
+                              </div>
+                              <div className="font-mono text-[10px] text-slate-500 mt-0.5">
+                                <a
+                                  href={opp.business.website}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-primary hover:underline flex items-center gap-0.5"
                                 >
-                                  Promoted
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                                  {opp.business.website.replace(/^https?:\/\//i, "")}
+                                  <ExternalLink className="w-2.5 h-2.5" />
+                                </a>
+                              </div>
+                            </TableCell>
+                            <TableCell className="p-4 font-mono text-[10px] uppercase text-slate-600">
+                              {opp.category}
+                            </TableCell>
+                            <TableCell className="p-4">
+                              <Badge
+                                variant={
+                                  opp.promotion_status === "promoted"
+                                    ? "success"
+                                    : opp.promotion_status === "pending_promotion"
+                                      ? "warning"
+                                      : "secondary"
+                                }
+                                className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase rounded-[2px] px-2 py-0.5"
+                              >
+                                {opp.promotion_status === "promoted" && (
+                                  <Sparkles className="w-3 h-3" />
+                                )}
+                                {opp.promotion_status === "pending_promotion" && (
+                                  <Clock className="w-3 h-3" />
+                                )}
+                                {opp.promotion_status === "none" ? "none" : opp.promotion_status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="p-4 font-mono text-[10px] text-slate-500">
+                              {new Date(opp.created_at).toLocaleDateString(undefined, {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </TableCell>
+                            <TableCell className="p-4 pr-6 text-right">
+                              <div className="flex items-center justify-end gap-2 flex-wrap">
+                                {opp.promotion_status === "pending_promotion" && (
+                                  <>
+                                    <Button
+                                      onClick={() =>
+                                        handlePromotionStatusChange(opp.id, "promoted", opp.title)
+                                      }
+                                      disabled={updatingPromotionId === opp.id}
+                                      className="h-8 px-2.5 rounded-[2px] bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                                    >
+                                      Approve
+                                    </Button>
+                                    <Button
+                                      onClick={() =>
+                                        handlePromotionStatusChange(opp.id, "none", opp.title)
+                                      }
+                                      disabled={updatingPromotionId === opp.id}
+                                      variant="outline"
+                                      className="h-8 px-2.5 rounded-[2px] border-red-200 bg-red-50/20 hover:bg-red-50 text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                                    >
+                                      Reject
+                                    </Button>
+                                  </>
+                                )}
+
+                                {opp.promotion_status === "promoted" && (
+                                  <Button
+                                    onClick={() =>
+                                      handlePromotionStatusChange(opp.id, "none", opp.title)
+                                    }
+                                    disabled={updatingPromotionId === opp.id}
+                                    variant="outline"
+                                    className="h-8 px-2.5 rounded-[2px] border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                                  >
+                                    Revoke
+                                  </Button>
+                                )}
+
+                                <Select
+                                  value={opp.promotion_status}
+                                  onValueChange={(val) =>
+                                    handlePromotionStatusChange(
+                                      opp.id,
+                                      val as "none" | "pending_promotion" | "promoted",
+                                      opp.title,
+                                    )
+                                  }
+                                  disabled={updatingPromotionId === opp.id}
+                                >
+                                  <SelectTrigger className="w-[110px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0">
+                                    {updatingPromotionId === opp.id ? (
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
+                                    ) : (
+                                      <SelectValue />
+                                    )}
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
+                                    <SelectItem value="none" className="cursor-pointer text-slate-600">
+                                      None
+                                    </SelectItem>
+                                    <SelectItem
+                                      value="pending_promotion"
+                                      className="cursor-pointer text-amber-600"
+                                    >
+                                      Pending
+                                    </SelectItem>
+                                    <SelectItem
+                                      value="promoted"
+                                      className="cursor-pointer text-emerald-600"
+                                    >
+                                      Promoted
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+
+                                {/* Delete Opportunity Button */}
+                                <Button
+                                  onClick={() => handleDeleteOpportunity(opp.id, opp.title)}
+                                  disabled={deletingOppId === opp.id}
+                                  variant="destructive"
+                                  className="h-8 px-2.5 border border-red-500/10 rounded-[2px] bg-red-500/5 hover:bg-red-500 hover:text-white transition-all text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer shadow-none"
+                                  title="Delete entire opportunity and all associated dealflow"
+                                >
+                                  {deletingOppId === opp.id ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  )}
+                                  Delete Opp
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+
+                          {/* Collapsible Dealflow Section */}
+                          {isExpanded && (
+                            <TableRow className="bg-slate-50/70 hover:bg-slate-50/70">
+                              <TableCell colSpan={7} className="p-0">
+                                <div className="p-5 pl-12 pr-8 space-y-4 border-b border-[#1f253012]">
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                                    <div className="flex items-center gap-2">
+                                      <Workflow className="w-4 h-4 text-orange-600" />
+                                      <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate-900">
+                                        Opportunity Dealflow & Attached Proposals ({interestsCount})
+                                      </span>
+                                    </div>
+                                    <span className="font-mono text-[10px] text-slate-500 flex items-center gap-1">
+                                      <AlertTriangle className="w-3 h-3 text-amber-500" />
+                                      Moving to a previous stage wipes all data for subsequent stages
+                                    </span>
+                                  </div>
+
+                                  {!opp.interests || opp.interests.length === 0 ? (
+                                    <div className="p-6 bg-white border border-dashed border-slate-200 rounded-[2px] text-slate-400 font-mono text-xs text-center">
+                                      No proposals, interests, or active deals attached to this opportunity.
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-3">
+                                      {opp.interests.map((interest) => (
+                                        <div
+                                          key={interest.id}
+                                          className="p-4 bg-white border border-[#1f25301f] rounded-[2px] flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-2xs"
+                                        >
+                                          {/* Deal Party Details */}
+                                          <div className="space-y-1.5 flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                              <span className="font-bold text-slate-900 font-sans text-xs">
+                                                {interest.requesting_business.company_name}
+                                              </span>
+                                              <Badge
+                                                variant="outline"
+                                                className="font-mono text-[9px] uppercase px-1.5 py-0 border-slate-200 text-slate-500"
+                                              >
+                                                {interest.requesting_business.industry || "Industry"}
+                                              </Badge>
+                                              <span className="font-mono text-[10px] text-slate-400">
+                                                Inquired: {new Date(interest.created_at).toLocaleDateString()}
+                                              </span>
+                                            </div>
+
+                                            {interest.message && (
+                                              <div className="text-[11px] text-slate-600 font-sans line-clamp-2 bg-slate-50 p-2 rounded-[2px] border border-slate-100">
+                                                <span className="font-mono text-[9px] uppercase text-slate-400 font-bold block mb-0.5">
+                                                  Initial Note:
+                                                </span>
+                                                {interest.message}
+                                              </div>
+                                            )}
+
+                                            <div className="flex items-center gap-3 text-[10px] font-mono text-slate-500 pt-0.5">
+                                              <span>
+                                                Proposals: <strong>{interest.exchange_proposals.length}</strong>
+                                              </span>
+                                              <span>•</span>
+                                              <span>
+                                                Agreement:{" "}
+                                                <strong>
+                                                  {interest.exchange_agreement ? interest.exchange_agreement.status : "None"}
+                                                </strong>
+                                              </span>
+                                              <span>•</span>
+                                              <span>
+                                                Consents: <strong>{interest.contact_consents.length}</strong>
+                                              </span>
+                                            </div>
+                                          </div>
+
+                                          {/* Stage Alteration & Proposal Actions */}
+                                          <div className="flex items-center gap-3 flex-wrap justify-end border-t lg:border-t-0 pt-2 lg:pt-0 border-slate-100">
+                                            {/* Stage Badge */}
+                                            <div className="flex flex-col items-start lg:items-end">
+                                              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+                                                Current Stage
+                                              </span>
+                                              <Badge
+                                                variant={
+                                                  interest.current_stage === 4
+                                                    ? "success"
+                                                    : interest.current_stage === 3
+                                                      ? "warning"
+                                                      : interest.current_stage === 2
+                                                        ? "secondary"
+                                                        : "outline"
+                                                }
+                                                className="text-[9px] font-mono font-bold uppercase px-2 py-0.5"
+                                              >
+                                                {interest.current_stage_label}
+                                              </Badge>
+                                            </div>
+
+                                            {/* Alter Stage Dropdown */}
+                                            <div className="flex flex-col items-start">
+                                              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+                                                Alter Stage
+                                              </span>
+                                              <Select
+                                                value={String(interest.current_stage)}
+                                                onValueChange={(val) =>
+                                                  handleAlterStage(
+                                                    interest.id,
+                                                    Number(val) as 1 | 2 | 3 | 4,
+                                                    interest.requesting_business.company_name,
+                                                  )
+                                                }
+                                                disabled={alteringStageInterestId === interest.id}
+                                              >
+                                                <SelectTrigger className="w-[185px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0">
+                                                  {alteringStageInterestId === interest.id ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
+                                                  ) : (
+                                                    <SelectValue />
+                                                  )}
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
+                                                  <SelectItem value="1">1. Acknowledgement</SelectItem>
+                                                  <SelectItem value="2">2. Negotiation</SelectItem>
+                                                  <SelectItem value="3">3. Agreement</SelectItem>
+                                                  <SelectItem value="4">4. Handshake</SelectItem>
+                                                </SelectContent>
+                                              </Select>
+                                            </div>
+
+                                            {/* Remove Proposal / Deal Button */}
+                                            <div className="flex flex-col items-start lg:items-end">
+                                              <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+                                                Deal Action
+                                              </span>
+                                              <Button
+                                                onClick={() =>
+                                                  handleRemoveProposal(
+                                                    interest.id,
+                                                    interest.requesting_business.company_name,
+                                                  )
+                                                }
+                                                disabled={removingInterestId === interest.id}
+                                                variant="outline"
+                                                className="h-8 px-2.5 border-red-200 text-red-600 bg-red-50/20 hover:bg-red-50 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                                                title="Remove this proposal and reset ongoing deal"
+                                              >
+                                                {removingInterestId === interest.id ? (
+                                                  <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                                ) : (
+                                                  <Trash2 className="w-3 h-3 mr-1" />
+                                                )}
+                                                Remove Proposal
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -1348,147 +1692,281 @@ function AdminDashboard() {
                   No matching records found.
                 </div>
               ) : (
-                filteredOpportunities.map((opp) => (
-                  <div key={opp.id} className="p-4 space-y-4 text-xs">
-                    <div className="border-b border-slate-100 pb-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-mono text-[9px] text-slate-400 bg-slate-100 border border-slate-200 px-1 py-0.5 rounded-[2px]">
-                          {opp.opportunity_number}
-                        </span>
-                        <span className="font-bold text-slate-900 text-sm">{opp.title}</span>
-                      </div>
-                      <div className="text-[11px] text-slate-500 font-sans mt-1">
-                        {opp.description}
-                      </div>
-                    </div>
+                filteredOpportunities.map((opp) => {
+                  const isExpanded = !!expandedOppIds[opp.id];
+                  const interestsCount = opp.interests?.length || 0;
 
-                    <div>
-                      <div className="text-[10px] font-mono font-bold text-slate-400 uppercase mb-1">
-                        Business:
-                      </div>
-                      <div className="bg-slate-50 p-2.5 rounded-[2px] border border-slate-100">
-                        <div className="font-bold text-slate-800 flex items-center gap-1">
-                          <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                          {opp.business.company_name}
+                  return (
+                    <div key={opp.id} className="p-4 space-y-4 text-xs">
+                      <div className="border-b border-slate-100 pb-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-[9px] text-slate-400 bg-slate-100 border border-slate-200 px-1 py-0.5 rounded-[2px]">
+                            {opp.opportunity_number}
+                          </span>
+                          <span className="font-bold text-slate-900 text-sm">{opp.title}</span>
                         </div>
-                        <div className="text-[10px] font-mono text-slate-500 mt-0.5">
-                          <a
-                            href={opp.business.website}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            {opp.business.website.replace(/^https?:\/\//i, "")}
-                          </a>
+                        <div className="text-[11px] text-slate-500 font-sans mt-1">
+                          {opp.description}
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center justify-between text-[11px] font-mono">
                       <div>
-                        <span className="text-slate-400 mr-1.5">Category:</span>
-                        <span className="text-slate-700 uppercase font-semibold">
-                          {opp.category}
-                        </span>
+                        <div className="text-[10px] font-mono font-bold text-slate-400 uppercase mb-1">
+                          Business:
+                        </div>
+                        <div className="bg-slate-50 p-2.5 rounded-[2px] border border-slate-100">
+                          <div className="font-bold text-slate-800 flex items-center gap-1">
+                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                            {opp.business.company_name}
+                          </div>
+                          <div className="text-[10px] font-mono text-slate-500 mt-0.5">
+                            <a
+                              href={opp.business.website}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              {opp.business.website.replace(/^https?:\/\//i, "")}
+                            </a>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-slate-400 mr-1.5">Created:</span>
-                        {new Date(opp.created_at).toLocaleDateString(undefined, {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </div>
-                    </div>
 
-                    <div className="flex items-center justify-between text-[11px] font-mono pt-1">
-                      <div>
-                        <span className="text-slate-400 mr-1.5">Promotion:</span>
-                        <Badge
-                          variant={
-                            opp.promotion_status === "promoted"
-                              ? "success"
-                              : opp.promotion_status === "pending_promotion"
-                                ? "warning"
-                                : "secondary"
-                          }
-                          className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase rounded-[2px] px-2 py-0.5"
-                        >
-                          {opp.promotion_status}
-                        </Badge>
+                      <div className="flex items-center justify-between text-[11px] font-mono">
+                        <div>
+                          <span className="text-slate-400 mr-1.5">Category:</span>
+                          <span className="text-slate-700 uppercase font-semibold">
+                            {opp.category}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 mr-1.5">Created:</span>
+                          {new Date(opp.created_at).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 flex-wrap">
-                      {opp.promotion_status === "pending_promotion" && (
-                        <>
-                          <Button
-                            onClick={() =>
-                              handlePromotionStatusChange(opp.id, "promoted", opp.title)
+                      <div className="flex items-center justify-between text-[11px] font-mono pt-1">
+                        <div>
+                          <span className="text-slate-400 mr-1.5">Promotion:</span>
+                          <Badge
+                            variant={
+                              opp.promotion_status === "promoted"
+                                ? "success"
+                                : opp.promotion_status === "pending_promotion"
+                                  ? "warning"
+                                  : "secondary"
                             }
-                            disabled={updatingPromotionId === opp.id}
-                            className="h-8 px-3 rounded-[2px] bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                            className="inline-flex items-center gap-1 text-[9px] font-mono font-bold uppercase rounded-[2px] px-2 py-0.5"
                           >
-                            Approve
-                          </Button>
+                            {opp.promotion_status}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {/* Promotion and Opp Actions */}
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 flex-wrap">
+                        {opp.promotion_status === "pending_promotion" && (
+                          <>
+                            <Button
+                              onClick={() =>
+                                handlePromotionStatusChange(opp.id, "promoted", opp.title)
+                              }
+                              disabled={updatingPromotionId === opp.id}
+                              className="h-8 px-2.5 rounded-[2px] bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              onClick={() => handlePromotionStatusChange(opp.id, "none", opp.title)}
+                              disabled={updatingPromotionId === opp.id}
+                              variant="outline"
+                              className="h-8 px-2.5 rounded-[2px] border-red-200 bg-red-50/20 hover:bg-red-50 text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                            >
+                              Reject
+                            </Button>
+                          </>
+                        )}
+
+                        {opp.promotion_status === "promoted" && (
                           <Button
                             onClick={() => handlePromotionStatusChange(opp.id, "none", opp.title)}
                             disabled={updatingPromotionId === opp.id}
                             variant="outline"
-                            className="h-8 px-3 rounded-[2px] border-red-200 bg-red-50/20 hover:bg-red-50 text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                            className="h-8 px-2.5 rounded-[2px] border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
                           >
-                            Reject
+                            Revoke
                           </Button>
-                        </>
-                      )}
+                        )}
 
-                      {opp.promotion_status === "promoted" && (
-                        <Button
-                          onClick={() => handlePromotionStatusChange(opp.id, "none", opp.title)}
+                        <Select
+                          value={opp.promotion_status}
+                          onValueChange={(val) =>
+                            handlePromotionStatusChange(
+                              opp.id,
+                              val as "none" | "pending_promotion" | "promoted",
+                              opp.title,
+                            )
+                          }
                           disabled={updatingPromotionId === opp.id}
-                          variant="outline"
-                          className="h-8 px-3 rounded-[2px] border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
                         >
-                          Revoke
-                        </Button>
-                      )}
+                          <SelectTrigger className="w-[110px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0">
+                            {updatingPromotionId === opp.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
+                            ) : (
+                              <SelectValue />
+                            )}
+                          </SelectTrigger>
+                          <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
+                            <SelectItem value="none" className="cursor-pointer text-slate-600">
+                              None
+                            </SelectItem>
+                            <SelectItem
+                              value="pending_promotion"
+                              className="cursor-pointer text-amber-600"
+                            >
+                              Pending
+                            </SelectItem>
+                            <SelectItem value="promoted" className="cursor-pointer text-emerald-600">
+                              Promoted
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
 
-                      <Select
-                        value={opp.promotion_status}
-                        onValueChange={(val) =>
-                          handlePromotionStatusChange(
-                            opp.id,
-                            val as "none" | "pending_promotion" | "promoted",
-                            opp.title,
-                          )
-                        }
-                        disabled={updatingPromotionId === opp.id}
-                      >
-                        <SelectTrigger className="w-[120px] h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] border-[#1f25301f] bg-slate-50 hover:bg-slate-100 transition-all focus:ring-0 focus:ring-offset-0">
-                          {updatingPromotionId === opp.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
+                        <Button
+                          onClick={() => toggleOppExpand(opp.id)}
+                          variant="outline"
+                          className="h-8 px-2.5 rounded-[2px] font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                        >
+                          <Workflow className="w-3 h-3 mr-1 text-orange-600" />
+                          Deals ({interestsCount})
+                        </Button>
+
+                        <Button
+                          onClick={() => handleDeleteOpportunity(opp.id, opp.title)}
+                          disabled={deletingOppId === opp.id}
+                          variant="destructive"
+                          className="h-8 px-2.5 border border-red-500/10 rounded-[2px] bg-red-500/5 hover:bg-red-500 hover:text-white transition-all text-red-600 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer shadow-none"
+                        >
+                          {deletingOppId === opp.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
-                            <SelectValue />
+                            <Trash2 className="w-3.5 h-3.5 mr-1" />
                           )}
-                        </SelectTrigger>
-                        <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
-                          <SelectItem value="none" className="cursor-pointer text-slate-600">
-                            None
-                          </SelectItem>
-                          <SelectItem
-                            value="pending_promotion"
-                            className="cursor-pointer text-amber-600"
-                          >
-                            Pending
-                          </SelectItem>
-                          <SelectItem value="promoted" className="cursor-pointer text-emerald-600">
-                            Promoted
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                          Delete Opp
+                        </Button>
+                      </div>
+
+                      {/* Mobile Collapsible Dealflow */}
+                      {isExpanded && (
+                        <div className="pt-3 border-t border-slate-100 space-y-3 bg-slate-50 -mx-4 -mb-4 p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                              <Workflow className="w-3.5 h-3.5 text-orange-600" />
+                              Attached Proposals ({interestsCount})
+                            </div>
+                          </div>
+
+                          {!opp.interests || opp.interests.length === 0 ? (
+                            <div className="p-4 bg-white border border-dashed border-slate-200 rounded-[2px] text-slate-400 font-mono text-[10px] text-center">
+                              No proposals attached to this opportunity.
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {opp.interests.map((interest) => (
+                                <div
+                                  key={interest.id}
+                                  className="p-3 bg-white border border-slate-200 rounded-[2px] space-y-2.5"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="font-bold text-slate-800 text-xs">
+                                      {interest.requesting_business.company_name}
+                                    </div>
+                                    <Badge
+                                      variant={
+                                        interest.current_stage === 4
+                                          ? "success"
+                                          : interest.current_stage === 3
+                                            ? "warning"
+                                            : interest.current_stage === 2
+                                              ? "secondary"
+                                              : "outline"
+                                      }
+                                      className="text-[9px] font-mono font-bold uppercase px-1.5 py-0"
+                                    >
+                                      {interest.current_stage_label}
+                                    </Badge>
+                                  </div>
+
+                                  {interest.message && (
+                                    <div className="text-[10px] text-slate-600 bg-slate-50 p-2 rounded-[2px] border border-slate-100">
+                                      {interest.message}
+                                    </div>
+                                  )}
+
+                                  <div className="space-y-1.5 pt-1">
+                                    <label className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">
+                                      Alter Stage:
+                                    </label>
+                                    <Select
+                                      value={String(interest.current_stage)}
+                                      onValueChange={(val) =>
+                                        handleAlterStage(
+                                          interest.id,
+                                          Number(val) as 1 | 2 | 3 | 4,
+                                          interest.requesting_business.company_name,
+                                        )
+                                      }
+                                      disabled={alteringStageInterestId === interest.id}
+                                    >
+                                      <SelectTrigger className="w-full h-8 text-[10px] font-mono font-bold uppercase rounded-[2px] bg-white border-slate-200">
+                                        {alteringStageInterestId === interest.id ? (
+                                          <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto text-slate-500" />
+                                        ) : (
+                                          <SelectValue />
+                                        )}
+                                      </SelectTrigger>
+                                      <SelectContent className="rounded-[2px] font-mono text-[10px] uppercase">
+                                        <SelectItem value="1">1. Acknowledgement</SelectItem>
+                                        <SelectItem value="2">2. Negotiation</SelectItem>
+                                        <SelectItem value="3">3. Agreement</SelectItem>
+                                        <SelectItem value="4">4. Handshake</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  <div className="pt-2 flex justify-end">
+                                    <Button
+                                      onClick={() =>
+                                        handleRemoveProposal(
+                                          interest.id,
+                                          interest.requesting_business.company_name,
+                                        )
+                                      }
+                                      disabled={removingInterestId === interest.id}
+                                      variant="outline"
+                                      className="h-7 px-2 border-red-200 text-red-600 bg-red-50/20 hover:bg-red-50 font-mono text-[9px] font-bold uppercase tracking-wider cursor-pointer w-full justify-center"
+                                    >
+                                      {removingInterestId === interest.id ? (
+                                        <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                      ) : (
+                                        <Trash2 className="w-3 h-3 mr-1" />
+                                      )}
+                                      Remove Proposal & Reset Deal
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </section>
@@ -1535,32 +2013,26 @@ function AdminDashboard() {
             <div className="border border-[#1f25301f] bg-white rounded-[2px] overflow-hidden">
               {/* Inner Tabs + Search & Filters */}
               <div className="p-4 border-b border-[#1f25300d] bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                {/* Sub-Tabs: Questions vs Knowledge */}
-                <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-wider">
-                  <button
-                    onClick={() => setInsightsSubTab("questions")}
-                    className={`pb-2 border-b-2 font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                      insightsSubTab === "questions"
-                        ? "border-slate-900 text-slate-900"
-                        : "border-transparent text-slate-400 hover:text-slate-700"
-                    }`}
-                  >
-                    <HelpCircle className="w-3.5 h-3.5" />
-                    <span>Questions ({adminQuestions.length})</span>
-                  </button>
-
-                  <button
-                    onClick={() => setInsightsSubTab("knowledge")}
-                    className={`pb-2 border-b-2 font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                      insightsSubTab === "knowledge"
-                        ? "border-slate-900 text-slate-900"
-                        : "border-transparent text-slate-400 hover:text-slate-700"
-                    }`}
-                  >
-                    <Lightbulb className="w-3.5 h-3.5" />
-                    <span>Knowledge ({adminKnowledge.length})</span>
-                  </button>
-                </div>
+                {/* Sub-Tabs: Questions vs Knowledge using Design System */}
+                <ExecutiveTabs
+                  variant="underline"
+                  activeTab={insightsSubTab}
+                  onTabChange={(tabId) => setInsightsSubTab(tabId as "questions" | "knowledge")}
+                  tabs={[
+                    {
+                      id: "questions",
+                      label: "Questions",
+                      count: adminQuestions.length,
+                      icon: <HelpCircle className="w-3.5 h-3.5" />,
+                    },
+                    {
+                      id: "knowledge",
+                      label: "Knowledge",
+                      count: adminKnowledge.length,
+                      icon: <Lightbulb className="w-3.5 h-3.5" />,
+                    },
+                  ]}
+                />
 
                 {/* Search Bar */}
                 <div className="relative w-full md:w-80">

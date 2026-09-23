@@ -26,7 +26,8 @@ import {
   getDynamicMedianResponseTime,
 } from "../lib/utils";
 import { CompanyLogo } from "../components/company-logo";
-import { ProposalConfirmationModal } from "@/components/ProposalConfirmationModal";
+import { ExpressInterestModal } from "@/components/opportunities/ExpressInterestModal";
+import { PostTypeSelectionModal } from "@/components/post/PostTypeSelectionModal";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import {
   Loader2,
@@ -65,14 +66,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -87,6 +80,7 @@ import { useInterestStore } from "@/lib/interest-store";
 
 import {
   Button,
+  Modal,
   VerifiedBadge,
   UrgentBadge,
   DealCodeStamp,
@@ -366,23 +360,13 @@ export function OpportunitiesPage() {
     setSearchInputVal(q);
   }, [q]);
 
-  // Express Interest Modal State (2-Panel V2 Design)
+  // Post Type Selection Modal State
+  const [postTypeModalOpen, setPostTypeModalOpen] = useState(false);
+
+  // Express Interest Modal State (V2 Interactive Modal)
   const [selectedOppForInterest, setSelectedOppForInterest] = useState<Opportunity | null>(null);
   const [interestOpen, setInterestOpen] = useState(false);
-  const [pitchInput, setPitchInput] = useState("");
-  const [splitVal, setSplitVal] = useState("27.5%");
-  const [duration, setDuration] = useState("12 Mo (Standard)");
-  const [guaranteedIntros, setGuaranteedIntros] = useState(
-    "3 Tier-1 Enterprise Intros within 60 days",
-  );
-  const [hideCompanyUntilStage4, setHideCompanyUntilStage4] = useState(true);
-  const [includeMutualNDA, setIncludeMutualNDA] = useState(true);
-  const [bilateralAgreement, setBilateralAgreement] = useState(true);
-  const [submittingInterest, setSubmittingInterest] = useState(false);
-  const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [mobileMetricsOpen, setMobileMetricsOpen] = useState(false);
-  const [submittedTargetCompany, setSubmittedTargetCompany] = useState("");
-  const [submittedOppTitle, setSubmittedOppTitle] = useState("");
 
   // Edit Opportunity Modal State
   const [editOpen, setEditOpen] = useState(false);
@@ -420,7 +404,7 @@ export function OpportunitiesPage() {
       return await checkOnboardingStatus();
     },
     enabled: Boolean(isLoaded && isSignedIn),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 1, // 1 minute
   });
 
   const business = onboardingData?.business || null;
@@ -688,131 +672,12 @@ export function OpportunitiesPage() {
       return;
     }
     setSelectedOppForInterest(opp);
-    setPitchInput(
-      "We manage enterprise client relationships and will bundle your offering into our client migration framework.",
-    );
-    setSplitVal("27.5%");
-    setDuration("12 Mo (Standard)");
-    setGuaranteedIntros("3 Tier-1 Enterprise Intros within 60 days");
-    setHideCompanyUntilStage4(true);
-    setIncludeMutualNDA(true);
-    setBilateralAgreement(true);
     setInterestOpen(true);
-  };
-
-  // Submit Express Interest
-  const handleSubmitInterest = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedOppForInterest) return;
-    if (!pitchInput.trim()) {
-      toast.error("Please describe your reciprocal pitch.");
-      return;
-    }
-
-    try {
-      setSubmittingInterest(true);
-      const combinedMessage = `${pitchInput.trim()}\n\nKey Commercial Terms:\n- Proposed Rev Share: ${splitVal}\n- Commitment Period: ${duration}\n- Mutual Bilateral NDA: Automatically Included\n- Blinded Identity: Protected until mutual match`;
-      const res = await expressInterest({
-        data: {
-          opportunity_id: selectedOppForInterest.id,
-          message: combinedMessage,
-        },
-      });
-
-      requestInterest(selectedOppForInterest.id, combinedMessage);
-
-      // Save real interest ID
-      const currentStore = JSON.parse(localStorage.getItem("relay.interest.v1") || "{}");
-      if (currentStore[selectedOppForInterest.id]) {
-        currentStore[selectedOppForInterest.id].id = res?.id;
-        localStorage.setItem("relay.interest.v1", JSON.stringify(currentStore));
-      }
-
-      const targetCompany =
-        selectedOppForInterest.company ||
-        selectedOppForInterest.business?.company_name ||
-        "Counterparty";
-      const oppTitle = selectedOppForInterest.title;
-
-      setSubmittedTargetCompany(targetCompany);
-      setSubmittedOppTitle(oppTitle);
-      setInterestOpen(false);
-      setSelectedOppForInterest(null);
-      setConfirmationOpen(true);
-      toast.success("Reciprocal Proposal Sent Successfully", {
-        description: "The business operator has been notified. Check Exchanges for replies.",
-      });
-    } catch (err: any) {
-      console.error("Failed to express interest:", err);
-      toast.error(err.message || "Failed to submit interest pitch.");
-    } finally {
-      setSubmittingInterest(false);
-    }
   };
 
   // Open Edit Modal
   const handleOpenEdit = (opp: Opportunity) => {
-    setSelectedOppToEdit(opp);
-    setEditTitle(opp.title);
-    setEditCategory(opp.category || opp.type.toLowerCase().replace(/\s+/g, "_"));
-    setEditIndustry(opp.industry || "SaaS");
-    setEditDescription(opp.description);
-    setEditLocation(opp.location || opp.geo || "");
-    setEditOfferText(opp.offer_text || "");
-    setEditHideCompany(!!opp.hide_company_name);
-    setEditPromote(opp.promotion_status === "promoted");
-    setEditExpiryDays("keep");
-    setEditOpen(true);
-  };
-
-  // Submit Edit Opportunity
-  const handleSubmitEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedOppToEdit) return;
-    if (editTitle.trim().length === 0) {
-      toast.error("Title is required");
-      return;
-    }
-    if (editDescription.trim().length < 50) {
-      toast.error("Description must be at least 50 characters.");
-      return;
-    }
-
-    try {
-      setSubmittingEdit(true);
-      let expires_at: string | null = selectedOppToEdit.expires_at || null;
-      if (editExpiryDays !== "keep" && editExpiryDays !== "never") {
-        const days = parseInt(editExpiryDays, 10);
-        expires_at = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
-      } else if (editExpiryDays === "never") {
-        expires_at = null;
-      }
-
-      await updateOpportunity({
-        data: {
-          opportunity_id: selectedOppToEdit.id,
-          title: editTitle.trim(),
-          category: editCategory as any,
-          industry: editIndustry,
-          description: editDescription.trim(),
-          location: editLocation.trim() || null,
-          offer_text: editOfferText.trim() || null,
-          expires_at,
-          hide_company_name: editHideCompany,
-          promote: editPromote,
-        },
-      });
-
-      toast.success("Opportunity Updated Successfully");
-      setEditOpen(false);
-      setSelectedOppToEdit(null);
-      queryClient.invalidateQueries({ queryKey: ["opportunities-feed"] });
-    } catch (err: any) {
-      console.error("Update opportunity error:", err);
-      toast.error(err.message || "Failed to update opportunity");
-    } finally {
-      setSubmittingEdit(false);
-    }
+    navigate({ to: "/post", search: { type: "opportunity", edit: opp.id } as any });
   };
 
   // Filtered & Sorted Opportunities
@@ -903,8 +768,8 @@ export function OpportunitiesPage() {
     return [1, "ellipsis-start", current - 1, current, current + 1, "ellipsis-end", total];
   };
 
-  // Pagination (4 items per page to match V2 design)
-  const ITEMS_PER_PAGE = 4;
+  // Pagination (10 items per page)
+  const ITEMS_PER_PAGE = 10;
   const totalPages = Math.max(1, Math.ceil(sortedOpps.length / ITEMS_PER_PAGE));
   const currentPage = Math.min(Math.max(1, page), totalPages);
   const paginatedOpps = useMemo(() => {
@@ -939,13 +804,6 @@ export function OpportunitiesPage() {
             ═══════════════════════════════════════════════════════════════════ */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-[#E2E8F0]">
           <div id="opportunity-board-info">
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs font-semibold text-[#F97316] uppercase tracking-wider font-mono">
-                Reciprocal Dealflow
-              </span>
-              <span className="text-[#CBD5E1]">•</span>
-              <span className="text-xs text-[#64748B]">Zero Cold Outreach</span>
-            </div>
             <h1 className="font-bold text-2xl md:text-3xl text-[#171F2C] tracking-tight">
               Commercial Opportunity Board
             </h1>
@@ -1018,14 +876,15 @@ export function OpportunitiesPage() {
               </Button>
 
               {isSignedIn ? (
-                <Link
-                  to="/post"
+                <button
+                  type="button"
+                  onClick={() => setPostTypeModalOpen(true)}
                   id="post-opportunity-top-btn"
                   className="inline-flex items-center justify-center gap-1 bg-[#000000] hover:bg-[#171F2C] text-white font-medium text-xs px-2.5 sm:px-4 py-2 rounded-[4px] transition-all shadow-xs cursor-pointer shrink-0 whitespace-nowrap flex-1 sm:flex-initial"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Post Opportunity</span>
-                </Link>
+                </button>
               ) : (
                 <button
                   type="button"
@@ -1554,378 +1413,83 @@ export function OpportunitiesPage() {
       </main>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          EXPRESS INTEREST MODAL DIALOG (STREAMLINED V2 SPEC)
+          EXPRESS INTEREST MODAL (V2 INTERACTIVE HIGHLIGHTER SPEC)
           ═══════════════════════════════════════════════════════════════════ */}
-      <Dialog
-        open={interestOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setInterestOpen(false);
-            setSelectedOppForInterest(null);
-          }
+      <ExpressInterestModal
+        isOpen={interestOpen}
+        onClose={() => {
+          setInterestOpen(false);
+          setSelectedOppForInterest(null);
+          queryClient.invalidateQueries({ queryKey: ["opportunities-feed"] });
         }}
-      >
-        <DialogContent className="max-w-2xl bg-white rounded-[4px] shadow-2xl p-0 sm:p-0 !p-0 gap-0 overflow-hidden flex flex-col border border-[#E2E8F0] animate-in fade-in zoom-in-95 duration-150">
-          {selectedOppForInterest && (
-            <div className="w-full flex flex-col overflow-hidden">
-              {/* 1. Minimal Clean Modal Header */}
-              <div className="px-6 sm:px-8 pt-6 sm:pt-7 pb-4 sm:pb-5 border-b border-[#E2E8F0] bg-white shrink-0 flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2.5">
-                    <DialogTitle className="font-display text-lg sm:text-xl font-bold text-[#171F2C] tracking-tight">
-                      Express Interest: {selectedOppForInterest.company}
-                    </DialogTitle>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-[2px] border border-emerald-200 shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                      94% Match
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#64748B]">{selectedOppForInterest.title}</p>
-                </div>
-              </div>
-
-              {/* 2. Clean Single-Column Modal Content */}
-              <div className="px-6 sm:px-8 py-5 sm:py-6 space-y-5 overflow-y-auto max-h-[calc(88vh-140px)]">
-                {/* Seeking & Offering Context Pill */}
-                <div className="flex items-center gap-2 px-3.5 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] text-xs text-[#64748B]">
-                  <Info className="w-4 h-4 text-[#94A3B8] shrink-0" />
-                  <span>
-                    <strong className="font-semibold text-[#171F2C]">Seeking:</strong>{" "}
-                    {selectedOppForInterest.location ||
-                      selectedOppForInterest.geo ||
-                      "Tier-1 Enterprise Intros"}
-                    {selectedOppForInterest.industry
-                      ? ` in ${selectedOppForInterest.industry}`
-                      : ""}{" "}
-                    • <strong className="font-semibold text-[#171F2C]">Offering:</strong>{" "}
-                    {selectedOppForInterest.offer_text || "25% recurring rev-share"}
-                  </span>
-                </div>
-
-                {/* Reciprocal Pitch Textarea */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-semibold text-[#171F2C]" htmlFor="pitch-input">
-                      Your Reciprocal Pitch
-                    </Label>
-                    <span className="text-[11px] text-[#94A3B8] font-mono">
-                      {pitchInput.length}/500
-                    </span>
-                  </div>
-                  <Textarea
-                    id="pitch-input"
-                    value={pitchInput}
-                    onChange={(e) => setPitchInput(e.target.value)}
-                    maxLength={500}
-                    placeholder="Describe your reciprocal value or reach..."
-                    rows={3}
-                    className="w-full bg-white border border-[#E2E8F0] text-[#171F2C] text-xs md:text-sm rounded-[4px] p-3 focus:outline-none focus:ring-1 focus:ring-[#171F2C] focus:border-[#171F2C] leading-relaxed transition-all shadow-2xs resize-none placeholder:text-[#94A3B8]"
-                  />
-                </div>
-
-                {/* Commercial Terms Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                  {/* Proposed Rev Share */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-xs font-semibold text-[#171F2C]">
-                        Proposed Rev Share
-                      </span>
-                      <span className="font-mono font-bold text-xs text-[#171F2C]" id="split-val">
-                        {splitVal}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {["25.0%", "27.5%", "30.0%"].map((val) => {
-                        const isSelected = splitVal === val;
-                        return (
-                          <button
-                            key={val}
-                            type="button"
-                            onClick={() => setSplitVal(val)}
-                            className={`py-2 text-center text-xs rounded-[4px] transition-colors cursor-pointer ${
-                              isSelected
-                                ? "bg-[#000000] text-white font-semibold shadow-xs"
-                                : "border border-[#E2E8F0] text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#171F2C] font-medium"
-                            }`}
-                          >
-                            {val === "25.0%" ? "25%" : val === "27.5%" ? "27.5%" : "30%"}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Commitment Period */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-xs font-semibold text-[#171F2C]">
-                        Commitment Period
-                      </span>
-                      <span className="text-[#94A3B8] font-mono text-[11px]">
-                        {duration.includes("6") ? "6 mo." : "12 mo."}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {["6 Months", "12 Months"].map((dur) => {
-                        const isSelected =
-                          dur === "12 Months" ? duration.includes("12") : duration.includes("6");
-                        return (
-                          <button
-                            key={dur}
-                            type="button"
-                            onClick={() => setDuration(dur)}
-                            className={`py-2 text-center text-xs rounded-[4px] transition-colors cursor-pointer ${
-                              isSelected
-                                ? "bg-[#000000] text-white font-semibold shadow-xs"
-                                : "border border-[#E2E8F0] text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#171F2C] font-medium"
-                            }`}
-                          >
-                            {dur}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Blinded NDA notice */}
-                <div className="pt-1 flex items-center gap-2 text-xs text-[#64748B]">
-                  <Lock className="w-3.5 h-3.5 text-[#94A3B8] shrink-0" />
-                  <span>
-                    Bilateral mutual NDA automatically included. Identity remains blinded until
-                    accepted.
-                  </span>
-                </div>
-              </div>
-
-              {/* 3. Modal Clean Direct Footer */}
-              <div className="px-6 sm:px-8 py-4 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-end gap-3 shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setInterestOpen(false);
-                    setSelectedOppForInterest(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="monochrome"
-                  size="sm"
-                  onClick={handleSubmitInterest}
-                  disabled={submittingInterest}
-                >
-                  {submittingInterest ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <span>Send Proposal</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          EDIT OPPORTUNITY MODAL DIALOG
-          ═══════════════════════════════════════════════════════════════════ */}
-      <Dialog
-        open={editOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setEditOpen(false);
-            setSelectedOppToEdit(null);
-          }
+        opportunity={selectedOppForInterest}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["opportunities-feed"] });
         }}
-      >
-        <DialogContent className="max-w-xl bg-white border border-[#E2E8F0] p-6 rounded-[4px] shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="font-bold text-base text-[#171F2C]">
-              Edit Opportunity Listing
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[#64748B]">
-              Update your commercial requirement and exchange terms.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmitEdit} className="space-y-4 pt-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-[#171F2C]">Opportunity Title *</Label>
-              <Input
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                required
-                className="h-10 text-xs bg-white border-[#E2E8F0] hover:border-[#CBD5E1] focus:border-[#000000] focus:ring-1 focus:ring-[#000000]/20 rounded-[4px]"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-[#171F2C]">Category *</Label>
-                <Select value={editCategory} onValueChange={setEditCategory}>
-                  <SelectTrigger className="h-10 text-xs bg-white border-[#E2E8F0] hover:border-[#CBD5E1] focus:border-[#000000] focus:ring-1 focus:ring-[#000000]/20 rounded-[4px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border-[#E2E8F0] rounded-[4px] shadow-lg">
-                    <SelectItem value="partnership" className="text-xs text-[#171F2C]">
-                      Partnership
-                    </SelectItem>
-                    <SelectItem value="referral" className="text-xs text-[#171F2C]">
-                      Referral
-                    </SelectItem>
-                    <SelectItem value="distribution" className="text-xs text-[#171F2C]">
-                      Distribution
-                    </SelectItem>
-                    <SelectItem value="vendor" className="text-xs text-[#171F2C]">
-                      Vendor
-                    </SelectItem>
-                    <SelectItem value="hiring" className="text-xs text-[#171F2C]">
-                      Hiring
-                    </SelectItem>
-                    <SelectItem value="strategic_advice" className="text-xs text-[#171F2C]">
-                      Strategic Advice
-                    </SelectItem>
-                    <SelectItem value="investment" className="text-xs text-[#171F2C]">
-                      Investment
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-[#171F2C]">Industry *</Label>
-                <Select value={editIndustry} onValueChange={setEditIndustry}>
-                  <SelectTrigger className="h-10 text-xs bg-white border-[#E2E8F0] hover:border-[#CBD5E1] focus:border-[#000000] focus:ring-1 focus:ring-[#000000]/20 rounded-[4px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border-[#E2E8F0] rounded-[4px] shadow-lg max-h-60">
-                    {INDUSTRIES.filter((i) => i !== "All").map((ind) => (
-                      <SelectItem key={ind} value={ind} className="text-xs text-[#171F2C]">
-                        {ind}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-[#171F2C]">Seeking in Exchange</Label>
-              <Input
-                placeholder="e.g. 25% recurring margin + co-marketing budget"
-                value={editOfferText}
-                onChange={(e) => setEditOfferText(e.target.value)}
-                className="h-10 text-xs bg-white border-[#E2E8F0] hover:border-[#CBD5E1] focus:border-[#000000] focus:ring-1 focus:ring-[#000000]/20 rounded-[4px]"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-[#171F2C]">
-                Detailed Description * (min 50 chars)
-              </Label>
-              <Textarea
-                rows={4}
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                required
-                className="text-xs bg-white border-[#E2E8F0] hover:border-[#CBD5E1] focus:border-[#000000] focus:ring-1 focus:ring-[#000000]/20 rounded-[4px] resize-none"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#E2E8F0]">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setEditOpen(false);
-                  setSelectedOppToEdit(null);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" variant="monochrome" size="sm" disabled={submittingEdit}>
-                {submittingEdit && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                <span>Save Changes</span>
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      />
 
       {/* ═══════════════════════════════════════════════════════════════════
           MOBILE METRICS POPUP MODAL
           ═══════════════════════════════════════════════════════════════════ */}
-      <Dialog open={mobileMetricsOpen} onOpenChange={setMobileMetricsOpen}>
-        <DialogContent className="max-w-md bg-white border border-[#E2E8F0] p-6 rounded-[4px] shadow-xl">
-          <DialogHeader>
+      <Modal
+        open={mobileMetricsOpen}
+        onOpenChange={setMobileMetricsOpen}
+        title={
+          <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#F97316]">
-                Reciprocal Dealflow
+                Opportunity Exchange
               </span>
               <span className="text-[#CBD5E1]">•</span>
-              <span className="text-xs text-[#64748B]">Platform Telemetry</span>
+              <span className="text-xs text-[#64748B] font-normal">Platform Telemetry</span>
             </div>
-            <DialogTitle className="font-bold text-lg text-[#171F2C] tracking-tight">
+            <span className="font-bold text-lg text-[#171F2C] tracking-tight block">
               Network &amp; Opportunity Metrics
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[#64748B]">
-              Real-time verified platform volume, response velocity, and operator parity statistics.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid grid-cols-2 gap-3 py-3">
-            <MetricCard
-              label="Active Deals"
-              value={dbOpps.length.toLocaleString()}
-              subLabel="verified opportunities"
-            />
-            <MetricCard
-              label="Median Response"
-              value={medianResponseTime}
-              subLabel="avg pitch turn"
-            />
-            <MetricCard
-              label="Reciprocity Rate"
-              value="97%"
-              subLabel="Bilateral Parity"
-              subLabelColor="text-[#059669] font-medium"
-            />
-            <MetricCard
-              label="Verified Businesses"
-              value={verifiedBizCount.toLocaleString()}
-              subLabel="member network"
-            />
+            </span>
           </div>
+        }
+        description="Real-time verified platform volume, response velocity, and operator parity statistics."
+        maxWidth="max-w-md"
+        footer={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setMobileMetricsOpen(false)}
+            className="w-full"
+          >
+            Close
+          </Button>
+        }
+      >
+        <div className="grid grid-cols-2 gap-3 py-2">
+          <MetricCard
+            label="Active Deals"
+            value={dbOpps.length.toLocaleString()}
+            subLabel="verified opportunities"
+          />
+          <MetricCard
+            label="Median Response"
+            value={medianResponseTime}
+            subLabel="avg pitch turn"
+          />
+          <MetricCard
+            label="Reciprocity Rate"
+            value="97%"
+            subLabel="Bilateral Parity"
+            subLabelColor="text-[#059669] font-medium"
+          />
+          <MetricCard
+            label="Verified Businesses"
+            value={verifiedBizCount.toLocaleString()}
+            subLabel="member network"
+          />
+        </div>
+      </Modal>
 
-          <DialogFooter className="pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setMobileMetricsOpen(false)}
-              className="w-full"
-            >
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          PROPOSAL SUBMITTED CONFIRMATION MODAL
-          ═══════════════════════════════════════════════════════════════════ */}
-      <ProposalConfirmationModal
-        isOpen={confirmationOpen}
-        onClose={() => setConfirmationOpen(false)}
-        targetCompanyName={submittedTargetCompany}
-        opportunityTitle={submittedOppTitle}
-        backButtonText="Back to Opportunity Board"
+      {/* Post Type Selection Modal */}
+      <PostTypeSelectionModal
+        open={postTypeModalOpen}
+        onOpenChange={setPostTypeModalOpen}
       />
     </div>
   );

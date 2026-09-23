@@ -7,9 +7,9 @@ import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
 import { getSavedOpportunities } from "../functions/getSavedOpportunities";
 import { removeSavedOpportunity } from "../functions/removeSavedOpportunity";
-import { expressInterest } from "../functions/expressInterest";
 import { Navbar } from "@/components/navbar";
-import { ProposalConfirmationModal } from "@/components/ProposalConfirmationModal";
+import { ExpressInterestModal } from "@/components/opportunities/ExpressInterestModal";
+import { Modal } from "@/design-system";
 import { useInterestStore, RECIPROCITY_WEIGHTS } from "@/lib/interest-store";
 import { getCompanyInitials } from "@/lib/utils";
 import {
@@ -29,14 +29,6 @@ import {
   ExternalLink,
   BookmarkCheck
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/saved-opportunities")({
   head: () => ({
@@ -62,12 +54,8 @@ function SavedOpportunitiesPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   
   // Handshake Interest flow states (from useInterestStore)
-  const { store, request, respond } = useInterestStore();
-  const [pitch, setPitch] = useState("");
+  const { store } = useInterestStore();
   const [interestOpen, setInterestOpen] = useState(false);
-  const [confirmationOpen, setConfirmationOpen] = useState(false);
-  const [submittedTargetCompany, setSubmittedTargetCompany] = useState("");
-  const [submittedOppTitle, setSubmittedOppTitle] = useState("");
 
   const mockStorageKey = userId ? `relay_saved_mocks_${userId}` : "relay_saved_mocks";
 
@@ -186,33 +174,6 @@ function SavedOpportunitiesPage() {
     removeMutation.mutate(oppId);
     if (selectedOpp?.id === oppId) {
       setDetailOpen(false);
-    }
-  };
-
-  const handleExpressInterest = async () => {
-    if (!selectedOpp) return;
-    const trimmed = pitch.trim();
-    if (trimmed.length < 20) {
-      toast.error("Add a short context note (20+ characters).");
-      return;
-    }
-    try {
-      await expressInterest({ data: { opportunity_id: selectedOpp.id } });
-      request(selectedOpp.id, trimmed);
-      const targetCompany =
-        selectedOpp.business?.company_name ||
-        selectedOpp.company ||
-        "Counterparty";
-      const oppTitle = selectedOpp.title;
-      setSubmittedTargetCompany(targetCompany);
-      setSubmittedOppTitle(oppTitle);
-      setInterestOpen(false);
-      setPitch("");
-      setConfirmationOpen(true);
-      toast.success("Interest sent. Awaiting mutual acceptance.");
-    } catch (err: any) {
-      console.error("Failed to express interest:", err);
-      toast.error(err.message || "Failed to express interest.");
     }
   };
 
@@ -470,239 +431,195 @@ function SavedOpportunitiesPage() {
       </div>
     </main>
 
-      {/* Opportunity Detail Dialog */}
-      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="sm:max-w-xl bg-white border border-[#1f25301f] rounded-[4px] p-6 shadow-xl font-sans text-left">
-          {selectedOpp && (() => {
+      {/* Opportunity Detail Modal */}
+      <Modal
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        title={
+          selectedOpp ? (
+            <div className="space-y-1">
+              <div className="flex items-center justify-between gap-1.5 border-b border-slate-100 pb-1.5">
+                <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold">
+                  Opportunity Details
+                </span>
+                <span className="font-mono text-[9px] text-slate-400 font-semibold">
+                  #{selectedOpp.opportunity_number || selectedOpp.id.substring(0, 8)}
+                </span>
+              </div>
+              <span className="font-display text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 uppercase block">
+                {selectedOpp.title}
+              </span>
+            </div>
+          ) : (
+            "Opportunity Details"
+          )
+        }
+        maxWidth="max-w-xl"
+        footer={
+          selectedOpp && (() => {
             const isClosed = selectedOpp.status === "closed";
             const isExpired = selectedOpp.expires_at ? new Date(selectedOpp.expires_at) < new Date() : false;
             const isInactive = isClosed || isExpired;
-            
-            const isConnected = store[selectedOpp.id]?.status === "accepted";
-            const shouldHide = selectedOpp.hide_company_name && !isConnected && !isApproved;
-            const displayName = shouldHide ? "Confidential" : selectedOpp.company;
-            const initials = shouldHide ? "🔒" : getCompanyInitials(displayName);
-
+            const isApproved = business?.status === "approved";
             const interestStatus = store[selectedOpp.id]?.status ?? "idle";
 
             return (
-              <>
-                <DialogHeader className="space-y-2.5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-100 pb-2">
-                    <span className="font-mono text-[9px] uppercase tracking-wider sm:tracking-widest text-slate-400 font-bold">
-                      Opportunity Details
-                    </span>
-                    <span className="font-mono text-[9px] text-slate-400 font-semibold">
-                      #{selectedOpp.opportunity_number || selectedOpp.id.substring(0, 8)}
-                    </span>
-                  </div>
-                  <DialogTitle className="font-display text-2xl font-extrabold tracking-tight text-slate-900 uppercase">
-                    {selectedOpp.title}
-                  </DialogTitle>
-                </DialogHeader>
+              <div className="flex flex-row items-center justify-between gap-3 w-full flex-wrap">
+                <button
+                  onClick={() => handleRemove(selectedOpp.id)}
+                  className="py-2 px-3 border border-slate-200 text-slate-500 hover:border-red-600 hover:text-red-600 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] font-bold cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Remove
+                </button>
 
-                <div className="space-y-4 pt-2">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 bg-slate-100 text-slate-600 font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]">
-                      {selectedOpp.category === "strategic_advice" ? "Strategic Advice" : selectedOpp.category}
-                    </span>
-                    {isInactive ? (
-                      <span className="px-2 py-0.5 bg-red-50 text-red-600 font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]">
-                        {isClosed ? "Closed" : "Expired"}
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]">
-                        Active
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="text-sm text-slate-600 leading-relaxed font-sans bg-slate-50/50 p-4 border border-slate-200/40 rounded-[2px]">
-                    {selectedOpp.description}
-                  </p>
-
-                  {selectedOpp.offer_text && (
-                    <div className="space-y-1">
-                      <h4 className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold">What is offered:</h4>
-                      <p className="text-xs text-slate-600 font-sans">{selectedOpp.offer_text}</p>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-b border-slate-100 py-3.5">
-                    <div className="space-y-1">
-                      <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold block">Company</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-[2px] bg-slate-950 border border-slate-900 flex items-center justify-center font-sans text-[8px] font-bold text-white uppercase">
-                          {initials}
-                        </div>
-                        <span className="text-xs font-bold text-slate-900 break-words">{displayName}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold block">Industry</span>
-                      <span className="text-xs text-slate-700 font-mono">{selectedOpp.industry}</span>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold block">Location</span>
-                      <span className="text-xs text-slate-700 font-mono">{selectedOpp.location || "Remote"}</span>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold block">Expires</span>
-                      <span className="text-xs text-slate-700 font-mono">
-                        {selectedOpp.expires_at ? new Date(selectedOpp.expires_at).toLocaleDateString() : "Never"}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Unlocked Contact Details for accepted handshakes */}
-                  {interestStatus === "accepted" && store[selectedOpp.id]?.contact && (
-                    <div className="border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-2 rounded-[2px] shadow-sm animate-momentum">
-                      <div className="flex items-center justify-between gap-4 border-b border-emerald-500/10 pb-1.5">
-                        <div className="font-mono text-[9px] uppercase tracking-wider sm:tracking-widest text-emerald-600 font-bold break-words">
-                          [ Contact unlocked · mutual acceptance ]
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                        <span className="font-display text-sm font-bold text-slate-900">{store[selectedOpp.id]?.contact?.name}</span>
-                        <span className="font-mono text-[10px] text-slate-400 font-bold">· {store[selectedOpp.id]?.contact?.role}</span>
-                      </div>
-                      <a
-                        href={`mailto:${store[selectedOpp.id]?.contact?.email}`}
-                        className="font-mono text-[11px] text-emerald-600 hover:underline transition-colors break-all flex items-center gap-1.5"
-                      >
-                        {store[selectedOpp.id]?.contact?.email}
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
-                  )}
-                </div>
-
-                <DialogFooter className="border-t border-slate-100 pt-4 flex flex-row items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleRemove(selectedOpp.id)}
-                    className="py-2.5 px-4 border border-slate-200 text-slate-500 hover:border-red-600 hover:text-red-600 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] font-bold cursor-pointer inline-flex items-center gap-1.5"
+                    onClick={() => setDetailOpen(false)}
+                    className="py-2 px-3.5 border border-slate-200 hover:border-slate-800 text-slate-700 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] font-bold cursor-pointer"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Remove
+                    Close
                   </button>
 
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setDetailOpen(false)}
-                      className="py-2.5 px-4 border border-slate-200 hover:border-slate-800 text-slate-700 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] font-bold cursor-pointer"
-                    >
-                      Close
-                    </button>
-
-                    {/* Conditional Action based on approval status */}
-                    {!isInactive && (
-                      isApproved ? (
-                        <>
-                          {interestStatus === "idle" && (
-                            <button
-                              onClick={() => {
-                                setDetailOpen(false);
-                                setInterestOpen(true);
-                              }}
-                              className="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
-                            >
-                              Express Interest
-                            </button>
-                          )}
-                          {interestStatus === "pending" && (
-                            <span className="px-3.5 py-2.5 border border-amber-500/20 bg-amber-500/5 text-amber-600 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default">
-                              Pending Handshake
-                            </span>
-                          )}
-                          {interestStatus === "accepted" && (
-                            <span className="px-3.5 py-2.5 bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default">
-                              Connected
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-[9.5px] font-mono text-slate-400 font-bold uppercase tracking-wider bg-slate-50 border border-slate-200 px-3 py-2 rounded-[2px]">
-                          Interest locked (Applied)
-                        </span>
-                      )
-                    )}
-                  </div>
-                </DialogFooter>
-              </>
-            );
-          })()}
-        </DialogContent>
-      </Dialog>
-
-      {/* Express Interest Modal (For Approved Users) */}
-      <Dialog open={interestOpen} onOpenChange={setInterestOpen}>
-        <DialogContent className="sm:max-w-lg bg-white border border-[#1f25301f] rounded-[4px] p-6 shadow-xl font-sans">
-          {selectedOpp && (
-            <>
-              <DialogHeader className="space-y-2">
-                <DialogTitle className="font-display text-2xl font-extrabold tracking-tight text-slate-900 uppercase">
-                  Request Introducing Context
-                </DialogTitle>
-                <DialogDescription className="text-sm text-slate-500 leading-relaxed font-sans">
-                  Contact details will be unlocked once <span className="text-slate-950 font-bold">{selectedOpp.company}</span> accepts your handshake. Add a short context note on why this is a strategic fit.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-wider sm:tracking-widest text-slate-400 font-bold border-b border-slate-100 pb-1">
-                  <span>Selected Listing</span>
-                  <span>#{selectedOpp.opportunity_number || selectedOpp.id.substring(0, 8)}</span>
-                </div>
-                <div className="space-y-2">
-                  <label className="block font-mono text-[10px] uppercase tracking-wider sm:tracking-widest text-slate-400 font-bold">
-                    Strategic Context Pitch (20+ chars)
-                  </label>
-                  <textarea
-                    value={pitch}
-                    onChange={(e) => setPitch(e.target.value)}
-                    placeholder="e.g., We have organic distribution channels in India matching your apparel requirements..."
-                    className="w-full h-32 px-3.5 py-2.5 border border-slate-200 focus:border-slate-800 focus:ring-0 font-mono text-xs rounded-[2px] transition-all bg-slate-50/20 outline-none resize-none"
-                    maxLength={300}
-                  />
-                  <div className="flex flex-wrap justify-between items-center font-mono text-[9px] text-slate-400 font-medium gap-1">
-                    <span>{pitch.trim().length} / 300 characters</span>
-                    <span>Min 20 characters</span>
-                  </div>
+                  {!isInactive && (
+                    isApproved ? (
+                      <>
+                        {interestStatus === "idle" && (
+                          <button
+                            onClick={() => {
+                              setDetailOpen(false);
+                              setInterestOpen(true);
+                            }}
+                            className="py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-xs cursor-pointer font-bold"
+                          >
+                            Express Interest
+                          </button>
+                        )}
+                        {interestStatus === "pending" && (
+                          <span className="px-3 py-2 border border-amber-500/20 bg-amber-500/5 text-amber-600 text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default">
+                            Pending Handshake
+                          </span>
+                        )}
+                        {interestStatus === "accepted" && (
+                          <span className="px-3 py-2 bg-primary text-white text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] cursor-default">
+                            Connected
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-[9.5px] font-mono text-slate-400 font-bold uppercase tracking-wider bg-slate-50 border border-slate-200 px-3 py-2 rounded-[2px]">
+                        Interest locked (Applied)
+                      </span>
+                    )
+                  )}
                 </div>
               </div>
+            );
+          })()
+        }
+      >
+        {selectedOpp && (() => {
+          const isClosed = selectedOpp.status === "closed";
+          const isExpired = selectedOpp.expires_at ? new Date(selectedOpp.expires_at) < new Date() : false;
+          const isInactive = isClosed || isExpired;
+          const isApproved = business?.status === "approved";
+          const isConnected = store[selectedOpp.id]?.status === "accepted";
+          const shouldHide = selectedOpp.hide_company_name && !isConnected && !isApproved;
+          const displayName = shouldHide ? "Confidential" : selectedOpp.company;
+          const initials = shouldHide ? "🔒" : getCompanyInitials(displayName);
+          const interestStatus = store[selectedOpp.id]?.status ?? "idle";
 
-              <DialogFooter className="border-t border-slate-100 pt-4 flex items-center justify-end gap-3">
-                <button
-                  onClick={() => {
-                    setInterestOpen(false);
-                    setPitch("");
-                    setDetailOpen(true);
-                  }}
-                  className="py-2.5 px-4 border border-slate-200 hover:border-slate-800 text-slate-700 text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] font-bold cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleExpressInterest}
-                  className="py-2.5 px-5 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-mono uppercase tracking-widest transition-all rounded-[2px] shadow-sm hover:shadow cursor-pointer font-bold"
-                >
-                  Submit Handshake
-                </button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+          return (
+            <div className="space-y-4 pt-1 text-left">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 bg-slate-100 text-slate-600 font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]">
+                  {selectedOpp.category === "strategic_advice" ? "Strategic Advice" : selectedOpp.category}
+                </span>
+                {isInactive ? (
+                  <span className="px-2 py-0.5 bg-red-50 text-red-600 font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]">
+                    {isClosed ? "Closed" : "Expired"}
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]">
+                    Active
+                  </span>
+                )}
+              </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════
-          PROPOSAL SUBMITTED CONFIRMATION MODAL
-          ═══════════════════════════════════════════════════════════════════ */}
-      <ProposalConfirmationModal
-        isOpen={confirmationOpen}
-        onClose={() => setConfirmationOpen(false)}
-        targetCompanyName={submittedTargetCompany}
-        opportunityTitle={submittedOppTitle}
-        backButtonText="Back to Saved Opportunities"
+              <p className="text-sm text-slate-600 leading-relaxed font-sans bg-slate-50/50 p-4 border border-slate-200/40 rounded-[2px]">
+                {selectedOpp.description}
+              </p>
+
+              {selectedOpp.offer_text && (
+                <div className="space-y-1">
+                  <h4 className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold">What is offered:</h4>
+                  <p className="text-xs text-slate-600 font-sans">{selectedOpp.offer_text}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-b border-slate-100 py-3.5">
+                <div className="space-y-1">
+                  <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold block">Company</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-[2px] bg-slate-950 border border-slate-900 flex items-center justify-center font-sans text-[8px] font-bold text-white uppercase">
+                      {initials}
+                    </div>
+                    <span className="text-xs font-bold text-slate-900 break-words">{displayName}</span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold block">Industry</span>
+                  <span className="text-xs text-slate-700 font-mono">{selectedOpp.industry}</span>
+                </div>
+                <div className="space-y-1">
+                  <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold block">Location</span>
+                  <span className="text-xs text-slate-700 font-mono">{selectedOpp.location || "Remote"}</span>
+                </div>
+                <div className="space-y-1">
+                  <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold block">Expires</span>
+                  <span className="text-xs text-slate-700 font-mono">
+                    {selectedOpp.expires_at ? new Date(selectedOpp.expires_at).toLocaleDateString() : "Never"}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Unlocked Contact Details for accepted handshakes */}
+              {interestStatus === "accepted" && store[selectedOpp.id]?.contact && (
+                <div className="border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-2 rounded-[2px] shadow-sm animate-momentum">
+                  <div className="flex items-center justify-between gap-4 border-b border-emerald-500/10 pb-1.5">
+                    <div className="font-mono text-[9px] uppercase tracking-wider sm:tracking-widest text-emerald-600 font-bold break-words">
+                      [ Contact unlocked · mutual acceptance ]
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                    <span className="font-display text-sm font-bold text-slate-900">{store[selectedOpp.id]?.contact?.name}</span>
+                    <span className="font-mono text-[10px] text-slate-400 font-bold">· {store[selectedOpp.id]?.contact?.role}</span>
+                  </div>
+                  <a
+                    href={`mailto:${store[selectedOpp.id]?.contact?.email}`}
+                    className="font-mono text-[11px] text-emerald-600 hover:underline transition-colors break-all flex items-center gap-1.5"
+                  >
+                    {store[selectedOpp.id]?.contact?.email}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+      </Modal>
+
+      {/* Express Interest Modal (V2 Interactive Modal) */}
+      <ExpressInterestModal
+        isOpen={interestOpen}
+        onClose={() => {
+          setInterestOpen(false);
+          queryClient.invalidateQueries({ queryKey: ["saved-opportunities-list", userId] });
+        }}
+        opportunity={selectedOpp}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["saved-opportunities-list", userId] });
+        }}
       />
     </div>
   );

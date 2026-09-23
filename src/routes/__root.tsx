@@ -10,7 +10,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
-import { ClerkProvider } from "@clerk/tanstack-react-start";
+import { ClerkProvider, useAuth } from "@clerk/tanstack-react-start";
 import { initAnalytics, trackPageView } from "@/lib/analytics";
 
 import appCss from "../styles.css?url";
@@ -147,6 +147,20 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function AppLayout() {
+  const { isSignedIn } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-[#F7F9FB] flex flex-col">
+      <Navbar />
+      <main className={isSignedIn ? "md:pl-60 md:pt-16 flex-1 flex flex-col w-full" : "flex-1 flex flex-col w-full"}>
+        <Outlet />
+      </main>
+      <Toaster position="bottom-right" visibleToasts={1} />
+    </div>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -186,6 +200,7 @@ function RootComponent() {
       })();
     }
   }, []);
+
   return (
     <ClerkProvider
       publishableKey={publishableKey}
@@ -196,9 +211,7 @@ function RootComponent() {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <Navbar />
-        <Outlet />
-        <Toaster position="bottom-right" visibleToasts={1} />
+        <AppLayout />
       </QueryClientProvider>
     </ClerkProvider>
   );
