@@ -140,8 +140,8 @@ export class ExchangeService {
       throw new Error("Interest request not found.");
     }
 
-    if (interest.status === "declined" || interest.status === "withdrawn") {
-      throw new Error(`Cannot propose terms for an interest request that is ${interest.status}.`);
+    if (interest.status === "withdrawn") {
+      throw new Error(`Cannot propose terms for an interest request that is withdrawn.`);
     }
 
     // Both parties must have acknowledged the process
@@ -171,6 +171,14 @@ export class ExchangeService {
 
     // Use transaction to supersede pending proposals and invalidate unconfirmed agreements
     return await prisma.$transaction(async (tx) => {
+      // If interest was marked declined, revive it back
+      if (interest.status === "declined") {
+        await tx.interest.update({
+          where: { id: interest.id },
+          data: { status: "pending" },
+        });
+      }
+
       // Mark existing pending proposals as superseded / countered
       if (lastProposal && lastProposal.status === "pending_response") {
         await tx.exchangeProposal.update({

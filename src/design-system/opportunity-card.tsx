@@ -9,6 +9,8 @@ import {
   Lock,
   Pencil,
   ArrowRight,
+  ArrowDown,
+  ArrowUp,
   CheckCircle2,
   ChevronDown,
   Repeat,
@@ -23,8 +25,10 @@ import {
   UrgentBadge,
   VerifiedBadge,
   ParityScoreBadge,
+  SemanticStatusPill,
 } from "./badges";
 import { Button } from "./button";
+import { MiniStageStepper, MiniStageBarStepper } from "./lifecycle-stepper";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export interface OpportunityCardData {
@@ -152,7 +156,7 @@ export function OpportunityCard({
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   <DealCodeStamp code={opp.opportunity_number || "RY-0042"} />
                   <CategoryPill category={opp.type} />
-                  {isPromoted && <UrgentBadge label="Urgent" />}
+                  {isPromoted && <SemanticStatusPill variant="warning" format="mono">Urgent</SemanticStatusPill>}
                   {shouldHide && (
                     <span className="text-[11px] font-medium text-[#64748B] bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-0.5 rounded-[4px] flex items-center gap-1 select-none">
                       <EyeOff className="w-3 h-3 text-[#94A3B8]" />
@@ -182,9 +186,13 @@ export function OpportunityCard({
                     <span className="font-medium text-[#171F2C] truncate">{displayCompany}</span>
                   )}
 
-                  <span className="inline-flex items-center gap-1 text-emerald-700 text-[10px] font-medium shrink-0">
-                    <VerifiedBadge size={14} /> Verified
-                  </span>
+                  <SemanticStatusPill
+                    variant="success"
+                    format="rounded"
+                    className="text-[10px] px-1.5 py-0 leading-tight font-semibold"
+                  >
+                    Verified
+                  </SemanticStatusPill>
 
                   <span className="text-[#CBD5E1]">|</span>
 
@@ -341,5 +349,160 @@ export function OpportunityCard({
         </CollapsibleContent>
       </article>
     </Collapsible>
+  );
+}
+
+/* ==========================================================================
+   2. BILATERAL DEAL OPPORTUNITY CARD (INBOUND / OUTBOUND STREAM)
+   ========================================================================== */
+
+export function formatTimeAgo(dateInput: string | Date | undefined | null): string {
+  if (!dateInput) return "Recently";
+  try {
+    const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+    if (!date || isNaN(date.getTime())) return "Recently";
+    const diffMs = Date.now() - date.getTime();
+    const seconds = Math.floor(diffMs / 1000);
+    if (isNaN(seconds) || seconds < 0) return "Recently";
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  } catch {
+    return "Recently";
+  }
+}
+
+export interface BilateralDealOpportunityCardProps {
+  dealCode: string;
+  pStage: 1 | 2 | 3 | 4;
+  receivedAt?: string | Date;
+  category?: string;
+  isInbound: boolean;
+  headline: string;
+  partnerName: string;
+  isVerified?: boolean;
+  location?: string | null;
+  industry?: string | null;
+  logoUrl?: string | null;
+  onView: () => void;
+  onExchangeHub: () => void;
+  className?: string;
+}
+
+export function BilateralDealOpportunityCard({
+  dealCode,
+  pStage,
+  receivedAt,
+  category,
+  isInbound,
+  headline,
+  partnerName,
+  isVerified,
+  location,
+  industry,
+  logoUrl,
+  onView,
+  onExchangeHub,
+  className,
+}: BilateralDealOpportunityCardProps) {
+  return (
+    <article
+      className={cn(
+        "bg-white rounded-[4px] border border-[#E2E8F0] shadow-2xs overflow-hidden transition-all hover:border-[#CBD5E1] p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 select-none",
+        className,
+      )}
+    >
+      <div className="flex items-start md:items-center gap-3.5 min-w-0 flex-1">
+        {/* Company Logo / Initials Avatar */}
+        <div className="relative shrink-0 mt-0.5 md:mt-0">
+          <CompanyLogo
+            src={logoUrl || undefined}
+            name={partnerName}
+            className="w-9 h-9 rounded-[4px] object-contain border border-[#E2E8F0] shrink-0 bg-white"
+            fallbackClassName="w-9 h-9 rounded-[4px] bg-[#171F2C] text-white flex items-center justify-center font-bold text-xs shrink-0 border border-[#171F2C]"
+            textClassName="text-xs font-mono font-bold"
+          />
+        </div>
+
+        {/* Core 3-Row Content Block */}
+        <div className="min-w-0 flex-1 flex flex-col gap-1">
+          {/* ── ROW 1: Type / Category & Received Time Only ── */}
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {/* Category / Type */}
+            {category && <CategoryPill category={category} />}
+
+            {/* Received Time */}
+            {receivedAt && (
+              <span className="text-[11px] font-mono text-[#64748B] flex items-center gap-1 bg-[#F8FAFC] px-2 py-0.5 rounded-[4px] border border-[#E2E8F0]">
+                <Clock className="w-3 h-3 text-[#94A3B8]" />
+                <span>Received {formatTimeAgo(receivedAt)}</span>
+              </span>
+            )}
+          </div>
+
+          {/* ── ROW 2: Opportunity Title ── */}
+          <h2 className="font-display font-semibold text-[15px] sm:text-[16px] text-[#171F2C] truncate tracking-tight pt-0.5">
+            {headline}
+          </h2>
+
+          {/* ── ROW 3: Business Name | Verified Icon | Location ── */}
+          <div className="flex items-center gap-2 text-xs text-[#64748B] truncate">
+            <span className="font-medium text-[#171F2C] truncate">{partnerName}</span>
+
+            {isVerified && (
+              <span className="inline-flex items-center gap-1 text-emerald-700 text-[10px] font-medium shrink-0">
+                <VerifiedBadge size={14} /> Verified
+              </span>
+            )}
+
+            <span className="text-[#CBD5E1]">|</span>
+
+            <span className="truncate">{location || "Remote / Global"}</span>
+
+            {industry && (
+              <>
+                <span className="text-[#CBD5E1]">•</span>
+                <span className="truncate text-[#64748B]">{industry}</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side: 4 Mini Stage Bars directly above Action Buttons */}
+      <div className="flex flex-col sm:items-end gap-2.5 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#E2E8F0] justify-center">
+        {/* 4 Mini Stepper Bars (Black for passed/current, greyed out for future, with ack, neg, agr, shake labels) */}
+        <MiniStageBarStepper stage={pStage} className="w-full sm:w-[170px]" />
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onView}
+            className="gap-1.5 font-medium"
+          >
+            <Eye className="w-3.5 h-3.5 text-[#64748B]" />
+            <span>View</span>
+          </Button>
+          <Button
+            type="button"
+            variant="monochrome"
+            size="sm"
+            onClick={onExchangeHub}
+            className="gap-1.5 font-medium"
+          >
+            <span>Exchange Hub</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
+    </article>
   );
 }

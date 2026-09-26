@@ -27,24 +27,15 @@ import {
   AlertCircle,
   TrendingUp,
   History,
+  Crown,
+  Sparkles,
 } from "lucide-react";
 import { getIncomingRequests } from "../functions/getIncomingRequests";
 import { getSentRequests } from "../functions/getSentRequests";
 import { getRequestById } from "../functions/getRequestById";
-import { acceptInterest } from "../functions/acceptInterest";
-import { declineInterest } from "../functions/declineInterest";
-import { withdrawInterest } from "../functions/withdrawInterest";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { ExecutiveTabs } from "@/design-system";
+import { BilateralOpportunityDetailSheet } from "@/design-system";
 import { ProposalHistorySheet } from "@/components/proposals/ProposalHistorySheet";
 
 const searchParamsSchema = z.object({
@@ -55,7 +46,7 @@ export const Route = createFileRoute("/proposals")({
   validateSearch: zodValidator(searchParamsSchema),
   head: () => ({
     meta: [
-      { title: "Proposals — The Relay" },
+      { title: "History — The Relay" },
       {
         name: "description",
         content: "Review received inquiries and track sent proposals across your institutional deal network.",
@@ -77,7 +68,7 @@ export function ProposalsPage() {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab === "sent" ? "sent" : "received");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProposalForModal, setSelectedProposalForModal] = useState<any | null>(null);
-  const [modalType, setModalType] = useState<"detail" | "accept" | "decline" | "withdraw" | null>(null);
+  const [modalType, setModalType] = useState<"detail" | null>(null);
   const [historyOpportunity, setHistoryOpportunity] = useState<{
     id: string;
     title: string;
@@ -216,76 +207,6 @@ export function ProposalsPage() {
     return sentRequests.filter((r: any) => r && r.status === "pending").length;
   }, [sentRequests]);
 
-  // Accept Mutation
-  const acceptMutation = useMutation({
-    mutationFn: async ({ interestId }: { interestId: string }) => {
-      await acceptInterest({ data: { interest_id: interestId } });
-    },
-    onSuccess: () => {
-      toast.success("Proposal Accepted — Handshake Complete", {
-        description: "Direct contact information is now unlocked.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["incoming-requests", userId] });
-      queryClient.invalidateQueries({ queryKey: ["my-opportunities", userId] });
-      setModalType(null);
-      setSelectedProposalForModal(null);
-    },
-    onError: (err: any) => {
-      toast.error(err.message || "Failed to accept proposal.");
-    },
-  });
-
-  // Decline Mutation
-  const declineMutation = useMutation({
-    mutationFn: async ({ interestId }: { interestId: string }) => {
-      await declineInterest({ data: { interest_id: interestId } });
-    },
-    onSuccess: () => {
-      toast.success("Proposal Declined", {
-        description: "The proposal has been marked as declined.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["incoming-requests", userId] });
-      setModalType(null);
-      setSelectedProposalForModal(null);
-    },
-    onError: (err: any) => {
-      toast.error(err.message || "Failed to decline proposal.");
-    },
-  });
-
-  // Withdraw Mutation
-  const withdrawMutation = useMutation({
-    mutationFn: async ({ interestId, opportunityId }: { interestId: string; opportunityId?: string }) => {
-      const isLocal = interestId.startsWith("local-req-");
-      if (!isLocal) {
-        await withdrawInterest({ data: { interest_id: interestId } });
-      }
-    },
-    onSuccess: (_data, { interestId, opportunityId }) => {
-      toast.success("Proposal Withdrawn", {
-        description: "Your proposal pitch has been cancelled.",
-      });
-
-      // Clear from local storage
-      if (typeof window !== "undefined") {
-        try {
-          const localStore = JSON.parse(localStorage.getItem("relay.interest.v1") || "{}");
-          if (opportunityId && localStore[opportunityId]) {
-            delete localStore[opportunityId];
-            localStorage.setItem("relay.interest.v1", JSON.stringify(localStore));
-          }
-        } catch (_) {}
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["sent-requests", userId] });
-      setModalType(null);
-      setSelectedProposalForModal(null);
-    },
-    onError: (err: any) => {
-      toast.error(err.message || "Failed to withdraw proposal.");
-    },
-  });
-
   // Filtered lists
   const filteredIncoming = useMemo(() => {
     if (!Array.isArray(incomingRequests)) return [];
@@ -381,11 +302,18 @@ export function ProposalsPage() {
           <div className="flex flex-col gap-4 pb-4 border-b border-[#E2E8F0]">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h1 className="font-display text-3xl sm:text-4xl font-bold text-[#171F2C] tracking-tight">
-                  Proposals
-                </h1>
+                <div className="flex items-baseline gap-2.5">
+                  <h1 className="font-display text-3xl sm:text-4xl font-bold text-[#171F2C] tracking-tight">
+                    History
+                  </h1>
+                  <span className="text-base sm:text-xl font-medium text-[#64748B] font-sans">
+                    / {activeTab === "received" ? "Received" : "Sent"}
+                  </span>
+                </div>
                 <p className="text-sm text-[#64748B] mt-1">
-                  Review received inquiries and track sent proposals across your institutional deal network.
+                  {activeTab === "received"
+                    ? "Review received bilateral inquiries and opportunity logs."
+                    : "Track sent proposals and outbound interest requests across your deal network."}
                 </p>
               </div>
 
@@ -421,26 +349,15 @@ export function ProposalsPage() {
               </div>
             </div>
 
-            {/* Filter Tabs & Search Bar (Only Received and Sent tabs) */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-              <ExecutiveTabs
-                variant="pill"
-                activeTab={activeTab}
-                onTabChange={(tabId) => handleTabChange(tabId as "received" | "sent")}
-                tabs={[
-                  { id: "received", label: "Received", count: incomingRequests.length },
-                  { id: "sent", label: "Sent", count: sentRequests.length },
-                ]}
-              />
-
-              {/* Search Box */}
+            {/* Search Bar (Switcher removed) */}
+            <div className="flex items-center justify-between gap-4 pt-1">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-[4px] bg-white border border-[#E2E8F0] w-full sm:w-80 focus-within:border-[#171F2C] transition-colors shadow-xs">
                 <Search className="w-4 h-4 text-slate-400 shrink-0" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search proposals, counterparties, terms..."
+                  placeholder={`Search ${activeTab === "received" ? "received" : "sent"} logs, companies, terms...`}
                   className="w-full bg-transparent text-xs text-[#171F2C] placeholder:text-slate-400 focus:outline-none"
                 />
                 {searchQuery && (
@@ -574,81 +491,21 @@ export function ProposalsPage() {
                               )}
                             </div>
 
-                            {/* Actions for Received Proposals across all stages */}
+                            {/* Actions for Received History Log: Read-Only Views */}
                             <div className="pt-2 border-t border-[#E2E8F0] space-y-2">
-                              {/* Primary Row: Accept / Decline / View */}
-                              <div className="flex items-center gap-2">
-                                {isPending ? (
-                                  <>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setSelectedProposalForModal(req);
-                                        setModalType("accept");
-                                      }}
-                                      className="flex-1 py-2 px-3 rounded-[4px] bg-[#171F2C] hover:bg-black text-white text-xs font-semibold transition-colors cursor-pointer text-center"
-                                    >
-                                      Accept
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setSelectedProposalForModal(req);
-                                        setModalType("decline");
-                                      }}
-                                      className="flex-1 py-2 px-3 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#64748B] hover:text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer text-center"
-                                    >
-                                      Decline
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setSelectedProposalForModal(req);
-                                        setModalType("detail");
-                                      }}
-                                      className="p-2 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#64748B] hover:text-[#171F2C] transition-colors cursor-pointer"
-                                      title="View Full Pitch"
-                                    >
-                                      <Eye className="w-4 h-4" />
-                                    </button>
-                                  </>
-                                ) : isAccepted ? (
-                                  <>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setSelectedProposalForModal(req);
-                                        setModalType("detail");
-                                      }}
-                                      className="flex-1 py-2 px-3 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
-                                    >
-                                      <Eye className="w-3.5 h-3.5" />
-                                      <span>View Details</span>
-                                    </button>
-                                    <Link
-                                      to="/my-relay"
-                                      className="flex-1 py-2 px-3 rounded-[4px] bg-[#171F2C] hover:bg-black text-white text-xs font-semibold transition-colors text-center inline-flex items-center justify-center gap-1"
-                                    >
-                                      <span>Exchange</span>
-                                      <ArrowRight className="w-3 h-3" />
-                                    </Link>
-                                  </>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedProposalForModal(req);
-                                      setModalType("detail");
-                                    }}
-                                    className="w-full py-2 px-3 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
-                                  >
-                                    <Eye className="w-3.5 h-3.5" />
-                                    <span>View Proposal Details</span>
-                                  </button>
-                                )}
-                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedProposalForModal(req);
+                                  setModalType("detail");
+                                }}
+                                className="w-full py-2 px-3 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>View Details</span>
+                              </button>
 
-                              {/* Secondary Row: Full-Width Proposal History button */}
+                              {/* Secondary Row: Full-Width Black Proposal History Button with King Crown Pro Icon */}
                               <button
                                 type="button"
                                 onClick={() => {
@@ -660,14 +517,17 @@ export function ProposalsPage() {
                                     });
                                   }
                                 }}
-                                className="w-full py-1.5 px-3 rounded-[4px] bg-slate-50 hover:bg-slate-100/90 border border-slate-200/90 hover:border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-medium transition-all cursor-pointer flex items-center justify-between group shadow-2xs"
+                                className="w-full py-2 px-3 rounded-[4px] bg-[#171F2C] hover:bg-black text-white text-xs font-semibold transition-colors cursor-pointer flex items-center justify-between group shadow-xs"
                               >
-                                <div className="flex items-center gap-1.5">
-                                  <History className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-800 transition-colors" />
-                                  <span className="font-semibold text-slate-800 text-[11px]">Proposal History</span>
+                                <div className="flex items-center gap-2">
+                                  <History className="w-3.5 h-3.5 text-slate-300 group-hover:text-white transition-colors" />
+                                  <span className="font-semibold text-white text-xs">
+                                    Proposal History
+                                  </span>
                                 </div>
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-[3px] text-[9px] font-bold tracking-wider uppercase bg-amber-100 text-amber-900 border border-amber-300/80">
-                                  PRO
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] text-[9px] font-bold tracking-wider uppercase bg-white/10 text-white border border-white/15">
+                                  <Crown className="w-3 h-3 text-amber-400 fill-amber-400" />
+                                  <span>PRO</span>
                                 </span>
                               </button>
                             </div>
@@ -767,41 +627,18 @@ export function ProposalsPage() {
                                   {getStatusBadge(req.status)}
                                 </td>
                                 <td className="py-3.5 px-4 align-middle text-right">
-                                  <div className="flex items-center justify-end gap-2">
+                                  <div className="flex items-center justify-end">
                                     <button
                                       type="button"
                                       onClick={() => {
                                         setSelectedProposalForModal(req);
                                         setModalType("detail");
                                       }}
-                                      className="px-3 py-1 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#64748B] hover:text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer"
+                                      className="px-3 py-1.5 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5"
                                     >
-                                      View
+                                      <Eye className="w-3.5 h-3.5 text-slate-500" />
+                                      <span>View Details</span>
                                     </button>
-
-                                    {isPending && (
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setSelectedProposalForModal(req);
-                                          setModalType("withdraw");
-                                        }}
-                                        className="px-2.5 py-1 rounded-[4px] bg-white border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold transition-colors cursor-pointer"
-                                        title="Withdraw Proposal"
-                                      >
-                                        Withdraw
-                                      </button>
-                                    )}
-
-                                    {isAccepted && (
-                                      <Link
-                                        to="/my-relay"
-                                        className="px-3 py-1 rounded-[4px] bg-[#171F2C] hover:bg-black text-white text-xs font-semibold transition-colors inline-flex items-center gap-1"
-                                      >
-                                        <span>Exchange</span>
-                                        <ArrowRight className="w-3 h-3" />
-                                      </Link>
-                                    )}
                                   </div>
                                 </td>
                               </tr>
@@ -819,261 +656,16 @@ export function ProposalsPage() {
       </main>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          DETAIL PROPOSAL VIEW DIALOG
+          BILATERAL OPPORTUNITY & PROPOSAL DETAILS BOTTOM SHEET
           ═══════════════════════════════════════════════════════════════════ */}
-      <Dialog
+      <BilateralOpportunityDetailSheet
+        deal={selectedProposalForModal}
         open={modalType === "detail" && !!selectedProposalForModal}
-        onOpenChange={(open) => {
-          if (!open) {
-            setModalType(null);
-            setSelectedProposalForModal(null);
-          }
+        onClose={() => {
+          setModalType(null);
+          setSelectedProposalForModal(null);
         }}
-      >
-        <DialogContent className="max-w-xl bg-white border border-[#E2E8F0] p-6 rounded-[4px] shadow-xl">
-          <DialogHeader>
-            <div className="flex items-center justify-between pb-1">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
-                Proposal Mandate
-              </span>
-              {activeProposalDetail && getStatusBadge(activeProposalDetail.status)}
-            </div>
-            <DialogTitle className="font-display font-bold text-lg text-[#171F2C]">
-              {activeProposalDetail?.opportunity?.title || "Opportunity Proposal"}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[#64748B]">
-              Created {activeProposalDetail ? formatDistance(activeProposalDetail.created_at) : ""}
-            </DialogDescription>
-          </DialogHeader>
-
-          {loadingDetail ? (
-            <div className="py-12 flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-6 h-6 animate-spin text-[#171F2C]" />
-              <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">
-                Loading Proposal Details...
-              </span>
-            </div>
-          ) : activeProposalDetail && (
-            <div className="space-y-4 pt-2">
-              <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-1">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold block">
-                  Counterparty Institution
-                </span>
-                <div className="flex items-center gap-1.5 font-semibold text-xs text-[#171F2C]">
-                  <span>
-                    {activeProposalDetail.requesting_business?.company_name ||
-                      activeProposalDetail.opportunity?.business?.company_name ||
-                      activeProposalDetail.opportunity?.company ||
-                      "Verified Syndicate"}
-                  </span>
-                  <span className="material-symbols-outlined text-[14px] text-[#059669]">
-                    verified
-                  </span>
-                </div>
-              </div>
-
-              {/* If accepted, show unlocked contact details */}
-              {activeProposalDetail.status === "accepted" &&
-                (activeProposalDetail.requesting_business?.contact_email ||
-                  activeProposalDetail.opportunity?.business?.contact_email) && (
-                  <div className="p-3 rounded-[4px] bg-emerald-50 border border-emerald-200 text-xs flex flex-col gap-1">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-800 font-semibold flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      Verified Direct Contact Email
-                    </span>
-                    <span className="font-mono text-emerald-900 font-semibold text-xs break-all">
-                      {activeProposalDetail.requesting_business?.contact_email ||
-                        activeProposalDetail.opportunity?.business?.contact_email}
-                    </span>
-                  </div>
-                )}
-
-              <div className="space-y-1.5">
-                <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold block">
-                  Full Proposal Pitch & Commercial Terms
-                </span>
-                <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] text-xs text-[#171F2C] leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
-                  {activeProposalDetail.message || "No custom pitch provided."}
-                </div>
-              </div>
-
-              <div className="p-3 bg-slate-100 rounded-[4px] text-[11px] text-[#64748B] flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>
-                  Protected by Relay Zero-Knowledge Bilateral Escrow & Mutual Non-Circumvention.
-                </span>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="pt-3 border-t border-[#E2E8F0]">
-            <button
-              type="button"
-              onClick={() => {
-                setModalType(null);
-                setSelectedProposalForModal(null);
-              }}
-              className="px-4 py-2 rounded-[4px] bg-[#171F2C] hover:bg-black text-white text-xs font-semibold transition-colors cursor-pointer"
-            >
-              Close
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          ACCEPT PROPOSAL CONFIRMATION DIALOG
-          ═══════════════════════════════════════════════════════════════════ */}
-      <Dialog
-        open={modalType === "accept" && !!selectedProposalForModal}
-        onOpenChange={(open) => {
-          if (!open) {
-            setModalType(null);
-            setSelectedProposalForModal(null);
-          }
-        }}
-      >
-        <DialogContent className="max-w-md bg-white border border-[#E2E8F0] p-6 rounded-[4px] shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="font-display font-bold text-lg text-[#171F2C]">
-              Accept Inbound Proposal?
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[#64748B] pt-1 leading-relaxed">
-              Accepting will execute the initial mutual handshake, unblind verified contact details,
-              and initiate the Bilateral Dealroom exchange workflow.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="pt-4 border-t border-[#E2E8F0] flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setModalType(null);
-                setSelectedProposalForModal(null);
-              }}
-              className="px-4 py-2 text-xs font-semibold text-[#64748B] hover:text-[#171F2C] cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              disabled={acceptMutation.isPending}
-              onClick={() => {
-                if (selectedProposalForModal) {
-                  acceptMutation.mutate({ interestId: selectedProposalForModal.id });
-                }
-              }}
-              className="px-5 py-2 rounded-[4px] bg-[#171F2C] hover:bg-black text-white text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-            >
-              {acceptMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Confirm & Accept</span>
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          DECLINE PROPOSAL CONFIRMATION DIALOG
-          ═══════════════════════════════════════════════════════════════════ */}
-      <Dialog
-        open={modalType === "decline" && !!selectedProposalForModal}
-        onOpenChange={(open) => {
-          if (!open) {
-            setModalType(null);
-            setSelectedProposalForModal(null);
-          }
-        }}
-      >
-        <DialogContent className="max-w-md bg-white border border-[#E2E8F0] p-6 rounded-[4px] shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="font-display font-bold text-lg text-[#171F2C]">
-              Decline Proposal?
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[#64748B] pt-1 leading-relaxed">
-              Are you sure you want to decline this proposal? The counterparty will be respectfully notified.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="pt-4 border-t border-[#E2E8F0] flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setModalType(null);
-                setSelectedProposalForModal(null);
-              }}
-              className="px-4 py-2 text-xs font-semibold text-[#64748B] hover:text-[#171F2C] cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              disabled={declineMutation.isPending}
-              onClick={() => {
-                if (selectedProposalForModal) {
-                  declineMutation.mutate({ interestId: selectedProposalForModal.id });
-                }
-              }}
-              className="px-5 py-2 rounded-[4px] bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-            >
-              {declineMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Confirm Decline</span>
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          WITHDRAW PROPOSAL CONFIRMATION DIALOG
-          ═══════════════════════════════════════════════════════════════════ */}
-      <Dialog
-        open={modalType === "withdraw" && !!selectedProposalForModal}
-        onOpenChange={(open) => {
-          if (!open) {
-            setModalType(null);
-            setSelectedProposalForModal(null);
-          }
-        }}
-      >
-        <DialogContent className="max-w-md bg-white border border-[#E2E8F0] p-6 rounded-[4px] shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="font-display font-bold text-lg text-[#171F2C]">
-              Withdraw Proposal?
-            </DialogTitle>
-            <DialogDescription className="text-xs text-[#64748B] pt-1 leading-relaxed">
-              Are you sure you want to cancel and withdraw this proposal pitch?
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="pt-4 border-t border-[#E2E8F0] flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setModalType(null);
-                setSelectedProposalForModal(null);
-              }}
-              className="px-4 py-2 text-xs font-semibold text-[#64748B] hover:text-[#171F2C] cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              disabled={withdrawMutation.isPending}
-              onClick={() => {
-                if (selectedProposalForModal) {
-                  withdrawMutation.mutate({
-                    interestId: selectedProposalForModal.id,
-                    opportunityId: selectedProposalForModal.opportunity_id,
-                  });
-                }
-              }}
-              className="px-5 py-2 rounded-[4px] bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-            >
-              {withdrawMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Confirm Withdrawal</span>
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      />
 
       {/* ═══════════════════════════════════════════════════════════════════
           PROPOSAL HISTORY & DEAL INTELLIGENCE SIDE SHEET (PRO TIER)

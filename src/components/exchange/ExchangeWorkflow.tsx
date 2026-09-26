@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
+import { executiveToast } from "@/design-system";
 import {
   CheckCircle2,
   Clock,
@@ -37,7 +38,12 @@ import {
   Shield,
   Eye,
   EyeOff,
+  History,
+  LayoutGrid,
+  Columns3,
+  ArrowLeft,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { ExchangeType, ContactField, DeclineReason } from "@/types";
 import { acknowledgeExchangeProcess } from "@/functions/acknowledgeExchangeProcess";
 import { sendExchangeFollowUp } from "@/functions/sendExchangeFollowUp";
@@ -47,11 +53,25 @@ import { withdrawExchangeProposal } from "@/functions/withdrawExchangeProposal";
 import { confirmExchangeAgreement } from "@/functions/confirmExchangeAgreement";
 import { shareContactConsent, requestContactExchange } from "@/functions/shareContactConsent";
 import { acceptContactConsent, respondContactExchange } from "@/functions/acceptContactConsent";
+import { declineInterest } from "@/functions/declineInterest";
 import { declineContactConsent } from "@/functions/declineContactConsent";
 import { createCustomContactDetail } from "@/functions/createCustomContactDetail";
 import { updateCustomContactDetail } from "@/functions/updateCustomContactDetail";
 import { deleteCustomContactDetail } from "@/functions/deleteCustomContactDetail";
+import {
+  formatDeliveryMethods,
+  formatValueCategories,
+  extractTermsMetadataFromText,
+  extractHighlightedTermsFromText,
+  FormattedDeliveryMethod,
+} from "@/lib/terms-formatter";
 import { updateBusiness } from "@/functions/updateBusiness";
+import { ExpressInterestModal } from "@/components/opportunities/ExpressInterestModal";
+import {
+  ExchangeHubDefaultView,
+  ExchangeHubRound,
+} from "./ExchangeHubDefaultView";
+import { ExchangeHubSimplifiedView } from "./ExchangeHubSimplifiedView";
 import {
   Dialog,
   DialogContent,
@@ -75,17 +95,88 @@ import {
   SheetDescription,
   SheetClose,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
+  Modal,
+  Button,
+  ExecutiveTabs,
+  Input,
+  Textarea,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/design-system";
+
+export const getExchangeTypeLabel = (type: string) => {
+  switch (type) {
+    case "fixed_amount":
+      return "Money / Fixed Amount";
+    case "revenue_share":
+      return "Revenue Share / Percentage";
+    case "qualified_lead":
+      return "Qualified Lead / Referral";
+    case "business_opportunity":
+      return "Business Opportunity";
+    case "service_work":
+      return "Service / Work";
+    case "partnership":
+      return "Partnership";
+    case "introduction":
+      return "Introduction / Connection";
+    case "other":
+    default:
+      return "Other";
+  }
+};
+
+export const parseDeclineDetails = (terms?: string | null) => {
+  if (!terms || !terms.includes("[DECLINE REASON:")) return null;
+  const match = terms.match(/\[DECLINE REASON:\s*([^\]]+)\](?:\s*Note:\s*([^|]+))?/);
+  if (!match) return null;
+  return {
+    reason: match[1]?.trim(),
+    note: match[2]?.trim(),
+  };
+};
+
+export const getCleanAdditionalTerms = (terms?: string | null) => {
+  if (!terms) return null;
+  if (terms.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(terms);
+      if (parsed.note) return parsed.note;
+      if (parsed.message) return parsed.message;
+      return null;
+    } catch {
+      return terms;
+    }
+  }
+  if (!terms.includes("[DECLINE REASON:")) return terms;
+  const parts = terms.split("| Original Terms:");
+  if (parts.length > 1) {
+    return parts[1]?.trim() || null;
+  }
+  return null;
+};
+
+export const getDeclineReasonLabel = (reason?: string | null) => {
+  switch (reason) {
+    case "valuation_mismatch":
+      return "Commercial terms / Valuation mismatch";
+    case "exchange_type_unsuitable":
+      return "Not looking for this exchange type right now";
+    case "timeline_conflict":
+      return "Timeline / Capacity conflict";
+    case "scope_unclear":
+      return "Exchange scope needs more clarity";
+    case "other":
+      return "Other commercial reason";
+    default:
+      return reason || "Terms not suitable";
+  }
+};
 
 interface ExchangeWorkflowProps {
   data: any;
@@ -114,6 +205,7 @@ export function ExchangeWorkflow({
 
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [showInlineAuditLog, setShowInlineAuditLog] = useState(true);
   const [showReliabilityInfo, setShowReliabilityInfo] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isOpportunityOpen, setIsOpportunityOpen] = useState(false);
@@ -176,11 +268,12 @@ export function ExchangeWorkflow({
   };
 
   // Derive workflow steps completion
-  const requesterAcknowledged = Boolean(interest.requester_acknowledged_at);
+  // The business that expressed interest (requester) has already acknowledged the protocol upon pitch submission.
+  const requesterAcknowledged = Boolean(interest.requester_acknowledged_at) || is_requester;
   const ownerAcknowledged = Boolean(interest.owner_acknowledged_at);
   const bothAcknowledged = requesterAcknowledged && ownerAcknowledged;
-  const myAcknowledged = is_requester ? requesterAcknowledged : ownerAcknowledged;
-  const otherAcknowledged = is_requester ? ownerAcknowledged : requesterAcknowledged;
+  const myAcknowledged = is_requester ? true : ownerAcknowledged;
+  const otherAcknowledged = is_requester ? ownerAcknowledged : true;
 
   const activeProposal = proposals && proposals.length > 0 ? proposals[0] : null;
   const isAgreed = agreement?.status === "agreed";
@@ -255,6 +348,237 @@ export function ExchangeWorkflow({
     }
   }, [consents]);
 
+  // Top right view mode switcher state (Default Interactive Workspace vs Simplified 2-Column from seo_code_guide.md)
+  const [viewMode, setViewMode] = useState<"default" | "simplified">(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("relay_exchange_hub_view_mode");
+      if (saved === "default" || saved === "simplified") return saved;
+    }
+    return "default";
+  });
+
+  const handleViewModeChange = (mode: "default" | "simplified") => {
+    setViewMode(mode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("relay_exchange_hub_view_mode", mode);
+    }
+  };
+
+  const [selectedDrawerRound, setSelectedDrawerRound] = useState<ExchangeHubRound | null>(null);
+
+  // Construct ExchangeHubRound array from live data
+  const rounds: ExchangeHubRound[] = React.useMemo(() => {
+    const rList: ExchangeHubRound[] = [];
+
+    // Round 1: Origin Pitch (v0)
+    if (interest) {
+      const hasProposals = Boolean(proposals && proposals.length > 0);
+      const isInterestDeclined = interest.status === "declined";
+      const originProposer = is_requester
+        ? (myBusiness?.company_name || "You")
+        : (targetBusiness?.company_name || "Partner");
+
+      const rawInterestText = interest.proposed_terms || interest.message || "";
+      const extractedMetadata = extractTermsMetadataFromText(rawInterestText);
+      const dbValCats = formatValueCategories(interest.value_categories);
+      const valCats = dbValCats.length > 0 ? dbValCats : extractedMetadata.valueCategories;
+      const dbDelMethods = formatDeliveryMethods(interest.delivery_methods);
+      const delMethods = dbDelMethods.length > 0 ? dbDelMethods : extractedMetadata.deliveryMethods;
+
+      rList.push({
+        roundNum: 1,
+        versionBadge: "v0",
+        badge: "Originating Mandate",
+        title: opportunity?.title || "Opportunity Proposal",
+        timestamp: interest.created_at
+          ? new Date(interest.created_at).toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "Initial",
+        proposerName: originProposer,
+        isMe: is_requester,
+        dimension: valCats[0] || opportunity?.category || "Distribution & Sales",
+        archetype: delMethods[0]?.label || "Authorized VAR Reseller",
+        settlement: "Net 30 Days",
+        rate: interest.proposed_terms ? interest.proposed_terms.split("\n")[0] : "Initial Mandate",
+        narrative: extractedMetadata.cleanText || interest.proposed_terms || interest.message || "Submitted commercial terms and pitch.",
+        additionalTerms: interest.message || null,
+        valueCategories: valCats,
+        deliveryMethods: delMethods,
+        highlightedTerms: Array.from(new Set([...(interest.highlighted_terms || []), ...extractedMetadata.highlightedTerms])),
+        isCurrent: !hasProposals && !isInterestDeclined,
+        status: hasProposals ? "superseded" : isInterestDeclined ? "declined" : "active",
+        statusLabel: hasProposals
+          ? "Superseded"
+          : isInterestDeclined
+          ? is_requester
+            ? `Declined by ${targetBusiness?.company_name || "Partner"}`
+            : "Declined by You"
+          : "Awaiting Partner Review",
+        proposalId: null,
+      });
+    }
+
+    // Rounds 2+: Proposals (v1, v2, v3...)
+    if (proposals && proposals.length > 0) {
+      const sorted = [...proposals].sort((a, b) => (a.version || 1) - (b.version || 1));
+      sorted.forEach((p: any, idx: number) => {
+        const isProposerMe =
+          p.proposing_business_id === effectiveMyBizId || p.proposing_business_id === myBusinessId;
+        const proposerName = isProposerMe
+          ? "You"
+          : p.proposing_business?.company_name || targetBusiness?.company_name || "Partner";
+        const isLatest = idx === sorted.length - 1;
+        const declineInfo = parseDeclineDetails(p.additional_terms);
+
+        let status: "active" | "superseded" | "declined" | "withdrawn" | "accepted" = "superseded";
+        let statusLabel = "Superseded";
+
+        if (p.status === "accepted") {
+          status = "accepted";
+          statusLabel = "Accepted";
+        } else if (p.status === "declined") {
+          status = "declined";
+          statusLabel = isProposerMe
+            ? `Declined by ${targetBusiness?.company_name || "Partner"}`
+            : "Declined by You";
+        } else if (p.status === "cancelled") {
+          status = "withdrawn";
+          statusLabel = "Withdrawn";
+        } else if (isLatest && p.status === "pending_response") {
+          status = "active";
+          statusLabel = isProposerMe ? "Awaiting Partner Response" : "In Your Court";
+        }
+
+        const termsRate =
+          p.revenue_percentage != null
+            ? `${p.revenue_percentage}% Revenue Share`
+            : p.fixed_amount != null
+            ? `${p.currency || "USD"} ${p.fixed_amount.toLocaleString()}`
+            : getExchangeTypeLabel(p.exchange_type);
+
+        const roundNum = rList.length + 1;
+
+        const rawNarrative = p.exchange_details || "";
+        const rawAdditional = p.additional_terms || "";
+        const extractedDetails = extractTermsMetadataFromText(rawNarrative);
+        const extractedAdditional = extractTermsMetadataFromText(rawAdditional);
+
+        let propValueCategories: string[] = [];
+        let propDeliveryMethods: any[] = [];
+        try {
+          if (p.additional_terms && p.additional_terms.startsWith("{")) {
+            const parsed = JSON.parse(p.additional_terms);
+            if (parsed.value_categories) propValueCategories = formatValueCategories(parsed.value_categories);
+            if (parsed.delivery_methods) propDeliveryMethods = formatDeliveryMethods(parsed.delivery_methods);
+          }
+        } catch {
+          // ignore
+        }
+
+        const dbValCats = propValueCategories.length > 0
+          ? propValueCategories
+          : formatValueCategories(p.value_categories);
+        const valCats = dbValCats.length > 0
+          ? dbValCats
+          : [...extractedDetails.valueCategories, ...extractedAdditional.valueCategories];
+
+        const dbDelMethods = propDeliveryMethods.length > 0
+          ? propDeliveryMethods
+          : formatDeliveryMethods(p.delivery_methods);
+        const delMethods = dbDelMethods.length > 0
+          ? dbDelMethods
+          : [...extractedDetails.deliveryMethods, ...extractedAdditional.deliveryMethods];
+
+        const combinedHighlights = Array.from(
+          new Set([
+            ...(p.highlighted_terms || []),
+            ...extractedDetails.highlightedTerms,
+            ...extractedAdditional.highlightedTerms,
+          ])
+        );
+
+        rList.push({
+          roundNum,
+          versionBadge: `v${p.version || roundNum - 1}`,
+          badge: roundNum === 2 ? "First Proposal" : "Counter-Offer",
+          title: `${proposerName} Proposed ${termsRate}`,
+          timestamp: p.created_at
+            ? new Date(p.created_at).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "Recently",
+          proposerName,
+          isMe: isProposerMe,
+          dimension: valCats[0] || opportunity?.category || "Distribution & Sales",
+          archetype: delMethods[0]?.label || getExchangeTypeLabel(p.exchange_type) || "Authorized VAR Reseller",
+          settlement: "Net 30 Days",
+          rate: termsRate,
+          narrative: extractedDetails.cleanText || p.exchange_details,
+          additionalTerms: getCleanAdditionalTerms(p.additional_terms),
+          valueCategories: valCats,
+          deliveryMethods: delMethods,
+          highlightedTerms: combinedHighlights,
+          isCurrent: status === "active",
+          status,
+          statusLabel,
+          declineReason: declineInfo?.reason ? getDeclineReasonLabel(declineInfo.reason) : null,
+          declineNote: declineInfo?.note || null,
+          proposalId: p.id,
+        });
+      });
+    }
+
+    return rList;
+  }, [interest, proposals, effectiveMyBizId, is_requester, myBusiness, targetBusiness, opportunity]);
+
+  const activeRound = rounds.find((r) => r.isCurrent) || null;
+
+  const handleQuickDispatch = async (termsText: string) => {
+    if (!termsText.trim()) return;
+    try {
+      setLoadingAction("proposal");
+      await createExchangeProposal({
+        data: {
+          interest_id: interest.id,
+          exchange_type: "revenue_share",
+          exchange_details: termsText.trim(),
+        },
+      });
+      executiveToast.success("Proposal Dispatched", {
+        badge: "Stage 2 Transmitted",
+        description: "Your bilateral terms have been transmitted to the counterparty.",
+      });
+      await onRefresh();
+      window.dispatchEvent(new Event("relay:interest"));
+    } catch (err: any) {
+      executiveToast.danger("Dispatch Error", {
+        badge: "Submission Failed",
+        description: err.message || "Failed to dispatch proposal.",
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleAcceptFromView = async (proposalId?: string) => {
+    const targetPropId = proposalId || activeProposal?.id;
+    if (!targetPropId) {
+      if (is_owner && !activeProposal) {
+        setShowProposalForm(true);
+        return;
+      }
+      return;
+    }
+    await handleRespondProposal(targetPropId, "accept");
+  };
+
   // Mobile stepper & history modal state
   const [isMobileStepperOpen, setIsMobileStepperOpen] = useState(false);
   const [isMobileHistoryOpen, setIsMobileHistoryOpen] = useState(false);
@@ -303,13 +627,17 @@ export function ExchangeWorkflow({
     try {
       setLoadingAction("acknowledge");
       await acknowledgeExchangeProcess({ data: { interest_id: interest.id } });
-      toast.success("Process Acknowledged", {
-        description: "You have acknowledged how Relay's exchange process works.",
+      executiveToast.success("Process Acknowledged", {
+        badge: "Stage 1 Acknowledged",
+        description: "You have acknowledged how Relay's bilateral exchange process works. Negotiation is unlocked.",
       });
       await onRefresh();
       window.dispatchEvent(new Event("relay:interest"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to record acknowledgement.");
+      executiveToast.danger("Acknowledgement Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to record acknowledgement.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -321,13 +649,17 @@ export function ExchangeWorkflow({
       await sendExchangeFollowUp({
         data: { interest_id: interest.id },
       });
-      toast.success("Follow-Up Sent", {
+      executiveToast.success("Follow-Up Sent", {
+        badge: "Reminder Delivered",
         description: `Reminder sent to ${targetBusiness.company_name} to acknowledge the exchange process.`,
       });
       await onRefresh();
       window.dispatchEvent(new Event("relay:interest"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to send follow-up.");
+      executiveToast.danger("Follow-Up Error", {
+        badge: "Delivery Failed",
+        description: err.message || "Failed to send follow-up.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -336,7 +668,10 @@ export function ExchangeWorkflow({
   const handleCreateProposal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!exchangeDetails.trim()) {
-      toast.error("Please provide exchange details.");
+      executiveToast.warning("Incomplete Proposal", {
+        badge: "Terms Required",
+        description: "Please provide exchange commercial details before submitting.",
+      });
       return;
     }
     try {
@@ -358,8 +693,9 @@ export function ExchangeWorkflow({
           additional_terms: additionalTerms.trim() || undefined,
         },
       });
-      toast.success("Proposal Submitted", {
-        description: "Your exchange proposal has been sent to the partner.",
+      executiveToast.success("Proposal Submitted", {
+        badge: "Stage 3 Proposal",
+        description: "Your exchange proposal has been transmitted to the partner.",
       });
       setShowProposalForm(false);
       setExchangeDetails("");
@@ -367,7 +703,10 @@ export function ExchangeWorkflow({
       await onRefresh();
       window.dispatchEvent(new Event("relay:interest"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to submit proposal.");
+      executiveToast.danger("Proposal Error", {
+        badge: "Submission Failed",
+        description: err.message || "Failed to submit proposal.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -390,11 +729,13 @@ export function ExchangeWorkflow({
         },
       });
       if (action === "accept") {
-        toast.success("Proposal Accepted", {
+        executiveToast.success("Proposal Accepted", {
+          badge: "Terms Approved",
           description: "Please review and confirm the final exchange terms.",
         });
       } else {
-        toast.info("Proposal Declined", {
+        executiveToast.warning("Proposal Declined", {
+          badge: "Counter Needed",
           description: "You declined this exchange proposal.",
         });
         setShowDeclineModal(false);
@@ -403,9 +744,44 @@ export function ExchangeWorkflow({
       await onRefresh();
       window.dispatchEvent(new Event("relay:interest"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to respond to proposal.");
+      executiveToast.danger("Response Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to respond to proposal.",
+      });
     } finally {
       setLoadingAction(null);
+    }
+  };
+
+  const handleDeclineInitialPitch = async () => {
+    try {
+      setLoadingAction("decline-pitch");
+      await declineInterest({ data: { interest_id: interest.id } });
+      executiveToast.warning("Pitch Declined", {
+        badge: "Exchange Declined",
+        description: "You have declined this exchange pitch.",
+      });
+      setShowDeclineModal(false);
+      await onRefresh();
+      window.dispatchEvent(new Event("relay:interest"));
+    } catch (err: any) {
+      executiveToast.danger("Decline Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to decline pitch.",
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleConfirmDeclineModal = async () => {
+    const currentActive = activeRound || (rounds && rounds.length > 0 ? rounds[rounds.length - 1] : null);
+    if (currentActive?.proposalId) {
+      await handleRespondProposal(currentActive.proposalId, "decline", declineReason, declineNote);
+    } else if (activeProposal?.id) {
+      await handleRespondProposal(activeProposal.id, "decline", declineReason, declineNote);
+    } else {
+      await handleDeclineInitialPitch();
     }
   };
 
@@ -419,13 +795,17 @@ export function ExchangeWorkflow({
           proposal_id: agreement.final_proposal_id,
         },
       });
-      toast.success("Exchange Terms Confirmed", {
-        description: "You have officially agreed to the final exchange terms.",
+      executiveToast.success("Exchange Terms Confirmed", {
+        badge: "Agreement Bound",
+        description: "You have officially agreed to the final bilateral terms.",
       });
       await onRefresh();
       window.dispatchEvent(new Event("relay:interest"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to confirm agreement.");
+      executiveToast.danger("Confirmation Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to confirm agreement.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -433,7 +813,10 @@ export function ExchangeWorkflow({
 
   const handleShareContacts = async () => {
     if (selectedContacts.length === 0) {
-      toast.error("Please select at least one contact channel to share.");
+      executiveToast.warning("Select Channels", {
+        badge: "Selection Needed",
+        description: "Please select at least one contact channel to share.",
+      });
       return;
     }
     try {
@@ -444,13 +827,17 @@ export function ExchangeWorkflow({
           fields: selectedContacts,
         },
       });
-      toast.success("Contact Sharing Requested", {
-        description: "Your sharing request has been sent. Values will only be revealed once approved by the partner.",
+      executiveToast.success("Contact Sharing Requested", {
+        badge: "Stage 4 Handshake",
+        description: "Your sharing request has been sent. Values unlock once approved.",
       });
       await onRefresh();
       window.dispatchEvent(new Event("relay:interest"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to share contact fields.");
+      executiveToast.danger("Sharing Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to share contact fields.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -481,8 +868,9 @@ export function ExchangeWorkflow({
           value: manageInputValue.trim() || undefined,
         },
       });
-      toast.success("Exchange Requested", {
-        description: `We've sent an exchange request to ${targetBusiness.company_name}. Your ${activeManageField.name.toLowerCase()} is still private.`,
+      executiveToast.success("Exchange Requested", {
+        badge: "Privacy Protected",
+        description: `We've sent an exchange request to ${targetBusiness.company_name}. Your ${activeManageField.name.toLowerCase()} remains private until mutual consent.`,
       });
       await onRefresh();
       window.dispatchEvent(new Event("relay:interest"));
@@ -496,7 +884,10 @@ export function ExchangeWorkflow({
           : null
       );
     } catch (err: any) {
-      toast.error(err.message || "Failed to request exchange.");
+      executiveToast.danger("Request Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to request exchange.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -515,14 +906,18 @@ export function ExchangeWorkflow({
           custom_label: activeManageField.name,
         },
       });
-      toast.success(`${activeManageField.name} Exchange Complete`, {
+      executiveToast.success(`${activeManageField.name} Exchange Complete`, {
+        badge: "Handshake Complete",
         description: `Both businesses have approved the exchange. You can now see each other's ${activeManageField.name.toLowerCase()}.`,
       });
       await onRefresh();
       window.dispatchEvent(new Event("relay:interest"));
       setActiveManageField(null);
     } catch (err: any) {
-      toast.error(err.message || "Failed to complete exchange.");
+      executiveToast.danger("Approval Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to complete exchange.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -539,14 +934,18 @@ export function ExchangeWorkflow({
           action: "decline",
         },
       });
-      toast.info("Exchange Request Declined", {
-        description: "You declined this exchange request.",
+      executiveToast.warning("Exchange Request Declined", {
+        badge: "Request Closed",
+        description: "You declined this contact exchange request.",
       });
       await onRefresh();
       window.dispatchEvent(new Event("relay:interest"));
       setActiveManageField(null);
     } catch (err: any) {
-      toast.error(err.message || "Failed to decline exchange request.");
+      executiveToast.danger("Decline Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to decline exchange request.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -556,11 +955,15 @@ export function ExchangeWorkflow({
     try {
       setIsCheckingStatus(true);
       await onRefresh();
-      toast.success("Status Updated", {
+      executiveToast.success("Status Updated", {
+        badge: "Synchronized",
         description: "Fetched the latest exchange permissions from the server.",
       });
     } catch (err: any) {
-      toast.error(err.message || "Failed to refresh status.");
+      executiveToast.danger("Sync Error", {
+        badge: "Fetch Failed",
+        description: err.message || "Failed to refresh status.",
+      });
     } finally {
       setIsCheckingStatus(false);
     }
@@ -570,11 +973,15 @@ export function ExchangeWorkflow({
     try {
       setIsCheckingStatus(true);
       await onRefresh();
-      toast.success("Status Updated", {
+      executiveToast.success("Status Updated", {
+        badge: "Synchronized",
         description: "Fetched the latest contact exchange status.",
       });
     } catch (err: any) {
-      toast.error(err.message || "Failed to check status.");
+      executiveToast.danger("Status Error", {
+        badge: "Fetch Failed",
+        description: err.message || "Failed to check status.",
+      });
     } finally {
       setIsCheckingStatus(false);
     }
@@ -589,13 +996,17 @@ export function ExchangeWorkflow({
           fields: fieldsToAccept,
         },
       });
-      toast.success("Contact Details Approved", {
+      executiveToast.success("Contact Details Approved", {
+        badge: "Access Granted",
         description: "You can now view the partner's verified contact information.",
       });
       await onRefresh();
       window.dispatchEvent(new Event("relay:interest"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to approve contact details.");
+      executiveToast.danger("Approval Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to approve contact details.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -610,13 +1021,17 @@ export function ExchangeWorkflow({
           fields: fieldsToDecline,
         },
       });
-      toast.info("Contact Request Declined", {
+      executiveToast.warning("Contact Request Declined", {
+        badge: "Declined",
         description: "You chose not to accept these contact details.",
       });
       await onRefresh();
       window.dispatchEvent(new Event("relay:interest"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to decline contact request.");
+      executiveToast.danger("Decline Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to decline contact request.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -639,7 +1054,10 @@ export function ExchangeWorkflow({
   const handleSaveCustomContact = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customLabel.trim() || !customValue.trim()) {
-      toast.error("Please provide both label and value.");
+      executiveToast.warning("Incomplete Channel", {
+        badge: "Values Required",
+        description: "Please provide both label and value for the custom contact.",
+      });
       return;
     }
     try {
@@ -652,7 +1070,10 @@ export function ExchangeWorkflow({
             value: customValue.trim(),
           },
         });
-        toast.success("Custom Contact Updated");
+        executiveToast.success("Custom Contact Updated", {
+          badge: "Contact Saved",
+          description: "Your custom contact channel has been updated.",
+        });
       } else {
         const created = await createCustomContactDetail({
           data: {
@@ -661,8 +1082,9 @@ export function ExchangeWorkflow({
           },
         });
         setSelectedContacts((prev) => [...prev, `custom:${created.id}`]);
-        toast.success("Custom Contact Added", {
-          description: "Channel added and selected for sharing.",
+        executiveToast.success("Custom Contact Added", {
+          badge: "Channel Ready",
+          description: "Channel added and selected for mutual sharing.",
         });
       }
       setIsCustomModalOpen(false);
@@ -671,7 +1093,10 @@ export function ExchangeWorkflow({
       setEditingCustomId(null);
       await onRefresh();
     } catch (err: any) {
-      toast.error(err.message || "Failed to save custom contact.");
+      executiveToast.danger("Save Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to save custom contact.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -684,10 +1109,16 @@ export function ExchangeWorkflow({
         data: { id },
       });
       setSelectedContacts((prev) => prev.filter((f) => f !== `custom:${id}`));
-      toast.success("Custom Contact Removed");
+      executiveToast.success("Custom Contact Removed", {
+        badge: "Channel Deleted",
+        description: "The custom contact detail has been deleted.",
+      });
       await onRefresh();
     } catch (err: any) {
-      toast.error(err.message || "Failed to delete custom contact.");
+      executiveToast.danger("Delete Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to delete custom contact.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -703,14 +1134,20 @@ export function ExchangeWorkflow({
           phone_number: phoneInput.trim(),
         },
       });
-      toast.success("Phone Number Updated");
+      executiveToast.success("Phone Number Updated", {
+        badge: "Profile Saved",
+        description: "Your institutional phone number has been updated.",
+      });
       setIsPhoneModalOpen(false);
       if (phoneInput.trim()) {
         setSelectedContacts((prev) => (prev.includes("phone") ? prev : [...prev, "phone"]));
       }
       await onRefresh();
     } catch (err: any) {
-      toast.error(err.message || "Failed to update phone number.");
+      executiveToast.danger("Update Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to update phone number.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -726,14 +1163,20 @@ export function ExchangeWorkflow({
           linkedin_url: linkedinInput.trim(),
         },
       });
-      toast.success("LinkedIn URL Updated");
+      executiveToast.success("LinkedIn URL Updated", {
+        badge: "Profile Saved",
+        description: "Your verified LinkedIn profile link has been saved.",
+      });
       setIsLinkedinModalOpen(false);
       if (linkedinInput.trim()) {
         setSelectedContacts((prev) => (prev.includes("linkedin") ? prev : [...prev, "linkedin"]));
       }
       await onRefresh();
     } catch (err: any) {
-      toast.error(err.message || "Failed to update LinkedIn URL.");
+      executiveToast.danger("Update Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to update LinkedIn URL.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -745,13 +1188,17 @@ export function ExchangeWorkflow({
       await withdrawExchangeProposal({
         data: { proposal_id: proposalId },
       });
-      toast.success("Proposal Withdrawn", {
+      executiveToast.success("Proposal Withdrawn", {
+        badge: "Proposal Revoked",
         description: "Your exchange proposal has been withdrawn.",
       });
       await onRefresh();
       window.dispatchEvent(new Event("relay:interest"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to withdraw proposal.");
+      executiveToast.danger("Withdraw Error", {
+        badge: "Action Failed",
+        description: err.message || "Failed to withdraw proposal.",
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -761,30 +1208,11 @@ export function ExchangeWorkflow({
     if (!text) return;
     navigator.clipboard.writeText(text);
     setCopiedField(label);
-    toast.success(`${label} copied to clipboard`);
+    executiveToast.success("Copied to Clipboard", {
+      badge: "Copied",
+      description: `${label} has been copied to your clipboard.`,
+    });
     setTimeout(() => setCopiedField(null), 2000);
-  };
-
-  const getExchangeTypeLabel = (type: string) => {
-    switch (type) {
-      case "fixed_amount":
-        return "Money / Fixed Amount";
-      case "revenue_share":
-        return "Revenue Share / Percentage";
-      case "qualified_lead":
-        return "Qualified Lead / Referral";
-      case "business_opportunity":
-        return "Business Opportunity";
-      case "service_work":
-        return "Service / Work";
-      case "partnership":
-        return "Partnership";
-      case "introduction":
-        return "Introduction / Connection";
-      case "other":
-      default:
-        return "Other";
-    }
   };
 
   const getDynamicSuggestionTip = (type: ExchangeType) => {
@@ -912,415 +1340,331 @@ export function ExchangeWorkflow({
     }
   };
 
-  const parseDeclineDetails = (terms?: string | null) => {
-    if (!terms || !terms.includes("[DECLINE REASON:")) return null;
-    const match = terms.match(/\[DECLINE REASON:\s*([^\]]+)\](?:\s*Note:\s*([^|]+))?/);
-    if (!match) return null;
-    return {
-      reason: match[1]?.trim(),
-      note: match[2]?.trim(),
-    };
-  };
-
-  const getCleanAdditionalTerms = (terms?: string | null) => {
-    if (!terms) return null;
-    if (!terms.includes("[DECLINE REASON:")) return terms;
-    const parts = terms.split("| Original Terms:");
-    if (parts.length > 1) {
-      return parts[1]?.trim() || null;
-    }
-    return null;
-  };
-
-  const getDeclineReasonLabel = (reason?: string | null) => {
-    switch (reason) {
-      case "valuation_mismatch":
-        return "Commercial terms / Valuation mismatch";
-      case "exchange_type_unsuitable":
-        return "Not looking for this exchange type right now";
-      case "timeline_conflict":
-        return "Timeline / Capacity conflict";
-      case "scope_unclear":
-        return "Exchange scope needs more clarity";
-      case "other":
-        return "Other commercial reason";
-      default:
-        return reason || "Terms not suitable";
-    }
-  };
-
   const getProposalActorLabel = (proposal: any) => {
-    const isProposerMe = proposal.proposing_business_id === myBusinessId;
-    const isReceiverMe = proposal.receiving_business_id === myBusinessId;
-    const partnerRole = is_owner ? "Requester" : "Opportunity Owner";
+    const isProposerMe =
+      proposal.proposing_business_id === myBusinessId ||
+      proposal.proposing_business_id === effectiveMyBizId;
+    const isReceiverMe =
+      proposal.receiving_business_id === myBusinessId ||
+      proposal.receiving_business_id === effectiveMyBizId;
+    const partnerName = targetBusiness?.company_name || (is_owner ? "Requester" : "Opportunity Owner");
 
     switch (proposal.status) {
       case "accepted":
-        return isReceiverMe ? "Accepted by You" : `Accepted by ${partnerRole}`;
+        return isReceiverMe ? "Accepted by You" : `Accepted by ${partnerName}`;
       case "declined":
-        return isReceiverMe ? "Declined by You" : `Declined by ${partnerRole}`;
+        return isReceiverMe ? "Declined by You" : `Declined by ${partnerName}`;
       case "superseded":
       case "countered":
-        return isReceiverMe ? "Countered by You" : `Countered by ${partnerRole}`;
+        return isReceiverMe ? "Countered by You" : `Countered by ${partnerName}`;
       case "cancelled":
-        return isProposerMe ? "Withdrawn by You" : `Withdrawn by ${partnerRole}`;
+        return isProposerMe ? "Withdrawn by You" : `Withdrawn by ${partnerName}`;
       case "pending_response":
-        return isReceiverMe ? "Awaiting Your Response" : `Awaiting ${partnerRole} Response`;
+        return isReceiverMe ? "Awaiting Your Response" : `Awaiting ${partnerName} Response`;
       default:
         return proposal.status?.replace("_", " ");
     }
   };
 
-  const renderProposalTimelineContent = (showHeader = true) => {
-    if (!proposals || proposals.length === 0) {
-      return (
-        <div className={showHeader ? "border border-slate-200 rounded-[4px] bg-white p-5 shadow-sm space-y-3" : "py-4 space-y-3"}>
-          {showHeader && (
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Clock className="w-4 h-4 text-slate-400" />
-              <h4 className="font-display font-bold text-sm text-slate-900">
-                Proposal Timeline
-              </h4>
-            </div>
-          )}
-          <p className="text-xs text-slate-500 font-sans leading-relaxed">
-            No exchange proposals have been submitted yet. Once an initial proposal is created, all versions and counter-offers will appear in this timeline.
-          </p>
-        </div>
-      );
+  const renderProposalTimelineContent = (showHeader = true, isInline = false) => {
+    const isRequesterMe = requesting_business?.id === effectiveMyBizId || is_requester;
+    const originProposer = isRequesterMe ? "You" : requesting_business?.company_name || "Requester";
+    const hasProposals = Boolean(proposals && proposals.length > 0);
+    const isInterestDeclined = interest.status === "declined";
+
+    // Build unified chronological events: [Origin Pitch, Proposal v1, Counter-Proposal v2, ...]
+    const events: Array<{
+      id: string;
+      versionLabel: string;
+      versionBadge: string;
+      isOriginPitch: boolean;
+      proposerName: string;
+      isMe: boolean;
+      timestamp: string | null;
+      status: "active" | "countered" | "declined" | "accepted" | "withdrawn" | "superseded";
+      statusLabel: string;
+      exchangeTypeLabel: string;
+      commercialTermsSummary: string;
+      details: string;
+      additionalTerms?: string | null;
+      declineReason?: string | null;
+      declineNote?: string | null;
+      valueCategories?: string[];
+    }> = [];
+
+    // 1. Origin Pitch
+    if (interest) {
+      events.push({
+        id: `origin-${interest.id}`,
+        versionLabel: "Initial Exchange Pitch (v0)",
+        versionBadge: "v0",
+        isOriginPitch: true,
+        proposerName: originProposer,
+        isMe: isRequesterMe,
+        timestamp: interest.created_at || null,
+        status: hasProposals ? "superseded" : isInterestDeclined ? "declined" : "active",
+        statusLabel: hasProposals
+          ? "Formalized in Proposal v1"
+          : isInterestDeclined
+          ? "Pitch Declined"
+          : "Initial Offer Active",
+        exchangeTypeLabel: "Origin Pitch",
+        commercialTermsSummary: interest.proposed_terms || "Custom Commercial Pitch",
+        details: interest.proposed_terms || interest.message || "Submitted commercial terms and pitch.",
+        additionalTerms: interest.message && interest.proposed_terms ? interest.message : null,
+        valueCategories: interest.value_categories || [],
+      });
     }
+
+    // 2. Proposals
+    if (proposals && proposals.length > 0) {
+      const sorted = [...proposals].sort((a, b) => (a.version || 1) - (b.version || 1));
+      sorted.forEach((p: any, idx: number) => {
+        const isProposerMe = p.proposing_business_id === effectiveMyBizId;
+        const proposerName = isProposerMe
+          ? "You"
+          : p.proposing_business?.company_name || targetBusiness.company_name || "Partner";
+        const isLatest = idx === sorted.length - 1;
+        const declineInfo = parseDeclineDetails(p.additional_terms);
+
+        let status: "active" | "countered" | "declined" | "accepted" | "withdrawn" | "superseded" = "superseded";
+        let statusLabel = "Superseded by Counter-Proposal";
+
+        if (p.status === "accepted") {
+          status = "accepted";
+          statusLabel = "Accepted";
+        } else if (p.status === "declined") {
+          status = "declined";
+          statusLabel = "Declined";
+        } else if (p.status === "cancelled") {
+          status = "withdrawn";
+          statusLabel = "Withdrawn";
+        } else if (isLatest && p.status === "pending_response") {
+          status = "active";
+          statusLabel = isProposerMe ? "Awaiting Partner Response" : "Your Turn to Respond";
+        }
+
+        const termsSummary = p.revenue_percentage != null
+          ? `${p.revenue_percentage}% Revenue Share`
+          : p.fixed_amount != null
+          ? `${p.currency || "USD"} ${p.fixed_amount.toLocaleString()}`
+          : getExchangeTypeLabel(p.exchange_type);
+
+        events.push({
+          id: p.id,
+          versionLabel: p.version > 1 ? `Counter-Proposal v${p.version}` : `Proposal v1`,
+          versionBadge: `v${p.version || 1}`,
+          isOriginPitch: false,
+          proposerName,
+          isMe: isProposerMe,
+          timestamp: p.created_at || null,
+          status,
+          statusLabel,
+          exchangeTypeLabel: getExchangeTypeLabel(p.exchange_type),
+          commercialTermsSummary: termsSummary,
+          details: p.exchange_details,
+          additionalTerms: getCleanAdditionalTerms(p.additional_terms),
+          declineReason: declineInfo?.reason ? getDeclineReasonLabel(declineInfo.reason) : null,
+          declineNote: declineInfo?.note || null,
+        });
+      });
+    }
+
+    // Display newest at the top for immediate glance
+    const displayEvents = [...events].reverse();
 
     return (
       <div className={showHeader ? "border border-slate-200 rounded-[4px] bg-white p-4 sm:p-5 shadow-sm space-y-4" : "space-y-4"}>
         {showHeader && (
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-slate-500" />
-              <h4 className="font-display font-bold text-sm text-slate-900">
-                Proposal Timeline
-              </h4>
+              <History className="w-4 h-4 text-slate-700" />
+              <div>
+                <h4 className="font-display font-bold text-sm text-slate-900 leading-tight">
+                  Negotiation Audit Log &amp; Revisions
+                </h4>
+                <p className="text-[11px] text-slate-500 font-sans hidden sm:block">
+                  Complete chronological record of all initial terms and counter-proposals.
+                </p>
+              </div>
             </div>
-            <span className="font-mono text-[9px] uppercase font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-[2px]">
-              {proposals.length} {proposals.length === 1 ? "Version" : "Versions"}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-[2px] border border-slate-200">
+                {displayEvents.length} {displayEvents.length === 1 ? "Round" : "Rounds"}
+              </span>
+              {isInline && (
+                <button
+                  type="button"
+                  onClick={() => setShowInlineAuditLog(!showInlineAuditLog)}
+                  className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                  title={showInlineAuditLog ? "Collapse Audit Log" : "Expand Audit Log"}
+                >
+                  {showInlineAuditLog ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              )}
+            </div>
           </div>
         )}
 
-        <div className="relative pl-7 sm:pl-8 space-y-5 before:absolute before:left-3 sm:before:left-3.5 before:top-3.5 before:bottom-3.5 before:w-0.5 before:bg-slate-200">
-          {proposals.map((p: any, idx: number) => {
-            const isMe = p.proposing_business_id === myBusinessId;
-            const isCurrent = idx === 0;
-            const isDeclinedOrSuspended =
-              p.status === "declined" ||
-              p.status === "cancelled" ||
-              p.status === "superseded" ||
-              p.status === "suspended" ||
-              p.status === "countered";
-            return (
-              <div key={p.id} className="relative group">
-                {/* Timeline Node Badge */}
-                <div
-                  className={`absolute -left-7 sm:-left-8 top-1.5 w-6 sm:w-7 h-6 sm:h-7 rounded-full border-2 flex items-center justify-center font-mono text-[9px] font-bold z-10 transition-transform ${
-                    isDeclinedOrSuspended
-                      ? "bg-slate-200 border-slate-300 text-slate-400 shadow-none"
-                      : isCurrent
-                      ? "bg-slate-900 border-white text-white shadow-sm ring-2 ring-slate-900/15"
-                      : p.status === "accepted"
-                      ? "bg-slate-900 border-white text-white shadow-xs"
-                      : "bg-slate-100 border-slate-300 text-slate-600"
-                  }`}
-                >
-                  v{p.version}
-                </div>
+        {(!isInline || showInlineAuditLog) && (
+          <div className="relative pl-6 sm:pl-7 space-y-3 before:absolute before:left-3 before:top-2.5 before:bottom-2.5 before:w-[1px] before:bg-slate-200">
+            {displayEvents.map((evt) => {
+              const isCurrent = evt.status === "active";
+              const isDeclined = evt.status === "declined";
+              const isAccepted = evt.status === "accepted";
+              const isPast = !isCurrent && !isAccepted;
 
-                {/* Timeline Card */}
+              return (
                 <div
-                  className={`rounded-[4px] border p-3.5 text-xs space-y-2.5 transition-all ${
-                    isDeclinedOrSuspended
-                      ? "bg-slate-100/70 border-slate-200/90 opacity-60 grayscale-[0.5]"
-                      : isCurrent
-                      ? "bg-white border-slate-300 shadow-sm ring-1 ring-slate-900/5"
-                      : "bg-slate-50/70 border-slate-200/80 hover:bg-slate-50 hover:border-slate-300"
+                  key={evt.id}
+                  className={`relative group transition-opacity duration-150 ${
+                    isPast ? "opacity-60 hover:opacity-85" : "opacity-100"
                   }`}
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-200/60 pb-2">
+                  {/* Timeline Node */}
+                  <div
+                    className={`absolute -left-6 sm:-left-7 top-2 w-5 h-5 rounded-full border flex items-center justify-center font-mono text-[8.5px] z-10 ${
+                      isCurrent || isAccepted
+                        ? "bg-slate-800 border-white text-white font-bold"
+                        : "bg-slate-100 border-slate-300 text-slate-400 font-normal"
+                    }`}
+                  >
+                    {evt.versionBadge}
+                  </div>
+
+                  {/* Card Container */}
+                  <div
+                    className={`rounded-[3px] p-3 text-xs space-y-2 border transition-all ${
+                      isCurrent || isAccepted
+                        ? "bg-white border-slate-300 shadow-xs text-slate-700"
+                        : "bg-slate-50/70 border-slate-200 text-slate-400"
+                    }`}
+                  >
+                    {/* Header Row */}
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-100 pb-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span
+                          className={`font-sans text-xs ${
+                            isCurrent || isAccepted ? "font-semibold text-slate-700" : "font-normal text-slate-400"
+                          }`}
+                        >
+                          {evt.versionLabel}
+                        </span>
+                        <span
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.2 font-mono text-[8px] uppercase rounded-[2px] ${
+                            isCurrent || isAccepted
+                              ? "bg-slate-100 text-slate-600 font-medium"
+                              : "bg-slate-100/60 text-slate-400 font-normal"
+                          }`}
+                        >
+                          {evt.isMe ? (
+                            <Send className="w-2.5 h-2.5 opacity-60" />
+                          ) : (
+                            <Building2 className="w-2.5 h-2.5 opacity-60" />
+                          )}
+                          <span className={isPast ? "text-slate-400" : "text-slate-600"}>
+                            {evt.isMe ? "You" : evt.proposerName}
+                          </span>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={`font-mono text-[8px] uppercase px-1.5 py-0.2 rounded-[2px] ${
+                            isCurrent || isAccepted
+                              ? "bg-slate-800 text-white font-medium"
+                              : isDeclined
+                              ? "bg-slate-100 text-slate-400 border border-slate-200 font-normal"
+                              : "bg-slate-100 text-slate-400 font-normal"
+                          }`}
+                        >
+                          {evt.statusLabel}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Terms summary */}
                     <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="font-mono text-[8px] uppercase text-slate-400 font-normal">
+                        Terms:
+                      </span>
                       <span
-                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 font-mono text-[8.5px] font-bold uppercase tracking-wider rounded-[2px] border ${
-                          isDeclinedOrSuspended
-                            ? "bg-slate-200/80 text-slate-600 border-slate-300/80"
-                            : "bg-slate-100 text-slate-800 border-slate-200"
+                        className={`font-sans text-xs px-1.5 py-0.2 rounded-[2px] ${
+                          isCurrent || isAccepted
+                            ? "font-medium text-slate-700 bg-slate-50 border border-slate-200"
+                            : "font-normal text-slate-400 bg-slate-100/50"
                         }`}
                       >
-                        {isMe ? <Send className="w-2.5 h-2.5 text-slate-700" /> : <Building2 className="w-2.5 h-2.5 text-slate-700" />}
-                        <span>{isMe ? "Proposed by You" : `Proposed by ${targetBusiness.company_name}`}</span>
+                        {evt.commercialTermsSummary}
                       </span>
-                      {isCurrent && (
-                        <span className="px-1.5 py-0.5 bg-slate-900 text-white font-mono text-[8px] font-bold uppercase rounded-[2px]">
-                          Active
+                      {evt.exchangeTypeLabel && (
+                        <span className="font-mono text-[8.5px] text-slate-400">
+                          ({evt.exchangeTypeLabel})
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className={`font-mono text-[8px] uppercase font-bold px-1.5 py-0.5 rounded-[2px] ${
-                          isDeclinedOrSuspended
-                            ? "bg-slate-100 text-slate-500 border border-slate-200"
-                            : p.status === "accepted"
-                            ? "bg-slate-100 text-slate-900 border border-slate-200"
-                            : p.status === "pending_response"
-                            ? "bg-slate-100 text-slate-900 border border-slate-300 font-bold"
-                            : "bg-slate-100 text-slate-600 border border-slate-200"
+                    {/* Detail text */}
+                    {evt.details && evt.details !== evt.commercialTermsSummary && (
+                      <p
+                        className={`font-sans leading-relaxed text-xs ${
+                          isCurrent || isAccepted ? "text-slate-600 font-normal" : "text-slate-400 font-normal"
                         }`}
                       >
-                        {getProposalActorLabel(p)}
-                      </span>
-                    </div>
-                  </div>
+                        {evt.details}
+                      </p>
+                    )}
 
-                  {p.created_at && (
-                    <div className="text-[10px] text-slate-400 font-mono">
-                      {new Date(p.created_at).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </div>
-                  )}
+                    {/* Additional terms note */}
+                    {evt.additionalTerms && (
+                      <div
+                        className={`p-1.5 rounded-[2px] text-[11px] italic ${
+                          isCurrent || isAccepted
+                            ? "bg-slate-50 text-slate-500 border border-slate-100"
+                            : "bg-slate-100/40 text-slate-400"
+                        }`}
+                      >
+                        &ldquo;{evt.additionalTerms}&rdquo;
+                      </div>
+                    )}
 
-                  <div>
-                    <span className="font-mono text-[8px] uppercase tracking-wider text-slate-400 font-bold block mb-0.5">
-                      Offered Terms
-                    </span>
-                    <div className="font-semibold text-slate-900 text-xs">
-                      {getExchangeTypeLabel(p.exchange_type)}
-                      {p.revenue_percentage != null && ` (${p.revenue_percentage}% Revenue Share)`}
-                      {p.fixed_amount != null && ` (${p.currency || "USD"} ${p.fixed_amount.toLocaleString()})`}
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="font-mono text-[8px] uppercase tracking-wider text-slate-400 font-bold block mb-0.5">
-                      Exchange Details
-                    </span>
-                    <p className="text-slate-700 font-sans leading-relaxed text-xs">
-                      {p.exchange_details}
-                    </p>
-                  </div>
-
-                  {p.additional_terms && (
-                    <div className="text-slate-600 text-[11px] bg-white border border-slate-200/80 p-2 rounded-[2px] space-y-1">
-                      {getCleanAdditionalTerms(p.additional_terms) && (
-                        <div>
-                          <span className="font-mono text-[7.5px] uppercase tracking-wider text-slate-400 font-bold block mb-0.5">
-                            Additional Terms
-                          </span>
-                          <p className="italic font-sans text-slate-700 text-[11px]">
-                            &ldquo;{getCleanAdditionalTerms(p.additional_terms)}&rdquo;
-                          </p>
+                    {/* Decline explanation if present */}
+                    {evt.declineReason && (
+                      <div className="p-1.5 bg-slate-100/60 border border-slate-200/60 rounded-[2px] text-[11px] text-slate-400 space-y-0.5 font-normal">
+                        <div className="flex items-center gap-1 text-[9.5px] font-mono uppercase">
+                          <AlertCircle className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span>Decline Reason: {evt.declineReason}</span>
                         </div>
-                      )}
-                      {parseDeclineDetails(p.additional_terms) && (
-                        <div className="text-slate-700 font-mono text-[9px] flex items-center gap-1 font-bold pt-1 border-t border-slate-100 mt-1">
-                          <AlertCircle className="w-3 h-3 text-slate-500 shrink-0" />
-                          <span>
-                            Decline Reason: {getDeclineReasonLabel(parseDeclineDetails(p.additional_terms)?.reason)}
-                            {parseDeclineDetails(p.additional_terms)?.note ? ` ("${parseDeclineDetails(p.additional_terms)?.note}")` : ""}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        {evt.declineNote && <p className="italic text-[10.5px] text-slate-400 pl-4">&ldquo;{evt.declineNote}&rdquo;</p>}
+                      </div>
+                    )}
+
+                    {/* Timestamp */}
+                    {evt.timestamp && (
+                      <div className="text-[9px] text-slate-400 font-mono">
+                        {new Date(evt.timestamp).toLocaleString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   };
 
-  return (
-    <div className="font-sans">
-      {/* Dynamic Grid: 2 columns during Negotiation/Acknowledge, Clean Centered Container during Agreement */}
-      <div className={!isStep2Done ? "grid grid-cols-1 lg:grid-cols-5 gap-6 items-start" : "max-w-4xl mx-auto space-y-5 sm:space-y-6"}>
-        {/* Main Column */}
-        <div className={!isStep2Done ? "lg:col-span-3 space-y-5 sm:space-y-6" : "space-y-5 sm:space-y-6"}>
-          {/* 1. Mobile Stepper & History Top Bar */}
-          <div className="lg:hidden flex items-center justify-between gap-2.5">
-            {/* Stage Pill Button */}
-            <button
-              type="button"
-              onClick={() => setIsMobileStepperOpen(true)}
-              className="flex-1 min-w-0 flex items-center justify-between gap-2 px-3 py-2.5 bg-white border border-slate-200/90 rounded-[4px] shadow-xs hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer"
-            >
-              <div className="flex items-center gap-2 min-w-0 truncate">
-                <span className="w-2 h-2 rounded-full bg-slate-900 shrink-0" />
-                <span className="font-mono text-xs uppercase tracking-wider text-slate-900 font-bold truncate">
-                  <span className="text-slate-400 font-medium mr-1">Stage:</span>
-                  {currentStepName}
-                </span>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            </button>
 
-            {/* Proposal Logs Button (Only during Negotiation/early stages) */}
-            {!isStep2Done && (
-              <button
-                type="button"
-                onClick={() => setIsMobileHistoryOpen(true)}
-                className="shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-[4px] shadow-sm transition-all text-xs font-mono font-bold uppercase tracking-wider cursor-pointer"
-              >
-                <Clock className="w-3.5 h-3.5 text-slate-300" />
-                <span>Proposal Logs</span>
-                {proposals && proposals.length > 0 && (
-                  <span className="px-1.5 py-0.2 bg-slate-800 text-slate-200 text-[9px] font-bold rounded-[2px] border border-slate-700">
-                    {proposals.length}
-                  </span>
-                )}
-              </button>
-            )}
-          </div>
-
-          {/* 1b. Desktop Integrated Workflow Progress Tracker (Stepper) */}
-          <div className="hidden lg:block bg-white border border-slate-200 rounded-[4px] px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm overflow-x-auto">
-            <div className="flex items-center justify-between min-w-[340px] sm:min-w-0">
-              {/* Step 1: Acknowledge */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                {isStep1Done ? (
-                  <div className="w-4 h-4 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0">
-                    <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
-                  </div>
-                ) : currentStep === 1 ? (
-                  <div className="w-4 h-4 rounded-full bg-slate-900 text-white font-mono text-[8.5px] font-bold flex items-center justify-center shrink-0">
-                    1
-                  </div>
-                ) : (
-                  <div className="w-4 h-4 rounded-full border border-slate-300 text-slate-400 font-mono text-[8.5px] font-bold flex items-center justify-center shrink-0">
-                    1
-                  </div>
-                )}
-                <span
-                  className={`font-mono text-[9px] sm:text-[10px] uppercase tracking-wider ${
-                    currentStep === 1
-                      ? "text-slate-900 font-extrabold"
-                      : isStep1Done
-                      ? "text-slate-900 font-bold"
-                      : "text-slate-400 font-bold"
-                  }`}
-                >
-                  Acknowledge
-                </span>
-              </div>
-
-              {/* Connector 1 -> 2 */}
-              <div
-                className={`flex-1 mx-2 sm:mx-3 h-[1.5px] rounded-full transition-all ${
-                  isStep1Done || currentStep > 1 ? "bg-slate-900" : "bg-slate-200"
-                }`}
-              />
-
-              {/* Step 2: Negotiate */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                {isStep2Done ? (
-                  <div className="w-4 h-4 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0">
-                    <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
-                  </div>
-                ) : currentStep === 2 ? (
-                  <div className="w-4 h-4 rounded-full bg-slate-900 text-white font-mono text-[8.5px] font-bold flex items-center justify-center shrink-0">
-                    2
-                  </div>
-                ) : (
-                  <div className="w-4 h-4 rounded-full border border-slate-300 text-slate-400 font-mono text-[8.5px] font-bold flex items-center justify-center shrink-0">
-                    2
-                  </div>
-                )}
-                <span
-                  className={`font-mono text-[9px] sm:text-[10px] uppercase tracking-wider ${
-                    currentStep === 2
-                      ? "text-slate-900 font-extrabold"
-                      : isStep2Done
-                      ? "text-slate-900 font-bold"
-                      : "text-slate-400 font-bold"
-                  }`}
-                >
-                  Negotiate
-                </span>
-              </div>
-
-              {/* Connector 2 -> 3 */}
-              <div
-                className={`flex-1 mx-2 sm:mx-3 h-[1.5px] rounded-full transition-all ${
-                  isStep2Done || currentStep > 2 ? "bg-slate-900" : "bg-slate-200"
-                }`}
-              />
-
-              {/* Step 3: Agreement */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                {isStep3Done ? (
-                  <div className="w-4 h-4 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0">
-                    <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
-                  </div>
-                ) : currentStep === 3 ? (
-                  <div className="w-4 h-4 rounded-full bg-slate-900 text-white font-mono text-[8.5px] font-bold flex items-center justify-center shrink-0">
-                    3
-                  </div>
-                ) : (
-                  <div className="w-4 h-4 rounded-full border border-slate-300 text-slate-400 font-mono text-[8.5px] font-bold flex items-center justify-center shrink-0">
-                    3
-                  </div>
-                )}
-                <span
-                  className={`font-mono text-[9px] sm:text-[10px] uppercase tracking-wider ${
-                    currentStep === 3
-                      ? "text-slate-900 font-extrabold"
-                      : isStep3Done
-                      ? "text-slate-900 font-bold"
-                      : "text-slate-400 font-bold"
-                  }`}
-                >
-                  Agreement
-                </span>
-              </div>
-
-              {/* Connector 3 -> 4 */}
-              <div
-                className={`flex-1 mx-2 sm:mx-3 h-[1.5px] rounded-full transition-all ${
-                  isStep3Done || currentStep > 3 ? "bg-slate-900" : "bg-slate-200"
-                }`}
-              />
-
-              {/* Step 4: Handshake */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                {isStep4Done ? (
-                  <div className="w-4 h-4 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0">
-                    <Handshake className="w-2.5 h-2.5 text-white" />
-                  </div>
-                ) : currentStep === 4 ? (
-                  <div className="w-4 h-4 rounded-full bg-slate-900 text-white font-mono text-[8.5px] font-bold flex items-center justify-center shrink-0">
-                    4
-                  </div>
-                ) : (
-                  <div className="w-4 h-4 rounded-full border border-slate-300 text-slate-400 font-mono text-[8.5px] font-bold flex items-center justify-center shrink-0">
-                    4
-                  </div>
-                )}
-                <span
-                  className={`font-mono text-[9px] sm:text-[10px] uppercase tracking-wider ${
-                    currentStep === 4 && !isStep4Done
-                      ? "text-slate-900 font-extrabold"
-                      : isStep4Done
-                      ? "text-slate-900 font-bold"
-                      : "text-slate-400 font-bold"
-                  }`}
-                >
-                  Handshake
-                </span>
-              </div>
-            </div>
-          </div>
-
+  // Stage 1 Content Renderer
+  const renderStage1Content = () => (
+    <div className="space-y-6">
           {/* 2. Target Opportunity Card (Collapsible, shown during Acknowledge & Negotiation) */}
           {!isStep2Done && (
             <div className="bg-white border border-slate-200 rounded-[4px] shadow-sm overflow-hidden transition-all">
@@ -1562,8 +1906,8 @@ export function ExchangeWorkflow({
           </div>
         )}
 
-      {/* 3. STEP 1: Process Acknowledgement Modal Popup (Blocking until 'I Understand' is confirmed) */}
-      <Dialog open={!myAcknowledged} onOpenChange={() => {}}>
+      {/* 3. STEP 1: Process Acknowledgement Modal Popup (Only shown to counterparty if not acknowledged) */}
+      <Dialog open={!myAcknowledged && !is_requester} onOpenChange={() => {}}>
         <DialogContent
           className="w-[calc(100vw-1.5rem)] sm:w-full sm:max-w-lg p-4 sm:p-6 bg-white border border-slate-200 shadow-2xl rounded-lg font-sans max-h-[90vh] overflow-y-auto"
           onPointerDownOutside={(e) => e.preventDefault()}
@@ -1706,724 +2050,13 @@ export function ExchangeWorkflow({
         </div>
       )}
 
-      {/* 4. STEP 2: Exchange Proposal & Versioned Negotiation */}
-      {bothAcknowledged && !isStep2Done && (
-        <div className="space-y-6">
-          {/* Active Proposal Card (if exists) */}
-          {activeProposal && (
-            <div className="bg-white border border-slate-200/80 rounded-[4px] p-6 shadow-sm space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                <div className="space-y-1.5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[9.5px] font-mono font-bold uppercase tracking-wider rounded-[2px] bg-slate-900 text-white">
-                      {activeProposal.proposing_business_id === myBusinessId ? (
-                        <>
-                          <Send className="w-3 h-3" />
-                          <span>Submitted by You</span>
-                        </>
-                      ) : (
-                        <>
-                          <Building2 className="w-3 h-3" />
-                          <span>From {targetBusiness.company_name}</span>
-                        </>
-                      )}
-                    </span>
-                    <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 font-mono text-[9px] font-bold uppercase rounded-[2px]">
-                      Proposal v{activeProposal.version}
-                    </span>
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider rounded-[2px] ${
-                        activeProposal.status === "accepted"
-                          ? "bg-slate-100 text-slate-900 border border-slate-200"
-                          : activeProposal.status === "pending_response"
-                          ? "bg-slate-100 text-slate-900 border border-slate-300 font-bold"
-                          : activeProposal.status === "declined"
-                          ? "bg-slate-100 text-slate-600 border border-slate-200"
-                          : activeProposal.status === "cancelled"
-                          ? "bg-slate-100 text-slate-400 border border-slate-200"
-                          : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {getProposalActorLabel(activeProposal)}
-                    </span>
-                  </div>
-                  <h3 className="font-display font-extrabold text-base text-slate-900">
-                    {activeProposal.receiving_business_id === myBusinessId
-                      ? activeProposal.version > 1
-                        ? "Counter-Proposal Received"
-                        : "Exchange Proposal Received"
-                      : activeProposal.version > 1
-                      ? "Your Counter-Proposal"
-                      : "Your Exchange Proposal"}
-                  </h3>
-                  <p className="text-xs text-slate-500 font-sans">
-                    {activeProposal.status === "declined"
-                      ? activeProposal.receiving_business_id === myBusinessId
-                        ? "You declined this exchange proposal."
-                        : `${targetBusiness.company_name} declined this exchange proposal. You can submit a revised counter-proposal.`
-                      : activeProposal.receiving_business_id === myBusinessId
-                      ? `${activeProposal.proposing_business?.company_name || targetBusiness.company_name} has proposed the following exchange for this opportunity.`
-                      : `You proposed the following exchange terms. Waiting for ${targetBusiness.company_name} to review.`}
-                  </p>
-                </div>
 
-                {activeProposal.created_at && (
-                  <div className="text-left sm:text-right shrink-0">
-                    <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold block">
-                      Submitted
-                    </span>
-                    <span className="text-xs text-slate-600 font-mono">
-                      {new Date(activeProposal.created_at).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                )}
-              </div>
+    </div>
+  );
 
-              {/* Proposal Content */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-[3px] bg-slate-50 border border-slate-100">
-                <div>
-                  <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold block mb-1">
-                    What is offered in exchange
-                  </span>
-                  <span className="text-xs font-bold text-slate-900">
-                    {getExchangeTypeLabel(activeProposal.exchange_type)}
-                  </span>
-                  {activeProposal.revenue_percentage != null && (
-                    <div className="text-xs font-semibold text-slate-900 mt-1">
-                      {activeProposal.revenue_percentage}% Revenue Share
-                    </div>
-                  )}
-                  {activeProposal.fixed_amount != null && (
-                    <div className="text-xs font-semibold text-slate-900 mt-1">
-                      {activeProposal.currency || "USD"} {activeProposal.fixed_amount.toLocaleString()}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold block mb-1">
-                    Exchange Details
-                  </span>
-                  <p className="text-slate-700 font-sans leading-relaxed text-xs">
-                    {activeProposal.exchange_details}
-                  </p>
-                </div>
-
-                {getCleanAdditionalTerms(activeProposal.additional_terms) && (
-                  <div className="md:col-span-2 border-t border-slate-200/60 pt-2.5 mt-1">
-                    <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold block mb-1">
-                      Additional Terms / Conditions
-                    </span>
-                    <p className="text-xs text-slate-600 italic leading-relaxed">
-                      &ldquo;{getCleanAdditionalTerms(activeProposal.additional_terms)}&rdquo;
-                    </p>
-                  </div>
-                )}
-
-                {/* Structured Decline Reason Banner */}
-                {activeProposal.status === "declined" && (
-                  <div className="md:col-span-2 bg-slate-50 border border-slate-200 rounded-[3px] p-3 space-y-1 mt-1">
-                    <div className="flex items-center gap-1.5 font-mono text-[9.5px] uppercase font-bold text-slate-900">
-                      <AlertCircle className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-                      <span>
-                        Decline Reason: {getDeclineReasonLabel(parseDeclineDetails(activeProposal.additional_terms)?.reason)}
-                      </span>
-                    </div>
-                    {parseDeclineDetails(activeProposal.additional_terms)?.note && (
-                      <p className="text-xs text-slate-700 font-sans italic pl-5">
-                        &ldquo;{parseDeclineDetails(activeProposal.additional_terms)?.note}&rdquo;
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons for Pending Proposal */}
-              {activeProposal.status === "pending_response" && (
-                <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3">
-                  {activeProposal.receiving_business_id === myBusinessId ? (
-                    <>
-                      <Button
-                        onClick={() => handleRespondProposal(activeProposal.id, "accept")}
-                        disabled={Boolean(loadingAction)}
-                        className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-mono text-[10px] uppercase tracking-widest font-bold py-2.5 px-6 rounded-[2px] cursor-pointer"
-                      >
-                        {loadingAction === "respond-accept" ? "Accepting..." : "Accept Proposal"}
-                      </Button>
-                      <Button
-                        onClick={() => setShowProposalForm(true)}
-                        disabled={Boolean(loadingAction)}
-                        className="w-full sm:w-auto bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 font-mono text-[10px] uppercase tracking-widest font-bold py-2.5 px-6 rounded-[2px] cursor-pointer"
-                      >
-                        Counter Proposal
-                      </Button>
-                      <Button
-                        onClick={() => setShowDeclineModal(true)}
-                        disabled={Boolean(loadingAction)}
-                        variant="outline"
-                        className="w-full sm:w-auto border border-slate-300 hover:bg-slate-100 text-slate-700 font-mono text-[10px] uppercase tracking-widest font-bold py-2.5 px-4 rounded-[2px] cursor-pointer"
-                      >
-                        Decline
-                      </Button>
-                    </>
-                  ) : (
-                    <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3">
-                      <div className="text-xs text-slate-500 font-medium">
-                        Waiting for <strong className="text-slate-800">{targetBusiness.company_name}</strong> to review and respond to this proposal.
-                      </div>
-                      <Button
-                        onClick={() => handleWithdrawProposal(activeProposal.id)}
-                        disabled={loadingAction === "withdraw-proposal"}
-                        variant="outline"
-                        size="sm"
-                        className="font-mono text-[10px] uppercase tracking-wider text-slate-600 hover:text-slate-900 hover:border-slate-400"
-                      >
-                        <Undo className="w-3.5 h-3.5 mr-1.5" />
-                        {loadingAction === "withdraw-proposal" ? "Withdrawing..." : "Withdraw Proposal"}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Action When Proposal is Declined */}
-              {activeProposal.status === "declined" && activeProposal.proposing_business_id === myBusinessId && (
-                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <span className="text-xs text-slate-500 font-sans">
-                    This proposal was declined. You can submit revised terms to resume negotiation.
-                  </span>
-                  <Button
-                    onClick={() => setShowProposalForm(true)}
-                    className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-mono text-[10px] uppercase tracking-widest font-bold py-2.5 px-5 rounded-[2px] cursor-pointer"
-                  >
-                    Propose Revised Terms
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Decline Proposal Dialog Modal */}
-          {activeProposal && (
-            <Dialog open={showDeclineModal} onOpenChange={setShowDeclineModal}>
-              <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md bg-white border border-slate-200 rounded-[4px] p-6 shadow-2xl space-y-4">
-                <DialogHeader className="space-y-1 pb-3 border-b border-slate-100 text-left">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-[9px] font-mono font-bold uppercase tracking-wider rounded-[2px] border border-slate-200">
-                      Decline Proposal
-                    </span>
-                  </div>
-                  <DialogTitle className="font-display font-bold text-base sm:text-lg text-slate-900">
-                    Decline Exchange Proposal
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-slate-500 font-sans">
-                    Select a structured commercial reason to help {targetBusiness.company_name} understand why these terms were declined.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="space-y-3 pt-1">
-                  <div className="space-y-1.5">
-                    <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                      Reason for Declining
-                    </Label>
-                    <Select
-                      value={declineReason}
-                      onValueChange={(val) => setDeclineReason(val as DeclineReason)}
-                    >
-                      <SelectTrigger className="w-full bg-white border border-slate-300 rounded-[2px] h-9 px-3 text-xs text-slate-900 font-sans shadow-none focus:ring-1 focus:ring-slate-900">
-                        <SelectValue placeholder="Select reason" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border border-slate-200">
-                        <SelectItem value="valuation_mismatch">Commercial terms / Valuation mismatch</SelectItem>
-                        <SelectItem value="exchange_type_unsuitable">Not looking for this exchange type right now</SelectItem>
-                        <SelectItem value="timeline_conflict">Timeline / Capacity conflict</SelectItem>
-                        <SelectItem value="scope_unclear">Exchange scope needs more clarity</SelectItem>
-                        <SelectItem value="other">Other commercial reason</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                      Optional Note (Commercial Context Only)
-                    </Label>
-                    <Textarea
-                      rows={2}
-                      value={declineNote}
-                      onChange={(e) => setDeclineNote(e.target.value)}
-                      placeholder="e.g. Prefer revenue share or a revised timeline..."
-                      className="bg-white border border-slate-300 rounded-[2px] px-3 py-2 text-xs text-slate-900 font-sans shadow-none focus-visible:ring-1 focus-visible:ring-slate-900"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                  <Button
-                    type="button"
-                    onClick={() => setShowDeclineModal(false)}
-                    variant="outline"
-                    className="border border-slate-300 hover:bg-slate-100 text-slate-700 font-mono text-[10px] uppercase tracking-wider font-bold py-2 px-4 rounded-[2px] cursor-pointer"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() =>
-                      activeProposal &&
-                      handleRespondProposal(activeProposal.id, "decline", declineReason, declineNote)
-                    }
-                    disabled={loadingAction === "respond-decline"}
-                    className="bg-slate-900 hover:bg-slate-800 text-white font-mono text-[10px] uppercase tracking-widest font-bold py-2 px-5 rounded-[2px] cursor-pointer"
-                  >
-                    {loadingAction === "respond-decline" ? "Declining..." : "Confirm Decline"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
-
-          {/* Opportunity Owner Awaiting First Proposal (When no proposal has been submitted yet) */}
-          {!activeProposal && is_owner && (
-            <div className="bg-slate-50 border border-slate-300 rounded-[4px] p-5 sm:p-6 shadow-sm space-y-4">
-              <div className="flex items-start gap-3.5">
-                <div className="p-2.5 bg-slate-200 text-slate-900 rounded-[3px] shrink-0 mt-0.5">
-                  <Clock className="w-5 h-5 text-slate-900" />
-                </div>
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 bg-slate-200/80 text-slate-900 text-[9.5px] font-mono font-bold uppercase tracking-wider rounded-[2px] border border-slate-300">
-                      Awaiting Exchange Proposal
-                    </span>
-                  </div>
-                  <h4 className="font-display font-bold text-base text-slate-900">
-                    Waiting for {targetBusiness.company_name} to propose an exchange
-                  </h4>
-                  <p className="text-xs text-slate-700 font-sans leading-relaxed">
-                    You have provided the opportunity listing. {targetBusiness.company_name} will propose what they can offer in exchange for your review. Once submitted, you can Accept, Decline, or Counter-Propose.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Initial Proposal Form for Requester (Inline on page) */}
-          {!activeProposal && is_requester && (
-            <div className="bg-white border-2 border-slate-900 rounded-[4px] p-6 shadow-md space-y-5">
-              <div className="space-y-0.5 border-b border-slate-100 pb-3">
-                <h3 className="font-display font-extrabold text-base text-slate-900">
-                  Propose Your Exchange
-                </h3>
-                <p className="text-xs text-slate-500 font-sans">
-                  You’re interested in this opportunity. Tell the business what you can offer in exchange.
-                </p>
-              </div>
-
-              <form onSubmit={handleCreateProposal} className="space-y-4">
-                {/* Opportunity Poster Profile & Field */}
-                <div className="bg-slate-50/80 border border-slate-200 rounded-[4px] p-2.5 sm:p-3 space-y-1.5">
-                  <div className="flex flex-wrap items-center justify-between gap-1.5">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <Building2 className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                      <span className="font-display font-bold text-xs sm:text-sm text-slate-900 truncate">
-                        {targetBusiness.company_name}
-                      </span>
-                      {targetBusiness.hq_location && (
-                        <span className="hidden sm:inline text-slate-400 font-mono text-[10px]">
-                          · {targetBusiness.hq_location}
-                        </span>
-                      )}
-                    </div>
-                    {targetBusiness.industry && (
-                      <span className="inline-flex items-center px-1.5 py-0.5 bg-slate-100 text-slate-700 text-[9px] font-mono font-bold uppercase rounded-[2px] border border-slate-200 shrink-0">
-                        {targetBusiness.industry}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2 text-[11px] text-slate-600 font-sans leading-relaxed pt-1.5 border-t border-slate-200">
-                    <div className="flex items-start gap-1.5 min-w-0 flex-1">
-                      <Sparkles className="w-3.5 h-3.5 text-slate-600 shrink-0 mt-0.5" />
-                      <span>
-                        <strong className="text-slate-800 font-semibold">Suggestion:</strong> {getDynamicSuggestionTip(exchangeType)}
-                      </span>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => {
-                        setExchangeDetails(getAutofillExchangeDetails(exchangeType));
-                        if (exchangeType === "revenue_share" && !revenuePercentage) {
-                          setRevenuePercentage("7");
-                        }
-                        if (exchangeType === "fixed_amount" && !fixedAmount) {
-                          setFixedAmount("1500");
-                        }
-                        toast.success("Exchange details auto-filled", {
-                          description: "You can customize or edit the text before sending.",
-                        });
-                      }}
-                      className="shrink-0 h-6 px-2.5 bg-slate-900 hover:bg-slate-800 text-white text-[9px] font-mono font-bold uppercase tracking-wider rounded-[2px] cursor-pointer"
-                    >
-                      Auto-fill
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                    What can you offer in exchange?
-                  </Label>
-                  <Select
-                    value={exchangeType}
-                    onValueChange={(val) => setExchangeType(val as ExchangeType)}
-                  >
-                    <SelectTrigger className="w-full bg-white border border-slate-300 rounded-[2px] h-9 px-3 text-xs text-slate-900 font-sans shadow-none focus:ring-1 focus:ring-slate-900">
-                      <SelectValue placeholder="Select what you can offer in exchange" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border border-slate-200">
-                      <SelectItem value="fixed_amount">Money / Fixed Amount</SelectItem>
-                      <SelectItem value="revenue_share">Revenue Share / Percentage</SelectItem>
-                      <SelectItem value="qualified_lead">Qualified Lead / Referral</SelectItem>
-                      <SelectItem value="business_opportunity">Business Opportunity</SelectItem>
-                      <SelectItem value="service_work">Service / Work</SelectItem>
-                      <SelectItem value="partnership">Partnership</SelectItem>
-                      <SelectItem value="introduction">Introduction / Connection</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {exchangeType === "revenue_share" && (
-                  <div className="space-y-1.5">
-                    <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                      Revenue Percentage (%)
-                    </Label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      min="0.1"
-                      max="100"
-                      value={revenuePercentage}
-                      onChange={(e) => setRevenuePercentage(e.target.value)}
-                      placeholder="e.g. 7"
-                      className="bg-white border border-slate-300 rounded-[2px] h-9 px-3 text-xs text-slate-900 font-sans shadow-none focus-visible:ring-1 focus-visible:ring-slate-900"
-                    />
-                  </div>
-                )}
-
-                {exchangeType === "fixed_amount" && (
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="col-span-2 space-y-1.5">
-                      <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                        Amount
-                      </Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={fixedAmount}
-                        onChange={(e) => setFixedAmount(e.target.value)}
-                        placeholder="e.g. 1500"
-                        className="bg-white border border-slate-300 rounded-[2px] h-9 px-3 text-xs text-slate-900 font-sans shadow-none focus-visible:ring-1 focus-visible:ring-slate-900"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                        Currency
-                      </Label>
-                      <Input
-                        type="text"
-                        value={currency}
-                        onChange={(e) => setCurrency(e.target.value)}
-                        placeholder="USD"
-                        className="bg-white border border-slate-300 rounded-[2px] h-9 px-3 text-xs text-slate-900 font-sans uppercase shadow-none focus-visible:ring-1 focus-visible:ring-slate-900"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                      Exchange Details
-                    </Label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setExchangeDetails(getAutofillExchangeDetails(exchangeType));
-                        if (exchangeType === "revenue_share" && !revenuePercentage) {
-                          setRevenuePercentage("7");
-                        }
-                        if (exchangeType === "fixed_amount" && !fixedAmount) {
-                          setFixedAmount("1500");
-                        }
-                        toast.success("Exchange details auto-filled", {
-                          description: "You can customize or edit the text before sending.",
-                        });
-                      }}
-                      className="text-[9.5px] font-mono font-bold uppercase tracking-wider text-slate-700 hover:text-slate-900 cursor-pointer"
-                    >
-                      Auto-fill
-                    </button>
-                  </div>
-                  <Textarea
-                    rows={3}
-                    value={exchangeDetails}
-                    onChange={(e) => setExchangeDetails(e.target.value)}
-                    placeholder="Describe exactly what you can provide in exchange..."
-                    className="bg-white border border-slate-300 rounded-[2px] px-3 py-2 text-xs text-slate-900 font-sans leading-relaxed min-h-[75px] shadow-none focus-visible:ring-1 focus-visible:ring-slate-900"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                    Additional Terms / Conditions (Optional)
-                  </Label>
-                  <Input
-                    type="text"
-                    value={additionalTerms}
-                    onChange={(e) => setAdditionalTerms(e.target.value)}
-                    placeholder="Add any conditions or important details..."
-                    className="bg-white border border-slate-300 rounded-[2px] h-9 px-3 text-xs text-slate-900 font-sans shadow-none focus-visible:ring-1 focus-visible:ring-slate-900"
-                  />
-                  <p className="text-[10px] text-slate-400 font-sans">
-                    For commercial terms and contractual conditions only. General messaging is disabled to maintain structured negotiations.
-                  </p>
-                </div>
-
-                <div className="pt-2 flex justify-end">
-                  <Button
-                    type="submit"
-                    disabled={loadingAction === "proposal" || !exchangeDetails.trim()}
-                    className="bg-slate-900 hover:bg-slate-800 text-white font-mono text-[10px] uppercase tracking-widest font-bold py-2.5 px-6 rounded-[2px] cursor-pointer"
-                  >
-                    {loadingAction === "proposal" ? "Submitting..." : "Send Proposal"}
-                  </Button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* Counter-Proposal Modal (Large on Desktop) */}
-          {activeProposal && (
-            <Dialog open={showProposalForm} onOpenChange={setShowProposalForm}>
-              <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-slate-200 rounded-[4px] p-6 shadow-2xl space-y-4">
-                <DialogHeader className="space-y-1 pb-3 border-b border-slate-100 text-left">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 bg-slate-900 text-white text-[9px] font-mono font-bold uppercase tracking-wider rounded-[2px]">
-                      Counter-Proposal
-                    </span>
-                    <span className="text-xs text-slate-500 font-mono">
-                      v{activeProposal.version + 1}
-                    </span>
-                  </div>
-                  <DialogTitle className="font-display font-bold text-lg sm:text-xl text-slate-900">
-                    Submit Counter-Proposal
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-slate-500 font-sans">
-                    Propose revised exchange terms to {targetBusiness.company_name}. Every counter-proposal creates a new immutable version in the negotiation history.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <form onSubmit={handleCreateProposal} className="space-y-4 pt-1">
-                  {/* Target Business Profile & Suggestion Header */}
-                  <div className="bg-slate-50/80 border border-slate-200 rounded-[4px] p-3 space-y-2">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
-                        <span className="font-display font-bold text-sm text-slate-900 truncate">
-                          {targetBusiness.company_name}
-                        </span>
-                        {targetBusiness.hq_location && (
-                          <span className="hidden sm:inline text-slate-400 font-mono text-[10px]">
-                            · {targetBusiness.hq_location}
-                          </span>
-                        )}
-                      </div>
-                      {targetBusiness.industry && (
-                        <span className="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-700 text-[9.5px] font-mono font-bold uppercase rounded-[2px] border border-slate-200 shrink-0">
-                          {targetBusiness.industry}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-600 font-sans leading-relaxed pt-2 border-t border-slate-200">
-                      <div className="flex items-start gap-1.5 min-w-0 flex-1">
-                        <Sparkles className="w-3.5 h-3.5 text-slate-600 shrink-0 mt-0.5" />
-                        <span>
-                          <strong className="text-slate-800 font-semibold">Suggestion:</strong> {getDynamicSuggestionTip(exchangeType)}
-                        </span>
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => {
-                          setExchangeDetails(getAutofillExchangeDetails(exchangeType));
-                          if (exchangeType === "revenue_share" && !revenuePercentage) {
-                            setRevenuePercentage("7");
-                          }
-                          if (exchangeType === "fixed_amount" && !fixedAmount) {
-                            setFixedAmount("1500");
-                          }
-                          toast.success("Exchange details auto-filled", {
-                            description: "You can customize or edit the text before sending.",
-                          });
-                        }}
-                        className="shrink-0 h-6 px-3 bg-slate-900 hover:bg-slate-800 text-white text-[9px] font-mono font-bold uppercase tracking-wider rounded-[2px] cursor-pointer"
-                      >
-                        Auto-fill
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                      What can you offer in exchange?
-                    </Label>
-                    <Select
-                      value={exchangeType}
-                      onValueChange={(val) => setExchangeType(val as ExchangeType)}
-                    >
-                      <SelectTrigger className="w-full bg-white border border-slate-300 rounded-[2px] h-9 px-3 text-xs text-slate-900 font-sans shadow-none focus:ring-1 focus:ring-slate-900">
-                        <SelectValue placeholder="Select what you can offer in exchange" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border border-slate-200">
-                        <SelectItem value="fixed_amount">Money / Fixed Amount</SelectItem>
-                        <SelectItem value="revenue_share">Revenue Share / Percentage</SelectItem>
-                        <SelectItem value="qualified_lead">Qualified Lead / Referral</SelectItem>
-                        <SelectItem value="business_opportunity">Business Opportunity</SelectItem>
-                        <SelectItem value="service_work">Service / Work</SelectItem>
-                        <SelectItem value="partnership">Partnership</SelectItem>
-                        <SelectItem value="introduction">Introduction / Connection</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {exchangeType === "revenue_share" && (
-                    <div className="space-y-1.5">
-                      <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                        Revenue Percentage (%)
-                      </Label>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        min="0.1"
-                        max="100"
-                        value={revenuePercentage}
-                        onChange={(e) => setRevenuePercentage(e.target.value)}
-                        placeholder="e.g. 7"
-                        className="bg-white border border-slate-300 rounded-[2px] h-9 px-3 text-xs text-slate-900 font-sans shadow-none focus-visible:ring-1 focus-visible:ring-slate-900"
-                      />
-                    </div>
-                  )}
-
-                  {exchangeType === "fixed_amount" && (
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="col-span-2 space-y-1.5">
-                        <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                          Amount
-                        </Label>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={fixedAmount}
-                          onChange={(e) => setFixedAmount(e.target.value)}
-                          placeholder="e.g. 1500"
-                          className="bg-white border border-slate-300 rounded-[2px] h-9 px-3 text-xs text-slate-900 font-sans shadow-none focus-visible:ring-1 focus-visible:ring-slate-900"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                          Currency
-                        </Label>
-                        <Input
-                          type="text"
-                          value={currency}
-                          onChange={(e) => setCurrency(e.target.value)}
-                          placeholder="USD"
-                          className="bg-white border border-slate-300 rounded-[2px] h-9 px-3 text-xs text-slate-900 font-sans uppercase shadow-none focus-visible:ring-1 focus-visible:ring-slate-900"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                        Exchange Details
-                      </Label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setExchangeDetails(getAutofillExchangeDetails(exchangeType));
-                          if (exchangeType === "revenue_share" && !revenuePercentage) {
-                            setRevenuePercentage("7");
-                          }
-                          if (exchangeType === "fixed_amount" && !fixedAmount) {
-                            setFixedAmount("1500");
-                          }
-                          toast.success("Exchange details auto-filled", {
-                            description: "You can customize or edit the text before sending.",
-                          });
-                        }}
-                        className="text-[9.5px] font-mono font-bold uppercase tracking-wider text-slate-700 hover:text-slate-900 cursor-pointer"
-                      >
-                        Auto-fill
-                      </button>
-                    </div>
-                    <Textarea
-                      rows={4}
-                      value={exchangeDetails}
-                      onChange={(e) => setExchangeDetails(e.target.value)}
-                      placeholder="Describe exactly what you can provide in exchange..."
-                      className="bg-white border border-slate-300 rounded-[2px] px-3 py-2 text-xs text-slate-900 font-sans leading-relaxed min-h-[90px] shadow-none focus-visible:ring-1 focus-visible:ring-slate-900"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold">
-                      Additional Terms / Conditions (Optional)
-                    </Label>
-                    <Input
-                      type="text"
-                      value={additionalTerms}
-                      onChange={(e) => setAdditionalTerms(e.target.value)}
-                      placeholder="Add any conditions or important details..."
-                      className="bg-white border border-slate-300 rounded-[2px] h-9 px-3 text-xs text-slate-900 font-sans shadow-none focus-visible:ring-1 focus-visible:ring-slate-900"
-                    />
-                    <p className="text-[10px] text-slate-400 font-sans">
-                      For commercial terms and contractual conditions only. General messaging is disabled to maintain structured negotiations.
-                    </p>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                    <Button
-                      type="button"
-                      onClick={() => setShowProposalForm(false)}
-                      variant="outline"
-                      className="border border-slate-300 hover:bg-slate-100 text-slate-700 font-mono text-[10px] uppercase tracking-wider font-bold py-2.5 px-5 rounded-[2px] cursor-pointer"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={loadingAction === "proposal" || !exchangeDetails.trim()}
-                      className="bg-slate-900 hover:bg-slate-800 text-white font-mono text-[10px] uppercase tracking-widest font-bold py-2.5 px-6 rounded-[2px] cursor-pointer"
-                    >
-                      {loadingAction === "proposal" ? "Submitting..." : "Send Counter-Proposal"}
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
-      )}
-
+  // Stage 3 Content Renderer
+  const renderStage3Content = () => (
+    <>
       {/* 5. STEP 3: Final Exchange Terms Confirmation */}
       {isAgreementDraft && agreement && (
         <div className="bg-white border border-slate-200 rounded-[4px] p-6 shadow-sm space-y-5">
@@ -2556,6 +2189,13 @@ export function ExchangeWorkflow({
         </div>
       )}
 
+
+    </>
+  );
+
+  // Stage 4 Content Renderer
+  const renderStage4Content = () => (
+    <>
       {/* 6. STEP 4: Handshake & Reciprocal Contact Exchange */}
       {isAgreed && (
         <div className="space-y-6 font-sans">
@@ -3551,16 +3191,271 @@ export function ExchangeWorkflow({
           )}
         </SheetContent>
       </Sheet>
+    </>
+  );
+
+  return (
+    <div className="space-y-6 font-sans">
+      {/* 0. Deal Header Bar & Mode Switcher */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs font-mono text-slate-500">
+            <span className="font-bold text-slate-900">Exchange #{interest.id.slice(0, 8).toUpperCase()}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="font-display text-xl sm:text-2xl font-bold text-slate-900">
+              {targetBusiness.company_name} <span className="text-slate-400 font-normal">vs</span> {myBusiness.company_name}
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-slate-900 text-white uppercase tracking-wider">
+              {currentStepName}
+            </span>
+          </div>
         </div>
 
-        {/* Right Column (40% Width on Desktop: Proposal Negotiation Timeline - only in Negotiate / Pre-Agreement stages) */}
-        {!isStep2Done && (
-          <div className="hidden lg:block lg:col-span-2 space-y-6 lg:sticky lg:top-6">
-            {/* Proposal Negotiation Timeline */}
-            {renderProposalTimelineContent()}
-          </div>
-        )}
+        {/* Top Right View Mode Switcher via Design System ExecutiveTabs */}
+        <div className="self-start sm:self-auto">
+          <ExecutiveTabs
+            variant="pill"
+            activeTab={viewMode}
+            onTabChange={(tabId) => handleViewModeChange(tabId as "default" | "simplified")}
+            tabs={[
+              {
+                id: "default",
+                label: "Default View",
+                icon: <LayoutGrid className="w-3.5 h-3.5" />,
+              },
+              {
+                id: "simplified",
+                label: "Simplified View",
+                icon: <Columns3 className="w-3.5 h-3.5" />,
+              },
+            ]}
+          />
+        </div>
       </div>
+
+      {/* Main View Renderer */}
+      {viewMode === "default" ? (
+        <ExchangeHubDefaultView
+          data={data}
+          myBusinessId={effectiveMyBizId}
+          rounds={rounds}
+          activeRound={activeRound}
+          selectedDrawerRound={selectedDrawerRound}
+          onSelectDrawerRound={setSelectedDrawerRound}
+          onAcceptProposal={handleAcceptFromView}
+          onOpenCounterProposalModal={() => setShowProposalForm(true)}
+          onOpenDeclineModal={() => setShowDeclineModal(true)}
+          onWithdrawProposal={handleWithdrawProposal}
+          onQuickDispatch={handleQuickDispatch}
+          loadingAction={loadingAction}
+          isStep1Done={isStep1Done}
+          isStep2Done={isStep2Done}
+          isStep3Done={isStep3Done}
+          isStep4Done={isStep4Done}
+          currentStep={currentStep}
+          handleAcknowledge={handleAcknowledge}
+          handleFollowUp={handleFollowUp}
+          renderStage1Content={renderStage1Content}
+          renderStage3Content={renderStage3Content}
+          renderStage4Content={renderStage4Content}
+        />
+      ) : (
+        <ExchangeHubSimplifiedView
+          data={data}
+          myBusinessId={effectiveMyBizId}
+          rounds={rounds}
+          activeRound={activeRound}
+          onAcceptProposal={handleAcceptFromView}
+          onOpenCounterProposalModal={() => setShowProposalForm(true)}
+          onOpenDeclineModal={() => setShowDeclineModal(true)}
+          onWithdrawProposal={handleWithdrawProposal}
+          loadingAction={loadingAction}
+          isStep1Done={isStep1Done}
+          isStep2Done={isStep2Done}
+          isStep3Done={isStep3Done}
+          isStep4Done={isStep4Done}
+          currentStep={currentStep}
+          handleAcknowledge={handleAcknowledge}
+          handleFollowUp={handleFollowUp}
+          renderStage1Content={renderStage1Content}
+          renderStage3Content={renderStage3Content}
+          renderStage4Content={renderStage4Content}
+        />
+      )}
+
+      {/* Proposal / Counter-Proposal Modal */}
+      {(() => {
+        const latestRoundData = rounds && rounds.length > 0 ? rounds[rounds.length - 1] : null;
+        const prefilledTerms =
+          latestRoundData?.narrative ||
+          (activeProposal
+            ? activeProposal.exchange_details
+            : interest.proposed_terms || interest.message || opportunity?.offer_text || "");
+        const prefilledValCats =
+          latestRoundData?.valueCategories && latestRoundData.valueCategories.length > 0
+            ? latestRoundData.valueCategories
+            : [opportunity?.category || "Distribution & Sales"];
+        const prefilledDelMethods =
+          latestRoundData?.deliveryMethods && latestRoundData.deliveryMethods.length > 0
+            ? latestRoundData.deliveryMethods.map((dm: any) =>
+                typeof dm === "string" ? dm : dm?.label || dm?.name || "Direct Reseller / Partner"
+              )
+            : ["Direct Reseller / Partner"];
+        const prefilledHighlights =
+          latestRoundData?.highlightedTerms && latestRoundData.highlightedTerms.length > 0
+            ? latestRoundData.highlightedTerms
+            : [];
+
+        return (
+          <ExpressInterestModal
+            isOpen={showProposalForm}
+            onClose={() => setShowProposalForm(false)}
+            mode={activeProposal ? "counter_proposal" : "propose_terms"}
+            proposalVersion={activeProposal ? activeProposal.version + 1 : 1}
+            title={
+              activeProposal
+                ? "Propose Counter-Offer Terms"
+                : is_owner
+                ? "Propose Exchange Terms"
+                : "Propose Exchange Terms"
+            }
+            initialProposedTerms={prefilledTerms}
+            initialValueCategories={prefilledValCats}
+            initialDeliveryMethods={prefilledDelMethods}
+            initialHighlightedTerms={prefilledHighlights}
+            opportunity={{
+              id: opportunity.id,
+              opportunity_number: opportunity.opportunity_number || "RY",
+              title: opportunity.title,
+              category: opportunity.category,
+              offer_text:
+                opportunity.offer_text ||
+                (activeProposal ? activeProposal.exchange_details : interest.proposed_terms),
+              description: opportunity.description,
+              company: targetBusiness.company_name,
+              business: {
+                company_name: targetBusiness.company_name,
+                name: targetBusiness.company_name,
+                status: targetBusiness.status,
+              },
+              industry: targetBusiness.industry,
+              location: targetBusiness.hq_location,
+            }}
+            counterpartyName={targetBusiness.company_name}
+            customSubmitHandler={async (payload) => {
+              setLoadingAction("proposal");
+              try {
+                await createExchangeProposal({
+                  data: {
+                    interest_id: interest.id,
+                    exchange_type: (payload.exchange_type as ExchangeType) || "revenue_share",
+                    exchange_details: payload.proposed_terms || payload.message,
+                    additional_terms: JSON.stringify({
+                      value_categories: payload.value_categories,
+                      delivery_methods: payload.delivery_methods,
+                      highlighted_terms: payload.highlighted_terms,
+                    }),
+                  },
+                });
+                executiveToast.success("Proposal Transmitted", {
+                  badge: activeProposal
+                    ? `Counter-Proposal v${activeProposal.version + 1}`
+                    : "Proposal Submitted",
+                  description: `Your exchange terms have been transmitted to ${targetBusiness.company_name}.`,
+                });
+                await onRefresh();
+                window.dispatchEvent(new Event("relay:interest"));
+              } catch (err: any) {
+                executiveToast.danger("Proposal Error", {
+                  badge: "Submission Failed",
+                  description: err.message || "Failed to submit proposal.",
+                });
+                throw err;
+              } finally {
+                setLoadingAction(null);
+              }
+            }}
+            onSuccess={async () => {
+              await onRefresh();
+              window.dispatchEvent(new Event("relay:interest"));
+            }}
+          />
+        );
+      })()}
+
+      {/* Decline Proposal / Offer Modal using Official Design System Modal */}
+      <Modal
+        open={showDeclineModal}
+        onOpenChange={(open) => {
+          setShowDeclineModal(open);
+          if (!open) setDeclineNote("");
+        }}
+        maxWidth="max-w-[500px]"
+        title="Decline Exchange Proposal"
+        description={`Specify a reason for declining this proposal. This record is logged bilaterally with ${targetBusiness?.company_name || "the counterparty"}.`}
+        primaryAction={{
+          label:
+            loadingAction?.startsWith("respond-decline") || loadingAction === "decline-pitch"
+              ? "Declining..."
+              : "Confirm Decline",
+          variant: "destructive",
+          loading: Boolean(
+            loadingAction?.startsWith("respond-decline") || loadingAction === "decline-pitch"
+          ),
+          disabled: Boolean(loadingAction),
+          onClick: handleConfirmDeclineModal,
+        }}
+        secondaryAction={{
+          label: "Cancel",
+          disabled: Boolean(loadingAction),
+          onClick: () => {
+            setShowDeclineModal(false);
+            setDeclineNote("");
+          },
+        }}
+      >
+        <div className="space-y-4">
+          {/* Reason Field */}
+          <div className="space-y-1.5">
+            <Label required>Primary Decline Reason</Label>
+            <Select
+              value={declineReason}
+              onValueChange={(val) => setDeclineReason(val as DeclineReason)}
+            >
+              <SelectTrigger focusAccent="black" className="w-full">
+                <SelectValue placeholder="Select a reason" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="valuation_mismatch">
+                  Commercial terms / Valuation mismatch
+                </SelectItem>
+                <SelectItem value="exchange_type_unsuitable">
+                  Not looking for this exchange type right now
+                </SelectItem>
+                <SelectItem value="timeline_conflict">Timeline / Capacity conflict</SelectItem>
+                <SelectItem value="scope_unclear">Exchange scope needs more clarity</SelectItem>
+                <SelectItem value="other">Other commercial reason</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Clarification Note Field */}
+          <div className="space-y-1.5">
+            <Label>Optional Clarification Note</Label>
+            <Textarea
+              focusAccent="black"
+              rows={3}
+              placeholder="Explain what terms would make this proposal viable, or reasons for declining..."
+              value={declineNote}
+              onChange={(e) => setDeclineNote(e.target.value)}
+            />
+            <p className="text-[11px] text-[#64748B] font-sans">
+              Provide context to help your partner adjust terms in a future round if applicable.
+            </p>
+          </div>
+        </div>
+      </Modal>
 
       {/* Mobile Stepper Compact Modal Dialog */}
       <Dialog open={isMobileStepperOpen} onOpenChange={setIsMobileStepperOpen}>
@@ -3857,3 +3752,4 @@ export function ExchangeWorkflow({
     </div>
   );
 }
+

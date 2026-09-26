@@ -74,3 +74,24 @@ export function getDynamicMedianResponseTime(timestamp: number = Date.now()): st
   const hours = (2.1 + rnd * 2.5).toFixed(1);
   return `${hours}h`;
 }
+
+/**
+ * Formats a date into a human-friendly relative time string (e.g. "5m ago", "2h ago", "Yesterday").
+ */
+export function formatTimeAgo(dateInput: string | Date | undefined): string {
+  if (!dateInput) return "Recently";
+  const date = new Date(dateInput);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  if (isNaN(diffMs) || diffMs < 0) return "Just now";
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMinutes < 1) return "Just now";
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}

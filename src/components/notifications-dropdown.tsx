@@ -4,6 +4,7 @@ import { Bell, Check, Loader2, Info } from "lucide-react";
 import { getNotifications } from "../functions/getNotifications";
 import { markNotificationRead } from "../functions/markNotificationRead";
 import { toast } from "@/components/ui/sonner";
+import { showExchangeActivityModal, parseNotificationToExchangeActivity, executiveToast } from "@/design-system";
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseClientConfig } from "../functions/getSupabaseClientConfig";
 import {
@@ -115,7 +116,18 @@ export function NotificationsDropdown() {
                     ...prev,
                   ];
                 });
-                toast.success(`Alert: ${newNotif.title}`);
+                // Trigger Design System Bilateral Exchange Activity Popup Modal
+                try {
+                  showExchangeActivityModal(
+                    parseNotificationToExchangeActivity(newNotif.title, newNotif.description)
+                  );
+                } catch (e) {
+                  console.error("Failed to show exchange activity modal:", e);
+                }
+                executiveToast.success(newNotif.title, {
+                  badge: "Exchange Alert",
+                  description: newNotif.description || undefined,
+                });
               }
             }
           )
@@ -203,6 +215,7 @@ export function NotificationsDropdown() {
                 onClick={(e) => {
                   e.preventDefault();
                   handleMarkAsRead(n.id, n.is_read);
+                  showExchangeActivityModal(parseNotificationToExchangeActivity(n.title, n.description));
                 }}
                 onMouseEnter={() => {
                   if (n.is_read || markingIds.has(n.id)) return;

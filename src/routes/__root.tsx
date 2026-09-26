@@ -16,6 +16,8 @@ import { initAnalytics, trackPageView } from "@/lib/analytics";
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/navbar";
+import { GlobalTurnDock } from "@/components/GlobalTurnDock";
+import { ExecutiveToastContainer, GlobalExchangeActivityModal } from "@/design-system";
 
 function NotFoundComponent() {
   return (
@@ -156,6 +158,9 @@ function AppLayout() {
       <main className={isSignedIn ? "md:pl-60 md:pt-16 flex-1 flex flex-col w-full" : "flex-1 flex flex-col w-full"}>
         <Outlet />
       </main>
+      <GlobalTurnDock />
+      <GlobalExchangeActivityModal />
+      <ExecutiveToastContainer />
       <Toaster position="bottom-right" visibleToasts={1} />
     </div>
   );

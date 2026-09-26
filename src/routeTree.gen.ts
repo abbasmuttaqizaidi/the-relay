@@ -32,6 +32,8 @@ import { Route as HomeRouteImport } from './routes/home'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EightStepJourneyRouteImport } from './routes/eight-step-journey'
 import { Route as DistributionPartnersRouteImport } from './routes/distribution-partners'
+import { Route as DesignSystemRouteImport } from './routes/design-system'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CorePillarsRouteImport } from './routes/core-pillars'
 import { Route as ChannelPartnershipsRouteImport } from './routes/channel-partnerships'
 import { Route as BusinessProfileRouteImport } from './routes/business-profile'
@@ -176,6 +178,16 @@ const DistributionPartnersRoute = DistributionPartnersRouteImport.update({
   path: '/distribution-partners',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DesignSystemRoute = DesignSystemRouteImport.update({
+  id: '/design-system',
+  path: '/design-system',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CorePillarsRoute = CorePillarsRouteImport.update({
   id: '/core-pillars',
   path: '/core-pillars',
@@ -305,6 +317,8 @@ export interface FileRoutesByFullPath {
   '/business-profile': typeof BusinessProfileRoute
   '/channel-partnerships': typeof ChannelPartnershipsRoute
   '/core-pillars': typeof CorePillarsRoute
+  '/dashboard': typeof DashboardRoute
+  '/design-system': typeof DesignSystemRoute
   '/distribution-partners': typeof DistributionPartnersRoute
   '/eight-step-journey': typeof EightStepJourneyRoute
   '/faq': typeof FaqRoute
@@ -353,6 +367,8 @@ export interface FileRoutesByTo {
   '/business-profile': typeof BusinessProfileRoute
   '/channel-partnerships': typeof ChannelPartnershipsRoute
   '/core-pillars': typeof CorePillarsRoute
+  '/dashboard': typeof DashboardRoute
+  '/design-system': typeof DesignSystemRoute
   '/distribution-partners': typeof DistributionPartnersRoute
   '/eight-step-journey': typeof EightStepJourneyRoute
   '/faq': typeof FaqRoute
@@ -400,6 +416,8 @@ export interface FileRoutesById {
   '/business-profile': typeof BusinessProfileRoute
   '/channel-partnerships': typeof ChannelPartnershipsRoute
   '/core-pillars': typeof CorePillarsRoute
+  '/dashboard': typeof DashboardRoute
+  '/design-system': typeof DesignSystemRoute
   '/distribution-partners': typeof DistributionPartnersRoute
   '/eight-step-journey': typeof EightStepJourneyRoute
   '/faq': typeof FaqRoute
@@ -450,6 +468,8 @@ export interface FileRouteTypes {
     | '/business-profile'
     | '/channel-partnerships'
     | '/core-pillars'
+    | '/dashboard'
+    | '/design-system'
     | '/distribution-partners'
     | '/eight-step-journey'
     | '/faq'
@@ -498,6 +518,8 @@ export interface FileRouteTypes {
     | '/business-profile'
     | '/channel-partnerships'
     | '/core-pillars'
+    | '/dashboard'
+    | '/design-system'
     | '/distribution-partners'
     | '/eight-step-journey'
     | '/faq'
@@ -544,6 +566,8 @@ export interface FileRouteTypes {
     | '/business-profile'
     | '/channel-partnerships'
     | '/core-pillars'
+    | '/dashboard'
+    | '/design-system'
     | '/distribution-partners'
     | '/eight-step-journey'
     | '/faq'
@@ -593,6 +617,8 @@ export interface RootRouteChildren {
   BusinessProfileRoute: typeof BusinessProfileRoute
   ChannelPartnershipsRoute: typeof ChannelPartnershipsRoute
   CorePillarsRoute: typeof CorePillarsRoute
+  DashboardRoute: typeof DashboardRoute
+  DesignSystemRoute: typeof DesignSystemRoute
   DistributionPartnersRoute: typeof DistributionPartnersRoute
   EightStepJourneyRoute: typeof EightStepJourneyRoute
   FaqRoute: typeof FaqRoute
@@ -782,6 +808,20 @@ declare module '@tanstack/react-router' {
       path: '/distribution-partners'
       fullPath: '/distribution-partners'
       preLoaderRoute: typeof DistributionPartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design-system': {
+      id: '/design-system'
+      path: '/design-system'
+      fullPath: '/design-system'
+      preLoaderRoute: typeof DesignSystemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/core-pillars': {
@@ -1006,6 +1046,8 @@ const rootRouteChildren: RootRouteChildren = {
   BusinessProfileRoute: BusinessProfileRoute,
   ChannelPartnershipsRoute: ChannelPartnershipsRoute,
   CorePillarsRoute: CorePillarsRoute,
+  DashboardRoute: DashboardRoute,
+  DesignSystemRoute: DesignSystemRoute,
   DistributionPartnersRoute: DistributionPartnersRoute,
   EightStepJourneyRoute: EightStepJourneyRoute,
   FaqRoute: FaqRoute,

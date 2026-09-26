@@ -162,6 +162,39 @@ export const VALUE_CATEGORIES: ValueCategoryDef[] = [
   },
 ];
 
+export function mapCategoryToExchangeType(categoryId: string): string {
+  switch (categoryId) {
+    case "money":
+      return "revenue_share";
+    case "warm_intros":
+      return "introduction";
+    case "client_referrals":
+      return "qualified_lead";
+    case "services":
+      return "service_work";
+    case "distribution":
+      return "partnership";
+    case "capital":
+      return "fixed_amount";
+    case "technology":
+      return "business_opportunity";
+    default:
+      return "other";
+  }
+}
+
+export function findCategory(catNameOrId?: string | null): ValueCategoryDef | undefined {
+  if (!catNameOrId) return undefined;
+  const lower = catNameOrId.toLowerCase().trim();
+  return VALUE_CATEGORIES.find(
+    (c) =>
+      c.id.toLowerCase() === lower ||
+      c.name.toLowerCase() === lower ||
+      c.name.toLowerCase().includes(lower) ||
+      lower.includes(c.id.toLowerCase())
+  );
+}
+
 export interface ExpressInterestModalOpportunity {
   id: string;
   opportunity_number?: string;
@@ -186,6 +219,24 @@ export interface ExpressInterestModalProps {
   onClose: () => void;
   opportunity: ExpressInterestModalOpportunity | null;
   onSuccess?: (referenceCode?: string) => void;
+  mode?: "express_interest" | "counter_proposal" | "propose_terms";
+  customSubmitHandler?: (payload: {
+    message: string;
+    proposed_terms: string;
+    value_categories: string[];
+    delivery_methods: string[];
+    highlighted_terms: string[];
+    exchange_type: any;
+  }) => Promise<void>;
+  initialProposedTerms?: string;
+  initialValueCategories?: string[];
+  initialDeliveryMethods?: (string | any)[];
+  initialHighlightedTerms?: string[];
+  proposalVersion?: number;
+  title?: string;
+  subtitle?: string;
+  submitButtonText?: string;
+  counterpartyName?: string;
 }
 
 export function ExpressInterestModal({
@@ -193,9 +244,21 @@ export function ExpressInterestModal({
   onClose,
   opportunity,
   onSuccess,
+  mode = "express_interest",
+  customSubmitHandler,
+  initialProposedTerms,
+  initialValueCategories,
+  initialDeliveryMethods,
+  initialHighlightedTerms,
+  proposalVersion,
+  title,
+  subtitle,
+  submitButtonText,
+  counterpartyName,
 }: ExpressInterestModalProps) {
   const navigate = useNavigate();
   const { request: requestInterest } = useInterestStore();
+  const isCounterMode = mode === "counter_proposal" || mode === "propose_terms";
 
   const handleGoToSentProposals = () => {
     onClose();
@@ -204,7 +267,7 @@ export function ExpressInterestModal({
 
   // Offer Mode: 'accept_listed' (default) or 'propose_custom'
   const [offerMode, setOfferMode] = React.useState<"accept_listed" | "propose_custom">(
-    "accept_listed",
+    isCounterMode ? "propose_custom" : "accept_listed",
   );
 
   // Selected Categories and Sub-delivery points
@@ -215,6 +278,7 @@ export function ExpressInterestModal({
   const [selectedDeliveryMethods, setSelectedDeliveryMethods] = React.useState<string[]>([
     "Direct Reseller / Partner",
   ]);
+  const [customOtherDeliveryText, setCustomOtherDeliveryText] = React.useState<string>("");
 
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
   const [isSuccess, setIsSuccess] = React.useState<boolean>(false);
@@ -232,19 +296,80 @@ export function ExpressInterestModal({
   // Default initial content
   const defaultHtml = `<mark class="bg-emerald-50 text-emerald-800 border-b border-emerald-300 px-1 py-0.5 rounded font-medium" title="Highlighted for Receiver">25% recurring gross rev-share + $15k co-marketing budget</mark> across all closed accounts, alongside dedicated technical integration sprints and bi-weekly pipeline review meetings.`;
 
+  // Ref to track if modal is open to only initialize once per open action
+  const prevIsOpenRef = React.useRef(false);
+
   // Reset state when modal opens
   React.useEffect(() => {
-    if (isOpen) {
-      setOfferMode("accept_listed");
-      setSelectedCategoryNames(["Distribution & Sales"]);
-      setActiveCategoryId("distribution");
-      setSelectedDeliveryMethods(["Direct Reseller / Partner"]);
+    if (isOpen && !prevIsOpenRef.current) {
+      prevIsOpenRef.current = true;
+      setOfferMode(isCounterMode ? "propose_custom" : "accept_listed");
+
+      // Initialize Value Categories
+      let initCatNames: string[] = [];
+      let initCatId = "distribution";
+
+      if (initialValueCategories && initialValueCategories.length > 0) {
+        initCatNames = initialValueCategories
+          .map((c: any) => (typeof c === "string" ? c : c?.name || c?.label || ""))
+          .filter(Boolean);
+        const firstMatched = findCategory(initCatNames[0]);
+        if (firstMatched) {
+          initCatId = firstMatched.id;
+        }
+      } else if (opportunity?.category) {
+        const matched = findCategory(opportunity.category);
+        if (matched) {
+          initCatNames = [matched.name];
+          initCatId = matched.id;
+        } else {
+          initCatNames = [opportunity.category];
+        }
+      }
+
+      if (initCatNames.length === 0) {
+        initCatNames = ["Distribution & Sales"];
+        initCatId = "distribution";
+      }
+
+      setSelectedCategoryNames(initCatNames);
+      setActiveCategoryId(initCatId);
+
+      // Initialize Delivery Methods
+      let initDelMethods: string[] = [];
+      let initOtherText = "";
+
+      if (initialDeliveryMethods && initialDeliveryMethods.length > 0) {
+        initDelMethods = initialDeliveryMethods.map((dm: any) => {
+          if (typeof dm === "string") {
+            if (dm.startsWith("Other:") || dm.startsWith("Other -")) {
+              initOtherText = dm.replace(/^Other[:\-]\s*/, "");
+              return "Other";
+            }
+            return dm;
+          } else if (dm && typeof dm === "object") {
+            if (dm.otherText) initOtherText = dm.otherText;
+            return dm.name || dm.label || "Direct Reseller / Partner";
+          }
+          return "Direct Reseller / Partner";
+        });
+      } else {
+        const catObj = VALUE_CATEGORIES.find((c) => c.id === initCatId) || VALUE_CATEGORIES[0];
+        initDelMethods = [catObj.deliveryMethods[0] || "Direct Reseller / Partner"];
+      }
+
+      setSelectedDeliveryMethods(initDelMethods);
+      setCustomOtherDeliveryText(initOtherText);
       setIsSubmitting(false);
       setIsSuccess(false);
       setShowHighlightTooltip(false);
 
       if (opportunity?.id) {
-        setReferenceCode(`ESC-${opportunity.id.slice(0, 4).toUpperCase()}-X`);
+        setReferenceCode(
+          isCounterMode
+            ? `PROP-v${proposalVersion || 1}`
+            : `ESC-${opportunity.id.slice(0, 4).toUpperCase()}-X`,
+        );
       } else {
         setReferenceCode("ESC-9921-X");
       }
@@ -252,15 +377,48 @@ export function ExpressInterestModal({
       // Populate editor HTML on next tick
       setTimeout(() => {
         if (editorRef.current) {
-          if (opportunity?.offer_text) {
+          if (initialProposedTerms) {
+            if (initialProposedTerms.includes("<mark")) {
+              editorRef.current.innerHTML = initialProposedTerms;
+            } else if (initialHighlightedTerms && initialHighlightedTerms.length > 0) {
+              let formatted = initialProposedTerms;
+              initialHighlightedTerms.forEach((hl) => {
+                if (hl && formatted.includes(hl)) {
+                  formatted = formatted.replaceAll(
+                    hl,
+                    `<mark class="bg-emerald-50 text-emerald-800 border-b border-emerald-300 px-1 py-0.5 rounded font-medium" title="Highlighted for Receiver">${hl}</mark>`
+                  );
+                }
+              });
+              if (!formatted.includes("<mark")) {
+                formatted = `<mark class="bg-emerald-50 text-emerald-800 border-b border-emerald-300 px-1 py-0.5 rounded font-medium" title="Highlighted for Receiver">${initialProposedTerms}</mark>`;
+              }
+              editorRef.current.innerHTML = formatted;
+            } else {
+              editorRef.current.innerHTML = `<mark class="bg-emerald-50 text-emerald-800 border-b border-emerald-300 px-1 py-0.5 rounded font-medium" title="Highlighted for Receiver">${initialProposedTerms}</mark>`;
+            }
+          } else if (opportunity?.offer_text) {
             editorRef.current.innerHTML = `<mark class="bg-emerald-50 text-emerald-800 border-b border-emerald-300 px-1 py-0.5 rounded font-medium" title="Highlighted for Receiver">${opportunity.offer_text}</mark> alongside dedicated integration support and bilateral co-operation.`;
           } else {
             editorRef.current.innerHTML = defaultHtml;
           }
         }
       }, 50);
+    } else if (!isOpen) {
+      prevIsOpenRef.current = false;
     }
-  }, [isOpen, opportunity?.id, opportunity?.offer_text]);
+  }, [
+    isOpen,
+    opportunity?.id,
+    opportunity?.offer_text,
+    opportunity?.category,
+    initialProposedTerms,
+    initialValueCategories,
+    initialDeliveryMethods,
+    initialHighlightedTerms,
+    isCounterMode,
+    proposalVersion,
+  ]);
 
   // Auto-fill listed terms quick button
   const handleAutoFillListedTerms = () => {
@@ -492,8 +650,43 @@ export function ExpressInterestModal({
 
       payloadTerms = rawText;
       payloadCategories = selectedCategoryNames;
-      payloadDelivery = selectedDeliveryMethods;
+      payloadDelivery = selectedDeliveryMethods.map((method) => {
+        const lower = method.toLowerCase();
+        if ((lower === "other" || lower === "others") && customOtherDeliveryText.trim()) {
+          return `Other: ${customOtherDeliveryText.trim()}`;
+        }
+        return method;
+      });
       structuredMessage = `${rawText}\n\n[Value Categories]: ${payloadCategories.join(", ")}\n[Delivery Methods]: ${payloadDelivery.join(", ")}${payloadHighlights.length > 0 ? `\n[Key Highlighted Terms]: ${payloadHighlights.join("; ")}` : ""}`;
+    }
+
+    if (customSubmitHandler) {
+      try {
+        setIsSubmitting(true);
+        const exchangeType = mapCategoryToExchangeType(activeCategoryId);
+        await customSubmitHandler({
+          message: structuredMessage,
+          proposed_terms: payloadTerms,
+          value_categories: payloadCategories,
+          delivery_methods: payloadDelivery,
+          highlighted_terms: payloadHighlights,
+          exchange_type: exchangeType,
+        });
+
+        const refCode = isCounterMode ? `PROP-v${proposalVersion || 1}` : `ESC-${opportunity.id.slice(0, 4).toUpperCase()}-X`;
+        setReferenceCode(refCode);
+        setIsSuccess(true);
+
+        if (onSuccess) {
+          onSuccess(refCode);
+        }
+      } catch (err: any) {
+        console.error("Failed to submit custom proposal:", err);
+        toast.error(err.message || "Failed to submit proposal offer.");
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
     }
 
     try {
@@ -539,6 +732,7 @@ export function ExpressInterestModal({
   };
 
   const targetCompanyName =
+    counterpartyName ||
     opportunity?.company ||
     opportunity?.business?.company_name ||
     opportunity?.business?.name ||
@@ -550,13 +744,23 @@ export function ExpressInterestModal({
     <div className="space-y-1">
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider uppercase bg-slate-100 text-slate-700 border border-slate-200">
-          Step 1 of 2: Send Offer
+          {isCounterMode
+            ? mode === "counter_proposal"
+              ? "Stage 2: Counter-Proposal"
+              : "Stage 2: Propose Terms"
+            : "Step 1 of 2: Send Offer"}
         </span>
+        {isCounterMode && proposalVersion ? (
+          <>
+            <span className="text-slate-300">•</span>
+            <span className="text-[12px] font-mono font-medium text-slate-500">v{proposalVersion}</span>
+          </>
+        ) : null}
         <span className="text-slate-300">•</span>
         <span className="text-[12px] font-mono font-medium text-slate-500">{oppNumber}</span>
       </div>
       <span className="text-lg sm:text-xl font-bold font-display tracking-tight text-slate-900 block">
-        What can you offer in exchange?
+        {title || (mode === "counter_proposal" ? "Propose Counter-Offer Terms" : "What can you offer in exchange?")}
       </span>
     </div>
   ) : (
@@ -565,7 +769,7 @@ export function ExpressInterestModal({
         <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />
       </div>
       <span className="text-base font-bold font-display text-slate-900">
-        Offer Submitted
+        {isCounterMode ? "Counter-Proposal Transmitted" : "Offer Submitted"}
       </span>
     </div>
   );
@@ -598,9 +802,14 @@ export function ExpressInterestModal({
           ) : (
             <>
               <span>
-                {offerMode === "accept_listed"
-                  ? "Accept & Proceed to Stage 1"
-                  : "Submit Custom Offer"}
+                {submitButtonText ||
+                  (offerMode === "accept_listed"
+                    ? "Accept & Proceed to Stage 1"
+                    : isCounterMode
+                    ? mode === "counter_proposal"
+                      ? "Submit Counter-Proposal"
+                      : "Send Proposal"
+                    : "Submit Custom Offer")}
               </span>
               <ArrowRight className="w-3.5 h-3.5" />
             </>
@@ -660,91 +869,93 @@ export function ExpressInterestModal({
             </div>
           </div>
 
-          {/* Mode Selection Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {/* Card 1: Accept Listed Terms (Default & Recommended) */}
-            <div
-              onClick={() => setOfferMode("accept_listed")}
-              className={cn(
-                "relative flex flex-col p-3.5 rounded-xl border text-left cursor-pointer transition-all duration-150 select-none",
-                offerMode === "accept_listed"
-                  ? "border-slate-900 bg-slate-50/80 ring-1 ring-slate-900 shadow-xs"
-                  : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/40",
-              )}
-            >
-              <div className="flex items-center justify-between gap-2 mb-1.5">
-                <span className="text-xs sm:text-sm font-bold font-display text-slate-900 truncate">
-                  Accept Listed Terms
-                </span>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-[3px] text-[9px] font-bold tracking-wider uppercase bg-[#0F172A] text-white">
-                    RECOMMENDED
+          {/* Mode Selection Cards (Hidden in Counter Proposal / Propose Terms Mode) */}
+          {!isCounterMode && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {/* Card 1: Accept Listed Terms (Default & Recommended) */}
+              <div
+                onClick={() => setOfferMode("accept_listed")}
+                className={cn(
+                  "relative flex flex-col p-3.5 rounded-xl border text-left cursor-pointer transition-all duration-150 select-none",
+                  offerMode === "accept_listed"
+                    ? "border-slate-900 bg-slate-50/80 ring-1 ring-slate-900 shadow-xs"
+                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/40",
+                )}
+              >
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="text-xs sm:text-sm font-bold font-display text-slate-900 truncate">
+                    Accept Listed Terms
                   </span>
-                  <div
-                    className={cn(
-                      "w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0",
-                      offerMode === "accept_listed"
-                        ? "border-slate-900 bg-[#0F172A] text-white"
-                        : "border-slate-300 bg-white",
-                    )}
-                  >
-                    {offerMode === "accept_listed" && (
-                      <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
-                    )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-[3px] text-[9px] font-bold tracking-wider uppercase bg-[#0F172A] text-white">
+                      RECOMMENDED
+                    </span>
+                    <div
+                      className={cn(
+                        "w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0",
+                        offerMode === "accept_listed"
+                          ? "border-slate-900 bg-[#0F172A] text-white"
+                          : "border-slate-300 bg-white",
+                      )}
+                    >
+                      {offerMode === "accept_listed" && (
+                        <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
+                      )}
+                    </div>
                   </div>
                 </div>
+                <p className="text-[11px] text-slate-600 leading-snug">
+                  Accept the counterparty's listed terms without alteration.
+                </p>
+                <p className="text-[11px] text-slate-500 leading-snug mt-0.5 font-medium text-emerald-700">
+                  Fast-tracks pipeline & automatically initiates Stage 1.
+                </p>
               </div>
-              <p className="text-[11px] text-slate-600 leading-snug">
-                Accept the counterparty's listed terms without alteration.
-              </p>
-              <p className="text-[11px] text-slate-500 leading-snug mt-0.5 font-medium text-emerald-700">
-                Fast-tracks pipeline & automatically initiates Stage 1.
-              </p>
-            </div>
 
-            {/* Card 2: Propose Custom Offer */}
-            <div
-              onClick={() => setOfferMode("propose_custom")}
-              className={cn(
-                "relative flex flex-col p-3.5 rounded-xl border text-left cursor-pointer transition-all duration-150 select-none",
-                offerMode === "propose_custom"
-                  ? "border-slate-900 bg-slate-50/80 ring-1 ring-slate-900 shadow-xs"
-                  : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/40",
-              )}
-            >
-              <div className="flex items-center justify-between gap-2 mb-1.5">
-                <span className="text-xs sm:text-sm font-bold font-display text-slate-900 truncate">
-                  Propose Custom Offer
-                </span>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-[3px] text-[9px] font-medium tracking-wider uppercase bg-slate-100 text-slate-700 border border-slate-200">
-                    NEGOTIATED
+              {/* Card 2: Propose Custom Offer */}
+              <div
+                onClick={() => setOfferMode("propose_custom")}
+                className={cn(
+                  "relative flex flex-col p-3.5 rounded-xl border text-left cursor-pointer transition-all duration-150 select-none",
+                  offerMode === "propose_custom"
+                    ? "border-slate-900 bg-slate-50/80 ring-1 ring-slate-900 shadow-xs"
+                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/40",
+                )}
+              >
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="text-xs sm:text-sm font-bold font-display text-slate-900 truncate">
+                    Propose Custom Offer
                   </span>
-                  <div
-                    className={cn(
-                      "w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0",
-                      offerMode === "propose_custom"
-                        ? "border-slate-900 bg-[#0F172A] text-white"
-                        : "border-slate-300 bg-white",
-                    )}
-                  >
-                    {offerMode === "propose_custom" && (
-                      <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
-                    )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-[3px] text-[9px] font-medium tracking-wider uppercase bg-slate-100 text-slate-700 border border-slate-200">
+                      NEGOTIATED
+                    </span>
+                    <div
+                      className={cn(
+                        "w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0",
+                        offerMode === "propose_custom"
+                          ? "border-slate-900 bg-[#0F172A] text-white"
+                          : "border-slate-300 bg-white",
+                      )}
+                    >
+                      {offerMode === "propose_custom" && (
+                        <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
+                      )}
+                    </div>
                   </div>
                 </div>
+                <p className="text-[11px] text-slate-600 leading-snug">
+                  Propose custom value categories, delivery formats, and terms.
+                </p>
+                <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                  Counterparty will review and negotiate terms before confirmation.
+                </p>
               </div>
-              <p className="text-[11px] text-slate-600 leading-snug">
-                Propose custom value categories, delivery formats, and terms.
-              </p>
-              <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
-                Counterparty will review and negotiate terms before confirmation.
-              </p>
             </div>
-          </div>
+          )}
 
           {/* Conditional Content based on selected mode */}
-          {offerMode === "accept_listed" ? (
+          {!isCounterMode && offerMode === "accept_listed" ? (
             /* Banner & Listed Terms Info when Accept Listed Terms is selected */
             <div className="space-y-3">
               {/* Informational Banner */}
@@ -980,18 +1191,27 @@ export function ExpressInterestModal({
                   </div>
                 )}
 
-                {/* Guidance Banner when "Other" is selected */}
-                {selectedDeliveryMethods.includes("Other") && (
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-xs text-amber-900 shadow-2xs mt-2 text-left">
-                    <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div className="space-y-0.5 text-left">
-                      <span className="font-bold text-xs block text-amber-950">
-                        Custom Delivery Method Specified
-                      </span>
-                      <p className="text-amber-800 text-[11px] leading-relaxed">
-                        Since you selected &ldquo;Other&rdquo;, please clearly detail your proposed fulfillment structure and terms in the Proposed Value and Terms section below.
-                      </p>
+                {/* Guidance Banner & Custom Input when "Other" is selected */}
+                {selectedDeliveryMethods.some((m) => m.toLowerCase().includes("other")) && (
+                  <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl flex flex-col gap-2 text-xs text-amber-900 shadow-2xs mt-2 text-left">
+                    <div className="flex items-start gap-2">
+                      <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="space-y-0.5 text-left">
+                        <span className="font-bold text-xs block text-amber-950">
+                          Custom &ldquo;Other&rdquo; Delivery Method
+                        </span>
+                        <p className="text-amber-800 text-[11px] leading-relaxed">
+                          Please specify your custom delivery format or integration mechanism below:
+                        </p>
+                      </div>
                     </div>
+                    <input
+                      type="text"
+                      placeholder="e.g. Dedicated SFTP synchronization & weekly sync"
+                      value={customOtherDeliveryText}
+                      onChange={(e) => setCustomOtherDeliveryText(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-amber-300/80 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900 placeholder:text-slate-400 mt-1"
+                    />
                   </div>
                 )}
               </div>
@@ -1108,8 +1328,10 @@ export function ExpressInterestModal({
         /* Success State - Compact & Content-fitted */
         <div className="space-y-3.5 text-left py-0.5">
           <p className="text-xs text-slate-600 leading-relaxed">
-            Your proposal has been securely sent to{" "}
-            <strong className="font-semibold text-slate-900">{targetCompanyName}</strong>. They will review your terms and reply within 48 hours.
+            {isCounterMode
+              ? `Your commercial terms have been securely transmitted to `
+              : `Your proposal has been securely sent to `}
+            <strong className="font-semibold text-slate-900">{targetCompanyName}</strong>. They will review your terms and reply.
           </p>
 
           <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200/80 flex items-center justify-between text-xs">
@@ -1124,25 +1346,40 @@ export function ExpressInterestModal({
           </div>
 
           <div className="flex items-center gap-2 pt-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onClose}
-              className="flex-1 text-xs font-medium h-9 cursor-pointer"
-            >
-              Return to Deals
-            </Button>
-            <Button
-              type="button"
-              variant="monochrome"
-              size="sm"
-              onClick={handleGoToSentProposals}
-              className="flex-1 text-xs font-semibold h-9 gap-1.5 bg-[#0F172A] hover:bg-slate-800 text-white cursor-pointer"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>View Sent</span>
-            </Button>
+            {isCounterMode ? (
+              <Button
+                type="button"
+                variant="monochrome"
+                size="sm"
+                onClick={onClose}
+                className="w-full text-xs font-semibold h-9 gap-1.5 bg-[#0F172A] hover:bg-slate-800 text-white cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Return to Exchange</span>
+              </Button>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onClose}
+                  className="flex-1 text-xs font-medium h-9 cursor-pointer"
+                >
+                  Return to Deals
+                </Button>
+                <Button
+                  type="button"
+                  variant="monochrome"
+                  size="sm"
+                  onClick={handleGoToSentProposals}
+                  className="flex-1 text-xs font-semibold h-9 gap-1.5 bg-[#0F172A] hover:bg-slate-800 text-white cursor-pointer"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>View Sent</span>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}

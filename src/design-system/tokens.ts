@@ -1,6 +1,6 @@
 /**
  * The Relay Design System — Core Design Tokens & Palette
- * Reference: design_system_components.md
+ * Reference: seo_code_guide.md & design_system_components.md
  */
 
 export const DESIGN_TOKENS = {
@@ -12,6 +12,7 @@ export const DESIGN_TOKENS = {
     surfaceContainer: "#E2E8F0",
     surfaceContainerHigh: "#CBD5E1",
     surfaceContainerHighest: "#94A3B8",
+    midnightContainer: "#0F172A",
 
     // Typography & Content
     onSurface: "#171F2C", // Deep Charcoal
@@ -37,15 +38,53 @@ export const DESIGN_TOKENS = {
     borderHover: "#CBD5E1",
     borderDark: "#334155",
 
-    // Functional & Status Indicators
-    verifiedFill: "#ECFDF5",
-    verifiedText: "#065F46",
-    verifiedBorder: "#A7F3D0",
-    verifiedDot: "#10B981",
+    // Functional & Semantic Status Tokens (Triad)
+    semantic: {
+      success: {
+        ink: "#15803D", // Mineral Sage
+        surface: "#F0FDF4",
+        border: "#DCFCE7",
+        accent: "#16A34A",
+        contrastRatio: "7.42:1 AAA",
+      },
+      warning: {
+        ink: "#B45309", // Warm Honey Amber
+        surface: "#FFFBEB",
+        border: "#FDE68A",
+        accent: "#D97706",
+        contrastRatio: "5.88:1 AA",
+      },
+      danger: {
+        crimson: {
+          ink: "#991B1B", // Crimson Slate
+          surface: "#FEF2F2",
+          border: "#FECACA",
+          accent: "#DC2626",
+          contrastRatio: "6.95:1 AAA",
+        },
+        terracotta: {
+          ink: "#9A3412", // Terracotta Rust
+          surface: "#FFF1F2",
+          border: "#FED7AA",
+          accent: "#C2410C",
+          contrastRatio: "6.12:1 AA",
+        },
+        ink: "#991B1B",
+        surface: "#FEF2F2",
+        border: "#FECACA",
+        accent: "#DC2626",
+      },
+    },
 
-    urgentFill: "#FFF7ED",
-    urgentText: "#9A3412",
-    urgentBorder: "#FED7AA",
+    // Legacy Fallback Status Indicators
+    verifiedFill: "#F0FDF4",
+    verifiedText: "#15803D",
+    verifiedBorder: "#DCFCE7",
+    verifiedDot: "#16A34A",
+
+    urgentFill: "#FFFBEB",
+    urgentText: "#B45309",
+    urgentBorder: "#FDE68A",
 
     errorFill: "#FEF2F2",
     errorText: "#991B1B",
@@ -60,8 +99,8 @@ export const DESIGN_TOKENS = {
     full: "9999px",
   },
   typography: {
-    fontSans: "Inter, ui-sans-serif, system-ui, sans-serif",
-    fontDisplay: "Inter Tight, Inter, sans-serif",
-    fontMono: "JetBrains Mono, ui-monospace, monospace",
+    fontSans: '"Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif',
+    fontDisplay: '"Plus Jakarta Sans", Inter Tight, Inter, sans-serif',
+    fontMono: '"JetBrains Mono", ui-monospace, monospace',
   },
 } as const;

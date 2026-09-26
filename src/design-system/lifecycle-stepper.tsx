@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ArrowUpRight, GitFork } from "lucide-react";
+import { ArrowUpRight, GitFork, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /* ==========================================================================
@@ -303,3 +303,464 @@ export function DealLifecycleTabs({
     </div>
   );
 }
+
+/* ==========================================================================
+   4. MINI STAGE STEPPER (COMPACT 4-STEP TRACKER FOR CARDS & BADGES)
+   ========================================================================== */
+
+export interface MiniStageStepperProps extends React.HTMLAttributes<HTMLDivElement> {
+  stage: 1 | 2 | 3 | 4;
+  showLabel?: boolean;
+}
+
+export function MiniStageStepper({
+  stage,
+  showLabel = true,
+  className,
+  ...props
+}: MiniStageStepperProps) {
+  const stageFullNames: Record<1 | 2 | 3 | 4, string> = {
+    1: "Stage 1 • Acknowledgement",
+    2: "Stage 2 • Negotiation",
+    3: "Stage 3 • Agreement",
+    4: "Stage 4 • Handshake",
+  };
+
+  return (
+    <div
+      className={cn(
+        "inline-flex items-center gap-2 px-2.5 py-1 rounded-[4px] bg-[#F8FAFC] border border-[#CBD5E1] shadow-2xs font-mono select-none",
+        className,
+      )}
+      title={stageFullNames[stage]}
+      {...props}
+    >
+      {/* 4 Connected Mini Steps */}
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4].map((stepNum, idx) => {
+          const isPassed = stepNum < stage;
+          const isCurrent = stepNum === stage;
+          return (
+            <React.Fragment key={stepNum}>
+              {idx > 0 && (
+                <span
+                  className={cn(
+                    "w-2 h-0.5 rounded-full transition-colors",
+                    stepNum <= stage ? "bg-[#171F2C]" : "bg-[#CBD5E1]",
+                  )}
+                />
+              )}
+              <span
+                className={cn(
+                  "w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold transition-all",
+                  isCurrent && "bg-[#171F2C] text-white shadow-xs ring-1 ring-[#171F2C] ring-offset-1 ring-offset-white",
+                  isPassed && "bg-emerald-600 text-white font-bold",
+                  !isCurrent && !isPassed && "bg-[#E2E8F0] text-[#94A3B8]",
+                )}
+              >
+                {isPassed ? "✓" : stepNum}
+              </span>
+            </React.Fragment>
+          );
+        })}
+      </div>
+
+      {showLabel && (
+        <span className="text-[11px] font-semibold text-[#171F2C] pl-1.5 border-l border-[#CBD5E1] tracking-tight">
+          {stageFullNames[stage]}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* ==========================================================================
+   5. MINI STAGE BAR STEPPER (4 COMPACT BARS WITH SHORT STAGE LABELS: ack, neg, agr, shake)
+   ========================================================================== */
+
+export function MiniStageBarStepper({
+  stage = 1,
+  className,
+  ...props
+}: MiniStageBarStepperProps) {
+  const safeStage = Math.max(1, Math.min(4, Number(stage) || 1));
+  const steps = [
+    { num: 1, label: "ack" },
+    { num: 2, label: "neg" },
+    { num: 3, label: "agr" },
+    { num: 4, label: "shake" },
+  ];
+
+  return (
+    <div className={cn("flex flex-col gap-1 select-none", className)} {...props}>
+      {/* 4 horizontal mini bars */}
+      <div className="grid grid-cols-4 gap-1 w-full min-w-[140px] sm:min-w-[160px]">
+        {steps.map((s) => {
+          const isActive = s.num <= safeStage;
+          return (
+            <div
+              key={s.num}
+              className={cn(
+                "h-1.5 rounded-[2px] transition-colors",
+                isActive ? "bg-[#171F2C]" : "bg-[#E2E8F0]",
+              )}
+            />
+          );
+        })}
+      </div>
+
+      {/* 4 labels below bars */}
+      <div className="grid grid-cols-4 gap-1 w-full text-[9px] font-mono uppercase tracking-wider text-center">
+        {steps.map((s) => {
+          const isActive = s.num <= safeStage;
+          const isCurrent = s.num === safeStage;
+          return (
+            <span
+              key={s.num}
+              className={cn(
+                "transition-colors truncate",
+                isCurrent
+                  ? "font-bold text-[#171F2C]"
+                  : isActive
+                    ? "font-semibold text-[#475569]"
+                    : "font-medium text-[#94A3B8]",
+              )}
+            >
+              {s.label}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ==========================================================================
+   6. EXCHANGE PIPELINE RIBBON (SPEC SEO-EXCHANGE: 4-STAGE CONNECTED RIBBON)
+   ========================================================================== */
+
+export interface ExchangePipelineRibbonProps extends React.HTMLAttributes<HTMLDivElement> {
+  currentStage: 1 | 2 | 3 | 4;
+  isStep1Done?: boolean;
+  isStep2Done?: boolean;
+  isStep3Done?: boolean;
+  isStep4Done?: boolean;
+}
+
+export function ExchangePipelineRibbon({
+  currentStage,
+  isStep1Done = currentStage > 1,
+  isStep2Done = currentStage > 2,
+  isStep3Done = currentStage > 3,
+  isStep4Done = currentStage >= 4,
+  className,
+  ...props
+}: ExchangePipelineRibbonProps) {
+  return (
+    <div
+      className={cn(
+        "bg-slate-50 border border-slate-200 px-5 sm:px-8 py-3.5 rounded-xl shadow-xs flex flex-wrap md:flex-nowrap items-center justify-between gap-4 select-none",
+        className,
+      )}
+      {...props}
+    >
+      {/* Step 1 */}
+      <div
+        className={cn(
+          "flex items-center gap-2.5 min-w-0",
+          isStep1Done || currentStage === 1
+            ? "text-slate-900 font-bold"
+            : "text-slate-400 font-medium opacity-60",
+        )}
+      >
+        <span
+          className={cn(
+            "w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs",
+            isStep1Done
+              ? "bg-slate-900 text-white"
+              : currentStage === 1
+              ? "bg-slate-900 text-white font-bold"
+              : "bg-slate-200 text-slate-500",
+          )}
+        >
+          {isStep1Done ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : "01"}
+        </span>
+        <div className="flex flex-col min-w-0">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
+            Stage 01
+          </span>
+          <span className="font-sans text-xs sm:text-sm font-semibold truncate">
+            Acknowledged
+          </span>
+        </div>
+      </div>
+
+      <div
+        className={cn(
+          "hidden md:block flex-1 h-[2px] mx-2",
+          isStep1Done ? "bg-slate-900" : "bg-slate-200",
+        )}
+      />
+
+      {/* Step 2 */}
+      <div
+        className={cn(
+          "flex items-center gap-2.5 min-w-0",
+          currentStage === 2 || isStep2Done
+            ? "text-slate-900 font-bold"
+            : "text-slate-400 font-medium opacity-60",
+        )}
+      >
+        <span
+          className={cn(
+            "w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs",
+            isStep2Done
+              ? "bg-slate-900 text-white"
+              : currentStage === 2
+              ? "bg-slate-900 text-white font-bold shadow-xs"
+              : "bg-slate-200 text-slate-500",
+          )}
+        >
+          {isStep2Done ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : "02"}
+        </span>
+        <div className="flex flex-col min-w-0">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
+            {currentStage === 2 ? "Stage 02 • Active" : "Stage 02"}
+          </span>
+          <span className="font-sans text-xs sm:text-sm font-semibold truncate">
+            Bilateral Negotiation
+          </span>
+        </div>
+      </div>
+
+      <div
+        className={cn(
+          "hidden md:block flex-1 h-[2px] mx-2",
+          isStep2Done ? "bg-slate-900" : "bg-slate-200",
+        )}
+      />
+
+      {/* Step 3 */}
+      <div
+        className={cn(
+          "flex items-center gap-2.5 min-w-0",
+          currentStage === 3 || isStep3Done
+            ? "text-slate-900 font-bold"
+            : "text-slate-400 font-medium opacity-60",
+        )}
+      >
+        <span
+          className={cn(
+            "w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs",
+            isStep3Done
+              ? "bg-slate-900 text-white"
+              : currentStage === 3
+              ? "bg-slate-900 text-white font-bold"
+              : "bg-slate-200 text-slate-500",
+          )}
+        >
+          {isStep3Done ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : "03"}
+        </span>
+        <div className="flex flex-col min-w-0">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
+            Stage 03
+          </span>
+          <span className="font-sans text-xs sm:text-sm font-semibold truncate">
+            Term Agreement
+          </span>
+        </div>
+      </div>
+
+      <div
+        className={cn(
+          "hidden md:block flex-1 h-[2px] mx-2",
+          isStep3Done ? "bg-slate-900" : "bg-slate-200",
+        )}
+      />
+
+      {/* Step 4 */}
+      <div
+        className={cn(
+          "flex items-center gap-2.5 min-w-0",
+          currentStage === 4 || isStep4Done
+            ? "text-slate-900 font-bold"
+            : "text-slate-400 font-medium opacity-60",
+        )}
+      >
+        <span
+          className={cn(
+            "w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs",
+            isStep4Done
+              ? "bg-slate-900 text-white"
+              : currentStage === 4
+              ? "bg-slate-900 text-white font-bold"
+              : "bg-slate-200 text-slate-500",
+          )}
+        >
+          {isStep4Done ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : "04"}
+        </span>
+        <div className="flex flex-col min-w-0">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
+            Stage 04
+          </span>
+          <span className="font-sans text-xs sm:text-sm font-semibold truncate">
+            Handshake Protocol
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ==========================================================================
+   7. EXECUTIVE GRID STEPPER (SPEC SEO-SIMPLIFIED: 4-STEP GRID PROGRESS BAR)
+   ========================================================================== */
+
+export interface ExecutiveGridStepperProps extends React.HTMLAttributes<HTMLDivElement> {
+  currentStage: 1 | 2 | 3 | 4;
+  isStep1Done?: boolean;
+  isStep2Done?: boolean;
+  isStep3Done?: boolean;
+  isStep4Done?: boolean;
+}
+
+export function ExecutiveGridStepper({
+  currentStage,
+  isStep1Done = currentStage > 1,
+  isStep2Done = currentStage > 2,
+  isStep3Done = currentStage > 3,
+  isStep4Done = currentStage >= 4,
+  className,
+  ...props
+}: ExecutiveGridStepperProps) {
+  return (
+    <div
+      className={cn(
+        "w-full bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-sm select-none",
+        className,
+      )}
+      {...props}
+    >
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 relative">
+        {/* Stage 01 */}
+        <div className="flex items-center gap-3">
+          <div
+            className={cn(
+              "w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0",
+              isStep1Done
+                ? "bg-slate-900 text-white"
+                : currentStage === 1
+                ? "bg-slate-900 text-white font-bold"
+                : "bg-slate-100 text-slate-400 font-medium",
+            )}
+          >
+            {isStep1Done ? <Check className="w-4 h-4 stroke-[3]" /> : "1"}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-400">
+              Stage 01
+            </span>
+            <span className="text-xs sm:text-sm font-semibold text-slate-900 truncate">
+              Acknowledged
+            </span>
+          </div>
+        </div>
+
+        {/* Stage 02 */}
+        <div
+          className={cn(
+            "flex items-center gap-3",
+            currentStage < 2 && !isStep2Done && "opacity-50",
+          )}
+        >
+          <div
+            className={cn(
+              "w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0",
+              isStep2Done
+                ? "bg-slate-900 text-white"
+                : currentStage === 2
+                ? "border-2 border-slate-900 text-slate-900 font-bold bg-slate-50"
+                : "bg-slate-100 text-slate-400 font-medium",
+            )}
+          >
+            {isStep2Done ? <Check className="w-4 h-4 stroke-[3]" /> : "2"}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+              {currentStage === 2 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-900 animate-pulse" />
+              )}
+              {currentStage === 2 ? "Active" : "Stage 02"}
+            </span>
+            <span className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+              Negotiation
+            </span>
+          </div>
+        </div>
+
+        {/* Stage 03 */}
+        <div
+          className={cn(
+            "flex items-center gap-3",
+            currentStage < 3 && !isStep3Done && "opacity-40",
+          )}
+        >
+          <div
+            className={cn(
+              "w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0",
+              isStep3Done
+                ? "bg-slate-900 text-white"
+                : currentStage === 3
+                ? "border-2 border-slate-900 text-slate-900 font-bold bg-slate-50"
+                : "bg-slate-100 text-slate-400 font-medium",
+            )}
+          >
+            {isStep3Done ? <Check className="w-4 h-4 stroke-[3]" /> : "3"}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500">
+              Stage 03
+            </span>
+            <span className="text-xs sm:text-sm font-medium text-slate-700 truncate">
+              Agreement
+            </span>
+          </div>
+        </div>
+
+        {/* Stage 04 */}
+        <div
+          className={cn(
+            "flex items-center gap-3",
+            currentStage < 4 && !isStep4Done && "opacity-40",
+          )}
+        >
+          <div
+            className={cn(
+              "w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0",
+              isStep4Done
+                ? "bg-slate-900 text-white"
+                : currentStage === 4
+                ? "border-2 border-slate-900 text-slate-900 font-bold bg-slate-50"
+                : "bg-slate-100 text-slate-400 font-medium",
+            )}
+          >
+            {isStep4Done ? <Check className="w-4 h-4 stroke-[3]" /> : "4"}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500">
+              Stage 04
+            </span>
+            <span className="text-xs sm:text-sm font-medium text-slate-700 truncate">
+              Handshake
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* Aliases for flexible design-system naming */
+export const LifecycleStepper = BilateralDealroomStatusCard;
+export const OpportunityStageStepper = DealLifecycleProgressBar;
+export const StageProgressBar = DealLifecycleProgressBar;

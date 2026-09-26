@@ -131,6 +131,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
 
   // Active route detections
   const isHome = !!matchRoute({ to: "/", fuzzy: false });
+  const isDashboard = !!matchRoute({ to: "/dashboard", fuzzy: true });
   const isOpportunities = !!matchRoute({ to: "/opportunities", fuzzy: true });
   const isProposals = !!matchRoute({ to: "/proposals", fuzzy: true });
   const isMyRelay = !!matchRoute({ to: "/my-relay", fuzzy: true });
@@ -152,8 +153,9 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
 
   // Breadcrumb Title Helper
   const breadcrumbTitle = useMemo(() => {
+    if (isDashboard) return "Exchange Command Center";
     if (isOpportunities) return "Commercial Board";
-    if (isProposals) return currentSearch?.tab === "sent" ? "Sent Proposals" : "Received Proposals";
+    if (isProposals) return currentSearch?.tab === "sent" ? "Sent History" : "Received History";
     if (isMyRelay) {
       if (currentSearch?.tab === "saved") return "Saved Opportunities";
       if (currentSearch?.tab === "inbound") return "Inbound Deals Pipeline";
@@ -318,6 +320,29 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
 
       {/* Nav Menu Items */}
       <div className="overflow-y-auto flex-1 px-4 py-4 flex flex-col gap-4 scrollbar-none font-sans text-xs">
+        {/* 0. COMMAND CENTER */}
+        <nav className="flex flex-col gap-1">
+          <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+            Exchange
+          </div>
+          <Link
+            to="/dashboard"
+            className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+              isDashboard
+                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Sparkles className={`w-4 h-4 ${isDashboard ? "text-slate-950" : "text-slate-500"}`} />
+              <span>Dashboard</span>
+            </div>
+            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-950 text-white font-bold">
+              Hub
+            </span>
+          </Link>
+        </nav>
+
         {/* 1. MARKETPLACE */}
         <nav className="flex flex-col gap-1">
           <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
@@ -341,10 +366,10 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           </Link>
         </nav>
 
-        {/* 2. PROPOSALS */}
+        {/* 2. HISTORY */}
         <nav className="flex flex-col gap-1">
           <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
-            Proposals
+            History
           </div>
           <Link
             to="/proposals"
@@ -360,7 +385,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               <span>Received</span>
             </div>
             {incomingCount > 0 && (
-              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-950 text-white font-bold">
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
                 {incomingCount}
               </span>
             )}
@@ -456,30 +481,13 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                   to="/my-relay"
                   search={{ tab: "inbound" } as any}
                   className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
-                    isMyRelayInbound && incomingCount > 0
-                      ? "text-slate-950 font-bold bg-slate-100/80"
-                      : "text-slate-600 hover:text-slate-950 hover:bg-slate-50"
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-pulse"></span>
-                    <span>Action Required</span>
-                  </span>
-                  <span className="font-mono text-[9px] px-1.5 py-0.2 rounded bg-slate-950 text-white font-bold">
-                    {incomingCount}
-                  </span>
-                </Link>
-                <Link
-                  to="/my-relay"
-                  search={{ tab: "inbound" } as any}
-                  className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
-                    isMyRelayInbound && incomingCount === 0
+                    isMyRelayInbound
                       ? "text-slate-950 font-bold bg-slate-100/80"
                       : "text-slate-600 hover:text-slate-950 hover:bg-slate-50"
                   }`}
                 >
                   <span>Inbound</span>
-                  <span className="font-mono text-[9px] px-1 rounded bg-slate-200/70 text-slate-700 font-medium">
+                  <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-medium">
                     {incomingCount}
                   </span>
                 </Link>
@@ -565,6 +573,19 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               <span>Verified Network</span>
             </div>
             <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+          </Link>
+          <Link
+            to="/design-system"
+            search={{ tab: "overview" } as any}
+            className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-950 transition-colors font-medium"
+          >
+            <div className="flex items-center gap-2.5">
+              <Layers className="w-4 h-4 text-slate-500" />
+              <span>Design System</span>
+            </div>
+            <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold">
+              Storybook
+            </span>
           </Link>
         </nav>
       </div>

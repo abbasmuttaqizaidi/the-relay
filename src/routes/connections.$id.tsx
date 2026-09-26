@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { executiveToast } from "@/design-system";
 import { ArrowLeft } from "lucide-react";
 import { getExchangeDetails } from "@/functions/getExchangeDetails";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
@@ -43,7 +43,9 @@ function HandshakeDetailPage() {
         return await getExchangeDetails({ data: { interest_id: id } });
       } catch (err: any) {
         console.error("Failed to load exchange details:", err);
-        toast.error(err.message || "Failed to load exchange details.");
+        executiveToast.danger("Failed to load exchange details", {
+          description: err.message || "Could not retrieve exchange details.",
+        });
         navigate({ to: "/opportunities", replace: true });
         return null;
       }
@@ -100,17 +102,6 @@ function HandshakeDetailPage() {
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col w-full max-w-full overflow-x-hidden">
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-16 md:pt-6 md:pb-24 flex flex-col space-y-6">
-        {/* Navigation Bar */}
-        <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
-          <Link
-            to={backRoute}
-            className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors font-bold"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to{" "}
-            {isOwner ? "Incoming Requests" : "Sent Requests"}
-          </Link>
-        </div>
-
         {/* Exchange Workflow Hub */}
         <ExchangeWorkflow
           data={exchangeData}

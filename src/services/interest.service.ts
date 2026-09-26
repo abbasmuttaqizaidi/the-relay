@@ -99,6 +99,7 @@ export class InterestService {
               delivery_methods: dto.delivery_methods || [],
               proposed_terms: dto.proposed_terms || dto.message || null,
               highlighted_terms: dto.highlighted_terms || [],
+              requester_acknowledged_at: new Date(),
             },
           });
 
@@ -165,6 +166,7 @@ export class InterestService {
           proposed_terms: dto.proposed_terms || dto.message || null,
           highlighted_terms: dto.highlighted_terms || [],
           status: "pending",
+          requester_acknowledged_at: new Date(),
         },
       });
 

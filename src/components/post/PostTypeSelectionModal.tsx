@@ -12,20 +12,34 @@ import { useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 export interface PostTypeSelectionModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onClose?: () => void;
   onSelect?: (type: "opportunity" | "offer") => void;
 }
 
 export function PostTypeSelectionModal({
   open,
+  isOpen,
   onOpenChange,
+  onClose,
   onSelect,
 }: PostTypeSelectionModalProps) {
   const navigate = useNavigate();
 
+  const isModalOpen = open !== undefined ? open : (isOpen ?? false);
+  const handleOpenChange = (newOpen: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(newOpen);
+    }
+    if (!newOpen && onClose) {
+      onClose();
+    }
+  };
+
   const handleSelect = (type: "opportunity" | "offer") => {
-    onOpenChange(false);
+    handleOpenChange(false);
     if (onSelect) {
       onSelect(type);
     } else {
@@ -37,7 +51,7 @@ export function PostTypeSelectionModal({
   };
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+    <DialogPrimitive.Root open={isModalOpen} onOpenChange={handleOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content

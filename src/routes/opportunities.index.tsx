@@ -87,6 +87,9 @@ import {
   CategoryPill,
   ParityScoreBadge,
   LivePulseBadge,
+  SemanticStatusPill,
+  SolidStatusChip,
+  TopicFilterPills,
   Input as DSInput,
   SearchInput,
   Textarea as DSTextarea,
@@ -902,47 +905,34 @@ export function OpportunitiesPage() {
         </div>
 
         {/* ═══════════════════════════════════════════════════════════════════
-            CATEGORY TABS FILTER
+            CATEGORY TABS TOPIC FILTER PILLS (Specification 01 - Level 3)
             ═══════════════════════════════════════════════════════════════════ */}
-        <div
-          id="category-tabs-filter"
-          className={cn("flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none pt-4")}
-        >
-          {TYPES.map((t) => {
-            const isActive = type === t;
-            const count = categoryCounts[t] ?? 0;
-            return (
-              <button
-                key={t}
-                onClick={() =>
-                  navigate({
-                    search: (prev: SearchParams) => ({
-                      ...prev,
-                      type: t as any,
-                      page: 1,
-                    }),
-                  })
-                }
-                type="button"
-                className={`shrink-0 px-3.5 py-1.5 rounded-[4px] text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5 ${
-                  isActive
-                    ? "bg-[#171F2C] text-white border border-[#171F2C] shadow-2xs"
-                    : "bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#171F2C] hover:bg-[#F8FAFC] hover:border-[#CBD5E1]"
-                }`}
-              >
-                <span>{t === "All" ? "All Deals" : t}</span>
-                <span
-                  className={
-                    isActive
-                      ? "bg-white/20 text-white px-1.5 py-0.5 rounded-[2px] font-mono text-[10px]"
-                      : "text-[#94A3B8] font-mono text-[10px]"
-                  }
-                >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+        <div id="category-tabs-filter" className="pt-4 pb-1 overflow-x-auto scrollbar-none">
+          <TopicFilterPills
+            filters={TYPES.map((t) => ({
+              id: t,
+              label: t === "All" ? "All Deals" : t,
+              count: categoryCounts[t] ?? 0,
+              variant:
+                t === "All"
+                  ? ("all" as const)
+                  : t === "Partnership" || t === "Strategic Advice"
+                  ? ("success" as const)
+                  : t === "Referral" || t === "Distribution"
+                  ? ("warning" as const)
+                  : ("neutral" as const),
+            }))}
+            activeFilter={type}
+            onFilterChange={(filterId) =>
+              navigate({
+                search: (prev: SearchParams) => ({
+                  ...prev,
+                  type: filterId as any,
+                  page: 1,
+                }),
+              })
+            }
+          />
         </div>
 
         {/* ═══════════════════════════════════════════════════════════════════

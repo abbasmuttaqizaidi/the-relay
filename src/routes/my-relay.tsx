@@ -80,6 +80,14 @@ import {
   FileText,
 } from "lucide-react";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetClose,
+} from "@/components/ui/sheet";
+import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
@@ -92,6 +100,24 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+
+function formatTimeAgo(dateInput: string | Date | undefined): string {
+  if (!dateInput) return "Recently";
+  const date = new Date(dateInput);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  if (isNaN(diffMs) || diffMs < 0) return "Just now";
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMinutes < 1) return "Just now";
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 import {
   Button,
   Modal,
@@ -109,6 +135,12 @@ import {
   VerifiedBadge,
   UrgentBadge,
   ExecutiveTabs,
+  BilateralDealOpportunityCard,
+  MiniStageStepper,
+  MiniStageBarStepper,
+  FloatingTurnDock,
+  BilateralOpportunityDetailSheet,
+  type TurnDeckDeal,
 } from "@/design-system";
 import { RelayVerificationSeal } from "@/components/relay-verification-seal";
 
@@ -125,7 +157,10 @@ const myRelaySearchSchema = z.object({
       "outbound",
     ])
     .optional(),
-  create: fallback(z.boolean(), false).default(false),
+  create: fallback(
+    z.union([z.boolean(), z.string().transform((v) => v === "true")]),
+    false
+  ).default(false),
 });
 
 export const Route = createFileRoute("/my-relay")({
@@ -448,15 +483,13 @@ function MyRelayPage() {
     }
   }, [userId]);
 
-  const [selectedStageTab, setSelectedStageTab] = useState<
-    "stage_1" | "stage_2" | "stage_3" | "stage_4"
-  >("stage_1");
   const [directionFilter, setDirectionFilter] = useState<"all" | "posted" | "requested">(() => {
     if (tab === "outbound" || tab === "sent") return "requested";
     if (tab === "inbound" || tab === "incoming") return "posted";
-    return "all";
+    return "posted";
   });
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [stageFilter, setStageFilter] = useState<"all" | "1" | "2" | "3" | "4">("all");
   const [sortFilter, setSortFilter] = useState<
     "action_first" | "stage_asc" | "stage_desc" | "recent"
   >("action_first");
@@ -485,6 +518,7 @@ function MyRelayPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedOpp, setSelectedOpp] = useState<any>(null);
   const [selectedDetailOpp, setSelectedDetailOpp] = useState<any>(null);
+  const [selectedSheetDeal, setSelectedSheetDeal] = useState<any>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   // Pipeline Interactive Action Modals
@@ -496,6 +530,7 @@ function MyRelayPage() {
 
   // Inbound Triage Collapsible State (Collapsed by default)
   const [isTriageOpen, setIsTriageOpen] = useState(false);
+  const [liveActivityTab, setLiveActivityTab] = useState<"attention" | "new">("attention");
 
   // Form Fields
   const [title, setTitle] = useState("");
@@ -654,12 +689,12 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
     ? req.requesting_business?.status === "approved"
     : partnerBusiness?.status === "approved";
 
-  // Acknowledgements
-  const requesterAck = Boolean(req.requester_acknowledged_at);
+  // Acknowledgements: Requester is automatically acknowledged upon pitch submission
+  const requesterAck = Boolean(req.requester_acknowledged_at) || !isInbound;
   const ownerAck = Boolean(req.owner_acknowledged_at);
   const bothAck = requesterAck && ownerAck;
-  const myAck = isInbound ? ownerAck : requesterAck;
-  const partnerAck = isInbound ? requesterAck : ownerAck;
+  const myAck = isInbound ? ownerAck : true;
+  const partnerAck = isInbound ? true : ownerAck;
 
   // Proposals & Agreements
   const proposals = req.exchange_proposals || [];
@@ -715,73 +750,60 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
     stageHeadline = "Stage Closed: Pitch Withdrawn";
     stageContext = "This pitch was withdrawn by the sender.";
   } else if (isHandshakeComplete) {
-    stageNum = 5;
+    stageNum = 4;
     stateCategory = "completed";
-    stageHeadline = "Stage 5: Handshake — Bilateral Introduction Executed";
+    stageHeadline = "Stage 4: Handshake — Bilateral Introduction Executed";
     stageContext = req.message ? `Introduction note: "${req.message}"` : "Handshake finalized. Both parties have access to bilateral contact info and the Exchange Hub.";
     primaryActionLabel = "Exchange Hub";
   } else if (isAgreed || isDraftAgreement) {
-    stageNum = 4;
+    stageNum = 3;
     if (!myConfirmedAgreement) {
       stateCategory = "action_needed";
-      stageHeadline = "Stage 4: Final Agreement — Waiting for signature";
+      stageHeadline = "Stage 3: Final Agreement — Waiting for signature";
       stageContext = partnerConfirmedAgreement
         ? `${partnerName} has counter-signed. Confirm your signature to finalize into Completed Handshake.`
         : "Exchange agreement draft is ready. Review and sign to finalize bilateral connection.";
       primaryActionLabel = "Review Agreement";
     } else {
       stateCategory = "waiting";
-      stageHeadline = "Stage 4: Final Agreement — Waiting for partner signature";
+      stageHeadline = "Stage 3: Final Agreement — Waiting for partner signature";
       stageContext = `You have counter-signed the agreement. Awaiting signature from ${partnerName}.`;
       primaryActionLabel = "Exchange Hub";
     }
   } else if (hasProposals || bothAck) {
-    stageNum = 3;
+    stageNum = 2;
     if (latestProposal && latestProposal.status === "pending_response") {
       const isReceivingProposal = latestProposal.receiving_business_id === myBizId;
       if (isReceivingProposal) {
         stateCategory = "action_needed";
-        stageHeadline = "Stage 3: Negotiation — Counter-offer received";
+        stageHeadline = "Stage 2: Negotiation — Counter-offer received";
         stageContext = `Proposed: ${latestProposal.exchange_details || (latestProposal.revenue_percentage ? `${latestProposal.revenue_percentage}% revenue share` : "Exchange terms")}. Awaiting your response.`;
         primaryActionLabel = "Review Counter-Offer";
       } else {
         stateCategory = "waiting";
-        stageHeadline = "Stage 3: Negotiation — Proposal sent";
+        stageHeadline = "Stage 2: Negotiation — Proposal sent";
         stageContext = `Proposed terms sent to ${partnerName}. Awaiting their counter-offer or acceptance.`;
         primaryActionLabel = "Exchange Hub";
       }
     } else if (bothAck && !hasProposals) {
-      // Both acknowledged protocol, ready for initial proposal
+      // Both acknowledged protocol, pitch submitted by requester
       if (!isInbound) {
-        // Current user is the requesting business - they should submit proposal v1
-        stateCategory = "action_needed";
-        stageHeadline = "Stage 3: Negotiation — Propose Exchange Terms";
-        stageContext = "Both parties have acknowledged protocol clearance. Submit your initial proposal terms in the Exchange Hub to begin negotiation.";
-        primaryActionLabel = "Propose Terms";
-      } else {
-        // Current user is the opportunity owner - waiting for interested business to submit proposal v1
+        // Current user is Requester (Party A): Waiting for owner review
         stateCategory = "waiting";
-        stageHeadline = "Stage 3: Negotiation — Waiting for initial proposal";
-        stageContext = `Both parties have acknowledged protocol. Waiting for ${partnerName} to submit their exchange proposal.`;
+        stageHeadline = "Stage 2: Negotiation — Awaiting Owner Response";
+        stageContext = `You submitted your exchange pitch for this opportunity. Waiting for ${partnerName} to review and respond.`;
         primaryActionLabel = "Exchange Hub";
+      } else {
+        // Current user is Opportunity Owner (Party B): Action needed to review pitch and respond
+        stateCategory = "action_needed";
+        stageHeadline = "Stage 2: Negotiation — Review Pitch & Respond";
+        stageContext = `${partnerName} proposed exchange terms for your opportunity. Review their pitch and submit your counter-proposal or accept.`;
+        primaryActionLabel = "Review Pitch";
       }
     } else {
       stateCategory = "action_needed";
-      stageHeadline = "Stage 3: Negotiation — Exchange negotiation active";
+      stageHeadline = "Stage 2: Negotiation — Exchange negotiation active";
       stageContext = "Both parties acknowledged protocol. Discuss terms and submit exchange proposal in the Exchange Hub.";
-      primaryActionLabel = "Exchange Hub";
-    }
-  } else if (myAck || partnerAck) {
-    stageNum = 2;
-    if (!myAck) {
-      stateCategory = "action_needed";
-      stageHeadline = "Stage 2: Acknowledgement — Protocol clearance required";
-      stageContext = `${partnerName} acknowledged terms. Acknowledge exchange protocol to unlock mutual negotiation.`;
-      primaryActionLabel = "Acknowledge Exchange";
-    } else {
-      stateCategory = "waiting";
-      stageHeadline = "Stage 2: Acknowledgement — Waiting for partner acknowledgement";
-      stageContext = `You acknowledged the exchange process. Waiting for ${partnerName} to acknowledge protocol.`;
       primaryActionLabel = "Exchange Hub";
     }
   } else {
@@ -789,12 +811,12 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
     stageNum = 1;
     if (isInbound) {
       stateCategory = "action_needed";
-      stageHeadline = "Stage 2: Acknowledgement — Inbound Pitch Awaiting Your Review";
+      stageHeadline = "Stage 1: Acknowledgement — Inbound Pitch Awaiting Your Review";
       stageContext = req.message || "Partner has expressed interest in this opportunity. Review pitch context and accept to initiate exchange.";
       primaryActionLabel = "Accept Pitch";
     } else {
       stateCategory = "waiting";
-      stageHeadline = "Stage 2: Acknowledgement — Waiting for Operator Review";
+      stageHeadline = "Stage 1: Acknowledgement — Waiting for Operator Review";
       stageContext = req.message ? `Your pitch: "${req.message}"` : "You submitted a pitch for this opportunity. Waiting for counterparty to acknowledge and respond.";
       primaryActionLabel = "Exchange Hub";
     }
@@ -817,7 +839,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
   // Withdrawn requests are excluded from active pipeline & opportunities view
   const allCombinedRequests = useMemo(() => {
     const inbound = incomingRequests
-      .filter((r) => r.status !== "withdrawn" && r.status !== "pending")
+      .filter((r) => r.status !== "withdrawn")
       .map((r) => ({
         ...r,
         direction: "inbound" as const,
@@ -899,6 +921,57 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
     () => currentSectionRequests.filter((r) => r.workflow.stateCategory === "completed").length,
     [currentSectionRequests]
   );
+
+  const activeOngoingDeals = useMemo(() => {
+    return allCombinedRequestsWithWorkflow
+      .filter((d) => d.status !== "declined" && d.status !== "withdrawn")
+      .slice(0, 4);
+  }, [allCombinedRequestsWithWorkflow]);
+
+  const attentionDeals = useMemo(() => {
+    return allCombinedRequestsWithWorkflow.filter(
+      (d) => d.workflow?.stateCategory === "action_needed" && d.status !== "declined" && d.status !== "withdrawn"
+    );
+  }, [allCombinedRequestsWithWorkflow]);
+
+  const turnDeckDeals = useMemo<TurnDeckDeal[]>(() => {
+    return attentionDeals.map((deal) => {
+      const partnerName =
+        deal.workflow?.partnerName ||
+        deal.partnerBusiness?.company_name ||
+        "Counterparty Enterprise";
+      const headline =
+        deal.opportunity?.title || deal.title || "Bilateral Exchange";
+      const pStage = (deal.workflow?.stageNum || 1) as 1 | 2 | 3 | 4;
+      const stageName = deal.workflow?.stageHeadline || `Stage ${pStage} · In Progress`;
+
+      return {
+        id: deal.id,
+        partnerName,
+        isVerified: deal.workflow?.isVerified ?? true,
+        stageNum: pStage,
+        stageName,
+        direction: deal.direction as "inbound" | "outbound",
+        headline,
+        description: deal.opportunity?.description || deal.workflow?.stageContext || "Action item pending your review.",
+        message: deal.message || deal.opportunity?.description,
+        created_at: deal.created_at,
+        status: deal.status,
+        primaryActionLabel: deal.workflow?.primaryActionLabel || "Review Request",
+        opportunityId: deal.opportunity_id,
+        opportunityTitle: headline,
+      };
+    });
+  }, [attentionDeals]);
+
+  const newRequestsDeals = useMemo(() => {
+    return allCombinedRequestsWithWorkflow.filter(
+      (d) =>
+        (d.workflow?.stageNum === 1 || d.status === "pending" || d.workflow?.stageHeadline?.includes("Stage 1") || d.workflow?.stageHeadline?.includes("Stage 2")) &&
+        d.status !== "declined" &&
+        d.status !== "withdrawn"
+    );
+  }, [allCombinedRequestsWithWorkflow]);
 
   const hasActiveFilters =
     opportunitySection !== "all" || requestStateFilter !== "all" || appliedDealSearch.trim() !== "";
@@ -1140,20 +1213,16 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
   const filteredWorkspaceDeals = useMemo(() => {
     return allCombinedRequestsWithWorkflow
       .filter((deal) => {
-        // 1. Stage Tab Filter
-        if (selectedStageTab === "stage_1" && deal.workflow.stageNum > 2) return false;
-        if (selectedStageTab === "stage_2" && deal.workflow.stageNum !== 3) return false;
-        if (selectedStageTab === "stage_3" && deal.workflow.stageNum !== 4) return false;
-        if (
-          selectedStageTab === "stage_4" &&
-          deal.workflow.stageNum !== 5 &&
-          !deal.workflow.isHandshakeComplete
-        )
-          return false;
-
-        // 2. Direction Filter
+        // 1. Direction Filter
         if (directionFilter === "posted" && deal.direction !== "inbound") return false;
         if (directionFilter === "requested" && deal.direction !== "outbound") return false;
+
+        // 2. Stage Filter (4 stages: 1=ACK, 2=NEG, 3=AGR, 4=SHAKE)
+        if (stageFilter !== "all") {
+          const stageNum = deal.workflow?.stageNum ?? 1;
+          const pStage = stageNum <= 2 ? 1 : stageNum === 3 ? 2 : stageNum === 4 ? 3 : 4;
+          if (String(pStage) !== stageFilter) return false;
+        }
 
         // 3. Category Filter
         if (categoryFilter !== "all") {
@@ -1207,8 +1276,8 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
       });
   }, [
     allCombinedRequestsWithWorkflow,
-    selectedStageTab,
     directionFilter,
+    stageFilter,
     categoryFilter,
     dealSearchInput,
     sortFilter,
@@ -1484,14 +1553,18 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                     ? "My Listings"
                     : activeTab === "saved"
                       ? "Saved Opportunities"
-                      : "My Opportunities"}
+                      : directionFilter === "requested"
+                        ? "My Opportunities — Outbound"
+                        : "My Opportunities — Inbound"}
                 </h1>
                 <span className="px-2 py-0.5 bg-[#171F2C] text-white font-mono text-[9px] uppercase tracking-widest font-bold rounded-[2px]">
                   {activeTab === "listings"
                     ? "POSTED"
                     : activeTab === "saved"
                       ? "BOOKMARKS"
-                      : "BILATERAL HUB"}
+                      : directionFilter === "requested"
+                        ? "OUTBOUND DEALS"
+                        : "INBOUND DEALS"}
                 </span>
               </div>
               <p className="text-[#64748B] text-xs md:text-sm max-w-2xl leading-relaxed">
@@ -1499,7 +1572,9 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                   ? "Manage, edit, and track all opportunities and requirements posted by your organization."
                   : activeTab === "saved"
                     ? "Quick access to opportunity memorandums you have bookmarked from the commercial board."
-                    : "Centralized workspace for your active bilateral opportunities, reciprocal requests, and verified lifecycle stages."}
+                    : directionFilter === "requested"
+                      ? "Track active bilateral opportunities and proposals your organization has pitched or sent to counterparty listings."
+                      : "Review incoming proposals and active bilateral opportunities received on your organization's listings."}
               </p>
             </div>
 
@@ -1830,31 +1905,11 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                 </div>
               ) : (
                 <div className="flex flex-col w-full space-y-6">
-                  {/* Navigation Tabs & Filtration Bar */}
-                  <div className="space-y-4">
-                    {/* 4 Stage Tabs Strip using Design System */}
-                    <div className="overflow-x-auto">
-                      <div className="min-w-[500px]">
-                        <ExecutiveTabs
-                          variant="boxed"
-                          fullWidth
-                          activeTab={selectedStageTab}
-                          onTabChange={(tabId) => {
-                            setSelectedStageTab(tabId as any);
-                            setCurrentPage(1);
-                          }}
-                          tabs={[
-                            { id: "stage_1", label: "1. Acknowledgement", count: stage1Count },
-                            { id: "stage_2", label: "2. Negotiation", count: stage2Count },
-                            { id: "stage_3", label: "3. Agreement", count: stage3Count },
-                            { id: "stage_4", label: "4. Handshake", count: stage4Count },
-                          ]}
-                        />
-                      </div>
-                    </div>
+                  {/* Navigation Tabs & Direction Filtration Bar */}
 
-                    {/* Filtration Bar (Only Search Bar Active, Other Filters Commented) */}
-                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 bg-white border border-[#E2E8F0] rounded-[4px] p-2.5 shadow-2xs">
+
+                    {/* Filtration Bar (Search Bar + Stage Filter Dropdown) */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white border border-[#E2E8F0] rounded-[4px] p-2.5 shadow-2xs">
                       <div className="flex items-center gap-2.5 px-3 py-1.5 bg-[#F8FAFC] border border-[#E2E8F0] focus-within:border-[#171F2C] rounded-[4px] flex-1 transition-colors">
                         <Search className="w-4 h-4 text-[#94A3B8] shrink-0" />
                         <input
@@ -1880,187 +1935,39 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                           </button>
                         )}
                       </div>
-                      {/*
-                      <div className="flex flex-wrap items-center gap-2">
-                        <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] px-3 py-1.5 text-xs text-[#171F2C]">
-                          <span className="font-mono text-[10px] uppercase text-[#64748B] tracking-wider font-semibold">
-                            DIRECTION:
-                          </span>
-                          <select
-                            value={directionFilter}
-                            onChange={(e: any) => {
-                              setDirectionFilter(e.target.value);
-                              setCurrentPage(1);
-                            }}
-                            className="bg-transparent border-none focus:outline-none font-medium text-xs cursor-pointer pr-1 text-[#171F2C]"
-                          >
-                            <option value="all">All (Inbound &amp; Outbound)</option>
-                            <option value="posted">Inbound Only</option>
-                            <option value="requested">Outbound Only</option>
-                          </select>
-                        </div>
-                        <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] px-3 py-1.5 text-xs text-[#171F2C]">
-                          <span className="font-mono text-[10px] uppercase text-[#64748B] tracking-wider font-semibold">
-                            CATEGORY:
-                          </span>
-                          <select
-                            value={categoryFilter}
-                            onChange={(e) => {
-                              setCategoryFilter(e.target.value);
-                              setCurrentPage(1);
-                            }}
-                            className="bg-transparent border-none focus:outline-none font-medium text-xs cursor-pointer pr-1 text-[#171F2C]"
-                          >
-                            <option value="all">All Categories</option>
-                            <option value="distribution">Distribution &amp; Resell</option>
-                            <option value="referral">Client Referral</option>
-                            <option value="partnership">Strategic Partnership</option>
-                            <option value="vendor">Vendor / Services</option>
-                            <option value="hiring">Hiring / Co-Founder</option>
-                            <option value="investment">Investment / Capital</option>
-                          </select>
-                        </div>
-                        <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] px-3 py-1.5 text-xs text-[#171F2C]">
-                          <span className="font-mono text-[10px] uppercase text-[#64748B] tracking-wider font-semibold">
-                            SORT:
-                          </span>
-                          <select
-                            value={sortFilter}
-                            onChange={(e: any) => {
-                              setSortFilter(e.target.value);
-                              setCurrentPage(1);
-                            }}
-                            className="bg-transparent border-none focus:outline-none font-medium text-xs cursor-pointer pr-1 text-[#171F2C]"
-                          >
-                            <option value="action_first">Action Required First</option>
-                            <option value="stage_asc">Stage (1 → 4)</option>
-                            <option value="stage_desc">Stage (4 → 1)</option>
-                            <option value="recent">Recently Updated</option>
-                          </select>
-                        </div>
+
+                      {/* Design System Stage Filter Dropdown (4 Stages: ACK, NEG, AGR, SHAKE) */}
+                      <div className="w-full sm:w-64 shrink-0">
+                        <Select
+                          value={stageFilter}
+                          onValueChange={(val) => {
+                            setStageFilter(val as any);
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <SelectTrigger className="h-9 text-xs bg-[#F8FAFC]">
+                            <div className="flex items-center gap-1.5 truncate">
+                              <span className="font-mono text-[10px] uppercase text-[#64748B] tracking-wider font-semibold shrink-0">
+                                STAGE:
+                              </span>
+                              <SelectValue placeholder="All Stages (1-4)" />
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Stages (1-4)</SelectItem>
+                            <SelectItem value="1">Stage 1: Acknowledgment (ACK)</SelectItem>
+                            <SelectItem value="2">Stage 2: Negotiation (NEG)</SelectItem>
+                            <SelectItem value="3">Stage 3: Agreement (AGR)</SelectItem>
+                            <SelectItem value="4">Stage 4: Handshake (SHAKE)</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      */}
                     </div>
-                  </div>
 
                   {/* Workspace Main Grid: 12 Columns (8 Col Cards Stream + 4 Col Right Rail) */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     {/* Left 8 Columns: Dynamic Deal Stage Cards Stream */}
                     <div className="lg:col-span-8 space-y-4">
-                      {/* If in Stage 1 & live triage requests exist, show Inbound Triage banner */}
-                      {selectedStageTab === "stage_1" && liveTriageItems.length > 0 && (
-                        <Collapsible
-                          open={isTriageOpen}
-                          onOpenChange={setIsTriageOpen}
-                          className="bg-white rounded-[4px] border border-[#E2E8F0] p-4 sm:p-5 shadow-2xs flex flex-col gap-3 transition-all"
-                        >
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <CollapsibleTrigger asChild>
-                              <button
-                                type="button"
-                                className="flex items-center gap-3 flex-wrap cursor-pointer text-left hover:opacity-85 transition-opacity"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <Inbox className="w-5 h-5 text-[#171F2C]" />
-                                  <h3 className="font-display font-bold text-sm sm:text-base text-[#171F2C] tracking-tight">
-                                    New Incoming Pitches / Inbound Triage
-                                  </h3>
-                                </div>
-                                <span className="px-2.5 py-0.5 rounded-[4px] bg-[#171F2C] text-white font-mono text-[11px] font-bold flex items-center gap-1.5">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                  {liveTriageItems.length} New Inbound
-                                </span>
-                              </button>
-                            </CollapsibleTrigger>
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-1.5 text-[#64748B] font-mono text-xs">
-                                <Clock className="w-3.5 h-3.5 text-[#94A3B8]" />
-                                <span>Response SLA: &lt; 48 hrs</span>
-                              </div>
-                              <CollapsibleTrigger asChild>
-                                <button
-                                  type="button"
-                                  className="w-7 h-7 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] text-[#171F2C] flex items-center justify-center cursor-pointer hover:bg-[#F1F5F9]"
-                                >
-                                  {isTriageOpen ? (
-                                    <ChevronUp className="w-4 h-4" />
-                                  ) : (
-                                    <ChevronDown className="w-4 h-4" />
-                                  )}
-                                </button>
-                              </CollapsibleTrigger>
-                            </div>
-                          </div>
-
-                          <CollapsibleContent className="flex flex-col gap-4 pt-3 border-t border-[#E2E8F0]">
-                            <p className="text-xs text-[#64748B] font-sans">
-                              Inbound proposals and intro inquiries received on your posted listings awaiting your acceptance into Stage 1 (Acknowledgement) or direct decline.
-                            </p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {liveTriageItems.map((item) => (
-                                <div
-                                  key={item.id}
-                                  className="bg-[#F8FAFC] rounded-[4px] p-4 border border-[#E2E8F0] flex flex-col justify-between gap-3 text-left"
-                                >
-                                  <div className="flex flex-col gap-2">
-                                    <div className="flex items-center justify-between">
-                                      <span className="px-2 py-0.5 rounded-[4px] font-mono font-bold text-[10px] bg-white text-[#171F2C] border border-[#E2E8F0]">
-                                        {item.code}
-                                      </span>
-                                      <span className="text-[11px] text-[#94A3B8] font-medium">
-                                        {item.timeAgo}
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <div className="text-[#171F2C] font-display font-bold text-sm flex items-center gap-1.5">
-                                        <span>{item.partnerName}</span>
-                                        {item.isVerified && (
-                                          <RelayVerificationSeal className="w-3.5 h-3.5 shrink-0" title="Verified Business" />
-                                        )}
-                                      </div>
-                                      <div className="text-[#64748B] text-xs flex items-center gap-1 mt-0.5">
-                                        <ExternalLink className="w-3 h-3 text-[#94A3B8] shrink-0" />
-                                        <span className="truncate">
-                                          Target: {item.targetTitle} ({item.targetCode})
-                                        </span>
-                                      </div>
-                                    </div>
-                                    <div className="bg-white p-2.5 rounded-[4px] border border-[#E2E8F0] text-xs">
-                                      <span className="text-[#94A3B8] block text-[10px] font-bold uppercase tracking-wide mb-1 font-mono">
-                                        Proposed Pitch / Terms
-                                      </span>
-                                      <p className="text-[#171F2C] leading-relaxed font-sans">
-                                        {item.proposedTerms}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2 pt-2 border-t border-[#E2E8F0]">
-                                    <Button
-                                      type="button"
-                                      variant="monochrome"
-                                      size="sm"
-                                      onClick={() => handleAcceptTriage(item)}
-                                      className="flex-1 gap-1"
-                                    >
-                                      <span>Accept Pitch</span>
-                                      <ArrowRight className="w-3.5 h-3.5" />
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleDeclineTriage(item)}
-                                      className="text-[#64748B] hover:text-[#BA1A1A] hover:border-[#BA1A1A]"
-                                    >
-                                      Decline
-                                    </Button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </CollapsibleContent>
-                        </Collapsible>
-                      )}
 
                       {/* Paginated Deal Cards Stream */}
                       {paginatedDeals.length === 0 ? (
@@ -2069,24 +1976,27 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                             <Shield className="w-6 h-6" />
                           </div>
                           <h3 className="font-display font-bold text-base text-[#171F2C]">
-                            No bilateral opportunities in this view
+                            {directionFilter === "requested"
+                              ? "No Outbound Opportunities Found"
+                              : "No Inbound Opportunities Found"}
                           </h3>
-                          <p className="text-xs text-[#64748B] max-w-md">
-                            There are currently no active deals matching the selected stage and filter criteria. Adjust your filters or explore the Commercial Board.
+                          <p className="text-xs text-[#64748B] max-w-md leading-relaxed">
+                            {directionFilter === "requested"
+                              ? "You have not pitched or submitted proposals to counterparty listings yet. Explore the Marketplace to discover opportunities and submit proposals."
+                              : "There are currently no inbound proposals or bilateral requests received on your organization's listings."}
                           </p>
                           <div className="flex items-center gap-2 pt-2">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                setSelectedStageTab("stage_1");
-                                setDirectionFilter("all");
                                 setCategoryFilter("all");
+                                setStageFilter("all");
                                 setDealSearchInput("");
                                 setCurrentPage(1);
                               }}
                             >
-                              Reset Filters
+                              Reset Search
                             </Button>
                             <Button
                               variant="authoritative"
@@ -2153,354 +2063,41 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                           };
 
                           return (
-                            <Collapsible key={deal.id} defaultOpen={isActionRequired} asChild>
-                              <article
-                                className={cn(
-                                  "bg-white rounded-[4px] border border-[#E2E8F0] shadow-2xs overflow-hidden transition-all hover:border-[#CBD5E1] flex flex-col select-none",
-                                  isActionRequired && "border-[#171F2C]/40 shadow-xs",
-                                )}
-                              >
-                                {/* ══════════════════════════════════════════════════════════════════
-                                    1. COLLAPSED STATE (CLICKABLE CARD HEADER)
-                                    ══════════════════════════════════════════════════════════════════ */}
-                                <CollapsibleTrigger asChild>
-                                  <div className="w-full p-4 sm:p-5 cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3.5 hover:bg-[#F8FAFC]/70 transition-colors text-left">
-                                    <div className="flex items-start md:items-center gap-3.5 min-w-0 flex-1">
-                                      {/* Company Logo / Initials Avatar */}
-                                      <div className="relative shrink-0 mt-0.5 md:mt-0">
-                                        <CompanyLogo
-                                          src={deal.opportunity?.business?.logo_url || deal.requesting_business?.logo_url}
-                                          name={partnerName}
-                                          className="w-9 h-9 rounded-[4px] object-contain border border-[#E2E8F0] shrink-0 bg-white"
-                                          fallbackClassName="w-9 h-9 rounded-[4px] bg-[#171F2C] text-white flex items-center justify-center font-bold text-xs shrink-0 border border-[#171F2C]"
-                                          textClassName="text-xs font-mono font-bold"
-                                        />
-                                      </div>
-
-                                      {/* Core 3-Row Content Block */}
-                                      <div className="min-w-0 flex-1 flex flex-col gap-1">
-                                        {/* ── ROW 1: Opportunity ID & Category Tags ── */}
-                                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                                          <DealCodeStamp code={dealCode} />
-                                          <CategoryPill category={deal.opportunity?.category === "strategic_advice" ? "Strategic Advice" : (deal.opportunity?.category || deal.opportunity?.type || "Bilateral Exchange")} />
-                                          <span
-                                            className={cn(
-                                              "text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-[4px] inline-flex items-center gap-1.5 shadow-2xs font-mono",
-                                              isInbound ? "bg-[#171F2C] text-white" : "bg-[#F8FAFC] text-[#171F2C] border border-[#E2E8F0]",
-                                            )}
-                                          >
-                                            {isInbound ? <ArrowDown className="w-3 h-3 text-white" /> : <ArrowUp className="w-3 h-3 text-[#171F2C]" />}
-                                            <span>{isInbound ? "Inbound" : "Outbound"}</span>
-                                          </span>
-                                          {isActionRequired && (
-                                            <span className="text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-[4px] bg-[#171F2C] text-white inline-flex items-center gap-1.5 shadow-2xs">
-                                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                              Action Required: 18h left
-                                            </span>
-                                          )}
-                                          {deal.workflow?.isHandshakeComplete && (
-                                            <span className="text-[11px] font-semibold tracking-wide px-2 py-0.5 rounded-[4px] bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
-                                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                              Handshake Complete
-                                            </span>
-                                          )}
-                                        </div>
-
-                                        {/* ── ROW 2: Opportunity Title ── */}
-                                        <h2 className="font-display font-semibold text-[15px] sm:text-[16px] text-[#171F2C] truncate tracking-tight pt-0.5">
-                                          {headline}
-                                        </h2>
-
-                                        {/* ── ROW 3: Business Name | Verified Icon | Location ── */}
-                                        <div className="flex items-center gap-2 text-xs text-[#64748B] truncate">
-                                          <span className="font-medium text-[#171F2C] truncate">{partnerName}</span>
-
-                                          {deal.workflow?.isVerified && (
-                                            <span className="inline-flex items-center gap-1 text-emerald-700 text-[10px] font-medium shrink-0">
-                                              <VerifiedBadge size={14} /> Verified
-                                            </span>
-                                          )}
-
-                                          <span className="text-[#CBD5E1]">|</span>
-
-                                          <span className="truncate">{deal.opportunity?.location || deal.opportunity?.geo || "Remote / Global"}</span>
-
-                                          {deal.opportunity?.industry && (
-                                            <>
-                                              <span className="text-[#CBD5E1]">•</span>
-                                              <span className="truncate text-[#64748B]">{deal.opportunity.industry}</span>
-                                            </>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Right Side: Parity Score, Expiry & Expand/Collapse Icon */}
-                                    <div className="flex items-center justify-between md:justify-end gap-4 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-[#E2E8F0]">
-                                      <div className="flex items-center gap-3 text-right">
-                                        <div className="flex flex-col items-end">
-                                          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">
-                                            Parity Score
-                                          </span>
-                                          <span className="font-mono text-xs font-bold text-[#171F2C]">
-                                            {matchPercentage}%
-                                          </span>
-                                        </div>
-                                        <div className="hidden sm:flex flex-col items-end">
-                                          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">
-                                            {isActionRequired ? "SLA Timer" : "Status"}
-                                          </span>
-                                          <span className="text-xs text-[#64748B] font-medium font-mono">
-                                            {isActionRequired ? "18h left" : stageNum >= 5 || deal.workflow?.isHandshakeComplete ? "Ratified" : "Active"}
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      {/* Chevron Expand/Collapse Indicator */}
-                                      <div className="w-8 h-8 rounded-full bg-[#171F2C] hover:bg-black border border-[#171F2C] flex items-center justify-center text-white transition-transform duration-200 shrink-0 shadow-xs group-data-[state=open]:rotate-180">
-                                        <ChevronDown className="w-4 h-4 text-white stroke-[2.2]" />
-                                      </div>
-                                    </div>
-                                  </div>
-                                </CollapsibleTrigger>
-
-                                {/* ══════════════════════════════════════════════════════════════════
-                                    2. EXPANDED STATE (COLLAPSIBLE DETAILS BODY)
-                                    ══════════════════════════════════════════════════════════════════ */}
-                                <CollapsibleContent className="border-t border-[#E2E8F0] p-5 sm:p-6 flex flex-col gap-4 bg-white transition-all data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0">
-                                  {/* A. Counterparty Detail Strip */}
-                                  <div className="flex items-center justify-between gap-3 p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px]">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                      <div className="w-8 h-8 rounded-[4px] bg-[#171F2C] text-white text-xs font-semibold flex items-center justify-center shrink-0 border border-[#171F2C]">
-                                        {getCompanyInitials(partnerName)}
-                                      </div>
-                                      <div className="min-w-0">
-                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                          <span className="font-semibold text-xs sm:text-sm text-[#171F2C] truncate">
-                                            {partnerName}
-                                          </span>
-                                          {deal.workflow?.isVerified && (
-                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[2px] bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-medium shrink-0">
-                                              <VerifiedBadge size={13} /> Verified
-                                            </span>
-                                          )}
-                                          <span className="text-[#CBD5E1]">•</span>
-                                          <span className="text-xs text-[#64748B] shrink-0">
-                                            {stageNum >= 5 || deal.workflow?.isHandshakeComplete ? "Direct Unblinded Partner" : "Blinded Bilateral Partner"}
-                                          </span>
-                                        </div>
-                                        <div className="text-xs text-[#64748B] truncate mt-0.5">
-                                          {deal.opportunity?.location || deal.opportunity?.geo || "Remote / Global"} {deal.opportunity?.industry ? `• ${deal.opportunity.industry}` : ""}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className="text-right text-xs text-[#64748B] shrink-0">
-                                      <span className="text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8] block">
-                                        Contract Value
-                                      </span>
-                                      <span className="font-medium text-[#171F2C] font-mono">{contractVal}</span>
-                                    </div>
-                                  </div>
-
-                                  {/* B. Opportunity Description & Requirements */}
-                                  <div className="flex flex-col gap-1.5">
-                                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#94A3B8]">
-                                      Opportunity Overview &amp; Requirements
-                                    </span>
-                                    <p className="text-sm text-[#334155] leading-relaxed">{contextText}</p>
-                                  </div>
-
-                                  {/* C. Bilateral Value Proposition (What We Offer) */}
-                                  <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] p-4 flex flex-col gap-1.5">
-                                    <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#171F2C]">
-                                      <Repeat className="w-4 h-4 text-[#F97316]" />
-                                      <span>What We Are Expecting</span>
-                                    </div>
-                                    <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
-                                      {scopeTerms}
-                                    </p>
-                                  </div>
-
-                                  {/* D. Lifecycle Stage Progress Tracker */}
-                                  <div className="border-t border-[#E2E8F0] pt-3 flex flex-col gap-2">
-                                    <div className="flex items-center justify-between text-xs">
-                                      <span className="uppercase tracking-wider text-[#94A3B8] font-mono text-[10px] font-semibold">
-                                        Current Lifecycle Stage
-                                      </span>
-                                      <span className="font-semibold text-[#171F2C] text-xs">
-                                        {deal.workflow?.stageHeadline || "Protocol Clearance"}
-                                      </span>
-                                    </div>
-                                    <div className="grid grid-cols-4 gap-2">
-                                      <div className={`h-1.5 rounded-[2px] ${pStage >= 1 ? "bg-[#171F2C]" : "bg-[#E2E8F0]"}`} />
-                                      <div className={`h-1.5 rounded-[2px] ${pStage >= 2 ? "bg-[#171F2C]" : "bg-[#E2E8F0]"}`} />
-                                      <div className={`h-1.5 rounded-[2px] ${pStage >= 3 ? "bg-[#171F2C]" : "bg-[#E2E8F0]"}`} />
-                                      <div className={`h-1.5 rounded-[2px] ${pStage >= 4 ? "bg-[#171F2C]" : "bg-[#E2E8F0]"}`} />
-                                    </div>
-                                    <div className="flex justify-between text-[11px] font-mono text-[#64748B]">
-                                      <span className={pStage === 1 ? "text-[#171F2C] font-bold" : "font-medium"}>
-                                        1. Acknowledged
-                                      </span>
-                                      <span className={pStage === 2 ? "text-[#171F2C] font-bold" : "font-medium"}>
-                                        2. Negotiation
-                                      </span>
-                                      <span className={pStage === 3 ? "text-[#171F2C] font-bold" : "font-medium"}>
-                                        3. Agreement
-                                      </span>
-                                      <span className={pStage === 4 ? "text-[#171F2C] font-bold" : "font-medium"}>
-                                        4. Handshake
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  {/* E. Bottom Actions & Metadata */}
-                                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-[#E2E8F0]">
-                                    <div className="flex items-center gap-3 text-xs text-[#64748B] flex-wrap">
-                                      <span className="flex items-center gap-1 font-mono text-xs text-[#64748B]">
-                                        <Clock className="w-3.5 h-3.5 text-[#171F2C]" />
-                                        <span>
-                                          {isActionRequired
-                                            ? "Awaiting your countersignature or response within SLA"
-                                            : "Dual binding verification active • Legal hold applied"}
-                                        </span>
-                                      </span>
-                                      <span className="text-[#CBD5E1]">•</span>
-                                      <span className="text-[11px] font-medium text-[#64748B] uppercase font-mono">
-                                        {stageNum <= 2
-                                          ? "SHA256 Encrypted Protocol"
-                                          : stageNum === 3
-                                            ? "Dual-Signed Escrow Pending"
-                                            : stageNum === 4
-                                              ? "50% Signed (1/2)"
-                                              : "Permanent Audit Ledger #0x9F42"}
-                                      </span>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                                      {stageNum <= 2 ? (
-                                        isInbound ? (
-                                          <>
-                                            <Button
-                                              type="button"
-                                              variant="outline"
-                                              size="sm"
-                                              onClick={() => handleDeclineIncoming(deal.id, partnerName)}
-                                              className="text-[#64748B] hover:text-[#BA1A1A] hover:border-[#BA1A1A]"
-                                            >
-                                              Decline
-                                            </Button>
-                                            <Button
-                                              type="button"
-                                              variant="monochrome"
-                                              size="sm"
-                                              onClick={() => {
-                                                setSelectedPipelineDeal(normalizedPipelineDeal);
-                                                setNcndModalOpen(true);
-                                              }}
-                                              className="gap-1.5"
-                                            >
-                                              <span>Acknowledge Exchange</span>
-                                              <ArrowRight className="w-3.5 h-3.5" />
-                                            </Button>
-                                          </>
-                                        ) : (
-                                          <Button
-                                            type="button"
-                                            variant="monochrome"
-                                            size="sm"
-                                            onClick={() => navigate({ to: "/connections/$id", params: { id: deal.id } })}
-                                            className="gap-1.5"
-                                          >
-                                            <span>View in Dealroom</span>
-                                            <ArrowRight className="w-3.5 h-3.5" />
-                                          </Button>
-                                        )
-                                      ) : stageNum === 3 ? (
-                                        <>
-                                          <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                              setSelectedPipelineDeal(normalizedPipelineDeal);
-                                              setCounterOfferModalOpen(true);
-                                            }}
-                                          >
-                                            Propose Terms
-                                          </Button>
-                                          <Button
-                                            type="button"
-                                            variant="monochrome"
-                                            size="sm"
-                                            onClick={() => {
-                                              setSelectedPipelineDeal(normalizedPipelineDeal);
-                                              setCounterOfferModalOpen(true);
-                                            }}
-                                            className="gap-1.5"
-                                          >
-                                            <span>Review Counter-Offer</span>
-                                            <ArrowRight className="w-3.5 h-3.5" />
-                                          </Button>
-                                        </>
-                                      ) : stageNum === 4 ? (
-                                        <>
-                                          <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                              setSelectedPipelineDeal(normalizedPipelineDeal);
-                                              setRedlinesModalOpen(true);
-                                            }}
-                                            className="gap-1.5"
-                                          >
-                                            <Eye className="w-3.5 h-3.5" />
-                                            <span>View Agreement</span>
-                                          </Button>
-                                          <Button
-                                            type="button"
-                                            variant="monochrome"
-                                            size="sm"
-                                            onClick={() => {
-                                              setSelectedPipelineDeal(normalizedPipelineDeal);
-                                              setCountersignModalOpen(true);
-                                            }}
-                                            className="gap-1.5"
-                                          >
-                                            <span>Open Escrow Vault</span>
-                                            <ArrowRight className="w-3.5 h-3.5" />
-                                          </Button>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setSelectedDetailOpp(deal.opportunity || deal)}
-                                            className="gap-1.5"
-                                          >
-                                            <FileText className="w-3.5 h-3.5" />
-                                            <span>Review Terms</span>
-                                          </Button>
-                                          <Button
-                                            type="button"
-                                            variant="monochrome"
-                                            size="sm"
-                                            onClick={() => navigate({ to: "/connections/$id", params: { id: deal.id } })}
-                                            className="gap-1.5"
-                                          >
-                                            <span>Open Dealroom</span>
-                                            <ArrowRight className="w-3.5 h-3.5" />
-                                          </Button>
-                                        </>
-                                      )}
-                                    </div>
-                                  </div>
-                                </CollapsibleContent>
-                              </article>
-                            </Collapsible>
+                            <BilateralDealOpportunityCard
+                              key={deal.id}
+                              dealCode={dealCode}
+                              pStage={pStage as 1 | 2 | 3 | 4}
+                              receivedAt={deal.created_at}
+                              category={
+                                deal.opportunity?.category === "strategic_advice"
+                                  ? "Strategic Advice"
+                                  : deal.opportunity?.category || deal.opportunity?.type || "Bilateral Exchange"
+                              }
+                              isInbound={isInbound}
+                              headline={headline}
+                              partnerName={partnerName}
+                              isVerified={Boolean(deal.workflow?.isVerified)}
+                              location={deal.opportunity?.location || deal.opportunity?.geo || "Remote / Global"}
+                              industry={deal.opportunity?.industry}
+                              logoUrl={deal.opportunity?.business?.logo_url || deal.requesting_business?.logo_url}
+                              onView={() =>
+                                setSelectedSheetDeal({
+                                  deal,
+                                  pStage,
+                                  dealCode,
+                                  headline,
+                                  partnerName,
+                                  contextText,
+                                  scopeTerms,
+                                  contractVal,
+                                  matchPercentage,
+                                  isInbound,
+                                })
+                              }
+                              onExchangeHub={() =>
+                                navigate({ to: "/connections/$id", params: { id: deal.id } })
+                              }
+                            />
                           );
                         })
                       )}
@@ -3556,6 +3153,13 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 6. 90% HEIGHT BOTTOM SHEET FOR OPPORTUNITY DETAILS (Shared Component) */}
+      <BilateralOpportunityDetailSheet
+        deal={selectedSheetDeal}
+        open={!!selectedSheetDeal}
+        onClose={() => setSelectedSheetDeal(null)}
+      />
 
       {/* Post Type Selection Modal */}
       <PostTypeSelectionModal

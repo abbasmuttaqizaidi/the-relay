@@ -406,3 +406,27 @@ html.clerk-oauth-resolving .clerk-auth-loading-overlay {
   display: block;
   margin-left: auto;
 }
+
+@keyframes hourglass-spin-flow {
+  0% {
+    transform: rotate(0deg);
+  }
+  35% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  85% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-hourglass {
+  animation: hourglass-spin-flow 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  display: inline-block;
+  transform-origin: center center;
+}
