@@ -48,6 +48,7 @@ import { Route as R8StepJourneyRouteImport } from './routes/8-step-journey'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OpportunitiesIndexRouteImport } from './routes/opportunities.index'
 import { Route as InsightsIndexRouteImport } from './routes/insights.index'
+import { Route as ConnectionsIndexRouteImport } from './routes/connections.index'
 import { Route as RequestsSentRouteImport } from './routes/requests.sent'
 import { Route as RequestsIncomingRouteImport } from './routes/requests.incoming'
 import { Route as OpportunitiesMyRouteImport } from './routes/opportunities.my'
@@ -258,6 +259,11 @@ const InsightsIndexRoute = InsightsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => InsightsRoute,
 } as any)
+const ConnectionsIndexRoute = ConnectionsIndexRouteImport.update({
+  id: '/connections/',
+  path: '/connections/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RequestsSentRoute = RequestsSentRouteImport.update({
   id: '/requests/sent',
   path: '/requests/sent',
@@ -348,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/requests/incoming': typeof RequestsIncomingRoute
   '/requests/sent': typeof RequestsSentRoute
+  '/connections/': typeof ConnectionsIndexRoute
   '/insights/': typeof InsightsIndexRoute
   '/opportunities/': typeof OpportunitiesIndexRoute
   '/insights/knowledge/$id': typeof InsightsKnowledgeIdRouteWithChildren
@@ -396,6 +403,7 @@ export interface FileRoutesByTo {
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/requests/incoming': typeof RequestsIncomingRoute
   '/requests/sent': typeof RequestsSentRoute
+  '/connections': typeof ConnectionsIndexRoute
   '/insights': typeof InsightsIndexRoute
   '/opportunities': typeof OpportunitiesIndexRoute
   '/insights/knowledge/$id': typeof InsightsKnowledgeIdRouteWithChildren
@@ -447,6 +455,7 @@ export interface FileRoutesById {
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/requests/incoming': typeof RequestsIncomingRoute
   '/requests/sent': typeof RequestsSentRoute
+  '/connections/': typeof ConnectionsIndexRoute
   '/insights/': typeof InsightsIndexRoute
   '/opportunities/': typeof OpportunitiesIndexRoute
   '/insights/knowledge/$id': typeof InsightsKnowledgeIdRouteWithChildren
@@ -499,6 +508,7 @@ export interface FileRouteTypes {
     | '/opportunities/my'
     | '/requests/incoming'
     | '/requests/sent'
+    | '/connections/'
     | '/insights/'
     | '/opportunities/'
     | '/insights/knowledge/$id'
@@ -547,6 +557,7 @@ export interface FileRouteTypes {
     | '/opportunities/my'
     | '/requests/incoming'
     | '/requests/sent'
+    | '/connections'
     | '/insights'
     | '/opportunities'
     | '/insights/knowledge/$id'
@@ -597,6 +608,7 @@ export interface FileRouteTypes {
     | '/opportunities/my'
     | '/requests/incoming'
     | '/requests/sent'
+    | '/connections/'
     | '/insights/'
     | '/opportunities/'
     | '/insights/knowledge/$id'
@@ -645,6 +657,7 @@ export interface RootRouteChildren {
   ConnectionsIdRoute: typeof ConnectionsIdRoute
   RequestsIncomingRoute: typeof RequestsIncomingRoute
   RequestsSentRoute: typeof RequestsSentRoute
+  ConnectionsIndexRoute: typeof ConnectionsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -922,6 +935,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InsightsIndexRouteImport
       parentRoute: typeof InsightsRoute
     }
+    '/connections/': {
+      id: '/connections/'
+      path: '/connections'
+      fullPath: '/connections/'
+      preLoaderRoute: typeof ConnectionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/requests/sent': {
       id: '/requests/sent'
       path: '/requests/sent'
@@ -1074,6 +1094,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConnectionsIdRoute: ConnectionsIdRoute,
   RequestsIncomingRoute: RequestsIncomingRoute,
   RequestsSentRoute: RequestsSentRoute,
+  ConnectionsIndexRoute: ConnectionsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

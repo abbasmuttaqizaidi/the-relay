@@ -17,6 +17,7 @@ import {
   Send,
   XCircle,
 } from "lucide-react";
+import { useRouterState, useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { VerifiedBadge, PendingBadge } from "./badges";
@@ -26,6 +27,7 @@ export type ExchangeActivityEventType =
   | "acknowledged"
   | "proposal_received"
   | "proposal_declined"
+  | "proposal_withdrawn"
   | "agreement_ready"
   | "agreement_confirmed"
   | "contact_requested"
@@ -81,7 +83,7 @@ const EVENT_CONFIGS: Record<ExchangeActivityEventType, EventConfig> = {
     badgeLabel: "STAGE 1 · PROTOCOL CLEARANCE",
     badgeColor: "bg-slate-100 text-slate-800 border-slate-200",
     icon: Sparkles,
-    iconBg: "bg-slate-100 border-slate-200",
+    iconBg: "bg-transparent",
     iconColor: "text-slate-900",
     defaultStage: 1,
     stageName: "Protocol Clearance",
@@ -93,7 +95,7 @@ const EVENT_CONFIGS: Record<ExchangeActivityEventType, EventConfig> = {
     badgeLabel: "STAGE 2 · NEGOTIATION UNLOCKED",
     badgeColor: "bg-slate-100 text-slate-800 border-slate-200",
     icon: CheckCircle2,
-    iconBg: "bg-slate-100 border-slate-200",
+    iconBg: "bg-transparent",
     iconColor: "text-slate-900",
     defaultStage: 2,
     stageName: "Negotiation Active",
@@ -105,8 +107,8 @@ const EVENT_CONFIGS: Record<ExchangeActivityEventType, EventConfig> = {
     badgeLabel: "STAGE 2 · PROPOSAL PENDING",
     badgeColor: "bg-amber-50 text-amber-700 border-amber-200",
     icon: FileText,
-    iconBg: "bg-amber-50 border-amber-100",
-    iconColor: "text-amber-600",
+    iconBg: "bg-transparent",
+    iconColor: "text-amber-500",
     defaultStage: 2,
     stageName: "Negotiation Active",
     calloutTitle: "Proposed Exchange Terms",
@@ -117,11 +119,23 @@ const EVENT_CONFIGS: Record<ExchangeActivityEventType, EventConfig> = {
     badgeLabel: "STAGE 2 · TERMS REVISED",
     badgeColor: "bg-rose-50 text-rose-700 border-rose-200",
     icon: XCircle,
-    iconBg: "bg-rose-50 border-rose-100",
-    iconColor: "text-rose-600",
+    iconBg: "bg-transparent",
+    iconColor: "text-[#DC2626]",
     defaultStage: 2,
     stageName: "Negotiation Active",
     calloutTitle: "Decline Rationale",
+  },
+  proposal_withdrawn: {
+    defaultTitle: "Exchange Proposal Withdrawn by Partner",
+    defaultDescription: "The counterparty has withdrawn their active proposal. You can submit new bilateral exchange terms or await a revised proposal.",
+    badgeLabel: "STAGE 2 · OFFER WITHDRAWN",
+    badgeColor: "bg-amber-50 text-amber-700 border-amber-200",
+    icon: AlertCircle,
+    iconBg: "bg-transparent",
+    iconColor: "text-amber-500",
+    defaultStage: 2,
+    stageName: "Negotiation Active",
+    calloutTitle: "Withdrawal Notice",
   },
   agreement_ready: {
     defaultTitle: "Proposal Accepted — Agreement Ready",
@@ -129,8 +143,8 @@ const EVENT_CONFIGS: Record<ExchangeActivityEventType, EventConfig> = {
     badgeLabel: "STAGE 3 · FINAL AGREEMENT",
     badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
     icon: ShieldCheck,
-    iconBg: "bg-emerald-50 border-emerald-100",
-    iconColor: "text-emerald-600",
+    iconBg: "bg-transparent",
+    iconColor: "text-slate-900",
     defaultStage: 3,
     stageName: "Final Agreement",
     calloutTitle: "Agreed Exchange Terms",
@@ -141,8 +155,8 @@ const EVENT_CONFIGS: Record<ExchangeActivityEventType, EventConfig> = {
     badgeLabel: "STAGE 4 · CONTACT REVEAL",
     badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
     icon: Handshake,
-    iconBg: "bg-emerald-50 border-emerald-100",
-    iconColor: "text-emerald-600",
+    iconBg: "bg-transparent",
+    iconColor: "text-slate-900",
     defaultStage: 4,
     stageName: "Contact Reveal",
     calloutTitle: "Ratification Notice",
@@ -153,7 +167,7 @@ const EVENT_CONFIGS: Record<ExchangeActivityEventType, EventConfig> = {
     badgeLabel: "STAGE 4 · CONTACT REVEAL",
     badgeColor: "bg-slate-100 text-slate-800 border-slate-200",
     icon: MessageSquare,
-    iconBg: "bg-slate-100 border-slate-200",
+    iconBg: "bg-transparent",
     iconColor: "text-slate-900",
     defaultStage: 4,
     stageName: "Contact Reveal",
@@ -165,8 +179,8 @@ const EVENT_CONFIGS: Record<ExchangeActivityEventType, EventConfig> = {
     badgeLabel: "STAGE 4 · HANDSHAKE COMPLETE",
     badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
     icon: Handshake,
-    iconBg: "bg-emerald-50 border-emerald-100",
-    iconColor: "text-emerald-600",
+    iconBg: "bg-transparent",
+    iconColor: "text-slate-900",
     defaultStage: 4,
     stageName: "Handshake Finalized",
     calloutTitle: "Direct Connection",
@@ -177,8 +191,8 @@ const EVENT_CONFIGS: Record<ExchangeActivityEventType, EventConfig> = {
     badgeLabel: "SLA ALERT · ACTION REQUIRED",
     badgeColor: "bg-amber-50 text-amber-700 border-amber-200",
     icon: Clock,
-    iconBg: "bg-amber-50 border-amber-100",
-    iconColor: "text-amber-600",
+    iconBg: "bg-transparent",
+    iconColor: "text-amber-500",
     defaultStage: 2,
     stageName: "Follow-Up Pending",
     calloutTitle: "Follow-Up Note",
@@ -189,8 +203,8 @@ const EVENT_CONFIGS: Record<ExchangeActivityEventType, EventConfig> = {
     badgeLabel: "EXCHANGE UPDATE",
     badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
     icon: ArrowUpRight,
-    iconBg: "bg-slate-100 border-slate-200",
-    iconColor: "text-slate-700",
+    iconBg: "bg-transparent",
+    iconColor: "text-slate-900",
     defaultStage: 2,
     stageName: "Exchange Active",
     calloutTitle: "Activity Detail",
@@ -214,10 +228,24 @@ export function ExchangeActivityModal({
   exchangeHubLabel = "Exchange Hub >",
   className,
 }: ExchangeActivityModalProps) {
+  let pathname = "";
+  try {
+    pathname = useRouterState({ select: (s) => s.location.pathname });
+  } catch {
+    if (typeof window !== "undefined") {
+      pathname = window.location.pathname;
+    }
+  }
+  const isConnectionsRoute = pathname === "/connections" || pathname.startsWith("/connections");
+
+  let navigate: any = null;
+  try {
+    navigate = useNavigate();
+  } catch {}
+
   const config = EVENT_CONFIGS[data.eventType] || EVENT_CONFIGS.custom;
   const title = data.title || config.defaultTitle;
   const description = data.description || config.defaultDescription;
-  const stageNum = (data.stageNum || config.defaultStage) as 1 | 2 | 3 | 4 | 5;
   const IconComponent = config.icon;
 
   const handleClose = () => {
@@ -228,6 +256,12 @@ export function ExchangeActivityModal({
   const handleExchangeHub = () => {
     if (onOpenExchangeHub) {
       onOpenExchangeHub(data.interestId, data);
+    } else if (navigate) {
+      if (data.interestId) {
+        navigate({ to: "/connections/$id", params: { id: data.interestId } });
+      } else {
+        navigate({ to: "/requests/incoming" });
+      }
     }
     onOpenChange(false);
   };
@@ -238,167 +272,60 @@ export function ExchangeActivityModal({
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content
           className={cn(
-            "fixed inset-0 z-50 m-auto flex h-fit max-h-[calc(100dvh-2rem)] sm:max-h-[88vh] w-[calc(100vw-1.5rem)] max-w-[540px] flex-col bg-white text-left font-sans shadow-2xl rounded-[4px] border border-slate-200 overflow-hidden duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+            "fixed inset-0 z-50 m-auto flex h-fit max-h-[calc(100dvh-2rem)] w-[calc(100vw-1.5rem)] max-w-[480px] flex-col bg-white text-left font-sans shadow-2xl rounded-lg border border-slate-200 overflow-hidden duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             className
           )}
           onOpenAutoFocus={(e) => {
             e.preventDefault();
           }}
         >
-          {/* Header Bar */}
-          <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4 sm:px-6 bg-slate-50/50 shrink-0">
-            <div className="flex items-start gap-3 min-w-0 pr-3">
-              <div
-                className={cn(
-                  "w-9 h-9 rounded-[4px] border flex items-center justify-center shrink-0 mt-0.5 shadow-xs",
-                  config.iconBg
-                )}
-              >
-                <IconComponent className={cn("w-4.5 h-4.5", config.iconColor)} />
-              </div>
-
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span
-                    className={cn(
-                      "font-mono text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-[2px] border",
-                      config.badgeColor
-                    )}
-                  >
-                    {data.stageLabel || config.badgeLabel}
-                  </span>
-                  {data.timestamp && (
-                    <span className="font-mono text-[9px] text-slate-400 font-medium">
-                      {data.timestamp}
-                    </span>
-                  )}
-                </div>
-                <DialogPrimitive.Title className="font-display text-base sm:text-lg font-bold text-slate-900 tracking-tight leading-snug">
-                  {title}
-                </DialogPrimitive.Title>
-              </div>
+          {/* Header Bar: Direct inline icon without square box */}
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6 bg-slate-50/50 shrink-0">
+            <div className="flex items-center gap-2.5 min-w-0 pr-3">
+              <IconComponent className={cn("w-5 h-5 shrink-0", config.iconColor)} />
+              <DialogPrimitive.Title className="font-display text-base font-bold text-slate-900 tracking-tight leading-snug">
+                {title}
+              </DialogPrimitive.Title>
             </div>
 
             {/* Close Cross Button */}
             <DialogPrimitive.Close
               onClick={handleClose}
               aria-label="Close modal"
-              className="rounded-[2px] p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0 flex items-center justify-center"
+              className="rounded-md p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0 flex items-center justify-center"
             >
               <X className="w-4 h-4" />
               <span className="sr-only">Close modal</span>
             </DialogPrimitive.Close>
           </div>
 
-          {/* Modal Body */}
-          <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4 text-left">
-            {/* Opportunity & Counterparty Ribbon */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-[4px] p-3 space-y-2.5">
-              <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-6 h-6 rounded-[2px] bg-slate-900 text-white flex items-center justify-center font-mono text-[10px] font-bold shrink-0">
-                    {data.partnerName ? data.partnerName.charAt(0).toUpperCase() : "P"}
-                  </div>
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="font-sans text-xs font-bold text-slate-900 truncate">
-                      {data.partnerName || "Counterparty Partner"}
-                    </span>
-                    {data.partnerIsVerified !== false ? <VerifiedBadge /> : <PendingBadge />}
-                  </div>
-                </div>
-                <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold shrink-0">
-                  Bilateral Partner
-                </span>
-              </div>
-
-              <div>
-                <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold block mb-0.5">
-                  Target Opportunity
-                </span>
-                <p className="font-sans text-xs font-semibold text-slate-800 line-clamp-1">
-                  {data.opportunityTitle || "Bilateral Exchange Opportunity"}
-                </p>
-              </div>
-            </div>
-
-            {/* Narrative Explanation */}
-            <div className="space-y-1.5">
-              <p className="font-sans text-xs text-slate-600 leading-relaxed">
-                {description}
-              </p>
-            </div>
-
-            {/* Highlight Details / Terms Box (if provided) */}
-            {data.details && (
-              <div className="bg-white border border-slate-200 rounded-[3px] p-3 space-y-1 shadow-2xs">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold block">
-                  {config.calloutTitle}
-                </span>
-                <p className="font-sans text-xs text-slate-800 whitespace-pre-wrap leading-relaxed font-medium">
-                  {data.details}
-                </p>
-              </div>
-            )}
-
-            {/* 4-Stage Mini Stepper Progress */}
-            <div className="pt-1 space-y-1.5 border-t border-slate-100">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-                  Exchange Lifecycle Stage
-                </span>
-                <span className="font-mono text-[9px] uppercase tracking-wider text-slate-700 font-bold">
-                  Stage {stageNum > 4 ? 4 : stageNum} of 4: {config.stageName}
-                </span>
-              </div>
-              <div className="grid grid-cols-4 gap-1.5">
-                {STAGES.map((stg) => {
-                  const isCurrent = (stageNum > 4 ? 4 : stageNum) === stg.num;
-                  const isPassed = (stageNum > 4 ? 4 : stageNum) > stg.num;
-                  return (
-                    <div
-                      key={stg.num}
-                      className={cn(
-                        "rounded-[2px] py-1 px-1.5 text-center border transition-all",
-                        isCurrent
-                          ? "bg-slate-900 border-slate-900 text-white shadow-xs"
-                          : isPassed
-                          ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-semibold"
-                          : "bg-slate-50 border-slate-200 text-slate-400"
-                      )}
-                    >
-                      <div className="flex items-center justify-center gap-1 font-mono text-[8.5px] uppercase tracking-wider font-bold">
-                        {isPassed && <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600 shrink-0" />}
-                        <span>
-                          {stg.num}. {stg.label}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+          {/* Simple Modal Body */}
+          <div className="px-5 py-4 sm:px-6 sm:py-5 text-left">
+            <p className="font-sans text-xs sm:text-sm text-slate-600 leading-relaxed">
+              {description}
+            </p>
           </div>
 
-          {/* Modal Footer: EXACTLY 2 Actions (Close & Exchange Hub >) */}
+          {/* Modal Footer: Actions (Close & optionally Exchange Hub >) */}
           <div className="border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:px-6 flex flex-row items-center justify-end gap-2.5 shrink-0">
             <Button
               type="button"
-              variant="outline"
+              variant={isConnectionsRoute ? "monochrome" : "outline"}
               size="sm"
               onClick={handleClose}
-              className="text-xs h-8 px-3.5 border-slate-300 hover:bg-slate-100 text-slate-700 font-semibold"
             >
               {closeLabel}
             </Button>
-            <Button
-              type="button"
-              variant="authoritative"
-              size="sm"
-              onClick={handleExchangeHub}
-              className="text-xs h-8 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold uppercase tracking-wider font-mono gap-1.5 shadow-sm"
-            >
-              <span>{exchangeHubLabel}</span>
-            </Button>
+            {!isConnectionsRoute && (
+              <Button
+                type="button"
+                variant="monochrome"
+                size="sm"
+                onClick={handleExchangeHub}
+              >
+                <span>{exchangeHubLabel}</span>
+              </Button>
+            )}
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>

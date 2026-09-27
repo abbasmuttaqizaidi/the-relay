@@ -41,7 +41,8 @@ import { getMyOpportunities } from "@/functions/getMyOpportunities";
 import { getSavedOpportunities } from "@/functions/getSavedOpportunities";
 import { listOpportunities } from "@/functions/listOpportunities";
 import { OPPORTUNITIES } from "@/lib/mock-opportunities";
-import { getDynamicMedianResponseTime, formatTimeAgo } from "@/lib/utils";
+import { cn, getDynamicMedianResponseTime, formatTimeAgo, formatOpportunityCode, formatExchangeCode } from "@/lib/utils";
+import { isExchangeCompleted, getExchangeStageDetails, hasAtLeastOneAcceptedContact } from "@/lib/exchange-status";
 import { computeRequestWorkflow } from "@/components/GlobalTurnDock";
 import {
   DESIGN_TOKENS,
@@ -157,11 +158,14 @@ export function DashboardCommandCenterPage() {
 
   // 6. Global Discovery Feed Query
   const { data: globalOpps = [] } = useQuery({
-    queryKey: ["opportunities-feed"],
+    queryKey: ["dashboard-discovery-feed"],
     queryFn: async () => {
       try {
         const res = await listOpportunities();
-        return res || [];
+        if (Array.isArray(res) && res.length > 0) {
+          return res;
+        }
+        return OPPORTUNITIES || [];
       } catch {
         return OPPORTUNITIES || [];
       }
@@ -197,35 +201,42 @@ export function DashboardCommandCenterPage() {
       : [];
   }, [rawSent, business?.id]);
 
-  // Helper to check if a deal has entered bilateral Stage 2+ active pipeline
+  // Helper to check if a deal has entered bilateral Stage 2+ active pipeline (and is NOT yet completed)
   const isDealInActiveStages = (d: any) => {
+    if (d.status === "declined" || d.status === "withdrawn") return false;
+    if (isExchangeCompleted(d)) return false; // Completed deals are finalized, exclude from active pipeline
     if (d.direction === "inbound") {
       return (
         Boolean(d.owner_acknowledged_at) ||
         (typeof d.workflow?.stageNum === "number" && d.workflow.stageNum >= 2) ||
         d.status === "in_progress" ||
-        d.status === "accepted" ||
-        d.status === "completed"
+        d.status === "accepted"
       );
     }
-    const stageNum = d.workflow?.stageNum;
+    const stageNum = d.workflow?.stageNum ?? getExchangeStageDetails(d).stageNum;
     if (typeof stageNum === "number" && stageNum >= 1) return true;
-    if (d.status === "in_progress" || d.status === "accepted" || d.status === "completed") return true;
+    if (d.status === "in_progress" || d.status === "accepted") return true;
     return false;
   };
 
-  // 1. New Requests (Unacknowledged fresh inbound pitches - where host has NOT yet acknowledged)
+  // 1. New Requests (Unacknowledged fresh inbound pitches - where host has NOT yet acknowledged and not completed)
   const newRequests = useMemo(() => {
     return incomingDeals.filter((req: any) => {
-      return !isDealInActiveStages(req) && req.status !== "declined" && req.status !== "withdrawn";
+      return (
+        !isExchangeCompleted(req) &&
+        !isDealInActiveStages(req) &&
+        req.status !== "declined" &&
+        req.status !== "withdrawn"
+      );
     });
   }, [incomingDeals]);
 
-  // 2. Combined Active Exchanges Pipeline (Stage 2+ acknowledged or Outbound in-flight pitches)
+  // 2. Combined Active Exchanges Pipeline (Active in-flight exchanges only: excludes completed, declined, and withdrawn)
   const activeExchanges = useMemo(() => {
     return [...incomingDeals, ...sentDeals].filter((d: any) => {
       return (
-        (isDealInActiveStages(d) || d.direction === "outbound") &&
+        !isExchangeCompleted(d) &&
+        isDealInActiveStages(d) &&
         d.status !== "declined" &&
         d.status !== "withdrawn"
       );
@@ -260,7 +271,7 @@ export function DashboardCommandCenterPage() {
     const oppList = Array.isArray(globalOpps) && globalOpps.length > 0 ? globalOpps : OPPORTUNITIES;
     return oppList.slice(0, 3).map((m: any, idx: number) => ({
       id: m.id || `opp-rec-${idx}`,
-      opportunity_number: m.opportunity_number || `RY-00${10 + idx}`,
+      opportunity_number: m.opportunity_number || m.id || `RY-00${10 + idx}`,
       type: m.type || "Partnership",
       category: (m.type || "partnership").toLowerCase().replace(/\s+/g, "_"),
       industry: m.industry || "Fintech & SaaS",
@@ -400,147 +411,158 @@ export function DashboardCommandCenterPage() {
         </section>
 
         {/* ═════════════════════════════════════════════════════════════════
-            1. ATTENTION (Your Turn & SLA Cadence)
+            OPERATIONAL CADENCE: 2-COLUMN GRID (Col 1: Attention Required, Col 2: New Requests)
             ═════════════════════════════════════════════════════════════════ */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
-            <div className="flex items-center gap-2.5">
-              <TooltipSimple
-                content={
-                  <div className="space-y-2 text-left p-0.5">
-                    <div className="font-semibold text-white border-b border-slate-700 pb-1 text-[11px] uppercase tracking-wider font-mono">
-                      SLA Urgency &amp; Color Guide
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+          {/* COLUMN 1: ATTENTION REQUIRED */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
+              <div className="flex items-center gap-2.5">
+                <TooltipSimple
+                  content={
+                    <div className="space-y-2 text-left p-0.5">
+                      <div className="font-semibold text-white border-b border-slate-700 pb-1 text-[11px] uppercase tracking-wider font-mono">
+                        SLA Urgency &amp; Color Guide
+                      </div>
+                      <div className="space-y-1.5 text-[11px] text-slate-300">
+                        <div className="flex items-start gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-amber-400 mt-1 shrink-0" />
+                          <div>
+                            <strong className="text-amber-300">Amber (Your Turn):</strong> Normal SLA window (&gt;2h remaining).
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-red-500 mt-1 shrink-0" />
+                          <div>
+                            <strong className="text-red-300">Crimson (Critical):</strong> Imminent SLA lapse (&lt;2h remaining).
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-slate-400 mt-1 shrink-0" />
+                          <div>
+                            <strong className="text-slate-300">Slate (Partner Turn):</strong> Awaiting counterparty review.
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 mt-1 shrink-0" />
+                          <div>
+                            <strong className="text-emerald-300">Green (Ratified):</strong> Stage 4 handshake completed.
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-1.5 text-[11px] text-slate-300">
-                      <div className="flex items-start gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-amber-400 mt-1 shrink-0" />
-                        <div>
-                          <strong className="text-amber-300">Amber (Your Turn):</strong> Normal SLA window (&gt;2h remaining).
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-red-500 mt-1 shrink-0" />
-                        <div>
-                          <strong className="text-red-300">Crimson (Critical):</strong> Imminent SLA lapse (&lt;2h remaining).
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-slate-400 mt-1 shrink-0" />
-                        <div>
-                          <strong className="text-slate-300">Slate (Partner Turn):</strong> Awaiting counterparty review.
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 mt-1 shrink-0" />
-                        <div>
-                          <strong className="text-emerald-300">Green (Ratified):</strong> Stage 4 handshake completed.
-                        </div>
-                      </div>
-                    </div>
+                  }
+                  side="top"
+                  align="start"
+                  className="max-w-[280px] p-2.5 bg-slate-950 border border-slate-800 shadow-xl"
+                >
+                  <div className="flex items-center justify-center cursor-help">
+                    <AlertCircle className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
                   </div>
-                }
-                side="top"
-                align="start"
-                className="max-w-[280px] p-2.5 bg-slate-950 border border-slate-800 shadow-xl"
+                </TooltipSimple>
+                <h2 className="font-display text-base sm:text-lg font-bold text-[#171F2C] tracking-tight">
+                  Attention Required
+                </h2>
+                {attentionItems.length > 0 && (
+                  <span className="font-mono text-[10px] px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-full font-semibold">
+                    {attentionItems.length}
+                  </span>
+                )}
+              </div>
+              <Link
+                to="/my-relay"
+                search={{ tab: "inbound" } as any}
+                className="text-xs font-semibold text-[#64748B] hover:text-[#171F2C] transition inline-flex items-center gap-1"
               >
-                <div className="flex items-center justify-center cursor-help">
-                  <AlertCircle className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
-                </div>
-              </TooltipSimple>
-              <h2 className="font-display text-base sm:text-lg font-bold text-[#171F2C] tracking-tight">
-                Attention Required
-              </h2>
+                <span>View Queue</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-            <Link
-              to="/my-relay"
-              search={{ tab: "inbound" } as any}
-              className="text-xs font-semibold text-[#64748B] hover:text-[#171F2C] transition inline-flex items-center gap-1"
-            >
-              <span>View Inbound Queue</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+
+            {attentionItems.length === 0 ? (
+              <div className="p-8 bg-white border border-[#E2E8F0] rounded-xl text-center flex flex-col items-center justify-center gap-2 min-h-[220px]">
+                <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                <h3 className="font-bold text-sm text-[#171F2C]">All Exchanges on Cadence</h3>
+                <p className="text-xs text-[#64748B] max-w-sm">
+                  No active counter-offers or SLA timers awaiting your turn right now.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3.5">
+                {attentionItems.map((item: any) => (
+                  <ImmediateAttentionCard
+                    key={item.id}
+                    deal={item}
+                    onViewMemorandum={(deal) => setSelectedSheetDeal(deal)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
-          {attentionItems.length === 0 ? (
-            <div className="p-8 bg-white border border-[#E2E8F0] rounded-xl text-center flex flex-col items-center justify-center gap-2">
-              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
-              <h3 className="font-bold text-sm text-[#171F2C]">All Exchanges on Cadence</h3>
-              <p className="text-xs text-[#64748B] max-w-sm">
-                No active counter-offers or SLA timers awaiting your turn right now.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {attentionItems.map((item: any) => (
-                <ImmediateAttentionCard
-                  key={item.id}
-                  deal={item}
-                  onViewMemorandum={(deal) => setSelectedSheetDeal(deal)}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* ═════════════════════════════════════════════════════════════════
-            2. NEW REQUESTS (Fresh Inbound Pitches — Pre-Stage 1 Clearance)
-            ═════════════════════════════════════════════════════════════════ */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
-            <div className="flex items-center gap-2.5">
-              <TooltipSimple
-                content={
-                  <div className="space-y-1.5 text-left p-0.5">
-                    <div className="font-semibold text-white border-b border-slate-700 pb-1 text-[11px] uppercase tracking-wider font-mono">
-                      Pre-Stage 1 Inbound Queue
+          {/* COLUMN 2: NEW REQUESTS */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
+              <div className="flex items-center gap-2.5">
+                <TooltipSimple
+                  content={
+                    <div className="space-y-1.5 text-left p-0.5">
+                      <div className="font-semibold text-white border-b border-slate-700 pb-1 text-[11px] uppercase tracking-wider font-mono">
+                        Pre-Stage 1 Inbound Queue
+                      </div>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        Unscreened inbound partnership pitches awaiting initial review. Accepting a pitch enters <strong>Stage 1: Mutual Acknowledgement</strong> in the active pipeline.
+                      </p>
                     </div>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
-                      Unscreened inbound partnership pitches awaiting initial review. Accepting a pitch enters <strong>Stage 1: Mutual Acknowledgement</strong> in the active pipeline.
-                    </p>
+                  }
+                  side="top"
+                  align="start"
+                  className="max-w-[270px] p-2.5 bg-slate-950 border border-slate-800 shadow-xl"
+                >
+                  <div className="flex items-center justify-center cursor-help">
+                    <AlertCircle className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
                   </div>
-                }
-                side="top"
-                align="start"
-                className="max-w-[270px] p-2.5 bg-slate-950 border border-slate-800 shadow-xl"
+                </TooltipSimple>
+                <h2 className="font-display text-base sm:text-lg font-bold text-[#171F2C] tracking-tight">
+                  New Requests
+                </h2>
+                {newRequests.length > 0 && (
+                  <span className="font-mono text-[10px] px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-full font-semibold">
+                    {newRequests.length}
+                  </span>
+                )}
+              </div>
+              <Link
+                to="/proposals"
+                search={{ tab: "received" } as any}
+                className="text-xs font-semibold text-[#64748B] hover:text-[#171F2C] transition inline-flex items-center gap-1"
               >
-                <div className="flex items-center justify-center cursor-help">
-                  <AlertCircle className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
-                </div>
-              </TooltipSimple>
-              <h2 className="font-display text-base sm:text-lg font-bold text-[#171F2C] tracking-tight">
-                New Requests
-              </h2>
+                <span>View Received</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-            <Link
-              to="/proposals"
-              search={{ tab: "received" } as any}
-              className="text-xs font-semibold text-[#64748B] hover:text-[#171F2C] transition inline-flex items-center gap-1"
-            >
-              <span>View Received Inquiries</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
 
-          {newRequests.length === 0 ? (
-            <div className="p-8 bg-white border border-[#E2E8F0] rounded-xl text-center flex flex-col items-center justify-center gap-2">
-              <CheckCircle2 className="w-8 h-8 text-slate-300" />
-              <h3 className="font-bold text-sm text-[#171F2C]">No New Inquiries Pending Review</h3>
-              <p className="text-xs text-[#64748B] max-w-sm">
-                All incoming pitches have been acknowledged or transitioned into bilateral stage progression.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {newRequests.map((req: any) => (
-                <NewRequestCard
-                  key={req.id}
-                  request={req}
-                  variant="compact"
-                  onReviewPitch={(r) => setSelectedSheetDeal(r)}
-                />
-              ))}
-            </div>
-          )}
+            {newRequests.length === 0 ? (
+              <div className="p-8 bg-white border border-[#E2E8F0] rounded-xl text-center flex flex-col items-center justify-center gap-2 min-h-[220px]">
+                <CheckCircle2 className="w-8 h-8 text-slate-300" />
+                <h3 className="font-bold text-sm text-[#171F2C]">No New Inquiries Pending Review</h3>
+                <p className="text-xs text-[#64748B] max-w-sm">
+                  All incoming pitches have been acknowledged or transitioned into bilateral stage progression.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3.5">
+                {newRequests.map((req: any) => (
+                  <NewRequestCard
+                    key={req.id}
+                    request={req}
+                    variant="compact"
+                    onReviewPitch={(r) => setSelectedSheetDeal(r)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </section>
 
         {/* ═════════════════════════════════════════════════════════════════
@@ -595,14 +617,20 @@ export function DashboardCommandCenterPage() {
                         d.direction === "outbound"
                           ? (d.opportunity?.business?.company_name || d.opportunity?.company || "Opportunity Owner")
                           : (d.requesting_business?.company_name || d.workflow?.partnerName || d.opportunity?.company || "Enterprise Partner");
-                      const refCode = d.opportunity?.opportunity_number || "RY-0042";
-                      const stageNum = d.workflow?.stageNum || (d.status === "accepted" ? 4 : d.status === "in_progress" ? 2 : 1);
+                      const refCode = formatExchangeCode(d.opportunity?.opportunity_number || d.opportunity_id, d.id);
+                      const oppCode = formatOpportunityCode(d.opportunity?.opportunity_number || d.opportunity_id);
+                      
+                      // Check stage and completion using common authoritative function
+                      const isCompleted = isExchangeCompleted(d);
+                      const stageDetails = getExchangeStageDetails(d);
+                      const stageNum = isCompleted ? 4 : (d.workflow?.stageNum ?? stageDetails.stageNum);
                       const term = d.proposed_terms || d.opportunity?.deal_size_formatted || "Reciprocal Split";
 
                       return (
                         <tr key={d.id} className="hover:bg-slate-50/70 transition">
                           <td className="py-3.5 px-4 font-mono font-bold text-slate-800">
-                            {refCode}
+                            <span className="text-[11px] block">{refCode}</span>
+                            <span className="text-[9px] text-slate-400 font-normal block font-mono">{oppCode}</span>
                           </td>
                           <td className="py-3.5 px-4">
                             <span className="font-bold text-[#171F2C] block">{title}</span>
@@ -614,8 +642,16 @@ export function DashboardCommandCenterPage() {
                           <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
                             {term}
                           </td>
-                          <td className="py-3.5 px-4 min-w-[160px]">
-                            <MiniStageBarStepper stage={stageNum} />
+                          <td className="py-3.5 px-4 min-w-[170px]">
+                            <div className="space-y-1">
+                              <MiniStageBarStepper stage={stageNum} />
+                              <span className={cn(
+                                "text-[9.5px] font-mono block",
+                                isCompleted ? "text-emerald-700 font-bold" : "text-slate-500 font-medium"
+                              )}>
+                                {isCompleted ? "✓ Handshake Sealed" : stageDetails.stageLabel}
+                              </span>
+                            </div>
                           </td>
                           <td className="py-3.5 px-4 text-right">
                             <button
@@ -687,7 +723,7 @@ export function DashboardCommandCenterPage() {
 
                   <Link
                     to="/opportunities"
-                    search={{ q: opp.opportunity_number } as any}
+                    search={{ q: opp.opportunity_number || opp.id, industry: "All", geo: "All", type: "All", sort: "newest", page: 1 } as any}
                     className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-semibold rounded transition inline-flex items-center gap-1"
                   >
                     <span>Pitch Deal</span>

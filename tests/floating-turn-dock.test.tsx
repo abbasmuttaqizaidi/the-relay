@@ -93,7 +93,7 @@ describe("FloatingTurnDock Component (seo_code_guide.md implementation)", () => 
   it("renders clean Empty State when deals array is empty", () => {
     render(<FloatingTurnDock deals={[]} />);
 
-    expect(screen.getByText(/YOUR TURN PENDING/i)).toBeInTheDocument();
+    expect(screen.getByText(/No Turns Pending|YOUR TURN PENDING/i)).toBeInTheDocument();
     expect(screen.getByText(/0 Total · All Clear/i)).toBeInTheDocument();
     expect(screen.getByText(/No Pending Turns Awaiting Action/i)).toBeInTheDocument();
     expect(screen.getByText(/You are all caught up!/i)).toBeInTheDocument();

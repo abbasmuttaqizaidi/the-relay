@@ -400,7 +400,7 @@ export function OpportunityFormFlow({
       // Highlight in amber
       const mark = document.createElement("mark");
       mark.className =
-        "bg-amber-100 text-amber-950 font-semibold px-1.5 py-0.5 rounded border border-amber-300/80 cursor-pointer";
+        "bg-amber-100 text-amber-950 font-semibold cursor-pointer";
       mark.title = "Key Covenant Term";
       try {
         range.surroundContents(mark);

@@ -13,19 +13,26 @@ import { OpportunityViewService } from "./opportunity-view.service";
 export class OpportunityService {
   /**
    * Generates a unique sequential opportunity number in format RY-0001, RY-0002...
+   * Scans existing opportunities to strictly guarantee sequential uniqueness without collision.
    */
   static async generateOpportunityNumber(): Promise<string> {
     try {
-      const latestOpp = await prisma.opportunity.findFirst({
-        orderBy: { created_at: "desc" },
+      const opps = await prisma.opportunity.findMany({
+        select: { opportunity_number: true },
       });
-      let nextNum = 1;
-      if (latestOpp && latestOpp.opportunity_number) {
-        const match = latestOpp.opportunity_number.match(/RY-(\d+)/);
-        if (match && match[1]) {
-          nextNum = parseInt(match[1], 10) + 1;
+      let maxNum = 0;
+      for (const opp of opps) {
+        if (opp.opportunity_number) {
+          const match = opp.opportunity_number.match(/RY-(\d+)/i) || opp.opportunity_number.match(/(\d+)/);
+          if (match && match[1]) {
+            const num = parseInt(match[1], 10);
+            if (!isNaN(num) && num > maxNum) {
+              maxNum = num;
+            }
+          }
         }
       }
+      const nextNum = maxNum > 0 ? maxNum + 1 : 1;
       return `RY-${String(nextNum).padStart(4, "0")}`;
     } catch (error) {
       console.error("[OpportunityService.generateOpportunityNumber] Error:", error);

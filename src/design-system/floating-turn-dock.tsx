@@ -217,7 +217,7 @@ export function FloatingTurnDock({
               )}
               <div className="flex items-baseline gap-1.5 truncate">
                 <span className="font-mono text-xs uppercase font-bold tracking-wider text-white">
-                  Your Turn Pending
+                  {hasDeals ? "Your Turn Pending" : "No Turns Pending"}
                 </span>
                 <span className="text-slate-500 text-[11px]">·</span>
                 <span className="font-mono text-[11px] text-slate-300 truncate">

@@ -334,6 +334,7 @@ export const createProposalSchema = z.object({
   fixed_amount: z.number().min(0).optional().nullable(),
   currency: z.string().max(10).optional().nullable(),
   additional_terms: z.string().max(2000).optional().nullable(),
+  highlighted_terms: z.array(z.string()).optional().nullable(),
 });
 
 export const counterProposalSchema = z.object({
@@ -344,6 +345,7 @@ export const counterProposalSchema = z.object({
   fixed_amount: z.number().min(0).optional().nullable(),
   currency: z.string().max(10).optional().nullable(),
   additional_terms: z.string().max(2000).optional().nullable(),
+  highlighted_terms: z.array(z.string()).optional().nullable(),
 });
 
 export const declineReasonSchema = z.enum([

@@ -402,9 +402,9 @@ export function NewRequestCard({
   // ═════════════════════════════════════════════════════════════════════════
   return (
     <article
-      className={`bg-white rounded-xl border-l-4 border-y border-r border-l-[#171F2C] border-slate-200 hover:border-slate-400 p-4 sm:p-5 flex flex-col justify-between transition-all shadow-xs ${className}`}
+      className={`bg-white rounded-xl border border-slate-200 hover:border-slate-400 p-4 sm:p-5 flex flex-col justify-between gap-3.5 transition-all shadow-xs ${className}`}
     >
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         {/* Top Metadata Strip */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 bg-[#171F2C] text-white px-2.5 py-0.5 rounded-full shadow-xs">
@@ -418,7 +418,7 @@ export function NewRequestCard({
           </span>
         </div>
 
-        {/* Title & Category */}
+        {/* Title & Reference Code */}
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <DealCodeStamp code={refCode} />
@@ -426,12 +426,12 @@ export function NewRequestCard({
               {opp.category || "Commercial Exchange"}
             </span>
           </div>
-          <h3 className="font-bold text-sm sm:text-base text-[#171F2C] line-clamp-2 leading-snug">
+          <h3 className="font-bold text-sm sm:text-base text-[#171F2C] line-clamp-1 leading-snug">
             {title}
           </h3>
         </div>
 
-        {/* Blinded Counterparty Badge */}
+        {/* Blinded Counterparty & Match */}
         <div className="bg-slate-50 px-3 py-2 rounded-lg border border-slate-200/80 flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             <EyeOff className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -442,41 +442,18 @@ export function NewRequestCard({
           <ParityScoreBadge score={parityScore} />
         </div>
 
-        {/* Proposed Terms & Reciprocity Summary */}
-        <div className="space-y-1.5 py-2 border-y border-slate-100 text-xs">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-slate-400 text-[11px] uppercase font-mono">Proposed:</span>
-            <span className="font-bold text-slate-800 truncate text-right">{proposedTerms}</span>
-          </div>
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-slate-400 text-[11px] uppercase font-mono">Reciprocity:</span>
-            <span className="font-medium text-slate-700 truncate text-right">{targetReciprocity}</span>
-          </div>
-          <div className="flex items-center justify-between pt-1">
-            <span className="text-slate-400 text-[11px] uppercase font-mono">SLA Window:</span>
-            <span className="font-mono font-bold text-[11px] px-1.5 py-0.2 rounded bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]">
-              {slaRemaining}
-            </span>
-          </div>
+        {/* Concise Commercial Term */}
+        <div className="flex items-center justify-between text-xs py-0.5 px-0.5">
+          <span className="text-slate-400 text-[11px] uppercase font-mono">Proposed:</span>
+          <span className="font-bold text-slate-800 truncate text-right max-w-[65%]">{proposedTerms}</span>
         </div>
-
-        {/* Pitch Quote snippet */}
-        {pitchNarrative && (
-          <p className="text-xs text-slate-500 line-clamp-2 italic leading-relaxed">
-            "{pitchNarrative}"
-          </p>
-        )}
       </div>
 
-      {/* Terminal Action CTA (Zero Premature Inline Commitments) */}
-      <div className="pt-4 mt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={() => onReviewPitch?.(request)}
-          className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition cursor-pointer"
-        >
-          View Scope
-        </button>
+      {/* Footer: SLA & Single Decisive Terminal Route */}
+      <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+        <span className="font-mono font-bold text-[11px] px-2 py-0.5 rounded bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]">
+          {slaRemaining}
+        </span>
 
         <Link
           to="/my-relay"

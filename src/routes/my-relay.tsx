@@ -21,7 +21,8 @@ import { withdrawInterest } from "../functions/withdrawInterest";
 import { expressInterest } from "../functions/expressInterest";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
 import { useInterestStore } from "@/lib/interest-store";
-import { cn, getCompanyInitials } from "@/lib/utils";
+import { cn, getCompanyInitials, formatOpportunityCode, formatExchangeCode } from "@/lib/utils";
+import { isExchangeCompleted } from "@/lib/exchange-status";
 import { CompanyLogo } from "@/components/company-logo";
 import { TooltipSimple } from "@/components/ui/tooltip";
 import { PostTypeSelectionModal } from "@/components/post/PostTypeSelectionModal";
@@ -711,27 +712,12 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
 
   // Contact Consents
   const consents = req.contact_consents || [];
-  const myConsents = consents.filter((c: any) => c.from_business_id === myBizId);
-  const acceptedIncomingConsents = consents.filter(
-    (c: any) => c.to_business_id === myBizId && c.status === "accepted"
-  );
-  const hasSharedAnyContact = myConsents.length > 0;
-  const hasAcceptedAnyContact = acceptedIncomingConsents.length > 0;
+  const myPendingConsent = consents.some((c: any) => c.from_business_id === myBizId && c.status === "pending");
+  const partnerPendingConsent = consents.some((c: any) => c.to_business_id === myBizId && c.status === "pending");
 
-  // Handshake Complete check:
-  // Legacy handshake ONLY if interest was accepted with NO workflow acknowledgements, NO proposals, and NO agreement.
-  const isLegacyHandshake =
-    req.status === "accepted" &&
-    !requesterAck &&
-    !ownerAck &&
-    !hasProposals &&
-    !agreement &&
-    consents.length === 0;
-
-  const isHandshakeComplete =
-    isLegacyHandshake ||
-    (isAgreed && hasSharedAnyContact && hasAcceptedAnyContact) ||
-    (isAgreed && (hasSharedAnyContact || hasAcceptedAnyContact));
+  // Handshake Complete check using single source of truth:
+  // Completed if legacy handshake OR (isAgreed && at least 1 contact mutually shared under consent)
+  const isHandshakeComplete = isExchangeCompleted(req);
 
   let stageNum = 1;
   let stageHeadline = "";
@@ -753,15 +739,34 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
     stageNum = 4;
     stateCategory = "completed";
     stageHeadline = "Stage 4: Handshake — Bilateral Introduction Executed";
-    stageContext = req.message ? `Introduction note: "${req.message}"` : "Handshake finalized. Both parties have access to bilateral contact info and the Exchange Hub.";
+    stageContext = req.message ? `Introduction note: "${req.message}"` : "Handshake finalized. Both parties have mutually shared contact coordinates and unmasked bilateral access.";
     primaryActionLabel = "Exchange Hub";
-  } else if (isAgreed || isDraftAgreement) {
+  } else if (isAgreed) {
+    // Stage 4 In-Progress: Agreement executed, contact coordinate exchange underway in bilateral escrow
+    stageNum = 4;
+    if (partnerPendingConsent) {
+      stateCategory = "action_needed";
+      stageHeadline = "Stage 4: Contact Exchange — Reciprocal Deposit Required";
+      stageContext = `${partnerName} has deposited contact coordinates into escrow. Deposit your coordinate to complete reciprocal unlock.`;
+      primaryActionLabel = "Exchange Hub";
+    } else if (myPendingConsent) {
+      stateCategory = "waiting";
+      stageHeadline = "Stage 4: Contact Exchange — Coordinate Deposited in Escrow";
+      stageContext = `Your contact coordinate is deposited in bilateral escrow. Waiting for ${partnerName} to deposit theirs.`;
+      primaryActionLabel = "Exchange Hub";
+    } else {
+      stateCategory = "action_needed";
+      stageHeadline = "Stage 4: Contact Exchange — Agreement Executed";
+      stageContext = "Exchange agreement signed by both parties. Deposit and exchange contact coordinates to finalize handshake.";
+      primaryActionLabel = "Exchange Hub";
+    }
+  } else if (isDraftAgreement) {
     stageNum = 3;
     if (!myConfirmedAgreement) {
       stateCategory = "action_needed";
       stageHeadline = "Stage 3: Final Agreement — Waiting for signature";
       stageContext = partnerConfirmedAgreement
-        ? `${partnerName} has counter-signed. Confirm your signature to finalize into Completed Handshake.`
+        ? `${partnerName} has counter-signed. Confirm your signature to finalize into Bilateral Contact Exchange.`
         : "Exchange agreement draft is ready. Review and sign to finalize bilateral connection.";
       primaryActionLabel = "Review Agreement";
     } else {
@@ -924,13 +929,17 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
 
   const activeOngoingDeals = useMemo(() => {
     return allCombinedRequestsWithWorkflow
-      .filter((d) => d.status !== "declined" && d.status !== "withdrawn")
+      .filter((d) => !isExchangeCompleted(d) && d.status !== "declined" && d.status !== "withdrawn")
       .slice(0, 4);
   }, [allCombinedRequestsWithWorkflow]);
 
   const attentionDeals = useMemo(() => {
     return allCombinedRequestsWithWorkflow.filter(
-      (d) => d.workflow?.stateCategory === "action_needed" && d.status !== "declined" && d.status !== "withdrawn"
+      (d) =>
+        d.workflow?.stateCategory === "action_needed" &&
+        !isExchangeCompleted(d) &&
+        d.status !== "declined" &&
+        d.status !== "withdrawn"
     );
   }, [allCombinedRequestsWithWorkflow]);
 
@@ -967,6 +976,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
   const newRequestsDeals = useMemo(() => {
     return allCombinedRequestsWithWorkflow.filter(
       (d) =>
+        !isExchangeCompleted(d) &&
         (d.workflow?.stageNum === 1 || d.status === "pending" || d.workflow?.stageHeadline?.includes("Stage 1") || d.workflow?.stageHeadline?.includes("Stage 2")) &&
         d.status !== "declined" &&
         d.status !== "withdrawn"
@@ -1011,14 +1021,19 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
         const queryDigits = query.replace(/\D/g, "");
 
         const oppTitle = (req.opportunity?.title || "").toLowerCase();
-        const dealCode = (req.opportunity?.opportunity_number ? `ry-${req.opportunity.opportunity_number}` : "").toLowerCase();
+        const oppCode = formatOpportunityCode(req.opportunity?.opportunity_number || req.opportunity_id || req.id).toLowerCase();
+        const exchangeCode = formatExchangeCode(req.opportunity?.opportunity_number || req.opportunity_id, req.id).toLowerCase();
         const reqId = (req.id || "").toLowerCase();
         const oppId = (req.opportunity?.id || "").toLowerCase();
-        const cleanCode = dealCode.replace(/[^a-z0-9]/g, "");
         const oppNumber = req.opportunity?.opportunity_number ? String(req.opportunity.opportunity_number) : "";
 
         const titleMatch = oppTitle.includes(query);
-        const codeMatch = dealCode.includes(query) || (cleanQuery.length > 0 && (cleanCode.includes(cleanQuery) || cleanQuery.includes(cleanCode)));
+        const codeMatch =
+          oppCode.includes(query) ||
+          exchangeCode.includes(query) ||
+          (cleanQuery.length > 0 &&
+            (oppCode.replace(/[^a-z0-9]/g, "").includes(cleanQuery) ||
+              exchangeCode.replace(/[^a-z0-9]/g, "").includes(cleanQuery)));
         const idMatch = reqId.includes(query) || oppId.includes(query);
         const digitsMatch = queryDigits.length > 0 && oppNumber.length > 0 && (
           oppNumber.endsWith(queryDigits) ||
@@ -1047,9 +1062,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
         isHandshakeComplete,
       } = req.workflow || computeRequestWorkflow(req, business?.id);
 
-      const dealCode = req.opportunity?.opportunity_number
-        ? `RY-${String(req.opportunity.opportunity_number).padStart(4, "0")}`
-        : `RY-${req.id?.substring(0, 4)?.toUpperCase() || "0000"}`;
+      const dealCode = formatExchangeCode(req.opportunity?.opportunity_number || req.opportunity_id, req.id);
 
       let stage: 1 | 2 | 3 | 4 = 1;
       let metric1Label = "Category";
@@ -1059,7 +1072,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
       let actionLabel = "View Details";
       let actionType: "high-intent" | "waiting" | "view" = "view";
 
-      if (isHandshakeComplete || stageNum >= 5) {
+      if (isHandshakeComplete || stageNum === 4) {
         stage = 4;
         metric1Label = "Transaction";
         metric1Val = "Completed";
@@ -1067,7 +1080,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
         metric2Val = "Fully Released";
         actionLabel = "View Closed Transaction →";
         actionType = "view";
-      } else if (stageNum === 4) {
+      } else if (stageNum === 3) {
         stage = 3;
         metric1Label = "Total Mandate";
         metric1Val = req.opportunity?.title || "Dual Covenant Mandate";
@@ -1075,7 +1088,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
         metric2Val = stateCategory === "action_needed" ? "Partner Signed (1/2)" : "Your Firm Signed (1/2)";
         actionLabel = stateCategory === "action_needed" ? "Your Turn • Countersign Agreement" : "Waiting on LP Signature";
         actionType = stateCategory === "action_needed" ? "high-intent" : "waiting";
-      } else if (stageNum === 3) {
+      } else if (stageNum === 2) {
         stage = 2;
         metric1Label = "Revenue Share";
         metric1Val = req.exchange_proposals?.[0]?.revenue_percentage ? `${req.exchange_proposals[0].revenue_percentage}% Net + $15k SLA` : "25% Net Rev Share";
@@ -1173,21 +1186,21 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
   }, [allCombinedRequestsWithWorkflow, directionFilter, categoryFilter]);
 
   const workspaceStage1Deals = useMemo(
-    () => directionScopedWorkspaceDeals.filter((d) => d.workflow.stageNum <= 2),
+    () => directionScopedWorkspaceDeals.filter((d) => d.workflow.stageNum === 1),
     [directionScopedWorkspaceDeals]
   );
   const workspaceStage2Deals = useMemo(
-    () => directionScopedWorkspaceDeals.filter((d) => d.workflow.stageNum === 3),
+    () => directionScopedWorkspaceDeals.filter((d) => d.workflow.stageNum === 2),
     [directionScopedWorkspaceDeals]
   );
   const workspaceStage3Deals = useMemo(
-    () => directionScopedWorkspaceDeals.filter((d) => d.workflow.stageNum === 4),
+    () => directionScopedWorkspaceDeals.filter((d) => d.workflow.stageNum === 3),
     [directionScopedWorkspaceDeals]
   );
   const workspaceStage4Deals = useMemo(
     () =>
       directionScopedWorkspaceDeals.filter(
-        (d) => d.workflow.stageNum === 5 || d.workflow.isHandshakeComplete
+        (d) => d.workflow.stageNum === 4 || d.workflow.isHandshakeComplete
       ),
     [directionScopedWorkspaceDeals]
   );
@@ -1220,8 +1233,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
         // 2. Stage Filter (4 stages: 1=ACK, 2=NEG, 3=AGR, 4=SHAKE)
         if (stageFilter !== "all") {
           const stageNum = deal.workflow?.stageNum ?? 1;
-          const pStage = stageNum <= 2 ? 1 : stageNum === 3 ? 2 : stageNum === 4 ? 3 : 4;
-          if (String(pStage) !== stageFilter) return false;
+          if (String(stageNum) !== stageFilter) return false;
         }
 
         // 3. Category Filter
@@ -1368,7 +1380,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
         partnerName: r.requesting_business?.company_name || "Partner Business",
         isVerified: r.requesting_business?.status === "approved",
         targetTitle: r.opportunity?.title || "Bilateral Opportunity",
-        targetCode: r.opportunity?.opportunity_number ? `RY-${String(r.opportunity.opportunity_number).padStart(4, "0")}` : "RY-0000",
+        targetCode: formatOpportunityCode(r.opportunity?.opportunity_number || r.opportunity_id || r.id),
         proposedTerms: r.message || r.opportunity?.offer_text || "Standard reciprocal partnership terms.",
         rawRequest: r,
       }));
@@ -2012,9 +2024,8 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                           const isInbound = deal.direction === "inbound";
                           const stageNum = deal.workflow?.stageNum ?? 1;
                           const isActionRequired = deal.workflow?.stateCategory === "action_needed";
-                          const dealCode = deal.opportunity?.opportunity_number
-                            ? `RY-${String(deal.opportunity.opportunity_number).padStart(4, "0")}`
-                            : `RY-${String(deal.id || "0000").substring(0, 4).toUpperCase()}`;
+                          const dealCode = formatExchangeCode(deal.opportunity?.opportunity_number || deal.opportunity_id, deal.id);
+                          const oppCode = formatOpportunityCode(deal.opportunity?.opportunity_number || deal.opportunity_id || deal.id);
                           const categoryName = (
                             deal.opportunity?.category === "strategic_advice"
                               ? "Strategic Advice"
@@ -2040,8 +2051,8 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                               : deal.opportunity?.offer_text || "Reciprocal lead exchange & bilateral engagement terms");
                           const contractVal = deal.opportunity?.offer_text || (isInbound ? "€420,000 / YR" : "$1,850,000 TCV");
 
-                          // Progress bar calculation
-                          const pStage = stageNum <= 2 ? 1 : stageNum === 3 ? 2 : stageNum === 4 ? 3 : 4;
+                          // Progress bar calculation (1: Ack, 2: Neg, 3: Agr, 4: Shake)
+                          const pStage = (Math.max(1, Math.min(4, stageNum))) as 1 | 2 | 3 | 4;
 
                           const normalizedPipelineDeal: PipelineOpportunity = {
                             id: deal.id,
@@ -2050,8 +2061,8 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                             origin: isInbound ? "posted" : "requested",
                             partner: partnerName,
                             isVerified: Boolean(deal.workflow?.isVerified),
-                            isUnblinded: Boolean(stageNum >= 5 || deal.workflow?.isHandshakeComplete),
-                            stage: pStage as 1 | 2 | 3 | 4,
+                            isUnblinded: Boolean(stageNum === 4 || deal.workflow?.isHandshakeComplete),
+                            stage: pStage,
                             metricLabel1: "Scope",
                             metricValue1: scopeTerms,
                             metricLabel2: "Value",
@@ -2062,11 +2073,14 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                             rawRequest: deal,
                           };
 
+                          const isCompleted = isExchangeCompleted(deal);
+
                           return (
                             <BilateralDealOpportunityCard
                               key={deal.id}
                               dealCode={dealCode}
-                              pStage={pStage as 1 | 2 | 3 | 4}
+                              pStage={(isCompleted ? 4 : pStage) as 1 | 2 | 3 | 4}
+                              isCompleted={isCompleted}
                               receivedAt={deal.created_at}
                               category={
                                 deal.opportunity?.category === "strategic_advice"

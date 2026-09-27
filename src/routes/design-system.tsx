@@ -51,8 +51,14 @@ import {
   LivePulseBadge,
   SemanticStatusPill,
   ExecutiveDarkBadge,
-  SolidStatusChip,
   ExecutiveAlertBanner,
+  WaitingBanner,
+  WaitingBannerStrip,
+  WaitingBannerMidnight,
+  WaitingBannerDismissible,
+  ConfirmationBanner,
+  ConfirmationBannerStrip,
+  ConfirmationBannerMidnight,
   TopicFilterPills,
   executiveToast,
   ExecutiveToastContainer,
@@ -752,67 +758,257 @@ function BadgesSection({ onCopy, copiedCode }: { onCopy: (c: string, id: string)
 // 5. IN-APP CONTEXTUAL BANNERS SECTION
 // ─────────────────────────────────────────────────────────────────────────────
 function BannersSection({ onCopy, copiedCode }: { onCopy: (c: string, id: string) => void; copiedCode: string | null }) {
-  const [activeBanner, setActiveBanner] = useState<"success" | "warning" | "danger">("warning");
+  const [perspective, setPerspective] = useState<"action_required" | "waiting" | "ratified">("action_required");
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
+    <div className="space-y-10 animate-in fade-in duration-200">
       <div>
         <span className="text-[11px] font-mono uppercase font-bold text-slate-400 tracking-wider">
           Specification 02
         </span>
         <h1 className="text-2xl font-bold text-[#171F2C] tracking-tight mt-0.5">
-          In-App Contextual Alert Banners
+          In-App Banners & Bilateral Status System
         </h1>
         <p className="text-xs text-[#64748B] mt-1">
-          High-conviction banner alerts for sovereign handshakes, counter-offer SLA timers, and escrow terminations.
+          Standardized banner architecture from seo_code_guide.md: Waiting Banner System (Direction A), Stage 03 Agreement Confirmation Banners, and Contextual Alert Cards.
         </p>
       </div>
 
+      {/* ── 1. STAGE 03 AGREEMENT CONFIRMATION BANNERS ── */}
       <div className="space-y-4">
-        {/* Success Banner */}
-        <ExecutiveAlertBanner
-          variant="success"
-          title="Stage 4 Handshake Verified & Sovereign Dealroom Unmasked"
-          badgeText="Bilateral Assent Confirmed"
-          description="Both parties executed sovereign digital signatures. Identity masking has been lifted and bilateral dealroom contact dossier is now fully accessible."
-          primaryAction={{
-            label: "Open Deal Dossier",
-            onClick: () => toast.success("Opening Deal Dossier..."),
-          }}
-          onDismiss={() => toast.info("Dismissed")}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+          <div>
+            <h2 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider font-mono">
+              Stage 03 • Agreement Confirmation Banners
+            </h2>
+            <p className="text-xs text-slate-500">
+              Bilateral assent locks for Stage 03 Ratification Room.
+            </p>
+          </div>
+          {/* Dynamic Perspective Switcher */}
+          <div className="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
+            <button
+              type="button"
+              onClick={() => setPerspective("action_required")}
+              className={`px-3 py-1 rounded font-semibold transition-all cursor-pointer ${
+                perspective === "action_required"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              Action Required
+            </button>
+            <button
+              type="button"
+              onClick={() => setPerspective("waiting")}
+              className={`px-3 py-1 rounded font-semibold transition-all cursor-pointer ${
+                perspective === "waiting"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              Awaiting Partner
+            </button>
+            <button
+              type="button"
+              onClick={() => setPerspective("ratified")}
+              className={`px-3 py-1 rounded font-semibold transition-all cursor-pointer ${
+                perspective === "ratified"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              Mutual Complete
+            </button>
+          </div>
+        </div>
+
+        {/* Dynamic Perspective Banner */}
+        <ConfirmationBanner
+          bilateralState={perspective}
+          counterpartyName="Apex Holdings (London)"
+          protocolHash="7F0E4D2B"
+          timestamp="Oct 24, 14:32 UTC"
+          onConfirm={() => toast.success("Bilateral Assent Sealed!")}
+          onRevision={() => toast.info("Opening Term Revision Drawer...")}
+          confirmButtonLabel="Confirm & Proceed to Stage 04"
+          revisionButtonLabel="Review Terms or Request Revision"
         />
 
-        {/* Warning Banner */}
-        <ExecutiveAlertBanner
-          variant="warning"
-          title="Bilateral Turn Active: Counter-Offer Awaiting Your Review"
-          badgeText="18:14:02 SLA Remaining"
-          badgeFormat="mono"
-          description="Synthetix AI proposed an adjustment to Clause 8.2 (25% rev-share + $15k co-marketing budget). Response required within protocol window."
-          primaryAction={{
-            label: "Review Counter-Terms",
-            onClick: () => toast.warning("Opening Counter-Terms modal..."),
-          }}
-          secondaryAction={{
-            label: "Snooze 2h",
-            onClick: () => toast.info("Snoozed SLA reminder"),
-          }}
-          onDismiss={() => toast.info("Dismissed")}
-        />
+        {/* Variant 02: High-Density Inline Turn Strip */}
+        <div className="pt-2 space-y-1.5">
+          <span className="text-[11px] font-mono font-bold text-slate-400 uppercase">
+            Variant 02 — High-Density Inline Turn Strip
+          </span>
+          <ConfirmationBannerStrip
+            title="Confirm to Finalize Agreement & Move to Stage 04"
+            onConfirm={() => toast.success("Confirmed Agreement")}
+            onRevision={() => toast.info("Reviewing terms...")}
+          />
+        </div>
 
-        {/* Danger Banner */}
-        <ExecutiveAlertBanner
-          variant="danger"
-          title="Bilateral Escrow Terminated: Counter-Offer Expired Unsigned"
-          badgeText="HASH #0x82f..901"
-          badgeFormat="mono"
-          description="Apex Logistics did not execute protocol endorsement within the mandatory 48-hour diligence window. Syndicate capital allocation lock dissolved."
-          primaryAction={{
-            label: "Review Breach Audit",
-            onClick: () => toast.error("Opening Breach Audit dossier..."),
-          }}
-          onDismiss={() => toast.info("Dismissed")}
-        />
+        {/* Variant 03: Midnight Dealroom Vault Banner */}
+        <div className="pt-2 space-y-1.5">
+          <span className="text-[11px] font-mono font-bold text-slate-400 uppercase">
+            Variant 03 — Executive Midnight Dealroom Vault Banner
+          </span>
+          <ConfirmationBannerMidnight
+            counterpartyName="Pacific Bridge Capital"
+            protocolHash="RLY-8842-TERM"
+            timestamp="2025-10-24T14:32:09Z"
+            isCounterpartyConfirmed={true}
+            onConfirm={() => toast.success("Dual-Signature Sealed in Vault!")}
+            onRevision={() => toast.info("Opening Term sheet...")}
+          />
+        </div>
+      </div>
+
+      {/* ── 2. WAITING BANNER SYSTEM (DIRECTION A AMBER) ── */}
+      <div className="space-y-4 pt-4 border-t border-slate-200">
+        <div>
+          <h2 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider font-mono">
+            Waiting Banner System (Direction A • Warm Institutional Amber)
+          </h2>
+          <p className="text-xs text-slate-500">
+            Engineered to signal turn latency, SLA countdowns, and non-blocking ratification holds without false alarms.
+          </p>
+        </div>
+
+        {/* Variant A: Standard Inline Contextual Banner */}
+        <div className="space-y-1.5">
+          <span className="text-[11px] font-mono font-bold text-slate-400 uppercase">
+            Variant A — Standard Inline Contextual Waiting Banner
+          </span>
+          <WaitingBanner
+            counterparty="Apex Holdings (London)"
+            slaRemaining="35h 59m 48s"
+            protocolHash="7F0E4D2B"
+            primaryAction={{
+              label: "Signal Readiness",
+              onClick: () => toast.success("Readiness signal dispatched"),
+            }}
+            secondaryAction={{
+              label: "View Submitted Terms",
+              onClick: () => toast.info("Viewing terms"),
+            }}
+          />
+        </div>
+
+        {/* Variant B: Compact Turn-State Strip */}
+        <div className="space-y-1.5">
+          <span className="text-[11px] font-mono font-bold text-slate-400 uppercase">
+            Variant B — Compact Turn-State Strip
+          </span>
+          <WaitingBannerStrip
+            counterparty="Vantage Sovereign"
+            slaRemaining="41h 12m"
+            primaryAction={{
+              label: "Withdraw Proposal",
+              onClick: () => toast.warning("Withdraw prompt"),
+            }}
+            secondaryAction={{
+              label: "Edit Proposed Markup",
+              onClick: () => toast.info("Editing markup"),
+            }}
+          />
+        </div>
+
+        {/* Variant C: Executive Midnight Waiting Banner */}
+        <div className="space-y-1.5">
+          <span className="text-[11px] font-mono font-bold text-slate-400 uppercase">
+            Variant C — Executive Midnight Waiting Banner
+          </span>
+          <WaitingBannerMidnight
+            counterparty="Pacific Bridge Capital"
+            slaRemaining="18h 42m"
+            protocolHash="VAULT-9921"
+            primaryAction={{
+              label: "Dispatch Encrypted Nudge",
+              onClick: () => toast.success("Encrypted nudge sent"),
+            }}
+            secondaryAction={{
+              label: "Audit Trail Log",
+              onClick: () => toast.info("Opening audit log"),
+            }}
+          />
+        </div>
+
+        {/* Variant D: Dismissible Actionable Banner */}
+        <div className="space-y-1.5">
+          <span className="text-[11px] font-mono font-bold text-slate-400 uppercase">
+            Variant D — Actionable Dismissible Notification Drawer
+          </span>
+          <WaitingBannerDismissible
+            counterparty="External Legal Counsel"
+            slaRemaining="12 business hours"
+            title="Pending Regulatory Clearance Review"
+            description="External legal counsel has acknowledged docket #991-A. Target clearance estimated in 12 business hours."
+            primaryAction={{
+              label: "Remind Counsel",
+              onClick: () => toast.info("Reminder dispatched"),
+            }}
+            onDismiss={() => toast.info("Banner dismissed")}
+          />
+        </div>
+      </div>
+
+      {/* ── 3. UNIVERSAL EXECUTIVE ALERT BANNERS ── */}
+      <div className="space-y-4 pt-4 border-t border-slate-200">
+        <div>
+          <h2 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider font-mono">
+            Universal Contextual Alert Banners
+          </h2>
+          <p className="text-xs text-slate-500">
+            Semantic alerts for success outcomes, turn timers, and terminations.
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {/* Success Banner */}
+          <ExecutiveAlertBanner
+            variant="success"
+            title="Stage 4 Handshake Verified & Sovereign Dealroom Unmasked"
+            badgeText="Bilateral Assent Confirmed"
+            description="Both parties executed sovereign digital signatures. Identity masking has been lifted and bilateral dealroom contact dossier is now fully accessible."
+            primaryAction={{
+              label: "Open Deal Dossier",
+              onClick: () => toast.success("Opening Deal Dossier..."),
+            }}
+            onDismiss={() => toast.info("Dismissed")}
+          />
+
+          {/* Warning Banner */}
+          <ExecutiveAlertBanner
+            variant="warning"
+            title="Bilateral Turn Active: Counter-Offer Awaiting Your Review"
+            badgeText="18:14:02 SLA Remaining"
+            badgeFormat="mono"
+            description="Synthetix AI proposed an adjustment to Clause 8.2 (25% rev-share + $15k co-marketing budget). Response required within protocol window."
+            primaryAction={{
+              label: "Review Counter-Terms",
+              onClick: () => toast.warning("Opening Counter-Terms modal..."),
+            }}
+            secondaryAction={{
+              label: "Snooze 2h",
+              onClick: () => toast.info("Snoozed SLA reminder"),
+            }}
+            onDismiss={() => toast.info("Dismissed")}
+          />
+
+          {/* Danger Banner */}
+          <ExecutiveAlertBanner
+            variant="danger"
+            title="Bilateral Escrow Terminated: Counter-Offer Expired Unsigned"
+            badgeText="HASH #0x82f..901"
+            badgeFormat="mono"
+            description="Apex Logistics did not execute protocol endorsement within the mandatory 48-hour diligence window. Syndicate capital allocation lock dissolved."
+            primaryAction={{
+              label: "Review Breach Audit",
+              onClick: () => toast.error("Opening Breach Audit dossier..."),
+            }}
+            onDismiss={() => toast.info("Dismissed")}
+          />
+        </div>
       </div>
     </div>
   );

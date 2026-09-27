@@ -116,7 +116,7 @@ export function formatValueCategories(
 export function highlightMatchedText(
   text: string | null | undefined,
   highlightedTerms?: string[] | null,
-  highlightClassName = "bg-yellow-200 text-slate-900 px-1 py-0.5 rounded-xs font-normal"
+  highlightClassName = "bg-amber-100 text-amber-950 font-semibold inline !p-0 !py-0 !px-0 !m-0 leading-tight"
 ): React.ReactNode {
   if (!text) return null;
   if (!highlightedTerms || highlightedTerms.length === 0) {
@@ -139,37 +139,45 @@ export function highlightMatchedText(
   // Sort terms by descending length so longer phrases match first before sub-phrases
   cleanTerms.sort((a, b) => b.length - a.length);
 
-  // Escape special regex characters in terms
+  // Escape special regex characters in terms and allow flexible whitespace matching
   const escapedTerms = cleanTerms.map((t) =>
-    t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    t
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/\s+/g, "\\s+")
   );
 
-  const regex = new RegExp(`(${escapedTerms.join("|")})`, "gi");
-  const parts = text.split(regex);
+  try {
+    const regex = new RegExp(`(${escapedTerms.join("|")})`, "gi");
+    const parts = text.split(regex);
 
-  if (parts.length <= 1) {
+    if (parts.length <= 1) {
+      return text;
+    }
+
+    return (
+      <>
+        {parts.map((part, index) => {
+          const isMatch = cleanTerms.some((term) => {
+            const normTerm = term.replace(/\s+/g, " ").toLowerCase();
+            const normPart = part.replace(/\s+/g, " ").toLowerCase();
+            return normTerm === normPart;
+          });
+
+          if (isMatch) {
+            return (
+              <span key={index} className={highlightClassName}>
+                {part}
+              </span>
+            );
+          }
+
+          return <React.Fragment key={index}>{part}</React.Fragment>;
+        })}
+      </>
+    );
+  } catch {
     return text;
   }
-
-  return (
-    <>
-      {parts.map((part, index) => {
-        const isMatch = cleanTerms.some(
-          (term) => term.toLowerCase() === part.toLowerCase()
-        );
-
-        if (isMatch) {
-          return (
-            <mark key={index} className={highlightClassName}>
-              {part}
-            </mark>
-          );
-        }
-
-        return <React.Fragment key={index}>{part}</React.Fragment>;
-      })}
-    </>
-  );
 }
 
 export interface ExtractedTermsMetadata {
@@ -198,9 +206,34 @@ export function extractTermsMetadataFromText(
   const highlightedTerms: string[] = [];
   const valueCategories: string[] = [];
   let deliveryMethods: FormattedDeliveryMethod[] = [];
+  let rawCleanText = text;
+
+  // If text is serialized JSON payload
+  if (text.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed.highlighted_terms && Array.isArray(parsed.highlighted_terms)) {
+        highlightedTerms.push(...parsed.highlighted_terms.filter(Boolean));
+      }
+      if (parsed.highlightedTerms && Array.isArray(parsed.highlightedTerms)) {
+        highlightedTerms.push(...parsed.highlightedTerms.filter(Boolean));
+      }
+      if (parsed.value_categories && Array.isArray(parsed.value_categories)) {
+        valueCategories.push(...parsed.value_categories);
+      }
+      if (parsed.delivery_methods) {
+        deliveryMethods = formatDeliveryMethods(parsed.delivery_methods);
+      }
+      if (parsed.proposed_terms || parsed.message || parsed.exchange_details) {
+        rawCleanText = parsed.proposed_terms || parsed.message || parsed.exchange_details;
+      }
+    } catch {
+      // not JSON, continue
+    }
+  }
 
   // Extract from HTML <mark> tags if present
-  const markRegex = /<mark[^>]*>(.*?)<\/mark>/gi;
+  const markRegex = /<mark[^>]*>([\s\S]*?)<\/mark>/gi;
   let markMatch;
   while ((markMatch = markRegex.exec(text)) !== null) {
     if (markMatch[1] && markMatch[1].trim()) {
@@ -227,8 +260,16 @@ export function extractTermsMetadataFromText(
     const raw = keyTermsMatch[1].trim();
     const terms = raw.includes(";")
       ? raw.split(";").map((t) => t.trim()).filter(Boolean)
+      : raw.includes(",")
+      ? raw.split(",").map((t) => t.trim()).filter(Boolean)
       : [raw].filter(Boolean);
     highlightedTerms.push(...terms);
+  }
+
+  // Extract from [Accepted Terms]: term1
+  const acceptedTermsMatch = text.match(/\[Accepted Terms\]:\s*([^\[\n]+)/i);
+  if (acceptedTermsMatch && acceptedTermsMatch[1]) {
+    highlightedTerms.push(acceptedTermsMatch[1].trim());
   }
 
   // Extract from Key terms: term1; term2
@@ -242,7 +283,7 @@ export function extractTermsMetadataFromText(
   }
 
   // Remove annotations cleanly even if inline (stopping before next bracket or end of string)
-  const cleanText = text
+  const cleanText = rawCleanText
     .replace(/<[^>]*>/g, "")
     .replace(/\[Value Categories\]:\s*([^\[\n]+)/gi, "")
     .replace(/\[Delivery Methods\]:\s*([^\[\n]+)/gi, "")
@@ -253,7 +294,7 @@ export function extractTermsMetadataFromText(
 
   return {
     cleanText,
-    highlightedTerms: Array.from(new Set(highlightedTerms)),
+    highlightedTerms: Array.from(new Set(highlightedTerms.map((t) => t.trim()).filter(Boolean))),
     valueCategories: formatValueCategories(valueCategories),
     deliveryMethods,
   };

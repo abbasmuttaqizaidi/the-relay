@@ -1,12 +1,15 @@
 import * as React from "react";
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/tanstack-react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { getIncomingRequests } from "@/functions/getIncomingRequests";
 import { getSentRequests } from "@/functions/getSentRequests";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
-import { FloatingTurnDock, type TurnDeckDeal } from "@/design-system";
+import { getSupabaseClientConfig } from "@/functions/getSupabaseClientConfig";
+import { createClient } from "@supabase/supabase-js";
+import { FloatingTurnDock, type TurnDeckDeal, exchangeActivityBus } from "@/design-system";
+import { isExchangeCompleted } from "@/lib/exchange-status";
 
 // Shared workflow calculator for calculating dealroom stages and pending turn actions
 export function computeRequestWorkflow(req: any, currentBusinessId?: string) {
@@ -31,13 +34,16 @@ export function computeRequestWorkflow(req: any, currentBusinessId?: string) {
   const requesterAck = Boolean(req.requester_acknowledged_at) || !isInbound;
   const ownerAck = Boolean(req.owner_acknowledged_at);
   const bothAck = requesterAck && ownerAck;
-  const myAck = isInbound ? ownerAck : true;
-  const partnerAck = isInbound ? true : ownerAck;
 
-  const proposals = req.exchange_proposals || [];
+  const rawProposals = Array.isArray(req.exchange_proposals) ? req.exchange_proposals : [];
+  const proposals = [...rawProposals].sort(
+    (a: any, b: any) => ((b.version ?? b.round_number) || 0) - ((a.version ?? a.round_number) || 0)
+  );
   const latestProposal = proposals.length > 0 ? proposals[0] : null;
   const hasProposals = proposals.length > 0;
-  const agreement = req.exchange_agreement;
+
+  const rawAgreement = req.exchange_agreement || (Array.isArray(req.exchange_agreements) ? req.exchange_agreements[0] : null);
+  const agreement = rawAgreement;
   const isAgreed = agreement?.status === "agreed";
   const isDraftAgreement = agreement?.status === "draft" || Boolean(agreement && !isAgreed);
 
@@ -46,26 +52,17 @@ export function computeRequestWorkflow(req: any, currentBusinessId?: string) {
   const myConfirmedAgreement = isInbound ? ownerConfirmedAgreement : requesterConfirmedAgreement;
   const partnerConfirmedAgreement = isInbound ? requesterConfirmedAgreement : ownerConfirmedAgreement;
 
-  const consents = req.contact_consents || [];
+  const consents = Array.isArray(req.contact_consents) ? req.contact_consents : [];
   const myConsents = consents.filter((c: any) => c.from_business_id === myBizId);
-  const acceptedIncomingConsents = consents.filter(
-    (c: any) => c.to_business_id === myBizId && c.status === "accepted"
-  );
+  const incomingConsents = consents.filter((c: any) => c.to_business_id === myBizId);
+  const acceptedIncomingConsents = incomingConsents.filter((c: any) => c.status === "accepted");
+  const pendingIncomingConsents = incomingConsents.filter((c: any) => c.status === "pending");
+
   const hasSharedAnyContact = myConsents.length > 0;
   const hasAcceptedAnyContact = acceptedIncomingConsents.length > 0;
+  const hasPendingIncomingConsent = pendingIncomingConsents.length > 0;
 
-  const isLegacyHandshake =
-    req.status === "accepted" &&
-    !requesterAck &&
-    !ownerAck &&
-    !hasProposals &&
-    !agreement &&
-    consents.length === 0;
-
-  const isHandshakeComplete =
-    isLegacyHandshake ||
-    (isAgreed && hasSharedAnyContact && hasAcceptedAnyContact) ||
-    (isAgreed && (hasSharedAnyContact || hasAcceptedAnyContact));
+  const isHandshakeComplete = isExchangeCompleted(req);
 
   let stageNum = 1;
   let stageHeadline = "";
@@ -89,19 +86,37 @@ export function computeRequestWorkflow(req: any, currentBusinessId?: string) {
     stageHeadline = "Stage 4: Handshake — Bilateral Introduction Executed";
     stageContext = req.message ? `Introduction note: "${req.message}"` : "Handshake finalized.";
     primaryActionLabel = "Exchange Hub";
+  } else if (isAgreed && bothAck && (myConfirmedAgreement && partnerConfirmedAgreement)) {
+    stageNum = 4;
+    if (!hasSharedAnyContact) {
+      stateCategory = "action_needed";
+      stageHeadline = "Stage 4: Handshake — Share Contact Details";
+      stageContext = "Agreement ratified by both parties. Share your communication coordinates to complete the handshake.";
+      primaryActionLabel = "Share Contact";
+    } else if (hasPendingIncomingConsent) {
+      stateCategory = "action_needed";
+      stageHeadline = "Stage 4: Handshake — Approve Contact Reveal";
+      stageContext = `${partnerName} requested mutual contact sharing. Confirm approval to reveal details.`;
+      primaryActionLabel = "Approve Contact";
+    } else {
+      stateCategory = "waiting";
+      stageHeadline = "Stage 4: Handshake — Awaiting Partner Coordinates";
+      stageContext = `You shared contact coordinates. Awaiting reciprocal confirmation from ${partnerName}.`;
+      primaryActionLabel = "Exchange Hub";
+    }
   } else if (isAgreed || isDraftAgreement) {
     stageNum = 3;
     if (!myConfirmedAgreement) {
       stateCategory = "action_needed";
-      stageHeadline = "Stage 3: Agreement — Waiting for signature";
+      stageHeadline = "Stage 3: Agreement — Confirm Bilateral Agreement";
       stageContext = partnerConfirmedAgreement
-        ? `${partnerName} has counter-signed. Confirm your signature to finalize.`
-        : "Exchange agreement draft is ready. Review and sign to finalize bilateral connection.";
-      primaryActionLabel = "Review Agreement";
+        ? `${partnerName} has signed. Confirm your ratification to unlock contact exchange.`
+        : "Exchange terms accepted. Review and confirm agreement ratification.";
+      primaryActionLabel = "Review & Sign";
     } else {
       stateCategory = "waiting";
-      stageHeadline = "Stage 3: Agreement — Waiting for partner signature";
-      stageContext = `You have counter-signed the agreement. Awaiting signature from ${partnerName}.`;
+      stageHeadline = "Stage 3: Agreement — Waiting for Partner Ratification";
+      stageContext = `You confirmed the agreement. Awaiting signature from ${partnerName}.`;
       primaryActionLabel = "Exchange Hub";
     }
   } else if (hasProposals || bothAck) {
@@ -110,32 +125,52 @@ export function computeRequestWorkflow(req: any, currentBusinessId?: string) {
       const isReceivingProposal = latestProposal.receiving_business_id === myBizId;
       if (isReceivingProposal) {
         stateCategory = "action_needed";
-        stageHeadline = "Stage 2: Negotiation — Counter-offer received";
+        stageHeadline = ((latestProposal.version ?? latestProposal.round_number) || 1) > 1
+          ? "Stage 2: Negotiation — Counter-Offer Received"
+          : "Stage 2: Negotiation — Exchange Proposal Received";
         stageContext = `Proposed: ${latestProposal.exchange_details || (latestProposal.revenue_percentage ? `${latestProposal.revenue_percentage}% revenue share` : "Exchange terms")}. Awaiting your response.`;
-        primaryActionLabel = "Review Counter-Offer";
+        primaryActionLabel = "Review Proposal";
       } else {
         stateCategory = "waiting";
-        stageHeadline = "Stage 2: Negotiation — Proposal sent";
+        stageHeadline = "Stage 2: Negotiation — Proposal Sent";
         stageContext = `Proposed terms sent to ${partnerName}. Awaiting their counter-offer or acceptance.`;
         primaryActionLabel = "Exchange Hub";
       }
+    } else if (latestProposal && latestProposal.status === "declined") {
+      const didPartnerDeclineMyOffer = latestProposal.proposing_business_id === myBizId;
+      if (didPartnerDeclineMyOffer) {
+        stateCategory = "action_needed";
+        stageHeadline = "Stage 2: Negotiation — Offer Declined · Send Revised Terms";
+        stageContext = `${partnerName} declined your previous exchange terms. You can submit a revised offer.`;
+        primaryActionLabel = "Propose Terms";
+      } else {
+        stateCategory = "waiting";
+        stageHeadline = "Stage 2: Negotiation — Offer Declined";
+        stageContext = `You declined the counter-offer. Awaiting revised terms or new proposal from ${partnerName}.`;
+        primaryActionLabel = "Exchange Hub";
+      }
+    } else if (latestProposal && latestProposal.status === "withdrawn") {
+      stateCategory = "waiting";
+      stageHeadline = "Stage 2: Negotiation — Proposal Withdrawn";
+      stageContext = "You or the partner withdrew the proposal. You can submit revised bilateral terms.";
+      primaryActionLabel = "Exchange Hub";
     } else if (bothAck && !hasProposals) {
       if (!isInbound) {
         // Requester (Party A): Waiting for owner review of the initial pitch
         stateCategory = "waiting";
-        stageHeadline = "Stage 2: Negotiation — Awaiting Owner Response";
+        stageHeadline = "Stage 2: Negotiation — Awaiting Owner Review";
         stageContext = `You submitted your exchange pitch. Waiting for ${partnerName} to review and respond.`;
         primaryActionLabel = "Exchange Hub";
       } else {
         // Opportunity Owner (Party B): Action needed to review pitch and respond
         stateCategory = "action_needed";
-        stageHeadline = "Stage 2: Negotiation — Review Pitch & Respond";
-        stageContext = `${partnerName} submitted an exchange pitch for your opportunity. Review terms and respond.`;
+        stageHeadline = "Stage 2: Negotiation — Review Pitch & Propose Terms";
+        stageContext = `${partnerName} submitted an exchange pitch for your opportunity. Review terms and propose bilateral terms.`;
         primaryActionLabel = "Review Pitch";
       }
     } else {
       stateCategory = "action_needed";
-      stageHeadline = "Stage 2: Negotiation — Exchange negotiation active";
+      stageHeadline = "Stage 2: Negotiation — Exchange Negotiation Active";
       stageContext = "Both parties acknowledged protocol. Discuss terms and submit exchange proposal.";
       primaryActionLabel = "Exchange Hub";
     }
@@ -143,12 +178,12 @@ export function computeRequestWorkflow(req: any, currentBusinessId?: string) {
     stageNum = 1;
     if (isInbound) {
       stateCategory = "action_needed";
-      stageHeadline = "Stage 1: Acknowledgement — Inbound Pitch Awaiting Review";
+      stageHeadline = "Stage 1: Clearance — Inbound Pitch Awaiting Review";
       stageContext = req.message || "Partner has expressed interest in this opportunity. Review pitch context and accept to initiate exchange.";
       primaryActionLabel = "Acknowledge & Review";
     } else {
       stateCategory = "waiting";
-      stageHeadline = "Stage 1: Acknowledgement — Waiting for Operator Review";
+      stageHeadline = "Stage 1: Clearance — Waiting for Operator Review";
       stageContext = req.message ? `Your pitch: "${req.message}"` : "You submitted a pitch. Waiting for counterparty to acknowledge and respond.";
       primaryActionLabel = "Exchange Hub";
     }
@@ -170,6 +205,7 @@ export function computeRequestWorkflow(req: any, currentBusinessId?: string) {
 export function GlobalTurnDock() {
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // 1. Fetch user onboarding & business info
   const { data: onboardingData } = useQuery({
@@ -180,7 +216,7 @@ export function GlobalTurnDock() {
 
   const currentBusinessId = onboardingData?.business?.id;
 
-  // 2. Fetch incoming and sent requests
+  // 2. Fetch incoming and sent requests with auto-polling & real-time sync
   const { data: incomingRequests = [] } = useQuery({
     queryKey: ["incoming-requests"],
     queryFn: async () => {
@@ -188,6 +224,9 @@ export function GlobalTurnDock() {
       return (data || []).map((r: any) => ({ ...r, direction: "inbound" }));
     },
     enabled: Boolean(isLoaded && isSignedIn && onboardingData?.hasBusiness),
+    staleTime: 0,
+    refetchInterval: 2000,
+    refetchIntervalInBackground: true,
   });
 
   const { data: sentRequests = [] } = useQuery({
@@ -197,9 +236,91 @@ export function GlobalTurnDock() {
       return (data || []).map((r: any) => ({ ...r, direction: "outbound" }));
     },
     enabled: Boolean(isLoaded && isSignedIn && onboardingData?.hasBusiness),
+    staleTime: 0,
+    refetchInterval: 2000,
+    refetchIntervalInBackground: true,
   });
 
-  // 3. Compute dynamic action-needed turn deals
+  // 3. Listen to local event dispatchers and activity bus
+  useEffect(() => {
+    const handleSync = () => {
+      queryClient.refetchQueries({ queryKey: ["incoming-requests"], type: "all" });
+      queryClient.refetchQueries({ queryKey: ["sent-requests"], type: "all" });
+    };
+
+    window.addEventListener("relay:interest", handleSync);
+    const unsubActivity = exchangeActivityBus.subscribe(() => handleSync());
+
+    return () => {
+      window.removeEventListener("relay:interest", handleSync);
+      unsubActivity();
+    };
+  }, [queryClient]);
+
+  // 4. Listen to Supabase Realtime changes on exchange tables
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+
+    let activeChannel: any = null;
+    let isMounted = true;
+
+    const setupRealtime = async () => {
+      try {
+        const config = await getSupabaseClientConfig();
+        if (!config.supabaseUrl || !config.supabaseAnonKey || !isMounted) return;
+
+        const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
+
+        const handleTableChange = () => {
+          if (!isMounted) return;
+          queryClient.refetchQueries({ queryKey: ["incoming-requests"], type: "all" });
+          queryClient.refetchQueries({ queryKey: ["sent-requests"], type: "all" });
+        };
+
+        activeChannel = supabase
+          .channel("global-turn-dock-realtime-live")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "exchange_proposals" },
+            handleTableChange
+          )
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "exchange_agreements" },
+            handleTableChange
+          )
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "interests" },
+            handleTableChange
+          )
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "contact_consents" },
+            handleTableChange
+          )
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "notifications" },
+            handleTableChange
+          )
+          .subscribe();
+      } catch (err) {
+        console.error("Failed to setup Realtime sync for GlobalTurnDock:", err);
+      }
+    };
+
+    setupRealtime();
+
+    return () => {
+      isMounted = false;
+      if (activeChannel) {
+        activeChannel.unsubscribe();
+      }
+    };
+  }, [isLoaded, isSignedIn, queryClient]);
+
+  // 5. Compute dynamic action-needed turn deals
   const turnDeckDeals = useMemo<TurnDeckDeal[]>(() => {
     const all = [...incomingRequests, ...sentRequests];
     const actionDeals = all

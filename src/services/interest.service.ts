@@ -465,7 +465,22 @@ export class InterestService {
               owner: true,
             },
           },
-          opportunity: true,
+          opportunity: {
+            include: {
+              business: {
+                include: {
+                  owner: true,
+                },
+              },
+            },
+          },
+          exchange_proposals: {
+            orderBy: {
+              version: "desc",
+            },
+          },
+          exchange_agreement: true,
+          contact_consents: true,
         },
         orderBy: {
           created_at: "desc",
@@ -523,6 +538,13 @@ export class InterestService {
               },
             },
           },
+          exchange_proposals: {
+            orderBy: {
+              version: "desc",
+            },
+          },
+          exchange_agreement: true,
+          contact_consents: true,
         },
         orderBy: {
           created_at: "desc",

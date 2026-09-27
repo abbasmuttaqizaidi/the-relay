@@ -20,6 +20,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { getSentRequests } from "../functions/getSentRequests";
+import { getIncomingRequests } from "../functions/getIncomingRequests";
 import { withdrawInterest } from "../functions/withdrawInterest";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
@@ -69,6 +70,18 @@ function SentRequestsPage() {
     },
     enabled: Boolean(isLoaded && isSignedIn),
     staleTime: 1000 * 60, // 1 minute
+  });
+
+  // 3. Incoming Requests Query (for Tab Badge Count)
+  const { data: incomingRequests = [] } = useQuery({
+    queryKey: ["incoming-requests", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return [];
+      const data = await getIncomingRequests();
+      return data || [];
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60,
   });
 
   // Withdraw Mutation
@@ -141,6 +154,7 @@ function SentRequestsPage() {
                 {
                   id: "incoming",
                   label: "Incoming",
+                  count: incomingRequests.length,
                 },
                 {
                   id: "sent",

@@ -20,6 +20,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { getIncomingRequests } from "../functions/getIncomingRequests";
+import { getSentRequests } from "../functions/getSentRequests";
 import { acceptInterest } from "../functions/acceptInterest";
 import { declineInterest } from "../functions/declineInterest";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
@@ -70,6 +71,18 @@ function IncomingRequestsPage() {
     },
     enabled: Boolean(isLoaded && isSignedIn),
     staleTime: 1000 * 60, // 1 minute
+  });
+
+  // 3. Sent Requests Query (for Tab Badge Count)
+  const { data: sentRequests = [] } = useQuery({
+    queryKey: ["sent-requests", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return [];
+      const data = await getSentRequests();
+      return data || [];
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60,
   });
 
   const incomingCount = requests.filter((r: any) => r.status === "pending").length;
@@ -185,11 +198,12 @@ function IncomingRequestsPage() {
                 {
                   id: "incoming",
                   label: "Incoming",
-                  count: incomingCount > 0 ? incomingCount : requests.length,
+                  count: requests.length,
                 },
                 {
                   id: "sent",
                   label: "Sent",
+                  count: sentRequests.length,
                 },
               ]}
             />

@@ -42,8 +42,17 @@ import {
   LayoutGrid,
   Columns3,
   ArrowLeft,
+  Terminal,
+  Key,
+  ChevronRight,
+  Radio,
+  Hourglass,
+  AlertTriangle,
 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getIncomingRequests } from "@/functions/getIncomingRequests";
+import { getSentRequests } from "@/functions/getSentRequests";
 import { ExchangeType, ContactField, DeclineReason } from "@/types";
 import { acknowledgeExchangeProcess } from "@/functions/acknowledgeExchangeProcess";
 import { sendExchangeFollowUp } from "@/functions/sendExchangeFollowUp";
@@ -58,6 +67,7 @@ import { declineContactConsent } from "@/functions/declineContactConsent";
 import { createCustomContactDetail } from "@/functions/createCustomContactDetail";
 import { updateCustomContactDetail } from "@/functions/updateCustomContactDetail";
 import { deleteCustomContactDetail } from "@/functions/deleteCustomContactDetail";
+import { cn, formatTimeAgo, formatOpportunityCode, formatExchangeCode } from "@/lib/utils";
 import {
   formatDeliveryMethods,
   formatValueCategories,
@@ -96,6 +106,14 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Modal,
   Button,
   ExecutiveTabs,
@@ -107,6 +125,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  ExecutiveAlertBanner,
+  ConfirmationBanner,
+  WaitingBanner,
 } from "@/design-system";
 
 export const getExchangeTypeLabel = (type: string) => {
@@ -236,6 +257,67 @@ export function ExchangeWorkflow({
   const [customValue, setCustomValue] = useState("");
   const [editingCustomId, setEditingCustomId] = useState<string | null>(null);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const navigate = useNavigate();
+
+  // Fetch active ongoing exchanges for top switcher dropdown
+  const { data: incomingReqs = [] } = useQuery({
+    queryKey: ["incoming-requests"],
+    queryFn: async () => {
+      const d = await getIncomingRequests();
+      return (d || []).map((r: any) => ({ ...r, direction: "inbound" }));
+    },
+    staleTime: 10000,
+  });
+
+  const { data: sentReqs = [] } = useQuery({
+    queryKey: ["sent-requests"],
+    queryFn: async () => {
+      const d = await getSentRequests();
+      return (d || []).map((r: any) => ({ ...r, direction: "outbound" }));
+    },
+    staleTime: 10000,
+  });
+
+  const allActiveExchanges = React.useMemo(() => {
+    const combined = [...incomingReqs, ...sentReqs].filter(
+      (r: any) => r.status !== "declined" && r.status !== "withdrawn"
+    );
+    const seen = new Set<string>();
+    const list: Array<{
+      id: string;
+      opportunityTitle: string;
+      partnerName: string;
+      direction: "inbound" | "outbound";
+    }> = [];
+
+    // Ensure the currently opened exchange is always included
+    if (interest?.id) {
+      seen.add(interest.id);
+      list.push({
+        id: interest.id,
+        opportunityTitle: opportunity?.title || "Bilateral Exchange",
+        partnerName: (is_requester ? owner_business : requesting_business)?.company_name || "Partner",
+        direction: is_requester ? "outbound" : "inbound",
+      });
+    }
+
+    combined.forEach((item: any) => {
+      if (!seen.has(item.id)) {
+        seen.add(item.id);
+        const partner = item.direction === "inbound"
+          ? item.requesting_business?.company_name || "Partner"
+          : item.opportunity?.business?.company_name || "Target";
+        list.push({
+          id: item.id,
+          opportunityTitle: item.opportunity?.title || "Bilateral Exchange",
+          partnerName: partner,
+          direction: item.direction,
+        });
+      }
+    });
+
+    return list;
+  }, [incomingReqs, sentReqs, interest?.id, opportunity?.title, owner_business?.company_name, requesting_business?.company_name, is_requester]);
 
   // Active Field for Manage Sheet
   const [activeManageField, setActiveManageField] = useState<{
@@ -469,11 +551,17 @@ export function ExchangeWorkflow({
 
         let propValueCategories: string[] = [];
         let propDeliveryMethods: any[] = [];
+        let propHighlightedTerms: string[] = [];
         try {
           if (p.additional_terms && p.additional_terms.startsWith("{")) {
             const parsed = JSON.parse(p.additional_terms);
             if (parsed.value_categories) propValueCategories = formatValueCategories(parsed.value_categories);
             if (parsed.delivery_methods) propDeliveryMethods = formatDeliveryMethods(parsed.delivery_methods);
+            if (parsed.highlighted_terms && Array.isArray(parsed.highlighted_terms)) {
+              propHighlightedTerms = parsed.highlighted_terms.filter(Boolean);
+            } else if (parsed.highlightedTerms && Array.isArray(parsed.highlightedTerms)) {
+              propHighlightedTerms = parsed.highlightedTerms.filter(Boolean);
+            }
           }
         } catch {
           // ignore
@@ -496,10 +584,11 @@ export function ExchangeWorkflow({
         const combinedHighlights = Array.from(
           new Set([
             ...(p.highlighted_terms || []),
+            ...propHighlightedTerms,
             ...extractedDetails.highlightedTerms,
             ...extractedAdditional.highlightedTerms,
           ])
-        );
+        ).filter(Boolean);
 
         rList.push({
           roundNum,
@@ -1686,8 +1775,11 @@ export function ExchangeWorkflow({
                     Opportunity Posted by {targetBusiness.company_name}
                   </span>
                 )}
-                <span className="inline-flex items-center px-1.5 py-0.5 bg-slate-100 text-slate-700 text-[9px] font-mono font-bold uppercase tracking-wider rounded-[2px]">
-                  Listing #{opportunity.opportunity_number || "REF"}
+                <span className="inline-flex items-center px-1.5 py-0.5 bg-slate-900 text-white text-[9px] font-mono font-bold uppercase tracking-wider rounded-[2px]">
+                  Exchange #{formatExchangeCode(opportunity.opportunity_number || opportunity.id, interest.id)}
+                </span>
+                <span className="inline-flex items-center px-1.5 py-0.5 bg-slate-100 text-slate-700 text-[9px] font-mono font-bold uppercase tracking-wider rounded-[2px] border border-slate-200">
+                  Opp #{formatOpportunityCode(opportunity.opportunity_number || opportunity.id)}
                 </span>
               </div>
               <h3
@@ -1799,90 +1891,72 @@ export function ExchangeWorkflow({
         </div>
       )}
 
-        {/* B. Current Status / Awaiting Partner Card */}
-        {myAcknowledged && !otherAcknowledged && interest.status === "pending" && (
-          <div className="bg-slate-50 border border-slate-300 rounded-[4px] p-5 sm:p-6 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-slate-200 text-slate-900 rounded-[3px] shrink-0 mt-0.5">
-                  <Clock className="w-5 h-5" />
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-200/80 border border-slate-300 text-slate-900 text-[9.5px] font-mono font-bold uppercase tracking-wider rounded-[2px]">
-                      <Lock className="w-3 h-3 text-slate-700" /> AWAITING PARTNER
-                    </span>
-                  </div>
-                  <h4 className="font-display font-bold text-base text-slate-900">
-                    Waiting for {targetBusiness.company_name}
-                  </h4>
-                  <p className="text-xs text-slate-700 font-sans leading-relaxed">
-                    You’ve acknowledged the Relay exchange process. Exchange proposals and negotiation will unlock once {targetBusiness.company_name} acknowledges it too.
-                  </p>
-                  <div className="pt-1 flex items-center gap-1.5 text-xs font-medium text-slate-800">
-                    <span>⏱ They have 7 days to respond. If they don’t, we’ll suggest another relevant opportunity.</span>
-                  </div>
-                </div>
-              </div>
+        {/* Action Required: User needs to acknowledge process */}
+        {!myAcknowledged && (
+          <ExecutiveAlertBanner
+            variant="warning"
+            title="Action Required: Mandatory Process Review"
+            badgeText="Action Required"
+            badgeFormat="mono"
+            icon={<AlertCircle className="w-5 h-5 text-amber-700" />}
+            description={
+              <span>
+                Before discussing or proposing exchange terms on The Relay, you must acknowledge how the exchange workflow operates.
+              </span>
+            }
+            primaryAction={{
+              label: loadingAction === "acknowledge" ? "Recording..." : "Acknowledge Process",
+              onClick: handleAcknowledge,
+            }}
+          />
+        )}
 
-              {/* Follow-Up Action */}
-              {is_requester && (
-                <div className="shrink-0 flex flex-col sm:items-end gap-1 pt-1 sm:pt-0">
-                  <button
-                    type="button"
-                    onClick={handleFollowUp}
-                    disabled={!data?.can_follow_up || Boolean(interest.last_follow_up_at || data?.has_followed_up) || loadingAction === "follow-up"}
-                    className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2 font-mono text-[10px] font-bold uppercase tracking-wider rounded-[3px] transition-colors ${
-                      Boolean(interest.last_follow_up_at || data?.has_followed_up)
-                        ? "bg-slate-100 text-slate-600 cursor-not-allowed border border-slate-200"
-                        : data?.can_follow_up
-                        ? "bg-slate-900 hover:bg-slate-800 text-white cursor-pointer shadow-sm"
-                        : "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
-                    }`}
-                  >
-                    {Boolean(interest.last_follow_up_at || data?.has_followed_up) ? (
-                      <>
-                        <Check className="w-3.5 h-3.5" /> Follow-Up Sent
-                      </>
-                    ) : loadingAction === "follow-up" ? (
-                      "Sending..."
-                    ) : data?.can_follow_up ? (
-                      <>
-                        <Send className="w-3.5 h-3.5" /> Follow Up
-                      </>
-                    ) : (
-                      <>
-                        <Clock className="w-3.5 h-3.5" /> Follow Up (Available after 2 hours)
-                      </>
-                    )}
-                  </button>
-                  {!data?.can_follow_up && !Boolean(interest.last_follow_up_at || data?.has_followed_up) && (
-                    <span className="text-[10px] text-slate-500 font-mono">
-                      Available after 2 hours
-                    </span>
-                  )}
-                  {Boolean(interest.last_follow_up_at || data?.has_followed_up) && (
-                    <span className="text-[10px] text-slate-500 font-mono">
-                      Reminder sent to partner
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
+        {/* B. Current Status / Awaiting Partner Card (Sent State) */}
+        {myAcknowledged && !otherAcknowledged && interest.status === "pending" && (
+          <div className="space-y-3">
+            <ExecutiveAlertBanner
+              variant="warning"
+              title={`Exchange Mandate Sent • Waiting for ${targetBusiness.company_name}`}
+              badgeText="Awaiting Partner"
+              badgeFormat="mono"
+              icon={<Clock className="w-5 h-5 text-amber-700 animate-pulse" />}
+              description={
+                <span>
+                  You’ve acknowledged the Relay exchange process. Exchange proposals and negotiation will unlock once <strong className="text-slate-900 font-semibold">{targetBusiness.company_name}</strong> acknowledges it too. They have 7 days to respond.
+                </span>
+              }
+              primaryAction={
+                is_requester && data?.can_follow_up && !Boolean(interest.last_follow_up_at || data?.has_followed_up)
+                  ? {
+                      label: loadingAction === "follow-up" ? "Sending..." : "Send Follow-Up",
+                      onClick: handleFollowUp,
+                      icon: <Send className="w-3.5 h-3.5" />,
+                    }
+                  : undefined
+              }
+              secondaryAction={
+                is_requester && Boolean(interest.last_follow_up_at || data?.has_followed_up)
+                  ? {
+                      label: "Follow-Up Sent ✓",
+                      disabled: true,
+                    }
+                  : undefined
+              }
+            />
 
             {/* Reliability policy expandable element */}
-            <div className="border-t border-slate-200 pt-3">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-[4px]">
               <button
                 type="button"
                 onClick={() => setShowReliabilityInfo(!showReliabilityInfo)}
-                className="text-xs font-semibold text-slate-800 hover:text-slate-900 flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="text-xs font-semibold text-slate-800 hover:text-slate-900 flex items-center justify-between w-full cursor-pointer transition-colors"
               >
-                <span>What happens if they don’t respond?</span>
-                <span className="font-mono text-xs">{showReliabilityInfo ? "↓" : "→"}</span>
+                <span>What happens if they don’t respond? (7-Day SLA Policy)</span>
+                <span className="font-mono text-xs text-slate-500">{showReliabilityInfo ? "Hide ▲" : "View Details ▼"}</span>
               </button>
 
               {showReliabilityInfo && (
-                <div className="mt-3 p-4 bg-white border border-slate-200 rounded-[3px] space-y-2.5 text-xs text-slate-700 font-sans leading-relaxed">
+                <div className="mt-2.5 pt-2.5 border-t border-slate-200 space-y-2 text-xs text-slate-600 font-sans leading-relaxed">
                   <p>
                     Relay gives the other business 7 days to respond to your Interest.
                   </p>
@@ -1894,11 +1968,8 @@ export function ExchangeWorkflow({
                       <li>The business will receive 1 <strong>Response Violation</strong>.</li>
                     </ul>
                   </div>
-                  <p className="text-slate-600">
-                    Businesses can Decline or Withdraw an Interest at any time. These actions do not count as a Response Violation.
-                  </p>
-                  <p className="text-slate-600">
-                    If a business receives 3 Response Violations, its participation in Relay activities will be restricted and reviewed by Relay.
+                  <p className="text-slate-500 text-[11px]">
+                    If a business receives 3 Response Violations, its participation in Relay activities will be restricted.
                   </p>
                 </div>
               )}
@@ -1985,24 +2056,14 @@ export function ExchangeWorkflow({
       {/* Unresponsive Status Card & Suggested Opportunities */}
       {interest.status === "unresponsive" && (
         <div className="space-y-6">
-          <div className="bg-slate-50 border border-slate-200/80 rounded-[4px] p-5 sm:p-6 shadow-sm space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="p-2.5 bg-slate-200 text-slate-700 rounded-[3px] shrink-0 mt-0.5">
-                <Clock className="w-5 h-5" />
-              </div>
-              <div className="space-y-1">
-                <span className="inline-flex items-center px-2 py-0.5 bg-slate-200 text-slate-700 text-[9px] font-mono font-bold uppercase tracking-wider rounded-[2px]">
-                  Unresponsive
-                </span>
-                <h4 className="font-display font-bold text-base text-slate-900">
-                  {targetBusiness.company_name} remained unresponsive
-                </h4>
-                <p className="text-xs text-slate-600 font-sans leading-relaxed">
-                  The 7-day response window expired without acknowledgement. This Interest has been marked as Unresponsive and 1 Response Violation has been recorded for the business.
-                </p>
-              </div>
-            </div>
-          </div>
+          <ExecutiveAlertBanner
+            variant="danger"
+            title={`${targetBusiness.company_name} Remained Unresponsive`}
+            badgeText="7-Day SLA Expired"
+            badgeFormat="mono"
+            icon={<Clock className="w-5 h-5 text-red-700" />}
+            description="The 7-day response window expired without acknowledgement. This Interest has been marked as Unresponsive and 1 Response Violation has been recorded for the business."
+          />
 
           {/* Suggested Alternative Opportunities */}
           {data.suggested_opportunities && data.suggested_opportunities.length > 0 && (
@@ -2054,1145 +2115,1774 @@ export function ExchangeWorkflow({
     </div>
   );
 
-  // Stage 3 Content Renderer
-  const renderStage3Content = () => (
-    <>
-      {/* 5. STEP 3: Final Exchange Terms Confirmation */}
-      {isAgreementDraft && agreement && (
-        <div className="bg-white border border-slate-200 rounded-[4px] p-6 shadow-sm space-y-5">
-          <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-            <div className="p-2 bg-slate-100 text-slate-900 rounded-[3px]">
-              <FileText className="w-5 h-5 text-slate-900" />
+  // Stage 3 Content Renderer (Strictly matching seo_code_guide.md)
+  const renderStage3Content = () => {
+    if (!agreement) return null;
+
+    const finalProposal =
+      (proposals || []).find((p: any) => p.id === agreement.final_proposal_id) ||
+      (proposals && proposals.length > 0 ? proposals[0] : null);
+
+    // Categories & delivery methods
+    const rawValCats = finalProposal?.value_categories || interest?.value_categories;
+    const formattedValCats = formatValueCategories(rawValCats);
+    const valueCategoryDisplay =
+      formattedValCats[0] || opportunity?.category || "Referral";
+
+    const rawDelMethods = finalProposal?.delivery_methods || interest?.delivery_methods;
+    const formattedDelMethods = formatDeliveryMethods(rawDelMethods);
+    const deliveryMethodDisplay =
+      formattedDelMethods[0]?.label || "Direct Reseller / Partner";
+
+    // Highlighted terms
+    let propHighlights: string[] = [];
+    if (finalProposal?.highlighted_terms && Array.isArray(finalProposal.highlighted_terms)) {
+      propHighlights = finalProposal.highlighted_terms.filter(Boolean);
+    } else if (interest?.highlighted_terms && Array.isArray(interest.highlighted_terms)) {
+      propHighlights = interest.highlighted_terms.filter(Boolean);
+    }
+    const extractedHighlights = extractTermsMetadataFromText(agreement.exchange_details || "").highlightedTerms;
+    const combinedHighlights = Array.from(new Set([...propHighlights, ...extractedHighlights])).filter(Boolean);
+
+    const highlightedTermDisplay =
+      combinedHighlights[0] ||
+      (agreement.revenue_percentage != null
+        ? `${agreement.revenue_percentage}% profit in current yr`
+        : agreement.fixed_amount != null
+        ? `${agreement.currency || "USD"} ${agreement.fixed_amount.toLocaleString()}`
+        : "60% profit in current yr");
+
+    // Owner provides
+    const ownerTermsText =
+      opportunity?.offer_text ||
+      (opportunity?.description ? opportunity.description : "Access to opportunity: " + (opportunity?.title || ""));
+
+    // Requester provides
+    const requesterTypeLabel = getExchangeTypeLabel(agreement.exchange_type);
+    const requesterTermsText =
+      agreement.revenue_percentage != null
+        ? `${agreement.revenue_percentage}% of total profit earned in the current year for the next 2 years.`
+        : agreement.fixed_amount != null
+        ? `${agreement.currency || "USD"} ${agreement.fixed_amount.toLocaleString()} fixed settlement.`
+        : agreement.exchange_details || "Qualified Lead / Referral";
+
+    const myConfirmedDate = is_requester ? agreement.requester_confirmed_at : agreement.owner_confirmed_at;
+    const formattedConfirmationTime = myConfirmedDate
+      ? new Date(myConfirmedDate).toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }) + " UTC"
+      : "Oct 24, 14:32 UTC";
+
+    const categoryAndIndustry = `${opportunity?.category || "referral"} • ${opportunity?.industry || "AI & Automation"}`;
+
+    return (
+      <div className="w-full flex flex-col gap-4 sm:gap-5 font-sans">
+        {/* 1. TOP ACTION & STATUS BANNER (Variant 03: Executive Midnight Dealroom Vault Banner) */}
+        <ConfirmationBanner
+          variant="midnight"
+          bilateralState={myConfirmed ? "waiting" : "action_required"}
+          counterpartyName={targetBusiness?.company_name || "Partner"}
+          isCounterpartyConfirmed={Boolean(otherConfirmed)}
+          protocolHash={interest.id.slice(0, 8).toUpperCase()}
+          timestamp={formattedConfirmationTime}
+          isConfirming={loadingAction === "confirm"}
+          onConfirm={handleConfirmAgreement}
+          onRevision={
+            myConfirmed
+              ? () => setShowInlineAuditLog(!showInlineAuditLog)
+              : undefined
+          }
+          revisionButtonLabel={myConfirmed ? "View Submitted Assent" : undefined}
+          confirmButtonLabel={myConfirmed ? "Signal Readiness" : "✓ Confirm & Proceed to Stage 04"}
+        />
+
+        {/* 2. AGREED TERMS CONTAINER CARD (Full equal visual weight) */}
+        <div className="w-full bg-white border border-[#c5c6cc]/70 rounded-xl p-4 sm:p-6 flex flex-col gap-4 sm:gap-5 shadow-xs">
+          {/* Section Header */}
+          <div className="flex items-start gap-3 pb-3 border-b border-[#c5c6cc]/30">
+            <div className="w-8 h-8 rounded-lg bg-[#f2f4f6] flex items-center justify-center border border-[#c5c6cc]/40 shrink-0 text-[#010611]">
+              <FileText className="w-4 h-4 text-[#010611]" />
             </div>
-            <div>
-              <h3 className="font-display font-extrabold text-base text-slate-900">
+            <div className="flex flex-col gap-0.5">
+              <h2 className="font-sans text-sm sm:text-base font-bold text-[#010611] tracking-tight">
                 Final Exchange Terms
-              </h3>
-              <p className="text-xs text-slate-500 font-sans">
+              </h2>
+              <p className="text-xs text-[#505f76] leading-relaxed">
                 Review the exact negotiated exchange terms before confirming. Both parties must independently confirm before the agreement activates.
               </p>
             </div>
           </div>
 
-          {/* Agreed Summary Card */}
-          <div className="bg-slate-50 border border-slate-200 p-5 rounded-[3px] space-y-4">
-            {/* Opportunity Section */}
-            <div className="space-y-1 pb-3 border-b border-slate-200/60">
-              <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold block">
-                Opportunity
-              </span>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-display font-bold text-sm text-slate-900">
-                  {opportunity.title}
-                </span>
-                <span className="text-xs text-slate-500 font-mono">
-                  {opportunity.category} · {opportunity.industry}
+          {/* Dynamic Term View: Default Rich Split vs Simplified Linear */}
+          {viewMode === "default" ? (
+            <div className="w-full bg-[#f8fafc] border border-[#c5c6cc]/60 rounded-xl p-4 sm:p-5 flex flex-col gap-4 shadow-xs" id="view-mode-default">
+              {/* Header row of the term scope */}
+              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5 pb-2.5 border-b border-[#c5c6cc]/30">
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#505f76] font-bold">
+                    OPPORTUNITY
+                  </span>
+                  <span className="font-sans text-sm font-bold text-[#010611] tracking-tight">
+                    {opportunity?.title}
+                  </span>
+                </div>
+                <span className="font-mono text-[11px] text-[#505f76] tracking-tight sm:text-right shrink-0">
+                  {categoryAndIndustry}
                 </span>
               </div>
-            </div>
 
-            {/* Structured Dual Terms Breakdown */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-3.5 bg-white border border-slate-200 rounded-[3px] space-y-1.5">
-                <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-500 font-bold block">
-                  Opportunity Owner Provides
-                </span>
-                <p className="text-xs text-slate-800 font-sans leading-relaxed">
-                  Access to opportunity: <strong className="font-semibold text-slate-900">{opportunity.title}</strong>
-                  {opportunity.offer_text && (
-                    <span className="block text-slate-600 mt-1">{opportunity.offer_text}</span>
-                  )}
-                </p>
-              </div>
-
-              <div className="p-3.5 bg-white border border-slate-200 rounded-[3px] space-y-1.5">
-                <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-500 font-bold block">
-                  Interested Business Provides
-                </span>
-                <div className="text-xs text-slate-800 font-sans leading-relaxed space-y-1">
-                  <div className="font-bold text-slate-900">
-                    {getExchangeTypeLabel(agreement.exchange_type)}
-                    {agreement.revenue_percentage != null && ` — ${agreement.revenue_percentage}% Revenue Share`}
-                    {agreement.fixed_amount != null && ` — ${agreement.currency || "USD"} ${agreement.fixed_amount.toLocaleString()}`}
+              {/* Comparative Split Layout (2 Columns) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+                {/* Opportunity Owner Column */}
+                <div className="bg-white rounded-xl p-4 sm:p-5 flex flex-col justify-between gap-3 border border-[#c5c6cc]/60 shadow-xs">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-[#505f76] font-semibold">
+                      OPPORTUNITY OWNER PROVIDES
+                    </span>
+                    <p className="text-xs text-[#191c1e] leading-relaxed">
+                      <span className="text-[#505f76]">Access to opportunity:</span>{" "}
+                      <strong className="font-semibold text-[#010611]">{opportunity?.title}</strong>
+                    </p>
                   </div>
-                  <p className="text-slate-700">{agreement.exchange_details}</p>
+                  <div className="pt-2.5 bg-[#f2f4f6]/70 -mx-4 sm:-mx-5 -mb-4 sm:-mb-5 p-3 sm:p-4 rounded-b-xl border-t border-[#c5c6cc]/30">
+                    <span className="font-sans text-xs font-semibold text-[#010611]">
+                      {ownerTermsText}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Interested Business Column */}
+                <div className="bg-white rounded-xl p-4 sm:p-5 flex flex-col justify-between gap-3 border border-[#c5c6cc]/60 shadow-xs">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-[#505f76] font-semibold">
+                      INTERESTED BUSINESS PROVIDES
+                    </span>
+                    <p className="font-sans text-xs font-semibold text-[#010611]">
+                      {requesterTypeLabel}
+                    </p>
+                  </div>
+                  <div className="pt-2.5 bg-[#f2f4f6]/70 -mx-4 sm:-mx-5 -mb-4 sm:-mb-5 p-3 sm:p-4 rounded-b-xl border-t border-[#c5c6cc]/30">
+                    <span className="font-sans text-xs font-semibold text-[#010611]">
+                      {requesterTermsText}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Terms & Operational Conditions Section */}
+              <div className="flex flex-col gap-1.5 pt-1">
+                <div className="flex items-center justify-between pb-0.5">
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#505f76] font-semibold">
+                    ADDITIONAL TERMS & OPERATIONAL CONDITIONS
+                  </span>
+                  <span className="font-mono text-[10px] text-[#505f76] uppercase">
+                    Verified Protocol Spec
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-xl bg-white border border-[#c5c6cc]/40 shadow-xs">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-mono text-[9.5px] text-[#505f76] uppercase tracking-wider">Value Category</span>
+                    <span className="font-sans text-xs text-[#010611] font-semibold flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#010611] shrink-0" />
+                      {valueCategoryDisplay}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-mono text-[9.5px] text-[#505f76] uppercase tracking-wider">Delivery Method</span>
+                    <span className="font-sans text-xs text-[#010611] font-semibold flex items-center gap-1.5">
+                      <Handshake className="w-3.5 h-3.5 text-[#505f76] shrink-0" />
+                      {deliveryMethodDisplay}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-mono text-[9.5px] text-[#505f76] uppercase tracking-wider">Highlighted Provision</span>
+                    <span className="font-sans text-xs text-[#010611] font-semibold flex items-center gap-1.5">
+                      <DollarSign className="w-3.5 h-3.5 text-[#505f76] shrink-0" />
+                      {highlightedTermDisplay}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Additional Terms / Conditions */}
-            <div className="border-t border-slate-200/60 pt-3 text-xs">
-              <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold block mb-1">
-                Additional Terms / Conditions
-              </span>
-              <p className="text-slate-800 leading-relaxed font-sans">
-                {agreement.additional_terms ? (
-                  <span className="italic">&ldquo;{agreement.additional_terms}&rdquo;</span>
-                ) : (
-                  <span className="text-slate-400 italic">None specified</span>
-                )}
-              </p>
-            </div>
-          </div>
-
-          {/* Legal Disclosure Banner */}
-          <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-[3px] text-[11.5px] text-slate-800 leading-relaxed font-sans flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" />
-            <div>
-              <strong>Disclosure:</strong> Both businesses independently agree to the exchange terms. Relay facilitates the connection and records the agreed terms but does not guarantee payment, conversion, revenue, delivery, fulfilment, or performance by either business.
-            </div>
-          </div>
-
-          {/* Status & Confirmation CTA */}
-          <div
-            className={`rounded-[3px] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 border transition-all ${
-              !myConfirmed || !otherConfirmed
-                ? "bg-slate-50 border-slate-300 animate-pulse"
-                : "bg-slate-50 border-slate-200"
-            }`}
-          >
-            <div className="text-xs space-y-1">
-              <div className="font-semibold text-slate-800">
-                {myConfirmed ? (
-                  <span className="text-slate-900 inline-flex items-center gap-1.5 font-semibold">
-                    <Check className="w-4 h-4 text-slate-900" /> You have confirmed these terms
-                  </span>
-                ) : (
-                  <span className="text-slate-900 inline-flex items-center gap-1.5 font-semibold">
-                    <Clock className="w-4 h-4 text-slate-700" /> Waiting for your confirmation
-                  </span>
-                )}
+          ) : (
+            /* Simplified Linear View */
+            <div className="w-full bg-[#f2f4f6]/60 border border-[#c5c6cc]/60 rounded-xl p-4 sm:p-5 flex flex-col gap-3 shadow-xs" id="view-mode-simplified">
+              <div className="flex items-center justify-between border-b border-[#c5c6cc]/40 pb-2.5">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-[#505f76] font-semibold">
+                  Summary Specification
+                </span>
+                <span className="font-mono text-[11px] text-[#505f76]">{categoryAndIndustry}</span>
               </div>
-              <div className="text-slate-500">
-                {otherConfirmed ? (
-                  <span className="text-slate-700 inline-flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-slate-900" /> {targetBusiness.company_name} has confirmed
-                  </span>
-                ) : (
-                  <span className="text-slate-500 inline-flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" /> Waiting for {targetBusiness.company_name} to confirm
-                  </span>
-                )}
+              <div className="divide-y divide-[#c5c6cc]/30 text-xs font-sans">
+                <div className="py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                  <span className="font-semibold text-[#010611]">Opportunity Scope</span>
+                  <span className="text-[#505f76] sm:text-right">{opportunity?.title}</span>
+                </div>
+                <div className="py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                  <span className="font-semibold text-[#010611]">Opportunity Owner Consideration</span>
+                  <span className="text-[#505f76] sm:text-right">{ownerTermsText}</span>
+                </div>
+                <div className="py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                  <span className="font-semibold text-[#010611]">Interested Business Consideration</span>
+                  <span className="text-[#505f76] sm:text-right">{requesterTermsText}</span>
+                </div>
+                <div className="py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                  <span className="font-semibold text-[#010611]">Delivery Method</span>
+                  <span className="text-[#505f76] font-mono text-[11px] sm:text-right">{deliveryMethodDisplay}</span>
+                </div>
               </div>
             </div>
-
-            {!myConfirmed && (
-              <Button
-                onClick={handleConfirmAgreement}
-                disabled={loadingAction === "confirm"}
-                className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-mono text-[10px] uppercase tracking-widest font-bold py-2.5 px-6 rounded-[2px] cursor-pointer shrink-0"
-              >
-                {loadingAction === "confirm" ? "Confirming..." : "I Agree to These Exchange Terms"}
-              </Button>
-            )}
-          </div>
+          )}
         </div>
-      )}
-
-
-    </>
-  );
+      </div>
+    );
+  };
 
   // Stage 4 Content Renderer
-  const renderStage4Content = () => (
-    <>
-      {/* 6. STEP 4: Handshake & Reciprocal Contact Exchange */}
-      {isAgreed && (
-        <div className="space-y-6 font-sans">
-          {/* Main Handshake Container Card */}
-          <div className="bg-white border border-slate-200 rounded-[4px] p-5 sm:p-7 shadow-sm space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
-              <div className="flex items-start sm:items-center gap-3.5">
-                <div className="w-10 h-10 rounded-[3px] bg-slate-900 flex items-center justify-center text-white shrink-0 shadow-sm">
-                  <Handshake className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-900 text-white font-mono text-[8.5px] font-bold uppercase tracking-widest rounded-[2px]">
-                      <Share2 className="w-3 h-3 text-white" /> Step 4 · Handshake
-                    </span>
-                    {isHandshakeComplete && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-800 font-mono text-[8.5px] font-bold uppercase tracking-widest rounded-[2px]">
-                        <Check className="w-3 h-3 text-slate-900 stroke-[3]" /> Shared
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="font-display font-extrabold text-lg sm:text-xl text-slate-900">
-                    Handshake & Contact Exchange
+  const renderStage4Content = () => {
+    if (!isAgreed) return null;
+
+    // 1. Email Channel
+    const myEmailConsent = myConsents.find((c: any) => c.contact_field === "email");
+    const partnerEmailConsent = incomingConsents.find((c: any) => c.contact_field === "email");
+    const partnerEmailRevealed = allowed_revealed_contacts?.email || null;
+    const isEmailMutuallyShared =
+      (myEmailConsent?.status === "accepted" && partnerEmailConsent?.status === "accepted") ||
+      (Boolean(partnerEmailRevealed) && (myEmailConsent?.status === "accepted" || Boolean(is_legacy_handshake))) ||
+      Boolean(is_legacy_handshake);
+
+    let emailStatus: "not_requested" | "requested_by_me" | "incoming_request" | "mutually_shared" | "declined" =
+      "not_requested";
+    if (isEmailMutuallyShared) {
+      emailStatus = "mutually_shared";
+    } else if (partnerEmailConsent?.status === "requested" && myEmailConsent?.status !== "declined") {
+      emailStatus = "incoming_request";
+    } else if (myEmailConsent?.status === "requested") {
+      emailStatus = "requested_by_me";
+    } else if (myEmailConsent?.status === "declined" || partnerEmailConsent?.status === "declined") {
+      emailStatus = "declined";
+    }
+
+    const emailFieldData = {
+      key: "email",
+      name: "Business Email",
+      label: "Business Email",
+      type: "standard" as const,
+      myValue: myContacts.email,
+      partnerValue: partnerEmailRevealed,
+      status: emailStatus,
+    };
+
+    // 2. Phone Channel
+    const myPhoneConsent = myConsents.find((c: any) => c.contact_field === "phone");
+    const partnerPhoneConsent = incomingConsents.find((c: any) => c.contact_field === "phone");
+    const partnerPhoneRevealed = allowed_revealed_contacts?.phone || null;
+    const isPhoneMutuallyShared =
+      (myPhoneConsent?.status === "accepted" && partnerPhoneConsent?.status === "accepted") ||
+      (Boolean(partnerPhoneRevealed) && myPhoneConsent?.status === "accepted");
+
+    let phoneStatus: "not_requested" | "requested_by_me" | "incoming_request" | "mutually_shared" | "declined" =
+      "not_requested";
+    if (isPhoneMutuallyShared) {
+      phoneStatus = "mutually_shared";
+    } else if (partnerPhoneConsent?.status === "requested" && myPhoneConsent?.status !== "declined") {
+      phoneStatus = "incoming_request";
+    } else if (myPhoneConsent?.status === "requested") {
+      phoneStatus = "requested_by_me";
+    } else if (myPhoneConsent?.status === "declined" || partnerPhoneConsent?.status === "declined") {
+      phoneStatus = "declined";
+    }
+
+    const phoneFieldData = {
+      key: "phone",
+      name: "Direct Institutional Phone",
+      label: "Direct Institutional Phone",
+      type: "standard" as const,
+      myValue: myContacts.phone,
+      partnerValue: partnerPhoneRevealed,
+      status: phoneStatus,
+    };
+
+    // 3. LinkedIn Channel
+    const myLinkedinConsent = myConsents.find((c: any) => c.contact_field === "linkedin");
+    const partnerLinkedinConsent = incomingConsents.find((c: any) => c.contact_field === "linkedin");
+    const partnerLinkedinRevealed = allowed_revealed_contacts?.linkedin || null;
+    const isLinkedinMutuallyShared =
+      (myLinkedinConsent?.status === "accepted" && partnerLinkedinConsent?.status === "accepted") ||
+      (Boolean(partnerLinkedinRevealed) && myLinkedinConsent?.status === "accepted");
+
+    let linkedinStatus: "not_requested" | "requested_by_me" | "incoming_request" | "mutually_shared" | "declined" =
+      "not_requested";
+    if (isLinkedinMutuallyShared) {
+      linkedinStatus = "mutually_shared";
+    } else if (partnerLinkedinConsent?.status === "requested" && myLinkedinConsent?.status !== "declined") {
+      linkedinStatus = "incoming_request";
+    } else if (myLinkedinConsent?.status === "requested") {
+      linkedinStatus = "requested_by_me";
+    } else if (myLinkedinConsent?.status === "declined" || partnerLinkedinConsent?.status === "declined") {
+      linkedinStatus = "declined";
+    }
+
+    const linkedinFieldData = {
+      key: "linkedin",
+      name: "Managing Partner Profile",
+      label: "Managing Partner Profile",
+      type: "standard" as const,
+      myValue: myContacts.linkedin,
+      partnerValue: partnerLinkedinRevealed,
+      status: linkedinStatus,
+    };
+
+    // 4. Custom Channels
+    const customChannels = (myContacts.custom || []).map((customItem: any) => {
+      const fieldKey = `custom:${customItem.id}`;
+      const myConsent = myConsents.find((c: any) => c.contact_field === fieldKey);
+      const partnerRevealedCustom = (allowed_revealed_contacts?.custom || []).find(
+        (c: any) => c.label.toLowerCase() === customItem.label.toLowerCase() || c.id === customItem.id
+      );
+      const partnerValue = partnerRevealedCustom?.value || null;
+      const isMutuallyShared = Boolean(partnerValue) && myConsent?.status === "accepted";
+
+      let status: "not_requested" | "requested_by_me" | "incoming_request" | "mutually_shared" | "declined" =
+        "not_requested";
+      if (isMutuallyShared) {
+        status = "mutually_shared";
+      } else if (myConsent?.status === "requested") {
+        status = "requested_by_me";
+      } else if (myConsent?.status === "declined") {
+        status = "declined";
+      }
+
+      return {
+        key: fieldKey,
+        name: customItem.label,
+        label: customItem.label,
+        type: "custom" as const,
+        myValue: customItem.value,
+        partnerValue,
+        status,
+        customId: customItem.id,
+      };
+    });
+
+    // 5. Incoming custom requests from partner
+    const incomingCustomRequests = pendingIncomingConsentsList
+      .filter((req) => req.contact_field.startsWith("custom:"))
+      .map((req) => ({
+        key: req.contact_field,
+        name: req.label || "Custom Contact",
+        label: req.label || "Custom Contact",
+        type: "custom" as const,
+        myValue: null,
+        partnerValue: null,
+        status: "incoming_request" as const,
+        customId: undefined,
+      }));
+
+    const allStandardFields = [emailFieldData, phoneFieldData, linkedinFieldData];
+    const mutuallySharedCount =
+      allStandardFields.filter((f) => f.status === "mutually_shared").length +
+      customChannels.filter((f) => f.status === "mutually_shared").length;
+
+    const inEscrowRequestedCount =
+      allStandardFields.filter((f) => f.status === "requested_by_me").length +
+      customChannels.filter((f) => f.status === "requested_by_me").length;
+
+    const incomingRequestsCount =
+      allStandardFields.filter((f) => f.status === "incoming_request").length +
+      incomingCustomRequests.length;
+
+    const covenantTermsRate = agreement
+      ? agreement.revenue_percentage != null
+        ? `${agreement.revenue_percentage}% Revenue Share Lead`
+        : agreement.fixed_amount != null
+        ? `${agreement.currency || "USD"} ${agreement.fixed_amount.toLocaleString()} Settlement`
+        : getExchangeTypeLabel(agreement.exchange_type)
+      : "Stage 03 Settlement Lead";
+
+    const covenantChecksum = interest.id.slice(0, 8).toUpperCase();
+
+    return (
+      <div className="space-y-6 font-sans">
+        {/* Core Workspace Viewport: Asymmetric 12-Column Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+          {/* Left 8-Column Primary Execution Column */}
+          <section className="xl:col-span-8 flex flex-col gap-5">
+
+            {/* Top Stage 4 Execution Banner */}
+            <ExecutiveAlertBanner
+              variant="success"
+              title="Exchange Agreement Executed • Bilateral Contact Exchange Ready"
+              badgeText="Terms Sealed"
+              badgeFormat="mono"
+              icon={<ShieldCheck className="w-5 h-5 text-emerald-700" />}
+              description={
+                <span>
+                  The exchange agreement for this opportunity has been successfully executed with mutual consent from both parties. You can now securely share and exchange your contact coordinates (Business Email, Direct Phone, Managing Partner Profile, or Custom channels) whenever you are ready — each detail remains 100% private in escrow until both sides consent.
+                </span>
+              }
+              primaryAction={{
+                label: isCheckingStatus ? "Polling Node..." : "Refresh",
+                onClick: handleCheckStatus,
+                icon: <Clock className={`w-3.5 h-3.5 ${isCheckingStatus ? "animate-spin" : ""}`} />,
+              }}
+            />
+
+            {/* Main Exchange Channel Matrix */}
+            <section className="flex flex-col gap-3.5">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <h3 className="font-display font-bold text-base sm:text-lg text-[#171F2C]">
+                    Select Channels to Exchange
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Choose which contact details you want to exchange with <strong className="text-slate-800 font-semibold">{targetBusiness.company_name}</strong>.
+                  <p className="text-xs text-[#505f76]">
+                    Terms are officially executed. Share your preferred coordinates on-demand at your own pace. Contacts are released on a 1-to-1 reciprocal match.
                   </p>
                 </div>
+                <span className="font-mono text-[10px] font-bold text-[#505f76] uppercase tracking-wider bg-[#F8FAFC] border border-[#E2E8F0] px-2 py-0.5 rounded-[2px]">
+                  Protocol v2.4
+                </span>
               </div>
 
-              {/* Refresh Status Action */}
-              <Button
-                type="button"
-                onClick={handleCheckStatus}
-                disabled={isCheckingStatus}
-                variant="outline"
-                className="inline-flex items-center gap-1.5 h-8 px-3 border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-800 hover:text-slate-900 font-mono text-[9.5px] font-bold uppercase tracking-wider rounded-[2px] cursor-pointer self-start sm:self-auto shadow-none transition-colors"
-                title="Refresh exchange status from server"
-              >
-                <Clock className={`w-3.5 h-3.5 text-slate-600 ${isCheckingStatus ? "animate-spin" : ""}`} />
-                {isCheckingStatus ? "Checking..." : "Refresh Status"}
-              </Button>
-            </div>
-
-            {/* Compact Overall Explanation Note */}
-            <div className="p-3.5 rounded-[3px] border border-slate-200 bg-slate-50 flex items-start gap-2.5 text-xs text-slate-700 leading-relaxed">
-              <Lock className="w-4 h-4 text-slate-600 shrink-0 mt-0.5" />
-              <div>
-                <strong className="font-bold text-slate-900 font-mono uppercase tracking-wider text-[10px] block mb-0.5">
-                  RECIPROCAL PRIVACY RULE
-                </strong>
-                Each contact detail is exchanged separately. Your details remain private until both businesses complete the exchange.
-              </div>
-            </div>
-
-            {/* CONTACT DETAILS LIST */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                <div>
-                  <h4 className="font-mono text-[10px] uppercase tracking-widest text-slate-900 font-bold block">
-                    CONTACT DETAILS
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Manage direct bilateral exchange for each contact channel.
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  onClick={handleOpenAddCustomModal}
-                  variant="outline"
-                  className="inline-flex items-center gap-1.5 h-8 px-3 border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-800 hover:text-slate-900 font-mono text-[9.5px] font-bold uppercase tracking-wider rounded-[2px] cursor-pointer shadow-none transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5 text-slate-900" /> OTHERS
-                </Button>
-              </div>
-
-              {/* Compact Contact Field Cards */}
               <div className="space-y-3">
                 {/* 1. BUSINESS EMAIL CARD */}
-                {(() => {
-                  const myConsent = myConsents.find((c: any) => c.contact_field === "email");
-                  const partnerConsent = incomingConsents.find((c: any) => c.contact_field === "email");
-                  const partnerEmailRevealed = allowed_revealed_contacts?.email || null;
-                  const isMutuallyShared =
-                    (myConsent?.status === "accepted" && partnerConsent?.status === "accepted") ||
-                    (Boolean(partnerEmailRevealed) && (myConsent?.status === "accepted" || Boolean(is_legacy_handshake))) ||
-                    Boolean(is_legacy_handshake);
-
-                  let status: "not_requested" | "requested_by_me" | "incoming_request" | "mutually_shared" | "declined" =
-                    "not_requested";
-
-                  if (isMutuallyShared) {
-                    status = "mutually_shared";
-                  } else if (partnerConsent?.status === "requested" && myConsent?.status !== "declined") {
-                    status = "incoming_request";
-                  } else if (myConsent?.status === "requested") {
-                    status = "requested_by_me";
-                  } else if (myConsent?.status === "declined" || partnerConsent?.status === "declined") {
-                    status = "declined";
-                  }
-
-                  const fieldData = {
-                    key: "email",
-                    name: "Business Email",
-                    label: "Business Email",
-                    type: "standard" as const,
-                    myValue: myContacts.email,
-                    partnerValue: partnerEmailRevealed,
-                    status,
-                  };
-
-                  return (
-                    <div
-                      key="card-email"
-                      className={`p-4 rounded-[3px] border transition-all ${
-                        status === "mutually_shared"
-                          ? "bg-slate-50/70 border-slate-200"
-                          : status === "incoming_request"
-                          ? "bg-slate-50 border-slate-900"
-                          : status === "requested_by_me"
-                          ? "bg-slate-50/40 border-slate-300"
-                          : "bg-white border-slate-200"
-                      }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-start gap-3 min-w-0">
-                          <div
-                            className={`p-2 rounded-[2px] shrink-0 mt-0.5 ${
-                              status === "mutually_shared"
-                                ? "bg-slate-900 text-white"
-                                : "bg-slate-100 text-slate-700"
-                            }`}
-                          >
-                            {status === "mutually_shared" ? (
-                              <Check className="w-4 h-4 text-white stroke-[3]" />
-                            ) : (
-                              <Mail className="w-4 h-4 text-slate-700" />
-                            )}
-                          </div>
-
-                          <div className="space-y-1 min-w-0">
-                            <h5 className="font-mono text-xs uppercase tracking-wider font-bold text-slate-900">
-                              BUSINESS EMAIL
-                            </h5>
-
-                            {status === "mutually_shared" ? (
-                              <div className="space-y-0.5 text-xs font-mono">
-                                <p className="text-slate-600 truncate">
-                                  Your email: <strong className="text-slate-900">{myContacts.email || "—"}</strong>
-                                </p>
-                                <p className="text-slate-900 font-bold truncate">
-                                  Partner: {partnerEmailRevealed}
-                                </p>
-                              </div>
-                            ) : status === "incoming_request" ? (
-                              <div className="text-xs text-slate-800 font-sans">
-                                <span className="font-bold text-slate-950">
-                                  Request from {targetBusiness.company_name}
-                                </span>
-                              </div>
-                            ) : (
-                              <p className="text-xs text-slate-600 font-mono truncate">
-                                {myContacts.email || (
-                                  <span className="text-slate-400 italic">No email on profile</span>
-                                )}
-                              </p>
-                            )}
-
-                            {/* Status Indicator */}
-                            <div className="pt-0.5">
-                              {status === "mutually_shared" ? (
-                                <span className="font-mono text-[8px] uppercase font-bold text-slate-900 bg-slate-200 px-1.5 py-0.5 rounded-[2px]">
-                                  ✓ SHARED
-                                </span>
-                              ) : status === "requested_by_me" ? (
-                                <span className="font-mono text-[8px] uppercase font-bold text-slate-700 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-[2px]">
-                                  Waiting for partner
-                                </span>
-                              ) : status === "incoming_request" ? (
-                                <span className="font-mono text-[8.5px] text-slate-500 font-sans">
-                                  Wants to exchange email with you
-                                </span>
-                              ) : status === "declined" ? (
-                                <span className="font-mono text-[8px] uppercase font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-[2px]">
-                                  Declined
-                                </span>
-                              ) : (
-                                <span className="font-mono text-[8.5px] uppercase text-slate-400 font-bold">
-                                  Not requested
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* MANAGE Button */}
-                        <div className="self-end sm:self-auto shrink-0">
-                          <Button
-                            type="button"
-                            onClick={() => handleOpenManageSheet(fieldData)}
-                            variant="outline"
-                            className="h-8 px-4 font-mono text-[9.5px] uppercase font-bold tracking-wider border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-100 text-slate-900 hover:text-slate-900 rounded-[2px] transition-colors cursor-pointer shadow-none"
-                          >
-                            MANAGE
-                          </Button>
-                        </div>
-                      </div>
+                <article
+                  className={cn(
+                    "rounded-[4px] border p-4 sm:p-5 transition-all shadow-2xs relative overflow-hidden",
+                    emailStatus === "mutually_shared"
+                      ? "bg-[#171F2C] border-slate-700 text-white hover:border-slate-600"
+                      : emailStatus === "requested_by_me" || emailStatus === "incoming_request"
+                      ? "bg-white border-[#171F2C] hover:border-black"
+                      : "bg-white border-[#E2E8F0] hover:border-[#171F2C]"
+                  )}
+                >
+                  {/* Top Right Circular Checkmark Badge for Shared Contacts */}
+                  {emailStatus === "mutually_shared" && (
+                    <div className="absolute top-3.5 right-3.5 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-2xs">
+                      <Check className="w-3.5 h-3.5 text-[#010611] stroke-[3]" />
                     </div>
-                  );
-                })()}
+                  )}
 
-                {/* 2. PHONE NUMBER CARD */}
-                {(() => {
-                  const myConsent = myConsents.find((c: any) => c.contact_field === "phone");
-                  const partnerConsent = incomingConsents.find((c: any) => c.contact_field === "phone");
-                  const partnerPhoneRevealed = allowed_revealed_contacts?.phone || null;
-                  const isMutuallyShared =
-                    (myConsent?.status === "accepted" && partnerConsent?.status === "accepted") ||
-                    (Boolean(partnerPhoneRevealed) && myConsent?.status === "accepted");
-
-                  let status: "not_requested" | "requested_by_me" | "incoming_request" | "mutually_shared" | "declined" =
-                    "not_requested";
-
-                  if (isMutuallyShared) {
-                    status = "mutually_shared";
-                  } else if (partnerConsent?.status === "requested" && myConsent?.status !== "declined") {
-                    status = "incoming_request";
-                  } else if (myConsent?.status === "requested") {
-                    status = "requested_by_me";
-                  } else if (myConsent?.status === "declined" || partnerConsent?.status === "declined") {
-                    status = "declined";
-                  }
-
-                  const fieldData = {
-                    key: "phone",
-                    name: "Phone Number",
-                    label: "Phone Number",
-                    type: "standard" as const,
-                    myValue: myContacts.phone,
-                    partnerValue: partnerPhoneRevealed,
-                    status,
-                  };
-
-                  return (
-                    <div
-                      key="card-phone"
-                      className={`p-4 rounded-[3px] border transition-all ${
-                        status === "mutually_shared"
-                          ? "bg-slate-50/70 border-slate-200"
-                          : status === "incoming_request"
-                          ? "bg-slate-50 border-slate-900"
-                          : status === "requested_by_me"
-                          ? "bg-slate-50/40 border-slate-300"
-                          : "bg-white border-slate-200"
-                      }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-start gap-3 min-w-0">
-                          <div
-                            className={`p-2 rounded-[2px] shrink-0 mt-0.5 ${
-                              status === "mutually_shared"
-                                ? "bg-slate-900 text-white"
-                                : "bg-slate-100 text-slate-700"
-                            }`}
-                          >
-                            {status === "mutually_shared" ? (
-                              <Check className="w-4 h-4 text-white stroke-[3]" />
-                            ) : (
-                              <Phone className="w-4 h-4 text-slate-700" />
-                            )}
-                          </div>
-
-                          <div className="space-y-1 min-w-0">
-                            <h5 className="font-mono text-xs uppercase tracking-wider font-bold text-slate-900">
-                              PHONE NUMBER
-                            </h5>
-
-                            {status === "mutually_shared" ? (
-                              <div className="space-y-0.5 text-xs font-mono">
-                                <p className="text-slate-600 truncate">
-                                  Your phone: <strong className="text-slate-900">{myContacts.phone || "—"}</strong>
-                                </p>
-                                <p className="text-slate-900 font-bold truncate">
-                                  Partner: {partnerPhoneRevealed}
-                                </p>
-                              </div>
-                            ) : status === "incoming_request" ? (
-                              <div className="text-xs text-slate-800 font-sans">
-                                <span className="font-bold text-slate-950">
-                                  Request from {targetBusiness.company_name}
-                                </span>
-                              </div>
-                            ) : (
-                              <p className="text-xs text-slate-600 font-mono truncate">
-                                {myContacts.phone || (
-                                  <span className="text-slate-400 italic">No phone added</span>
-                                )}
-                              </p>
-                            )}
-
-                            {/* Status Indicator */}
-                            <div className="pt-0.5">
-                              {status === "mutually_shared" ? (
-                                <span className="font-mono text-[8px] uppercase font-bold text-slate-900 bg-slate-200 px-1.5 py-0.5 rounded-[2px]">
-                                  ✓ SHARED
-                                </span>
-                              ) : status === "requested_by_me" ? (
-                                <span className="font-mono text-[8px] uppercase font-bold text-slate-700 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-[2px]">
-                                  Waiting for partner
-                                </span>
-                              ) : status === "incoming_request" ? (
-                                <span className="font-mono text-[8.5px] text-slate-500 font-sans">
-                                  Wants to exchange phone with you
-                                </span>
-                              ) : status === "declined" ? (
-                                <span className="font-mono text-[8px] uppercase font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-[2px]">
-                                  Declined
-                                </span>
-                              ) : (
-                                <span className="font-mono text-[8.5px] uppercase text-slate-400 font-bold">
-                                  Not requested
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* MANAGE Button */}
-                        <div className="self-end sm:self-auto shrink-0">
-                          <Button
-                            type="button"
-                            onClick={() => handleOpenManageSheet(fieldData)}
-                            variant="outline"
-                            className="h-8 px-4 font-mono text-[9.5px] uppercase font-bold tracking-wider border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-100 text-slate-900 hover:text-slate-900 rounded-[2px] transition-colors cursor-pointer shadow-none"
-                          >
-                            MANAGE
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* 3. LINKEDIN CARD */}
-                {(() => {
-                  const myConsent = myConsents.find((c: any) => c.contact_field === "linkedin");
-                  const partnerConsent = incomingConsents.find((c: any) => c.contact_field === "linkedin");
-                  const partnerLinkedinRevealed = allowed_revealed_contacts?.linkedin || null;
-                  const isMutuallyShared =
-                    (myConsent?.status === "accepted" && partnerConsent?.status === "accepted") ||
-                    (Boolean(partnerLinkedinRevealed) && myConsent?.status === "accepted");
-
-                  let status: "not_requested" | "requested_by_me" | "incoming_request" | "mutually_shared" | "declined" =
-                    "not_requested";
-
-                  if (isMutuallyShared) {
-                    status = "mutually_shared";
-                  } else if (partnerConsent?.status === "requested" && myConsent?.status !== "declined") {
-                    status = "incoming_request";
-                  } else if (myConsent?.status === "requested") {
-                    status = "requested_by_me";
-                  } else if (myConsent?.status === "declined" || partnerConsent?.status === "declined") {
-                    status = "declined";
-                  }
-
-                  const fieldData = {
-                    key: "linkedin",
-                    name: "LinkedIn Profile",
-                    label: "LinkedIn Profile",
-                    type: "standard" as const,
-                    myValue: myContacts.linkedin,
-                    partnerValue: partnerLinkedinRevealed,
-                    status,
-                  };
-
-                  return (
-                    <div
-                      key="card-linkedin"
-                      className={`p-4 rounded-[3px] border transition-all ${
-                        status === "mutually_shared"
-                          ? "bg-slate-50/70 border-slate-200"
-                          : status === "incoming_request"
-                          ? "bg-slate-50 border-slate-900"
-                          : status === "requested_by_me"
-                          ? "bg-slate-50/40 border-slate-300"
-                          : "bg-white border-slate-200"
-                      }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-start gap-3 min-w-0">
-                          <div
-                            className={`p-2 rounded-[2px] shrink-0 mt-0.5 ${
-                              status === "mutually_shared"
-                                ? "bg-slate-900 text-white"
-                                : "bg-slate-100 text-slate-700"
-                            }`}
-                          >
-                            {status === "mutually_shared" ? (
-                              <Check className="w-4 h-4 text-white stroke-[3]" />
-                            ) : (
-                              <Linkedin className="w-4 h-4 text-slate-700" />
-                            )}
-                          </div>
-
-                          <div className="space-y-1 min-w-0">
-                            <h5 className="font-mono text-xs uppercase tracking-wider font-bold text-slate-900">
-                              LINKEDIN PROFILE
-                            </h5>
-
-                            {status === "mutually_shared" ? (
-                              <div className="space-y-0.5 text-xs font-mono">
-                                <p className="text-slate-600 truncate">
-                                  Your LinkedIn: <strong className="text-slate-900">{myContacts.linkedin || "—"}</strong>
-                                </p>
-                                <p className="text-slate-900 font-bold truncate">
-                                  Partner: {partnerLinkedinRevealed}
-                                </p>
-                              </div>
-                            ) : status === "incoming_request" ? (
-                              <div className="text-xs text-slate-800 font-sans">
-                                <span className="font-bold text-slate-950">
-                                  Request from {targetBusiness.company_name}
-                                </span>
-                              </div>
-                            ) : (
-                              <p className="text-xs text-slate-600 font-mono truncate">
-                                {myContacts.linkedin || (
-                                  <span className="text-slate-400 italic">No LinkedIn profile added</span>
-                                )}
-                              </p>
-                            )}
-
-                            {/* Status Indicator */}
-                            <div className="pt-0.5">
-                              {status === "mutually_shared" ? (
-                                <span className="font-mono text-[8px] uppercase font-bold text-slate-900 bg-slate-200 px-1.5 py-0.5 rounded-[2px]">
-                                  ✓ SHARED
-                                </span>
-                              ) : status === "requested_by_me" ? (
-                                <span className="font-mono text-[8px] uppercase font-bold text-slate-700 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-[2px]">
-                                  Waiting for partner
-                                </span>
-                              ) : status === "incoming_request" ? (
-                                <span className="font-mono text-[8.5px] text-slate-500 font-sans">
-                                  Wants to exchange LinkedIn with you
-                                </span>
-                              ) : status === "declined" ? (
-                                <span className="font-mono text-[8px] uppercase font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-[2px]">
-                                  Declined
-                                </span>
-                              ) : (
-                                <span className="font-mono text-[8.5px] uppercase text-slate-400 font-bold">
-                                  Not requested
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* MANAGE Button */}
-                        <div className="self-end sm:self-auto shrink-0">
-                          <Button
-                            type="button"
-                            onClick={() => handleOpenManageSheet(fieldData)}
-                            variant="outline"
-                            className="h-8 px-4 font-mono text-[9.5px] uppercase font-bold tracking-wider border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-100 text-slate-900 hover:text-slate-900 rounded-[2px] transition-colors cursor-pointer shadow-none"
-                          >
-                            MANAGE
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* 4. CUSTOM CONTACT CARDS (Others) */}
-                {(myContacts.custom || []).map((customItem: any) => {
-                  const fieldKey = `custom:${customItem.id}`;
-                  const myConsent = myConsents.find((c: any) => c.contact_field === fieldKey);
-                  const partnerRevealedCustom = (allowed_revealed_contacts?.custom || []).find(
-                    (c: any) => c.label.toLowerCase() === customItem.label.toLowerCase() || c.id === customItem.id
-                  );
-                  const partnerValue = partnerRevealedCustom?.value || null;
-                  const isMutuallyShared = Boolean(partnerValue) && myConsent?.status === "accepted";
-
-                  let status: "not_requested" | "requested_by_me" | "incoming_request" | "mutually_shared" | "declined" =
-                    "not_requested";
-
-                  if (isMutuallyShared) {
-                    status = "mutually_shared";
-                  } else if (myConsent?.status === "requested") {
-                    status = "requested_by_me";
-                  } else if (myConsent?.status === "declined") {
-                    status = "declined";
-                  }
-
-                  const fieldData = {
-                    key: fieldKey,
-                    name: customItem.label,
-                    label: customItem.label,
-                    type: "custom" as const,
-                    myValue: customItem.value,
-                    partnerValue,
-                    status,
-                    customId: customItem.id,
-                  };
-
-                  return (
-                    <div
-                      key={customItem.id}
-                      className={`p-4 rounded-[3px] border transition-all ${
-                        status === "mutually_shared"
-                          ? "bg-slate-50/70 border-slate-200"
-                          : status === "requested_by_me"
-                          ? "bg-slate-50/40 border-slate-300"
-                          : "bg-white border-slate-200"
-                      }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-start gap-3 min-w-0">
-                          <div
-                            className={`p-2 rounded-[2px] shrink-0 mt-0.5 ${
-                              status === "mutually_shared"
-                                ? "bg-slate-900 text-white"
-                                : "bg-slate-100 text-slate-700"
-                            }`}
-                          >
-                            {status === "mutually_shared" ? (
-                              <Check className="w-4 h-4 text-white stroke-[3]" />
-                            ) : (
-                              <Sparkles className="w-4 h-4 text-slate-700" />
-                            )}
-                          </div>
-
-                          <div className="space-y-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <h5 className="font-mono text-xs uppercase tracking-wider font-bold text-slate-900">
-                                {customItem.label}
-                              </h5>
-                              {!isMutuallyShared && status !== "requested_by_me" && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (confirm(`Remove "${customItem.label}"?`)) {
-                                      handleDeleteCustomContact(customItem.id);
-                                    }
-                                  }}
-                                  className="text-slate-400 hover:text-slate-800 p-0.5"
-                                  title="Delete Custom Channel"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              )}
-                            </div>
-
-                            {status === "mutually_shared" ? (
-                              <div className="space-y-0.5 text-xs font-mono">
-                                <p className="text-slate-600 truncate">
-                                  Your {customItem.label}: <strong className="text-slate-900">{customItem.value || "—"}</strong>
-                                </p>
-                                <p className="text-slate-900 font-bold truncate">
-                                  Partner: {partnerValue}
-                                </p>
-                              </div>
-                            ) : (
-                              <p className="text-xs text-slate-600 font-mono truncate">
-                                {customItem.value}
-                              </p>
-                            )}
-
-                            {/* Status Indicator */}
-                            <div className="pt-0.5">
-                              {status === "mutually_shared" ? (
-                                <span className="font-mono text-[8px] uppercase font-bold text-slate-900 bg-slate-200 px-1.5 py-0.5 rounded-[2px]">
-                                  ✓ SHARED
-                                </span>
-                              ) : status === "requested_by_me" ? (
-                                <span className="font-mono text-[8px] uppercase font-bold text-slate-700 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-[2px]">
-                                  Waiting for partner
-                                </span>
-                              ) : status === "declined" ? (
-                                <span className="font-mono text-[8px] uppercase font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-[2px]">
-                                  Declined
-                                </span>
-                              ) : (
-                                <span className="font-mono text-[8.5px] uppercase text-slate-400 font-bold">
-                                  Not requested
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* MANAGE Button */}
-                        <div className="self-end sm:self-auto shrink-0">
-                          <Button
-                            type="button"
-                            onClick={() => handleOpenManageSheet(fieldData)}
-                            variant="outline"
-                            className="h-8 px-4 font-mono text-[9.5px] uppercase font-bold tracking-wider border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-100 text-slate-900 hover:text-slate-900 rounded-[2px] transition-colors cursor-pointer shadow-none"
-                          >
-                            MANAGE
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* 5. INCOMING CUSTOM REQUESTS FROM PARTNER */}
-                {pendingIncomingConsentsList
-                  .filter((req) => req.contact_field.startsWith("custom:"))
-                  .map((req) => {
-                    const fieldData = {
-                      key: req.contact_field,
-                      name: req.label || "Custom Contact",
-                      label: req.label || "Custom Contact",
-                      type: "custom" as const,
-                      myValue: null,
-                      partnerValue: null,
-                      status: "incoming_request" as const,
-                    };
-
-                    return (
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3.5 min-w-0">
                       <div
-                        key={req.id}
-                        className="p-4 rounded-[3px] border border-slate-900 bg-slate-50"
+                        className={cn(
+                          "w-10 h-10 rounded-[4px] flex items-center justify-center shrink-0",
+                          emailStatus === "mutually_shared"
+                            ? "bg-[#010611] text-white border border-slate-700"
+                            : "bg-[#F8FAFC] border border-[#E2E8F0] text-[#171F2C]"
+                        )}
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div className="flex items-start gap-3 min-w-0">
-                            <div className="p-2 rounded-[2px] bg-slate-200 text-slate-800 shrink-0 mt-0.5">
-                              <EyeOff className="w-4 h-4 text-slate-800" />
-                            </div>
-                            <div className="space-y-1 min-w-0">
-                              <h5 className="font-mono text-xs uppercase tracking-wider font-bold text-slate-900">
-                                {req.label}
-                              </h5>
-                              <p className="text-xs text-slate-800 font-sans">
-                                <span className="font-bold text-slate-950">
-                                  Request from {targetBusiness.company_name}
-                                </span>
-                              </p>
-                              <span className="font-mono text-[8.5px] text-slate-500 font-sans block">
-                                Wants to exchange {req.label} with you
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="self-end sm:self-auto shrink-0">
-                            <Button
-                              type="button"
-                              onClick={() => handleOpenManageSheet(fieldData)}
-                              variant="outline"
-                              className="h-8 px-4 font-mono text-[9.5px] uppercase font-bold tracking-wider border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-100 text-slate-900 hover:text-slate-900 rounded-[2px] transition-colors cursor-pointer shadow-none"
-                            >
-                              MANAGE
-                            </Button>
-                          </div>
-                        </div>
+                        <Mail className="w-5 h-5" />
                       </div>
-                    );
-                  })}
-              </div>
-            </div>
-
-            {/* AGREED EXCHANGE TERMS REFERENCE */}
-            {agreement && (
-              <div className="pt-4 border-t border-slate-200">
-                <div className="bg-slate-50 border border-slate-200 p-4 rounded-[3px] space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-500 font-bold block">
-                      Agreed Exchange Terms
-                    </span>
-                    <span className="font-mono text-[8px] uppercase font-bold text-slate-800 bg-slate-200/80 px-1.5 py-0.5 rounded-[2px]">
-                      Confirmed
-                    </span>
-                  </div>
-                  <p className="font-bold text-slate-900">
-                    {getExchangeTypeLabel(agreement.exchange_type)}
-                    {agreement.revenue_percentage != null && ` · ${agreement.revenue_percentage}% Revenue Share`}
-                    {agreement.fixed_amount != null && ` · ${agreement.currency || "USD"} ${agreement.fixed_amount.toLocaleString()}`}
-                  </p>
-                  <p className="text-slate-700 leading-relaxed font-sans">
-                    {agreement.exchange_details}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* MANAGE CONTACT SHEET (Desktop: Right Sheet | Mobile: Bottom Sheet) */}
-      <Sheet open={Boolean(activeManageField)} onOpenChange={(open) => !open && setActiveManageField(null)}>
-        <SheetContent
-          side="right"
-          className="w-full sm:max-w-md bg-white border-l border-slate-200 p-0 font-sans flex flex-col shadow-2xl overflow-y-auto max-h-screen"
-        >
-          {activeManageField && (
-            <div className="flex flex-col h-full">
-              {/* Sheet Header */}
-              <div className="p-5 sm:p-6 border-b border-slate-100 shrink-0">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <span className="font-mono text-[9px] uppercase font-bold tracking-widest text-slate-400 block mb-0.5">
-                      Contact Exchange
-                    </span>
-                    <SheetTitle className="font-display font-bold text-lg text-slate-900">
-                      {activeManageField.name}
-                    </SheetTitle>
-                  </div>
-                  {activeManageField.status === "mutually_shared" && (
-                    <span className="font-mono text-[9px] uppercase font-bold text-slate-900 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-[2px]">
-                      ✓ Shared
-                    </span>
-                  )}
-                  {activeManageField.status === "requested_by_me" && (
-                    <span className="font-mono text-[9px] uppercase font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-[2px]">
-                      Waiting
-                    </span>
-                  )}
-                  {activeManageField.status === "incoming_request" && (
-                    <span className="font-mono text-[9px] uppercase font-bold text-slate-900 bg-slate-200 px-2 py-0.5 rounded-[2px]">
-                      Incoming Request
-                    </span>
-                  )}
-                  {activeManageField.status === "declined" && (
-                    <span className="font-mono text-[9px] uppercase font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-[2px]">
-                      Declined
-                    </span>
-                  )}
-                </div>
-                <SheetDescription className="text-xs text-slate-500 font-sans mt-1">
-                  Exchange with <strong className="text-slate-800 font-medium">{targetBusiness.company_name}</strong>
-                </SheetDescription>
-              </div>
-
-              {/* Sheet Body by State */}
-              <div className="p-5 sm:p-6 space-y-5 flex-1 overflow-y-auto">
-                {/* 1. NOT REQUESTED STATE */}
-                {activeManageField.status === "not_requested" && (
-                  <div className="space-y-5">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="manage-input"
-                        className="font-mono text-[9.5px] uppercase tracking-wider text-slate-700 font-bold block"
-                      >
-                        Your {activeManageField.name}
-                      </Label>
-                      <Input
-                        id="manage-input"
-                        value={manageInputValue}
-                        onChange={(e) => setManageInputValue(e.target.value)}
-                        placeholder={`Enter your ${activeManageField.name.toLowerCase()}`}
-                        className="h-10 text-xs rounded-[2px] border-slate-300 focus:border-slate-900 font-mono"
-                      />
-                      <p className="text-[11px] text-slate-500 font-sans">
-                        Your detail remains private until {targetBusiness.company_name} completes the exchange.
-                      </p>
-                    </div>
-
-                    <Button
-                      type="button"
-                      onClick={handleRequestExchangeFromSheet}
-                      disabled={loadingAction === "sheet-request-exchange" || !manageInputValue.trim()}
-                      className="w-full h-10 bg-slate-900 hover:bg-slate-800 text-white font-mono text-[10px] uppercase tracking-wider font-bold rounded-[2px] cursor-pointer shadow-sm"
-                    >
-                      {loadingAction === "sheet-request-exchange"
-                        ? "Requesting..."
-                        : `Request ${activeManageField.name} Exchange`}
-                    </Button>
-                  </div>
-                )}
-
-                {/* 2. REQUESTED BY ME (WAITING FOR PARTNER) */}
-                {activeManageField.status === "requested_by_me" && (
-                  <div className="space-y-5">
-                    <div className="space-y-1.5">
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold block">
-                        Your {activeManageField.name}
-                      </span>
-                      <p className="text-xs font-mono font-bold text-slate-900 bg-slate-50 p-3 rounded-[2px] border border-slate-200 truncate">
-                        {activeManageField.myValue || manageInputValue || "Provided"}
-                      </p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold block">
-                        Status
-                      </span>
-                      <p className="text-xs text-slate-600 font-sans">
-                        Waiting for <strong className="text-slate-800 font-medium">{targetBusiness.company_name}</strong> to approve and share their {activeManageField.name.toLowerCase()}.
-                      </p>
-                    </div>
-
-                    <Button
-                      type="button"
-                      onClick={handleRefreshManageStatus}
-                      disabled={isCheckingStatus}
-                      variant="outline"
-                      className="w-full h-10 border-slate-300 hover:bg-slate-100 text-slate-900 font-mono text-[9.5px] uppercase tracking-wider font-bold rounded-[2px] cursor-pointer"
-                    >
-                      <Clock className={`w-3.5 h-3.5 mr-2 ${isCheckingStatus ? "animate-spin" : ""}`} />
-                      {isCheckingStatus ? "Checking..." : "Refresh Status"}
-                    </Button>
-                  </div>
-                )}
-
-                {/* 3. INCOMING REQUEST (REQUEST RECEIVED) */}
-                {activeManageField.status === "incoming_request" && (
-                  <div className="space-y-5">
-                    <p className="text-xs text-slate-700 font-sans">
-                      <strong className="text-slate-900 font-semibold">{targetBusiness.company_name}</strong> wants to exchange {activeManageField.name.toLowerCase()} with you.
-                    </p>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="manage-approve-input"
-                        className="font-mono text-[9.5px] uppercase tracking-wider text-slate-700 font-bold block"
-                      >
-                        Your {activeManageField.name}
-                      </Label>
-                      <Input
-                        id="manage-approve-input"
-                        value={manageInputValue}
-                        onChange={(e) => setManageInputValue(e.target.value)}
-                        placeholder={`Enter your ${activeManageField.name.toLowerCase()}`}
-                        className="h-10 text-xs rounded-[2px] border-slate-300 focus:border-slate-900 font-mono"
-                      />
-                      <p className="text-[11px] text-slate-500 font-sans">
-                        Approving will reveal both your and {targetBusiness.company_name}&apos;s {activeManageField.name.toLowerCase()}.
-                      </p>
-                    </div>
-
-                    <div className="space-y-2 pt-1">
-                      <Button
-                        type="button"
-                        onClick={handleApproveExchangeFromSheet}
-                        disabled={loadingAction === "sheet-approve-exchange" || !manageInputValue.trim()}
-                        className="w-full h-10 bg-slate-900 hover:bg-slate-800 text-white font-mono text-[10px] uppercase tracking-wider font-bold rounded-[2px] cursor-pointer shadow-none animate-pulse transition-all"
-                      >
-                        {loadingAction === "sheet-approve-exchange"
-                          ? "Approving..."
-                          : `Approve & Exchange ${activeManageField.name}`}
-                      </Button>
-
-                      <Button
-                        type="button"
-                        onClick={handleDeclineExchangeFromSheet}
-                        disabled={loadingAction === "sheet-decline-exchange"}
-                        variant="ghost"
-                        className="w-full h-9 text-slate-600 hover:text-slate-900 font-mono text-[9px] uppercase font-bold tracking-wider rounded-[2px] cursor-pointer"
-                      >
-                        Decline Request
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* 4. MUTUALLY SHARED */}
-                {activeManageField.status === "mutually_shared" && (
-                  <div className="space-y-5">
-                    {/* Partner's Detail */}
-                    <div className="space-y-2">
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold block">
-                        {targetBusiness.company_name}&apos;s {activeManageField.name}
-                      </span>
-                      <div className="p-3.5 bg-slate-50 border border-slate-300 rounded-[2px] space-y-3">
-                        <p className="text-sm font-mono font-extrabold text-slate-900 break-all select-all">
-                          {activeManageField.partnerValue || "Verified Shared"}
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className={cn("font-bold text-xs sm:text-sm", emailStatus === "mutually_shared" ? "text-white" : "text-[#171F2C]")}>
+                            Business Email
+                          </h4>
+                          {emailStatus === "incoming_request" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-bold bg-[#F8FAFC] border border-[#171F2C] text-[#171F2C]">
+                              Ready To Unlock • Partner Agreed
+                            </span>
+                          ) : emailStatus === "requested_by_me" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-semibold bg-white border border-[#171F2C] text-[#171F2C]">
+                              Deposited • Pending Match
+                            </span>
+                          ) : emailStatus === "declined" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-semibold bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B]">
+                              Declined
+                            </span>
+                          ) : emailStatus === "not_requested" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-semibold bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B]">
+                              Not Shared • Ready to Request
+                            </span>
+                          ) : null}
+                        </div>
+                        <span className={cn("text-[11px] font-medium mt-0.5", emailStatus === "mutually_shared" ? "text-slate-400" : "text-[#64748B]")}>
+                          Corporate Executive Direct Address
+                        </span>
+                        <p className={cn("text-xs mt-1 leading-normal", emailStatus === "mutually_shared" ? "text-slate-300" : "text-[#505f76]")}>
+                          Primary verified business address for contractual, operational onboarding, and institutional NDAs.
                         </p>
 
-                        {/* Quick 1-Click Action Buttons */}
-                        {activeManageField.partnerValue && (
-                          <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
-                            <Button
-                              type="button"
-                              onClick={() => copyToClipboard(activeManageField.partnerValue!, activeManageField.name)}
-                              variant="outline"
-                              size="sm"
-                              className="h-8 px-3 font-mono text-[9px] uppercase font-bold text-slate-800 border-slate-300"
-                            >
-                              {copiedField === activeManageField.name ? (
-                                <>
-                                  <Check className="w-3.5 h-3.5 mr-1 text-slate-900" /> Copied
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-3.5 h-3.5 mr-1" /> Copy
-                                </>
-                              )}
-                            </Button>
-
-                            {activeManageField.key === "email" && (
+                        {/* Mutually Revealed Email Box */}
+                        {emailStatus === "mutually_shared" && partnerEmailRevealed && (
+                          <div className="mt-2.5 p-2.5 bg-[#0F172A] border border-slate-700 rounded-[4px] flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="font-mono text-xs font-bold text-emerald-300 truncate select-all">
+                                {partnerEmailRevealed}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <Button
+                                type="button"
+                                onClick={() => copyToClipboard(partnerEmailRevealed, "Business Email")}
+                                variant="outline"
+                                size="sm"
+                                className="h-7.5 px-2.5 text-[11px] font-mono border-slate-700 bg-[#1E293B] text-slate-200 hover:bg-slate-700 hover:text-white"
+                              >
+                                {copiedField === "Business Email" ? (
+                                  <>
+                                    <Check className="w-3 h-3 text-emerald-400" /> Copied
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3 h-3" /> Copy
+                                  </>
+                                )}
+                              </Button>
                               <a
-                                href={`mailto:${activeManageField.partnerValue}?subject=${encodeURIComponent(
-                                  `The Relay Handshake: ${opportunity.title}`
+                                href={`mailto:${partnerEmailRevealed}?subject=${encodeURIComponent(
+                                  `The Relay Handshake: ${opportunity?.title || "Bilateral Dealroom"}`
                                 )}`}
-                                className="inline-flex items-center justify-center h-8 px-3.5 bg-slate-900 hover:bg-slate-800 text-white font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]"
+                                className="inline-flex items-center justify-center h-7.5 px-3 bg-white hover:bg-slate-100 text-[#010611] font-mono text-[11px] font-bold uppercase rounded-[4px] transition-colors shadow-2xs"
                               >
                                 Email Now
                               </a>
-                            )}
-
-                            {activeManageField.key === "phone" && (
-                              <a
-                                href={`tel:${activeManageField.partnerValue}`}
-                                className="inline-flex items-center justify-center h-8 px-3.5 bg-slate-900 hover:bg-slate-800 text-white font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]"
-                              >
-                                Call Now
-                              </a>
-                            )}
-
-                            {(activeManageField.key === "linkedin" ||
-                              activeManageField.partnerValue.startsWith("http://") ||
-                              activeManageField.partnerValue.startsWith("https://")) && (
-                              <a
-                                href={activeManageField.partnerValue}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center justify-center h-8 px-3.5 bg-slate-900 hover:bg-slate-800 text-white font-mono text-[9.5px] uppercase font-bold tracking-wider rounded-[2px]"
-                              >
-                                Open Link
-                              </a>
-                            )}
+                            </div>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    {/* Your Detail */}
-                    <div className="space-y-1.5">
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-slate-500 font-bold block">
-                        Your {activeManageField.name}
-                      </span>
-                      <p className="text-xs font-mono text-slate-700 p-2.5 bg-slate-50 rounded-[2px] border border-slate-200 truncate">
-                        {activeManageField.myValue || "—"}
-                      </p>
+                    <div className="flex items-center md:flex-col lg:flex-row gap-2 shrink-0 pt-2 md:pt-0">
+                      {emailStatus === "not_requested" ? (
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(emailFieldData)}
+                          variant="monochrome"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-medium"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Request & Share Email</span>
+                        </Button>
+                      ) : emailStatus === "incoming_request" ? (
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(emailFieldData)}
+                          variant="monochrome"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-semibold"
+                        >
+                          <Key className="w-3.5 h-3.5" />
+                          <span>Share Your Email & Unlock</span>
+                        </Button>
+                      ) : emailStatus === "mutually_shared" ? (
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(emailFieldData)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-medium border-slate-700 bg-[#1E293B] text-slate-200 hover:bg-slate-700 hover:text-white"
+                        >
+                          Manage
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(emailFieldData)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-medium"
+                        >
+                          Manage Deposit
+                        </Button>
+                      )}
                     </div>
                   </div>
-                )}
 
-                {/* 5. DECLINED STATE */}
-                {activeManageField.status === "declined" && (
-                  <div className="space-y-5">
-                    <p className="text-xs text-slate-600 font-sans">
-                      This exchange request was declined. You can initiate a new request whenever ready.
-                    </p>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="manage-input-declined"
-                        className="font-mono text-[9.5px] uppercase tracking-wider text-slate-700 font-bold block"
-                      >
-                        Your {activeManageField.name}
-                      </Label>
-                      <Input
-                        id="manage-input-declined"
-                        value={manageInputValue}
-                        onChange={(e) => setManageInputValue(e.target.value)}
-                        placeholder={`Enter your ${activeManageField.name.toLowerCase()}`}
-                        className="h-10 text-xs rounded-[2px] border-slate-300 focus:border-slate-900 font-mono"
+                  {/* Initiated / In-Escrow Turn Strip (Variant B) */}
+                  {emailStatus === "requested_by_me" && (
+                    <div className="mt-3.5 pt-3 border-t border-[#E2E8F0]">
+                      <WaitingBanner
+                        variant="strip"
+                        title={`Turn In ${targetBusiness?.company_name || "Partner"}'s Court:`}
+                        description={
+                          <>
+                            Your email is deposited in escrow. Awaiting{" "}
+                            <span className="font-semibold text-[#0F172A]">{targetBusiness?.company_name || "Partner"}</span> to reciprocate.
+                          </>
+                        }
+                        primaryAction={{
+                          label: "Manage Deposit",
+                          onClick: () => handleOpenManageSheet(emailFieldData),
+                        }}
                       />
                     </div>
+                  )}
 
-                    <Button
-                      type="button"
-                      onClick={handleRequestExchangeFromSheet}
-                      disabled={loadingAction === "sheet-request-exchange" || !manageInputValue.trim()}
-                      className="w-full h-10 bg-slate-900 hover:bg-slate-800 text-white font-mono text-[10px] uppercase tracking-wider font-bold rounded-[2px] cursor-pointer shadow-sm"
-                    >
-                      {loadingAction === "sheet-request-exchange"
-                        ? "Requesting..."
-                        : `Request ${activeManageField.name} Again`}
-                    </Button>
+                  {emailStatus === "incoming_request" && (
+                    <div className="mt-3.5 pt-3 border-t border-[#E2E8F0]">
+                      <WaitingBanner
+                        variant="strip"
+                        title={null}
+                        description={
+                          <>
+                            <span className="font-semibold text-[#0F172A]">{targetBusiness?.company_name || "Partner"}</span> shared their email. Provide yours to unblind both.
+                          </>
+                        }
+                      />
+                    </div>
+                  )}
+                </article>
+
+                {/* 2. DIRECT INSTITUTIONAL PHONE CARD */}
+                <article
+                  className={cn(
+                    "rounded-[4px] border p-4 sm:p-5 transition-all shadow-2xs relative overflow-hidden",
+                    phoneStatus === "mutually_shared"
+                      ? "bg-[#171F2C] border-slate-700 text-white hover:border-slate-600"
+                      : phoneStatus === "requested_by_me" || phoneStatus === "incoming_request"
+                      ? "bg-white border-[#171F2C] hover:border-black"
+                      : "bg-white border-[#E2E8F0] hover:border-[#171F2C]"
+                  )}
+                >
+                  {/* Top Right Circular Checkmark Badge for Shared Contacts */}
+                  {phoneStatus === "mutually_shared" && (
+                    <div className="absolute top-3.5 right-3.5 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-2xs">
+                      <Check className="w-3.5 h-3.5 text-[#010611] stroke-[3]" />
+                    </div>
+                  )}
+
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3.5 min-w-0">
+                      <div
+                        className={cn(
+                          "w-10 h-10 rounded-[4px] flex items-center justify-center shrink-0",
+                          phoneStatus === "mutually_shared"
+                            ? "bg-[#010611] text-white border border-slate-700"
+                            : "bg-[#F8FAFC] border border-[#E2E8F0] text-[#171F2C]"
+                        )}
+                      >
+                        <Phone className="w-5 h-5" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className={cn("font-bold text-xs sm:text-sm", phoneStatus === "mutually_shared" ? "text-white" : "text-[#171F2C]")}>
+                            Direct Institutional Phone
+                          </h4>
+                          {phoneStatus === "incoming_request" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-bold bg-[#F8FAFC] border border-[#171F2C] text-[#171F2C]">
+                              Ready To Unlock • Partner Agreed
+                            </span>
+                          ) : phoneStatus === "requested_by_me" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-semibold bg-white border border-[#171F2C] text-[#171F2C]">
+                              Deposited • Pending Match
+                            </span>
+                          ) : phoneStatus === "declined" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-semibold bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B]">
+                              Declined
+                            </span>
+                          ) : phoneStatus === "not_requested" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-semibold bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B]">
+                              Not Shared
+                            </span>
+                          ) : null}
+                        </div>
+                        <span className={cn("text-[11px] font-medium mt-0.5", phoneStatus === "mutually_shared" ? "text-slate-400" : "text-[#64748B]")}>
+                          Direct Line / Mobile Desk
+                        </span>
+                        <p className={cn("text-xs mt-1 leading-normal", phoneStatus === "mutually_shared" ? "text-slate-300" : "text-[#505f76]")}>
+                          Direct partner phone coordinate for encrypted voice, WhatsApp coordination, and executive syncs.
+                        </p>
+
+                        {/* Mutually Revealed Phone Box */}
+                        {phoneStatus === "mutually_shared" && partnerPhoneRevealed && (
+                          <div className="mt-2.5 p-2.5 bg-[#0F172A] border border-slate-700 rounded-[4px] flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+                            <span className="font-mono text-xs font-bold text-emerald-300 truncate select-all">
+                              {partnerPhoneRevealed}
+                            </span>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <Button
+                                type="button"
+                                onClick={() => copyToClipboard(partnerPhoneRevealed, "Direct Phone")}
+                                variant="outline"
+                                size="sm"
+                                className="h-7.5 px-2.5 text-[11px] font-mono border-slate-700 bg-[#1E293B] text-slate-200 hover:bg-slate-700 hover:text-white"
+                              >
+                                {copiedField === "Direct Phone" ? (
+                                  <>
+                                    <Check className="w-3 h-3 text-emerald-400" /> Copied
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3 h-3" /> Copy
+                                  </>
+                                )}
+                              </Button>
+                              <a
+                                href={`tel:${partnerPhoneRevealed}`}
+                                className="inline-flex items-center justify-center h-7.5 px-3 bg-white hover:bg-slate-100 text-[#010611] font-mono text-[11px] font-bold uppercase rounded-[4px] transition-colors shadow-2xs"
+                              >
+                                Call Now
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center md:flex-col lg:flex-row gap-2 shrink-0 pt-2 md:pt-0">
+                      {phoneStatus === "not_requested" ? (
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(phoneFieldData)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-medium"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Request & Share Phone</span>
+                        </Button>
+                      ) : phoneStatus === "incoming_request" ? (
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(phoneFieldData)}
+                          variant="monochrome"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-semibold"
+                        >
+                          <Key className="w-3.5 h-3.5" />
+                          <span>Share Phone & Unlock</span>
+                        </Button>
+                      ) : phoneStatus === "mutually_shared" ? (
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(phoneFieldData)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-medium border-slate-700 bg-[#1E293B] text-slate-200 hover:bg-slate-700 hover:text-white"
+                        >
+                          Manage
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(phoneFieldData)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-medium"
+                        >
+                          Manage Deposit
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Initiated / In-Escrow Turn Strip (Variant B) */}
+                  {phoneStatus === "requested_by_me" && (
+                    <div className="mt-3.5 pt-3 border-t border-[#E2E8F0]">
+                      <WaitingBanner
+                        variant="strip"
+                        title={`Turn In ${targetBusiness?.company_name || "Partner"}'s Court:`}
+                        description={
+                          <>
+                            Your phone coordinate is deposited in escrow. Awaiting{" "}
+                            <span className="font-semibold text-[#0F172A]">{targetBusiness?.company_name || "Partner"}</span> to reciprocate.
+                          </>
+                        }
+                        primaryAction={{
+                          label: "Manage Deposit",
+                          onClick: () => handleOpenManageSheet(phoneFieldData),
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {phoneStatus === "incoming_request" && (
+                    <div className="mt-3.5 pt-3 border-t border-[#E2E8F0]">
+                      <WaitingBanner
+                        variant="strip"
+                        title={null}
+                        description={
+                          <>
+                            <span className="font-semibold text-[#0F172A]">{targetBusiness?.company_name || "Partner"}</span> shared their phone coordinate. Provide yours to unblind both.
+                          </>
+                        }
+                      />
+                    </div>
+                  )}
+                </article>
+
+                {/* 3. MANAGING PARTNER PROFILE CARD */}
+                <article
+                  className={cn(
+                    "rounded-[4px] border p-4 sm:p-5 transition-all shadow-2xs relative overflow-hidden",
+                    linkedinStatus === "mutually_shared"
+                      ? "bg-[#171F2C] border-slate-700 text-white hover:border-slate-600"
+                      : linkedinStatus === "requested_by_me" || linkedinStatus === "incoming_request"
+                      ? "bg-white border-[#171F2C] hover:border-black"
+                      : "bg-white border-[#E2E8F0] hover:border-[#171F2C]"
+                  )}
+                >
+                  {/* Top Right Circular Checkmark Badge for Shared Contacts */}
+                  {linkedinStatus === "mutually_shared" && (
+                    <div className="absolute top-3.5 right-3.5 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-2xs">
+                      <Check className="w-3.5 h-3.5 text-[#010611] stroke-[3]" />
+                    </div>
+                  )}
+
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3.5 min-w-0">
+                      <div
+                        className={cn(
+                          "w-10 h-10 rounded-[4px] flex items-center justify-center shrink-0",
+                          linkedinStatus === "mutually_shared"
+                            ? "bg-[#010611] text-white border border-slate-700"
+                            : "bg-[#F8FAFC] border border-[#E2E8F0] text-[#171F2C]"
+                        )}
+                      >
+                        <Linkedin className="w-5 h-5" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className={cn("font-bold text-xs sm:text-sm", linkedinStatus === "mutually_shared" ? "text-white" : "text-[#171F2C]")}>
+                            Managing Partner Profile
+                          </h4>
+                          {linkedinStatus === "incoming_request" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-bold bg-[#F8FAFC] border border-[#171F2C] text-[#171F2C]">
+                              Ready To Unlock • Partner Agreed
+                            </span>
+                          ) : linkedinStatus === "requested_by_me" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-semibold bg-white border border-[#171F2C] text-[#171F2C]">
+                              Deposited • Pending Match
+                            </span>
+                          ) : linkedinStatus === "declined" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-semibold bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B]">
+                              Declined
+                            </span>
+                          ) : linkedinStatus === "not_requested" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-semibold bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B]">
+                              Not Shared
+                            </span>
+                          ) : null}
+                        </div>
+                        <span className={cn("text-[11px] font-medium mt-0.5", linkedinStatus === "mutually_shared" ? "text-slate-400" : "text-[#64748B]")}>
+                          Executive Identity Dossier
+                        </span>
+                        <p className={cn("text-xs mt-1 leading-normal", linkedinStatus === "mutually_shared" ? "text-slate-300" : "text-[#505f76]")}>
+                          Verified professional accreditation record, LinkedIn identity, and compliance signatory dossier.
+                        </p>
+
+                        {/* Mutually Revealed LinkedIn Box */}
+                        {linkedinStatus === "mutually_shared" && partnerLinkedinRevealed && (
+                          <div className="mt-2.5 p-2.5 bg-[#0F172A] border border-slate-700 rounded-[4px] flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+                            <span className="font-mono text-xs font-bold text-emerald-300 truncate select-all">
+                              {partnerLinkedinRevealed}
+                            </span>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <Button
+                                type="button"
+                                onClick={() => copyToClipboard(partnerLinkedinRevealed, "LinkedIn Profile")}
+                                variant="outline"
+                                size="sm"
+                                className="h-7.5 px-2.5 text-[11px] font-mono border-slate-700 bg-[#1E293B] text-slate-200 hover:bg-slate-700 hover:text-white"
+                              >
+                                {copiedField === "LinkedIn Profile" ? (
+                                  <>
+                                    <Check className="w-3 h-3 text-emerald-400" /> Copied
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3 h-3" /> Copy
+                                  </>
+                                )}
+                              </Button>
+                              <a
+                                href={partnerLinkedinRevealed.startsWith("http") ? partnerLinkedinRevealed : `https://${partnerLinkedinRevealed}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center justify-center h-7.5 px-3 bg-white hover:bg-slate-100 text-[#010611] font-mono text-[11px] font-bold uppercase rounded-[4px] transition-colors gap-1 shadow-2xs"
+                              >
+                                <span>Open Profile</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center md:flex-col lg:flex-row gap-2 shrink-0 pt-2 md:pt-0">
+                      {linkedinStatus === "not_requested" ? (
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(linkedinFieldData)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-medium"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Request & Share Profile</span>
+                        </Button>
+                      ) : linkedinStatus === "incoming_request" ? (
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(linkedinFieldData)}
+                          variant="monochrome"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-semibold"
+                        >
+                          <Key className="w-3.5 h-3.5" />
+                          <span>Share Profile & Unlock</span>
+                        </Button>
+                      ) : linkedinStatus === "mutually_shared" ? (
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(linkedinFieldData)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-medium border-slate-700 bg-[#1E293B] text-slate-200 hover:bg-slate-700 hover:text-white"
+                        >
+                          Manage
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(linkedinFieldData)}
+                          variant="outline"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-medium"
+                        >
+                          Manage Deposit
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Initiated / In-Escrow Turn Strip (Variant B) */}
+                  {linkedinStatus === "requested_by_me" && (
+                    <div className="mt-3.5 pt-3 border-t border-[#E2E8F0]">
+                      <WaitingBanner
+                        variant="strip"
+                        title={`Turn In ${targetBusiness?.company_name || "Partner"}'s Court:`}
+                        description={
+                          <>
+                            Your profile coordinate is deposited in escrow. Awaiting{" "}
+                            <span className="font-semibold text-[#0F172A]">{targetBusiness?.company_name || "Partner"}</span> to reciprocate.
+                          </>
+                        }
+                        primaryAction={{
+                          label: "Manage Deposit",
+                          onClick: () => handleOpenManageSheet(linkedinFieldData),
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {linkedinStatus === "incoming_request" && (
+                    <div className="mt-3.5 pt-3 border-t border-[#E2E8F0]">
+                      <WaitingBanner
+                        variant="strip"
+                        title={null}
+                        description={
+                          <>
+                            <span className="font-semibold text-[#0F172A]">{targetBusiness?.company_name || "Partner"}</span> shared their profile. Provide yours to unblind both.
+                          </>
+                        }
+                      />
+                    </div>
+                  )}
+                </article>
+
+                {/* 4. CUSTOM CHANNELS (Configured by user) */}
+                {customChannels.map((customField) => (
+                  <article
+                    key={customField.key}
+                    className={cn(
+                      "rounded-[4px] border p-4 sm:p-5 transition-all shadow-2xs relative overflow-hidden",
+                      customField.status === "mutually_shared"
+                        ? "bg-[#171F2C] border-slate-700 text-white hover:border-slate-600"
+                        : customField.status === "requested_by_me" || customField.status === "incoming_request"
+                        ? "bg-white border-[#171F2C] hover:border-black"
+                        : "bg-white border-[#E2E8F0] hover:border-[#171F2C]"
+                    )}
+                  >
+                    {/* Top Right Circular Checkmark Badge for Shared Contacts */}
+                    {customField.status === "mutually_shared" && (
+                      <div className="absolute top-3.5 right-3.5 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-2xs">
+                        <Check className="w-3.5 h-3.5 text-[#010611] stroke-[3]" />
+                      </div>
+                    )}
+
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex items-start gap-3.5 min-w-0">
+                        <div
+                          className={cn(
+                            "w-10 h-10 rounded-[4px] flex items-center justify-center shrink-0",
+                            customField.status === "mutually_shared"
+                              ? "bg-[#010611] text-white border border-slate-700"
+                              : "bg-[#F8FAFC] border border-[#E2E8F0] text-[#171F2C]"
+                          )}
+                        >
+                          <Sparkles className="w-5 h-5" />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className={cn("font-bold text-xs sm:text-sm", customField.status === "mutually_shared" ? "text-white" : "text-[#171F2C]")}>
+                              {customField.name}
+                            </h4>
+                            {customField.status === "requested_by_me" ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-semibold bg-white border border-[#171F2C] text-[#171F2C]">
+                                Deposited • Pending Match
+                              </span>
+                            ) : customField.status === "not_requested" ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-semibold bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B]">
+                                Ready To Request
+                              </span>
+                            ) : null}
+                            {customField.customId && customField.status !== "mutually_shared" && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm(`Remove "${customField.name}" channel?`)) {
+                                    handleDeleteCustomContact(customField.customId!);
+                                  }
+                                }}
+                                className="text-[#94A3B8] hover:text-[#171F2C] p-0.5 transition-colors cursor-pointer"
+                                title="Delete Custom Channel"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                          <span className={cn("text-[11px] font-medium mt-0.5", customField.status === "mutually_shared" ? "text-slate-400" : "text-[#64748B]")}>
+                            Custom Secured Channel
+                          </span>
+                          <p className={cn("text-xs mt-1 font-mono truncate", customField.status === "mutually_shared" ? "text-emerald-300 font-bold" : "text-[#505f76]")}>
+                            {customField.partnerValue || customField.myValue || "Configured endpoint"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center md:flex-col lg:flex-row gap-2 shrink-0 pt-2 md:pt-0">
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(customField)}
+                          variant="outline"
+                          size="sm"
+                          className={cn("w-full md:w-auto h-8.5 px-3.5 text-xs font-medium", customField.status === "mutually_shared" ? "border-slate-700 bg-[#1E293B] text-slate-200 hover:bg-slate-700 hover:text-white" : "")}
+                        >
+                          {customField.status === "requested_by_me" ? "Manage Deposit" : "Manage"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Initiated / In-Escrow Turn Strip (Variant B) */}
+                    {customField.status === "requested_by_me" && (
+                      <div className="mt-3.5 pt-3 border-t border-[#E2E8F0]">
+                        <WaitingBanner
+                          variant="strip"
+                          title={`Turn In ${targetBusiness?.company_name || "Partner"}'s Court:`}
+                          description={
+                            <>
+                              Your custom coordinate is deposited in escrow. Awaiting{" "}
+                              <span className="font-semibold text-[#0F172A]">{targetBusiness?.company_name || "Partner"}</span> to reciprocate.
+                            </>
+                          }
+                          primaryAction={{
+                            label: "Manage Deposit",
+                            onClick: () => handleOpenManageSheet(customField),
+                          }}
+                        />
+                      </div>
+                    )}
+                  </article>
+                ))}
+
+                {/* 5. INCOMING CUSTOM REQUESTS FROM PARTNER */}
+                {incomingCustomRequests.map((reqField) => (
+                  <article
+                    key={reqField.key}
+                    className="bg-white rounded-[4px] border border-[#171F2C] p-4 sm:p-5 transition-all shadow-2xs space-y-3.5"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex items-start gap-3.5 min-w-0">
+                        <div className="w-10 h-10 rounded-[4px] bg-[#171F2C] text-white flex items-center justify-center shrink-0">
+                          <Key className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-bold text-xs sm:text-sm text-[#171F2C]">{reqField.name}</h4>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase tracking-wider font-bold bg-[#F8FAFC] border border-[#171F2C] text-[#171F2C]">
+                              Incoming Request from {targetBusiness?.company_name || "Partner"}
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Custom Channel Request</span>
+                          <p className="text-xs text-[#505f76] mt-1">
+                            Counterparty requested mutual exchange for {reqField.name}. Provide your endpoint to unlock reciprocally.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center md:flex-col lg:flex-row gap-2 shrink-0 pt-2 md:pt-0">
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenManageSheet(reqField)}
+                          variant="monochrome"
+                          size="sm"
+                          className="w-full md:w-auto h-8.5 px-3.5 text-xs font-semibold"
+                        >
+                          <Key className="w-3.5 h-3.5" />
+                          <span>Approve & Exchange</span>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Initiated / In-Escrow Turn Strip (Variant B) */}
+                    <div className="pt-3 border-t border-[#E2E8F0]">
+                      <WaitingBanner
+                        variant="strip"
+                        title={null}
+                        description={
+                          <>
+                            <span className="font-semibold text-[#0F172A]">{targetBusiness?.company_name || "Partner"}</span> requested {reqField.name}. Provide your detail to unlock both.
+                          </>
+                        }
+                      />
+                    </div>
+                  </article>
+                ))}
+
+                {/* Channel 4: Add Custom Channel Dotted / Ghost Card */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={handleOpenAddCustomModal}
+                  onKeyDown={(e) => e.key === "Enter" && handleOpenAddCustomModal()}
+                  className="p-4 rounded-[4px] border border-dashed border-[#CBD5E1] hover:border-[#171F2C] bg-[#F8FAFC]/50 hover:bg-[#F8FAFC] flex items-center justify-between transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-9 h-9 rounded-[4px] bg-white border border-[#E2E8F0] flex items-center justify-center text-[#505f76]">
+                      <Plus className="w-4 h-4 text-[#171F2C]" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-xs text-[#171F2C]">
+                        Add Custom Coordination Endpoint
+                      </span>
+                      <span className="text-xs text-[#64748B]">
+                        E.g., Encrypted Signal ID, Slack Connect, Calendly Link, or Secure Vault
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-[#64748B]" />
+                </div>
+              </div>
+            </section>
+
+            {/* Cryptographic Audit Feed */}
+            <section className="bg-white rounded-[4px] border border-[#E2E8F0] p-4 sm:p-5 flex flex-col gap-2.5 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2.5">
+                <div className="flex items-center gap-2">
+                  <Terminal className="w-4 h-4 text-[#171F2C]" />
+                  <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-[#171F2C]">
+                    Cryptographic Audit Feed
+                  </h3>
+                </div>
+                <span className="font-mono text-[10px] text-[#64748B] uppercase font-bold">
+                  EPOCH #{covenantChecksum}
+                </span>
+              </div>
+              <div className="space-y-1.5 pt-1 font-mono text-xs text-[#171F2C]">
+                <div className="flex items-center justify-between gap-3 p-2 rounded-[2px] bg-[#F8FAFC]">
+                  <div className="flex items-center gap-2 min-w-0 truncate">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#171F2C] shrink-0" />
+                    <span className="text-[#64748B] shrink-0">[14:02:15 UTC]</span>
+                    <span className="text-[#171F2C] font-medium truncate">
+                      Stage 03 Term Agreement mutually confirmed & hashed
+                    </span>
+                  </div>
+                  <span className="text-[#64748B] text-[10.5px] shrink-0">SIG: 0x9f..2b41</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 p-2 rounded-[2px] bg-[#F8FAFC]">
+                  <div className="flex items-center gap-2 min-w-0 truncate">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#171F2C] shrink-0" />
+                    <span className="text-[#64748B] shrink-0">[14:02:18 UTC]</span>
+                    <span className="text-[#171F2C] truncate">
+                      Blinded Handshake Escrow room initialized (Room ID: #HSH-{covenantChecksum.slice(0, 6)})
+                    </span>
+                  </div>
+                  <span className="text-[#64748B] text-[10.5px] shrink-0">ACK: BOTH</span>
+                </div>
+                {inEscrowRequestedCount > 0 && (
+                  <div className="flex items-center justify-between gap-3 p-2 rounded-[2px] bg-[#F8FAFC]">
+                    <div className="flex items-center gap-2 min-w-0 truncate">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#171F2C] shrink-0" />
+                      <span className="text-[#64748B] shrink-0">[14:02:22 UTC]</span>
+                      <span className="text-[#171F2C] truncate">
+                        {myBusiness?.company_name || "You"} deposited coordinate into blinded escrow
+                      </span>
+                    </div>
+                    <span className="text-[#64748B] text-[10.5px] shrink-0">NOTIFIED</span>
+                  </div>
+                )}
+                {mutuallySharedCount > 0 ? (
+                  <div className="flex items-center justify-between gap-3 p-2 rounded-[2px] bg-[#F8FAFC]">
+                    <div className="flex items-center gap-2 min-w-0 truncate">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#15803D] shrink-0" />
+                      <span className="text-[#64748B] shrink-0">[14:02:30 UTC]</span>
+                      <span className="text-[#171F2C] font-semibold truncate">
+                        Reciprocal parity established ({mutuallySharedCount} channel{mutuallySharedCount > 1 ? "s" : ""} unlocked)
+                      </span>
+                    </div>
+                    <span className="text-[#15803D] font-bold text-[10.5px] shrink-0">MUTUAL UNLOCKED</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-3 p-2 rounded-[2px] bg-[#F8FAFC]">
+                    <div className="flex items-center gap-2 min-w-0 truncate">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#171F2C] animate-pulse shrink-0" />
+                      <span className="text-[#64748B] shrink-0">[14:02:35 UTC]</span>
+                      <span className="text-[#505f76] italic truncate">
+                        Awaiting reciprocal coordinate match from counterparty
+                      </span>
+                    </div>
+                    <span className="font-mono text-[10.5px] uppercase font-bold text-[#171F2C] shrink-0">
+                      READY
+                    </span>
                   </div>
                 )}
               </div>
+            </section>
+          </section>
 
-              {/* Sheet Footer */}
-              <div className="p-4 border-t border-slate-100 shrink-0 flex items-center justify-end bg-slate-50/50">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setActiveManageField(null)}
-                  className="h-8 px-4 font-mono text-[9.5px] uppercase font-bold text-slate-600 rounded-[2px]"
-                >
-                  Close
-                </Button>
+          {/* Right 4-Column Sidebar: Institutional Metadata & Handshake Guardrails */}
+          <aside className="xl:col-span-4 flex flex-col gap-4">
+            {/* Card 1: Agreed Exchange Summary (Stage 03 Sealed) */}
+            <article className="bg-white rounded-[4px] border border-[#E2E8F0] p-5 flex flex-col gap-3.5 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2.5">
+                <span className="font-mono text-[10.5px] uppercase tracking-wider text-[#505f76] font-bold">
+                  Governing Covenant
+                </span>
+                <span className="bg-[#171F2C] text-white text-[10px] uppercase px-2 py-0.5 rounded-[2px] font-mono tracking-wider font-bold">
+                  Sealed & Binding
+                </span>
               </div>
+              <div className="pt-0.5">
+                <h4 className="font-display font-bold text-sm sm:text-base text-[#171F2C]">
+                  {covenantTermsRate}
+                </h4>
+                <span className="font-mono text-xs text-[#64748B]">
+                  Ref: #RL-{covenantChecksum.slice(0, 6)}
+                </span>
+              </div>
+              <dl className="divide-y divide-[#E2E8F0] text-xs">
+                <div className="py-2 flex items-center justify-between">
+                  <dt className="text-[#505f76]">Originator Desk</dt>
+                  <dd className="font-semibold text-[#171F2C] text-right truncate max-w-[180px]">
+                    {is_requester ? myBusiness?.company_name : targetBusiness?.company_name || "Originator"}
+                  </dd>
+                </div>
+                <div className="py-2 flex items-center justify-between">
+                  <dt className="text-[#505f76]">Counterparty Desk</dt>
+                  <dd className="font-semibold text-[#171F2C] text-right truncate max-w-[180px]">
+                    {is_requester ? targetBusiness?.company_name : myBusiness?.company_name || "Counterparty"}
+                  </dd>
+                </div>
+                <div className="py-2 flex items-center justify-between">
+                  <dt className="text-[#505f76]">Execution Window</dt>
+                  <dd className="font-mono font-medium text-[#171F2C] text-right">
+                    72 Hours Post-Handshake
+                  </dd>
+                </div>
+                <div className="py-2 flex items-center justify-between">
+                  <dt className="text-[#505f76]">Governing Law</dt>
+                  <dd className="font-medium text-[#171F2C] text-right">
+                    England & Wales (LMA Standard)
+                  </dd>
+                </div>
+                <div className="py-2 flex items-center justify-between">
+                  <dt className="text-[#505f76]">Dispute Custody</dt>
+                  <dd className="font-medium text-[#171F2C] text-right">
+                    The Relay Master Safe
+                  </dd>
+                </div>
+              </dl>
+              <div className="p-2 rounded-[2px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between text-[#505f76] font-mono text-[10.5px]">
+                <span className="font-bold uppercase tracking-wider">COVENANT CHECKSUM</span>
+                <span className="font-bold text-[#171F2C]">{covenantChecksum}-LMA</span>
+              </div>
+            </article>
+
+            {/* Card 2: The Reciprocal Escrow Rule */}
+            <article className="bg-[#F8FAFC] rounded-[4px] border border-[#E2E8F0] p-5 flex flex-col gap-2.5 shadow-2xs">
+              <div className="flex items-center gap-2 text-[#171F2C]">
+                <ShieldCheck className="w-4 h-4 text-[#171F2C]" />
+                <h4 className="font-bold text-xs sm:text-sm text-[#171F2C]">The Reciprocal Escrow Rule</h4>
+              </div>
+              <span className="font-mono text-[10px] uppercase font-bold tracking-wider text-[#64748B]">
+                Zero Contact Leakage Guarantee
+              </span>
+              <p className="text-xs text-[#505f76] leading-relaxed">
+                No unilateral disclosure: If you deposit a coordinate, <strong className="text-[#171F2C] font-semibold">{targetBusiness?.company_name || "Partner"}</strong> only observes that the coordinate is ready for mutual unlock. They cannot view your contact information until their representative pledges their corresponding coordinate.
+              </p>
+              <div className="pt-2 border-t border-[#E2E8F0] flex items-center justify-between text-[#505f76]">
+                <span className="font-mono text-[10.5px]">Mutual Consent Required</span>
+                <span className="font-mono text-[10.5px] text-[#171F2C] font-bold">1:1 PARITY</span>
+              </div>
+            </article>
+
+            {/* Card 3: Handshake Completion Requirements */}
+            <article className="bg-white rounded-[4px] border border-[#E2E8F0] p-5 flex flex-col gap-4 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2.5">
+                <h4 className="font-bold text-xs sm:text-sm text-[#171F2C]">Completion Requirements</h4>
+                <span className="font-mono text-[10.5px] font-bold text-[#505f76]">
+                  {mutuallySharedCount >= 1 ? (isHandshakeComplete ? "2 of 2 Satisfied" : "1 of 2 Satisfied") : "0 of 2 Satisfied"}
+                </span>
+              </div>
+
+              {/* Requirements Checklist */}
+              <div className="space-y-3 text-xs">
+                <div className="flex items-start gap-2.5">
+                  {mutuallySharedCount >= 1 ? (
+                    <CheckCircle2 className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                  ) : (
+                    <span className="w-4 h-4 rounded-full border-2 border-[#CBD5E1] shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-[#171F2C]">
+                      At least 1 reciprocal channel unlocked
+                    </span>
+                    <span className="text-[11px] text-[#64748B]">
+                      {mutuallySharedCount >= 1 ? `${mutuallySharedCount} channel matched` : "0 of 1 minimum matched"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={`flex items-start gap-2.5 ${mutuallySharedCount >= 1 ? "opacity-100" : "opacity-50"}`}>
+                  {isHandshakeComplete ? (
+                    <CheckCircle2 className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                  ) : (
+                    <Lock className="w-4 h-4 text-[#64748B] shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-[#171F2C]">
+                      Cryptographic handshake mutual signature
+                    </span>
+                    <span className="text-[11px] text-[#64748B]">
+                      {mutuallySharedCount >= 1 ? "Mutual seal ready" : "Unlocks upon contact parity"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Master Action Execution Button */}
+              <div className="pt-1 flex flex-col gap-1.5">
+                {mutuallySharedCount === 0 ? (
+                  <Button
+                    type="button"
+                    disabled
+                    variant="outline"
+                    className="w-full h-9 bg-[#F1F5F9] text-[#94A3B8] border-[#E2E8F0] font-mono text-xs font-bold uppercase rounded-[4px] cursor-not-allowed"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Complete Handshake (Locked)</span>
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      executiveToast.success("Handshake Protocol Sealed", {
+                        badge: "Stage 04 Sealed",
+                        description: "Bilateral introductions active. All unlocked coordinates are accessible.",
+                      });
+                      handleCheckStatus();
+                    }}
+                    variant="monochrome"
+                    className="w-full h-9 bg-[#171F2C] hover:bg-[#334155] text-white font-mono text-xs font-bold uppercase rounded-[4px] cursor-pointer shadow-2xs"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Seal & Complete Handshake</span>
+                  </Button>
+                )}
+                <p className="text-[11px] text-[#64748B] text-center">
+                  {mutuallySharedCount === 0
+                    ? "Awaiting minimum of one reciprocal contact exchange."
+                    : "Reciprocal criteria satisfied. Direct channel active."}
+                </p>
+              </div>
+            </article>
+
+            {/* Card 4: Counterparty Verification Meta Card */}
+            <div className="p-4 rounded-[4px] bg-white border border-[#E2E8F0] flex items-center justify-between shadow-2xs">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#171F2C] shrink-0" />
+                <div className="flex flex-col min-w-0">
+                  <span className="font-mono text-xs uppercase font-bold text-[#171F2C] truncate">
+                    {targetBusiness?.company_name || "Partner Desk"}
+                  </span>
+                  <span className="text-[11px] text-[#64748B]">Desk Active • London GMT</span>
+                </div>
+              </div>
+              <span className="font-mono text-[10px] font-bold uppercase bg-[#F8FAFC] border border-[#E2E8F0] text-[#171F2C] px-2 py-0.5 rounded-[2px] shrink-0">
+                ONLINE
+              </span>
             </div>
-          )}
-        </SheetContent>
-      </Sheet>
-    </>
-  );
+
+            {/* Card 5: Settlement Concierge Escrow Support */}
+            <article className="bg-[#F8FAFC] rounded-[4px] border border-[#E2E8F0] p-4 flex items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-[4px] bg-white border border-[#E2E8F0] flex items-center justify-center text-[#505f76] shrink-0">
+                  <Building2 className="w-4 h-4 text-[#171F2C]" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-semibold text-xs text-[#171F2C]">Settlement Concierge</span>
+                  <span className="text-[11px] text-[#64748B] truncate">Need bilateral escrow assistance?</span>
+                </div>
+              </div>
+              <Button
+                type="button"
+                onClick={() => {
+                  executiveToast.success("Concierge Officer Dispatched", {
+                    badge: "Support Room Active",
+                    description: "Escrow officer dispatched to session room. ETA < 3 minutes.",
+                  });
+                }}
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-xs font-semibold bg-white border-[#E2E8F0] text-[#171F2C] shrink-0"
+              >
+                Contact Desk
+              </Button>
+            </article>
+          </aside>
+        </div>
+
+        {/* MANAGE CONTACT SLIDEOUT SHEET (Matches seo_code_guide.md slideout spec) */}
+        <Sheet open={Boolean(activeManageField)} onOpenChange={(open) => !open && setActiveManageField(null)}>
+          <SheetContent
+            side="right"
+            className="w-full sm:max-w-lg bg-white border-l border-[#E2E8F0] p-0 font-sans flex flex-col shadow-2xl overflow-y-auto max-h-screen"
+          >
+            {activeManageField && (
+              <div className="flex flex-col h-full">
+                {/* Sheet Header */}
+                <div className="p-5 sm:p-6 border-b border-[#E2E8F0] shrink-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col">
+                      <span className="font-mono text-[10px] uppercase font-bold tracking-widest text-[#64748B] block mb-0.5">
+                        Exchange Coordinate
+                      </span>
+                      <SheetTitle className="font-display font-bold text-base sm:text-lg text-[#171F2C]">
+                        Exchange {activeManageField.name}
+                      </SheetTitle>
+                      <SheetDescription className="text-xs text-[#505f76] font-sans mt-0.5">
+                        With <strong className="text-[#171F2C] font-semibold">{targetBusiness?.company_name || "Partner"}</strong>
+                      </SheetDescription>
+                    </div>
+                    {activeManageField.status === "mutually_shared" && (
+                      <span className="font-mono text-[10px] uppercase font-bold text-white bg-[#171F2C] px-2 py-0.5 rounded-[2px]">
+                        ✓ Shared
+                      </span>
+                    )}
+                    {activeManageField.status === "requested_by_me" && (
+                      <span className="font-mono text-[10px] uppercase font-semibold text-[#171F2C] bg-[#F8FAFC] border border-[#171F2C] px-2 py-0.5 rounded-[2px]">
+                        Waiting
+                      </span>
+                    )}
+                    {activeManageField.status === "incoming_request" && (
+                      <span className="font-mono text-[10px] uppercase font-bold text-[#171F2C] bg-[#F8FAFC] border border-[#171F2C] px-2 py-0.5 rounded-[2px]">
+                        Incoming Request
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sheet Body by State */}
+                <div className="p-5 sm:p-6 space-y-5 flex-1 overflow-y-auto">
+                  {/* 1. NOT REQUESTED STATE */}
+                  {activeManageField.status === "not_requested" && (
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor="manage-input"
+                          className="font-mono text-[10px] uppercase tracking-wider text-[#171F2C] font-bold block"
+                        >
+                          Your {activeManageField.name}
+                        </Label>
+                        <Input
+                          id="manage-input"
+                          value={manageInputValue}
+                          onChange={(e) => setManageInputValue(e.target.value)}
+                          placeholder={`Enter your ${activeManageField.name.toLowerCase()}`}
+                          className="h-9 text-xs rounded-[4px] border-[#E2E8F0] focus:border-[#171F2C] font-mono"
+                        />
+                        <span className="text-[11px] text-[#64748B] block">
+                          Primary coordinate associated with this exchange mandate.
+                        </span>
+                      </div>
+
+                      {/* Reciprocal Escrow Rule Notice */}
+                      <div className="p-3.5 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-start gap-2.5 text-xs text-[#505f76] leading-relaxed">
+                        <Lock className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                        <p>
+                          Your {activeManageField.name.toLowerCase()} is only unlocked to <strong className="font-semibold text-[#171F2C]">{targetBusiness?.company_name || "Partner"}</strong> once they agree to share theirs. Until then, it stays private in escrow.
+                        </p>
+                      </div>
+
+                      <div className="p-3.5 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between text-xs">
+                        <div className="flex flex-col">
+                          <span className="font-mono text-[10px] uppercase text-[#64748B] font-bold">Exchange Status</span>
+                          <span className="font-semibold text-[#171F2C]">Ready to Request</span>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-[2px] font-mono text-[10px] font-bold uppercase bg-white border border-[#E2E8F0] text-[#171F2C]">
+                          Pending Action
+                        </span>
+                      </div>
+
+                      <Button
+                        type="button"
+                        onClick={handleRequestExchangeFromSheet}
+                        disabled={loadingAction === "sheet-request-exchange" || !manageInputValue.trim()}
+                        variant="monochrome"
+                        className="w-full h-9 font-mono text-xs uppercase tracking-wider font-bold rounded-[4px] cursor-pointer shadow-2xs"
+                      >
+                        {loadingAction === "sheet-request-exchange"
+                          ? "Requesting..."
+                          : `Request & Share ${activeManageField.name}`}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* 2. REQUESTED BY ME (WAITING FOR PARTNER) */}
+                  {activeManageField.status === "requested_by_me" && (
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-[#64748B] font-bold block">
+                          Your {activeManageField.name}
+                        </span>
+                        <p className="text-xs font-mono font-bold text-[#171F2C] bg-[#F8FAFC] p-3 rounded-[4px] border border-[#E2E8F0] truncate">
+                          {activeManageField.myValue || manageInputValue || "Deposited into Escrow"}
+                        </p>
+                      </div>
+
+                      <div className="p-3.5 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-start gap-2.5 text-xs text-[#505f76] leading-relaxed">
+                        <Lock className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                        <p>
+                          Your coordinate is deposited in cryptographic escrow. <strong className="font-semibold text-[#171F2C]">{targetBusiness?.company_name || "Partner"}</strong> has been notified to match with theirs.
+                        </p>
+                      </div>
+
+                      <div className="p-3.5 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between text-xs">
+                        <div className="flex flex-col">
+                          <span className="font-mono text-[10px] uppercase text-[#64748B] font-bold">Exchange Status</span>
+                          <span className="font-semibold text-[#171F2C]">Awaiting Counterparty Reciprocal Consent</span>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-[2px] font-mono text-[10px] font-bold uppercase bg-white border border-[#171F2C] text-[#171F2C]">
+                          In Escrow
+                        </span>
+                      </div>
+
+                      <Button
+                        type="button"
+                        onClick={handleRefreshManageStatus}
+                        disabled={isCheckingStatus}
+                        variant="outline"
+                        className="w-full h-9 font-mono text-xs uppercase tracking-wider font-bold rounded-[4px] cursor-pointer"
+                      >
+                        <Clock className={`w-3.5 h-3.5 ${isCheckingStatus ? "animate-spin" : ""}`} />
+                        <span>{isCheckingStatus ? "Polling Node..." : "Refresh Escrow Status"}</span>
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* 3. INCOMING REQUEST (PARTNER HAS REQUESTED) */}
+                  {activeManageField.status === "incoming_request" && (
+                    <div className="space-y-4">
+                      <div className="p-3.5 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] flex items-start gap-2.5 text-xs text-[#505f76] leading-relaxed">
+                        <Key className="w-4 h-4 text-[#171F2C] shrink-0 mt-0.5" />
+                        <p>
+                          <strong className="font-semibold text-[#171F2C]">{targetBusiness?.company_name || "Partner"}</strong> has deposited their {activeManageField.name.toLowerCase()} into escrow and requested mutual exchange.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor="manage-approve-input"
+                          className="font-mono text-[10px] uppercase tracking-wider text-[#171F2C] font-bold block"
+                        >
+                          Your Authorized {activeManageField.name}
+                        </Label>
+                        <Input
+                          id="manage-approve-input"
+                          value={manageInputValue}
+                          onChange={(e) => setManageInputValue(e.target.value)}
+                          placeholder={`Enter your ${activeManageField.name.toLowerCase()}`}
+                          className="h-9 text-xs rounded-[4px] border-[#E2E8F0] focus:border-[#171F2C] font-mono"
+                        />
+                        <span className="text-[11px] text-[#64748B] block">
+                          Approving unlocks both coordinates instantly for direct coordination.
+                        </span>
+                      </div>
+
+                      <div className="space-y-2 pt-1">
+                        <Button
+                          type="button"
+                          onClick={handleApproveExchangeFromSheet}
+                          disabled={loadingAction === "sheet-approve-exchange" || !manageInputValue.trim()}
+                          variant="monochrome"
+                          className="w-full h-9 font-mono text-xs uppercase tracking-wider font-bold rounded-[4px] cursor-pointer shadow-2xs"
+                        >
+                          {loadingAction === "sheet-approve-exchange"
+                            ? "Authorizing & Decrypting..."
+                            : `Authorize & Decrypt Reciprocally`}
+                        </Button>
+
+                        <Button
+                          type="button"
+                          onClick={handleDeclineExchangeFromSheet}
+                          disabled={loadingAction === "sheet-decline-exchange"}
+                          variant="ghost"
+                          className="w-full h-8.5 text-[#64748B] hover:text-[#171F2C] font-mono text-xs uppercase font-bold tracking-wider rounded-[4px] cursor-pointer"
+                        >
+                          Decline Request
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 4. MUTUALLY SHARED */}
+                  {activeManageField.status === "mutually_shared" && (
+                    <div className="space-y-4">
+                      {/* Partner's Detail */}
+                      <div className="space-y-2">
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-[#64748B] font-bold block">
+                          {targetBusiness?.company_name || "Partner"}&apos;s Verified {activeManageField.name}
+                        </span>
+                        <div className="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[4px] space-y-2.5">
+                          <p className="text-sm font-mono font-bold text-[#171F2C] break-all select-all">
+                            {activeManageField.partnerValue || "Verified Shared"}
+                          </p>
+
+                          {activeManageField.partnerValue && (
+                            <div className="flex items-center gap-2 pt-2 border-t border-[#E2E8F0]">
+                              <Button
+                                type="button"
+                                onClick={() => copyToClipboard(activeManageField.partnerValue!, activeManageField.name)}
+                                variant="outline"
+                                size="sm"
+                                className="h-7.5 px-2.5 font-mono text-[11px]"
+                              >
+                                {copiedField === activeManageField.name ? (
+                                  <>
+                                    <Check className="w-3 h-3 text-[#171F2C]" /> Copied
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3 h-3" /> Copy
+                                  </>
+                                )}
+                              </Button>
+
+                              {activeManageField.key === "email" && (
+                                <a
+                                  href={`mailto:${activeManageField.partnerValue}?subject=${encodeURIComponent(
+                                    `The Relay Handshake: ${opportunity?.title || "Bilateral Dealroom"}`
+                                  )}`}
+                                  className="inline-flex items-center justify-center h-7.5 px-3 bg-[#171F2C] hover:bg-[#334155] text-white font-mono text-[11px] font-semibold uppercase rounded-[4px]"
+                                >
+                                  Email Now
+                                </a>
+                              )}
+
+                              {activeManageField.key === "phone" && (
+                                <a
+                                  href={`tel:${activeManageField.partnerValue}`}
+                                  className="inline-flex items-center justify-center h-7.5 px-3 bg-[#171F2C] hover:bg-[#334155] text-white font-mono text-[11px] font-semibold uppercase rounded-[4px]"
+                                >
+                                  Call Now
+                                </a>
+                              )}
+
+                              {(activeManageField.key === "linkedin" ||
+                                activeManageField.partnerValue.startsWith("http")) && (
+                                <a
+                                  href={activeManageField.partnerValue.startsWith("http") ? activeManageField.partnerValue : `https://${activeManageField.partnerValue}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center justify-center h-7.5 px-3 bg-[#171F2C] hover:bg-[#334155] text-white font-mono text-[11px] font-semibold uppercase rounded-[4px] gap-1"
+                                >
+                                  <span>Open Link</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Your Detail */}
+                      <div className="space-y-1.5">
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-[#64748B] font-bold block">
+                          Your {activeManageField.name}
+                        </span>
+                        <p className="text-xs font-mono text-[#171F2C] p-2.5 bg-[#F8FAFC] rounded-[4px] border border-[#E2E8F0] truncate font-medium">
+                          {activeManageField.myValue || "—"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 5. DECLINED STATE */}
+                  {activeManageField.status === "declined" && (
+                    <div className="space-y-4">
+                      <p className="text-xs text-[#505f76] font-sans">
+                        This exchange request was declined. You can initiate a new blinded deposit whenever ready.
+                      </p>
+
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor="manage-input-declined"
+                          className="font-mono text-[10px] uppercase tracking-wider text-[#171F2C] font-bold block"
+                        >
+                          Your {activeManageField.name}
+                        </Label>
+                        <Input
+                          id="manage-input-declined"
+                          value={manageInputValue}
+                          onChange={(e) => setManageInputValue(e.target.value)}
+                          placeholder={`Enter your ${activeManageField.name.toLowerCase()}`}
+                          className="h-9 text-xs rounded-[4px] border-[#E2E8F0] focus:border-[#171F2C] font-mono"
+                        />
+                      </div>
+
+                      <Button
+                        type="button"
+                        onClick={handleRequestExchangeFromSheet}
+                        disabled={loadingAction === "sheet-request-exchange" || !manageInputValue.trim()}
+                        variant="monochrome"
+                        className="w-full h-9 font-mono text-xs uppercase tracking-wider font-bold rounded-[4px] cursor-pointer shadow-2xs"
+                      >
+                        {loadingAction === "sheet-request-exchange"
+                          ? "Requesting..."
+                          : `Request ${activeManageField.name} Again`}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Sheet Footer */}
+                <div className="p-4 border-t border-[#E2E8F0] shrink-0 flex items-center justify-end bg-[#F8FAFC]">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveManageField(null)}
+                    className="h-8 px-3 font-mono text-xs uppercase font-bold text-[#64748B] rounded-[4px]"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6 font-sans">
@@ -3212,8 +3902,34 @@ export function ExchangeWorkflow({
           </div>
         </div>
 
-        {/* Top Right View Mode Switcher via Design System ExecutiveTabs */}
-        <div className="self-start sm:self-auto">
+        {/* Top Right Controls: Ongoing Exchanges Dropdown + View Mode Switcher */}
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          {/* Ongoing Exchanges Dropdown Switcher (Design System Select) */}
+          {allActiveExchanges.length > 0 && (
+            <div className="w-48 sm:w-60">
+              <Select
+                value={interest.id}
+                onValueChange={(val) => {
+                  if (val && val !== interest.id) {
+                    navigate({ to: "/connections/$id", params: { id: val } });
+                  }
+                }}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select ongoing exchange..." />
+                </SelectTrigger>
+                <SelectContent className="max-h-72 w-72 sm:w-80">
+                  {allActiveExchanges.map((ex) => (
+                    <SelectItem key={ex.id} value={ex.id}>
+                      {ex.opportunityTitle}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* View Mode Switcher via Design System ExecutiveTabs */}
           <ExecutiveTabs
             variant="pill"
             activeTab={viewMode}
@@ -3351,6 +4067,7 @@ export function ExchangeWorkflow({
                     interest_id: interest.id,
                     exchange_type: (payload.exchange_type as ExchangeType) || "revenue_share",
                     exchange_details: payload.proposed_terms || payload.message,
+                    highlighted_terms: payload.highlighted_terms,
                     additional_terms: JSON.stringify({
                       value_categories: payload.value_categories,
                       delivery_methods: payload.delivery_methods,

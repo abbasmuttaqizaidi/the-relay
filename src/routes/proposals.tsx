@@ -82,14 +82,6 @@ export function ProposalsPage() {
     }
   }, [initialTab]);
 
-  const handleTabChange = (newTab: TabType) => {
-    setActiveTab(newTab);
-    navigate({
-      search: (prev: any) => ({ ...prev, tab: newTab }),
-      replace: true,
-    });
-  };
-
   // 1. Onboarding & Business Profile Query
   const { data: onboardingData } = useQuery({
     queryKey: ["onboarding-status", userId],
@@ -109,7 +101,7 @@ export function ProposalsPage() {
     }
   }, [isLoaded, isSignedIn, onboardingData, navigate]);
 
-  // 2. Incoming Proposals Query - ONLY fetched when Received tab is active
+  // 2. Incoming Proposals Query
   const { data: incomingRequests = [], isLoading: loadingIncoming } = useQuery({
     queryKey: ["incoming-requests", userId],
     queryFn: async () => {
@@ -117,11 +109,11 @@ export function ProposalsPage() {
       const data = await getIncomingRequests();
       return data || [];
     },
-    enabled: Boolean(isLoaded && isSignedIn && activeTab === "received"),
+    enabled: Boolean(isLoaded && isSignedIn),
     staleTime: 1000 * 30,
   });
 
-  // 3. Sent Proposals Query - ONLY fetched when Sent tab is active
+  // 3. Sent Proposals Query
   const { data: rawSentRequests = [], isLoading: loadingSent } = useQuery({
     queryKey: ["sent-requests", userId],
     queryFn: async () => {
@@ -129,7 +121,7 @@ export function ProposalsPage() {
       const data = await getSentRequests();
       return data || [];
     },
-    enabled: Boolean(isLoaded && isSignedIn && activeTab === "sent"),
+    enabled: Boolean(isLoaded && isSignedIn),
     staleTime: 1000 * 30,
   });
 
@@ -349,7 +341,7 @@ export function ProposalsPage() {
               </div>
             </div>
 
-            {/* Search Bar (Switcher removed) */}
+            {/* Search Bar */}
             <div className="flex items-center justify-between gap-4 pt-1">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-[4px] bg-white border border-[#E2E8F0] w-full sm:w-80 focus-within:border-[#171F2C] transition-colors shadow-xs">
                 <Search className="w-4 h-4 text-slate-400 shrink-0" />
@@ -448,12 +440,7 @@ export function ProposalsPage() {
                                 <span className="text-xs font-semibold text-[#171F2C] truncate">
                                   {companyName}
                                 </span>
-                                <span
-                                  className="material-symbols-outlined text-[14px] text-[#059669] shrink-0"
-                                  title="Verified Business"
-                                >
-                                  verified
-                                </span>
+                                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                               </div>
 
                               {/* Offered Terms / Pitch Snippet */}
@@ -575,77 +562,121 @@ export function ProposalsPage() {
                       </Link>
                     </div>
                   ) : (
-                    <div className="w-full bg-white rounded-[4px] border border-[#E2E8F0] overflow-x-auto shadow-xs">
-                      <table className="w-full text-left border-collapse min-w-[800px]">
-                        <thead>
-                          <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] text-[11px] font-mono uppercase tracking-wider">
-                            <th className="py-3 px-4 font-semibold">Target Opportunity</th>
-                            <th className="py-3 px-4 font-semibold">Counterparty</th>
-                            <th className="py-3 px-4 font-semibold">Proposed Terms</th>
-                            <th className="py-3 px-4 font-semibold">Status</th>
-                            <th className="py-3 px-4 text-right font-semibold">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#E2E8F0] text-xs">
-                          {filteredSent.map((req: any) => {
-                            const targetCompany =
-                              req.opportunity?.business?.company_name ||
-                              req.opportunity?.company ||
-                              "Verified Partner";
-                            const isPending = req.status === "pending";
-                            const isAccepted = req.status === "accepted";
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {filteredSent.map((req: any) => {
+                        const targetCompany =
+                          req.opportunity?.business?.company_name ||
+                          req.opportunity?.company ||
+                          "Verified Partner";
+                        const isPending = req.status === "pending";
+                        const isAccepted = req.status === "accepted";
+                        const contactEmail =
+                          req.opportunity?.business?.contact_email ||
+                          req.opportunity?.business?.owner?.email;
 
-                            return (
-                              <tr
-                                key={req.id}
-                                className="hover:bg-[#F8FAFC] transition-colors"
+                        return (
+                          <div
+                            key={req.id}
+                            className="bg-white border border-[#E2E8F0] hover:border-[#171F2C] rounded-[4px] p-5 flex flex-col justify-between gap-4 shadow-xs transition-colors duration-200"
+                          >
+                            <div className="flex flex-col gap-3">
+                              {/* Top Bar */}
+                              <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono">
+                                <span className="uppercase tracking-wider font-semibold text-slate-400">
+                                  Outbound Pitch
+                                </span>
+                                <span>Sent {formatDistance(req.created_at)}</span>
+                              </div>
+
+                              {/* Listing Title */}
+                              <h3 className="font-display font-semibold text-base text-[#171F2C] line-clamp-2">
+                                {req.opportunity?.title || "Untitled Opportunity"}
+                              </h3>
+
+                              {/* Counterparty Target */}
+                              <div className="flex items-center gap-1.5 pt-0.5">
+                                <span className="text-xs text-[#64748B]">To:</span>
+                                <span className="text-xs font-semibold text-[#171F2C] truncate">
+                                  {targetCompany}
+                                </span>
+                                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              </div>
+
+                              {/* Proposed Terms / Pitch Snippet */}
+                              <div className="p-3 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#171F2C] leading-relaxed">
+                                <span className="text-[11px] font-mono uppercase tracking-wider text-[#64748B] font-semibold block mb-1">
+                                  Your Pitch:
+                                </span>
+                                <p className="line-clamp-3 whitespace-pre-line text-slate-700">
+                                  {req.message || "Reciprocal exchange proposal submitted."}
+                                </p>
+                              </div>
+
+                              {/* Status Badge */}
+                              <div className="flex items-center justify-between pt-1">
+                                <span className="text-xs text-[#64748B]">Status:</span>
+                                {getStatusBadge(req.status)}
+                              </div>
+
+                              {/* Unlocked Direct Contact if Accepted */}
+                              {isAccepted && contactEmail && (
+                                <div className="p-2.5 rounded-[4px] bg-emerald-50/70 border border-emerald-200 text-xs flex flex-col gap-1">
+                                  <div className="flex items-center gap-1 text-emerald-800 font-semibold text-[11px] uppercase tracking-wide">
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                    <span>Direct Contact Unlocked</span>
+                                  </div>
+                                  <a
+                                    href={`mailto:${contactEmail}`}
+                                    className="text-emerald-900 font-mono text-[11px] hover:underline break-all"
+                                  >
+                                    {contactEmail}
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="pt-2 border-t border-[#E2E8F0] space-y-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedProposalForModal(req);
+                                  setModalType("detail");
+                                }}
+                                className="w-full py-2 px-3 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
                               >
-                                <td className="py-3.5 px-4 align-middle font-semibold text-[#171F2C] max-w-xs">
-                                  <div className="truncate" title={req.opportunity?.title}>
-                                    {req.opportunity?.title || "Untitled Opportunity"}
-                                  </div>
-                                </td>
-                                <td className="py-3.5 px-4 align-middle">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="font-semibold text-[#171F2C] truncate max-w-[180px]">
-                                      {targetCompany}
-                                    </span>
-                                    <span
-                                      className="material-symbols-outlined text-[14px] text-[#059669] shrink-0"
-                                      title="Verified Partner"
-                                    >
-                                      verified
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="py-3.5 px-4 align-middle text-[#64748B] max-w-sm">
-                                  <div className="line-clamp-1 truncate" title={req.message}>
-                                    {req.message || "Standard reciprocal terms pitch"}
-                                  </div>
-                                </td>
-                                <td className="py-3.5 px-4 align-middle">
-                                  {getStatusBadge(req.status)}
-                                </td>
-                                <td className="py-3.5 px-4 align-middle text-right">
-                                  <div className="flex items-center justify-end">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setSelectedProposalForModal(req);
-                                        setModalType("detail");
-                                      }}
-                                      className="px-3 py-1.5 rounded-[4px] bg-white border border-[#E2E8F0] hover:border-[#171F2C] text-[#171F2C] text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5"
-                                    >
-                                      <Eye className="w-3.5 h-3.5 text-slate-500" />
-                                      <span>View Details</span>
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>View Details</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (req.opportunity?.id) {
+                                    setHistoryOpportunity({
+                                      id: req.opportunity.id,
+                                      title: req.opportunity.title,
+                                      opportunity_number: req.opportunity.opportunity_number,
+                                    });
+                                  }
+                                }}
+                                className="w-full py-2 px-3 rounded-[4px] bg-[#171F2C] hover:bg-black text-white text-xs font-semibold transition-colors cursor-pointer flex items-center justify-between group shadow-xs"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <History className="w-3.5 h-3.5 text-slate-300 group-hover:text-white transition-colors" />
+                                  <span className="font-semibold text-white text-xs">
+                                    Proposal History
+                                  </span>
+                                </div>
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] text-[9px] font-bold tracking-wider uppercase bg-white/10 text-white border border-white/15">
+                                  <Crown className="w-3 h-3 text-amber-400 fill-amber-400" />
+                                  <span>PRO</span>
+                                </span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </section>

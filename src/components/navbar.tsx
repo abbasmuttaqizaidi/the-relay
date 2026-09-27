@@ -30,7 +30,7 @@ import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { SolutionsDropdown, SolutionsMobileSection } from "@/design-system";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
-import { getIncomingRequestsCount } from "@/functions/getIncomingRequestsCount";
+import { getIncomingRequests } from "@/functions/getIncomingRequests";
 import { getSentRequests } from "@/functions/getSentRequests";
 import { getMyOpportunities } from "@/functions/getMyOpportunities";
 import { getSavedOpportunities } from "@/functions/getSavedOpportunities";
@@ -76,19 +76,18 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   const business = onboardingData?.business || null;
   const isApproved = business?.status === "approved";
 
-  // 2. Incoming Proposals Count
-  const { data: incomingCountData } = useQuery({
-    queryKey: ["incoming-requests-count", userId],
+  // 2. Incoming Proposals Query
+  const { data: incomingRequests = [] } = useQuery({
+    queryKey: ["incoming-requests", userId],
     queryFn: async () => {
-      if (!isSignedIn) return { count: 0 };
-      const res = await getIncomingRequestsCount();
-      return res || { count: 0 };
+      if (!isSignedIn) return [];
+      const data = await getIncomingRequests();
+      return data || [];
     },
     enabled: Boolean(isLoaded && isSignedIn),
-    staleTime: 1000 * 30,
-    refetchInterval: 30000,
+    staleTime: 1000 * 60 * 2,
   });
-  const incomingCount = incomingCountData?.count ?? propCount;
+  const incomingCount = incomingRequests.length || propCount;
 
   // 3. Sent Proposals Query
   const { data: sentRequests = [] } = useQuery({
@@ -133,6 +132,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   const isHome = !!matchRoute({ to: "/", fuzzy: false });
   const isDashboard = !!matchRoute({ to: "/dashboard", fuzzy: true });
   const isOpportunities = !!matchRoute({ to: "/opportunities", fuzzy: true });
+  const isConnections = !!matchRoute({ to: "/connections", fuzzy: true });
   const isProposals = !!matchRoute({ to: "/proposals", fuzzy: true });
   const isMyRelay = !!matchRoute({ to: "/my-relay", fuzzy: true });
   const isNetwork = !!matchRoute({ to: "/network", fuzzy: true });
@@ -154,6 +154,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   // Breadcrumb Title Helper
   const breadcrumbTitle = useMemo(() => {
     if (isDashboard) return "Exchange Command Center";
+    if (isConnections) return "Exchange Hub";
     if (isOpportunities) return "Commercial Board";
     if (isProposals) return currentSearch?.tab === "sent" ? "Sent History" : "Received History";
     if (isMyRelay) {
@@ -168,7 +169,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
     if (isFaq) return "Frequently Asked Questions";
     if (isBusinessProfile) return "Entity Settings";
     return "Opportunity Exchange";
-  }, [isOpportunities, isProposals, isMyRelay, isInsights, isNetwork, isFaq, isBusinessProfile, currentSearch]);
+  }, [isDashboard, isConnections, isOpportunities, isProposals, isMyRelay, isInsights, isNetwork, isFaq, isBusinessProfile, currentSearch]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -351,17 +352,34 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           <Link
             to="/opportunities"
             className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isOpportunities
+              isOpportunities && !isConnections
                 ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
                 : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <LayoutGrid className={`w-4 h-4 ${isOpportunities ? "text-slate-950" : "text-slate-500"}`} />
+              <LayoutGrid className={`w-4 h-4 ${isOpportunities && !isConnections ? "text-slate-950" : "text-slate-500"}`} />
               <span>Opportunities</span>
             </div>
             <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-bold">
               Explore
+            </span>
+          </Link>
+
+          <Link
+            to="/connections"
+            className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+              isConnections
+                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <ArrowLeftRight className={`w-4 h-4 ${isConnections ? "text-slate-950" : "text-slate-500"}`} />
+              <span>Exchange Hub</span>
+            </div>
+            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-950 text-white font-bold">
+              Live
             </span>
           </Link>
         </nav>
@@ -384,11 +402,9 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               <Inbox className={`w-4 h-4 ${isProposalsReceived ? "text-slate-950" : "text-slate-500"}`} />
               <span>Received</span>
             </div>
-            {incomingCount > 0 && (
-              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
-                {incomingCount}
-              </span>
-            )}
+            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+              {incomingCount ?? 0}
+            </span>
           </Link>
           <Link
             to="/proposals"

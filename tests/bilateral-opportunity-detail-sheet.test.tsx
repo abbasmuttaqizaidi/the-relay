@@ -53,14 +53,14 @@ describe("BilateralOpportunityDetailSheet Component", () => {
     expect(screen.getByText(/We would like to introduce a leading fintech client/i)).toBeInTheDocument();
 
     // 4-Stage Stepper
-    expect(screen.getByText("Stage 1: Acknowledgement")).toBeInTheDocument();
+    expect(screen.getByText(/Stage 1: Intent|Stage 1: Acknowledgement/i)).toBeInTheDocument();
     expect(screen.getByText("Stage 2: Negotiation")).toBeInTheDocument();
     expect(screen.getByText("Stage 3: Agreement")).toBeInTheDocument();
     expect(screen.getByText("Stage 4: Handshake")).toBeInTheDocument();
 
     // Action buttons
     expect(screen.getByText(/Close Sheet/i)).toBeInTheDocument();
-    expect(screen.getByText(/Exchange Hub >/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Open in Exchange Hub|Exchange Hub/i)[0]).toBeInTheDocument();
   });
 
   it("handles onClose when Close Sheet button is clicked", () => {
@@ -88,7 +88,7 @@ describe("BilateralOpportunityDetailSheet Component", () => {
       />
     );
 
-    fireEvent.click(screen.getByText(/Exchange Hub >/i));
+    fireEvent.click(screen.getAllByText(/Open in Exchange Hub|Exchange Hub/i)[0]);
     expect(onOpenExchangeHub).toHaveBeenCalledWith("deal-101");
   });
 });

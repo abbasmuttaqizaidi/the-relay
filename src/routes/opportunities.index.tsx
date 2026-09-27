@@ -209,6 +209,7 @@ type Opportunity = {
   logo_url?: string | null;
   parityScore?: number;
   exchangesCompleted?: number;
+  views?: number;
 };
 
 function formatPostedAt(dateString: string): string {
@@ -339,9 +340,9 @@ function ObservedOpportunityCard({
       isBlurred={isBlurred}
       interestStatus={interestStatus}
       onSaveToggle={onSaveToggle}
-      onExpressInterest={onExpressInterest}
-      onEdit={onEdit}
-      onExpand={handleExpand}
+      onExpressInterest={onExpressInterest as any}
+      onEdit={onEdit as any}
+      onExpand={() => handleExpand()}
     />
   );
 }
@@ -551,6 +552,36 @@ export function OpportunitiesPage() {
     staleTime: 1000 * 60 * 2,
   });
 
+  // 6. React Query: User's Sent Bilateral Requests / Active Exchanges
+  const { data: sentRequests = [] } = useQuery({
+    queryKey: ["sent-requests", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return [];
+      const res = await getSentRequests();
+      return res || [];
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 30,
+  });
+
+  const activeSentOpportunityMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (Array.isArray(sentRequests)) {
+      sentRequests.forEach((s: any) => {
+        if (s && s.status !== "withdrawn" && s.status !== "declined") {
+          const oppId = s.opportunity_id || s.opportunity?.id;
+          if (oppId) {
+            map.set(oppId, s.status || "pending");
+          }
+          if (s.opportunity?.opportunity_number) {
+            map.set(s.opportunity.opportunity_number, s.status || "pending");
+          }
+        }
+      });
+    }
+    return map;
+  }, [sentRequests]);
+
   // React Query Mutation: Save / Bookmark Toggle
   const saveToggleMutation = useMutation({
     mutationFn: async ({ oppId, shouldSave }: { oppId: string; shouldSave: boolean }) => {
@@ -674,6 +705,13 @@ export function OpportunitiesPage() {
       );
       return;
     }
+    if (activeSentOpportunityMap.has(opp.id) || (opp.opportunity_number && activeSentOpportunityMap.has(opp.opportunity_number))) {
+      toast.info("You have already expressed interest in this opportunity.", {
+        description: "You can track and manage the active exchange workflow in your Sent Requests.",
+      });
+      navigate({ to: "/my-relay", search: { tab: "sent" } as any });
+      return;
+    }
     setSelectedOppForInterest(opp);
     setInterestOpen(true);
   };
@@ -689,11 +727,16 @@ export function OpportunitiesPage() {
     return (dbOpps || []).filter((o) => {
       if (!o || typeof o !== "object" || !o.type) return false;
       // Category / Type filter
-      if (type !== "All" && o.type !== type) return false;
+      if (type !== "All" && o.type?.toLowerCase() !== type.toLowerCase()) return false;
       // Industry filter
-      if (industry !== "All" && o.industry !== industry) return false;
+      if (industry !== "All" && o.industry?.toLowerCase() !== industry.toLowerCase()) return false;
       // Geography filter
-      if (geo !== "All" && o.geo !== geo && o.location !== geo) return false;
+      if (
+        geo !== "All" &&
+        o.geo?.toLowerCase() !== geo.toLowerCase() &&
+        o.location?.toLowerCase() !== geo.toLowerCase()
+      )
+        return false;
       // Search query
       if (query) {
         const oppNum = o.opportunity_number || "";
@@ -726,9 +769,14 @@ export function OpportunitiesPage() {
     const query = (q || "").trim().toLowerCase();
     const filterFn = (o: Opportunity, matchType?: string) => {
       if (!o || typeof o !== "object" || !o.type) return false;
-      if (matchType && o.type !== matchType) return false;
-      if (industry !== "All" && o.industry !== industry) return false;
-      if (geo !== "All" && o.geo !== geo && o.location !== geo) return false;
+      if (matchType && o.type?.toLowerCase() !== matchType.toLowerCase()) return false;
+      if (industry !== "All" && o.industry?.toLowerCase() !== industry.toLowerCase()) return false;
+      if (
+        geo !== "All" &&
+        o.geo?.toLowerCase() !== geo.toLowerCase() &&
+        o.location?.toLowerCase() !== geo.toLowerCase()
+      )
+        return false;
       if (query) {
         const oppNum = o.opportunity_number || "";
         const shortId = o.id ? o.id.substring(0, 8) : "";
@@ -1129,8 +1177,9 @@ export function OpportunitiesPage() {
                   {(!isSignedIn ? paginatedOpps.slice(0, 3) : paginatedOpps).map((opp, idx) => {
                     const isOwner = Boolean(myBusinessId && opp.business_id === myBusinessId);
                     const isSaved = savedOpportunityIds.has(opp.id);
+                    const dbStatus = activeSentOpportunityMap.get(opp.id) || (opp.opportunity_number ? activeSentOpportunityMap.get(opp.opportunity_number) : undefined);
                     const interestRecord = interestStore[opp.id];
-                    const interestStatus = interestRecord?.status ?? "idle";
+                    const interestStatus = (dbStatus ?? interestRecord?.status ?? "idle") as any;
                     const isMock =
                       opp.id.startsWith("RY-") && OPPORTUNITIES.some((m) => m.id === opp.id);
                     const defaultBase = isMock ? calculateBaseViews(opp.id, opp.interested) : 0;

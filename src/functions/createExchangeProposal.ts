@@ -21,5 +21,6 @@ export const createExchangeProposal = createServerFn({ method: "POST" })
       fixed_amount: data.fixed_amount,
       currency: data.currency,
       additional_terms: data.additional_terms,
+      highlighted_terms: data.highlighted_terms,
     });
   });

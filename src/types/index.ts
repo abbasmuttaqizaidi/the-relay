@@ -88,6 +88,7 @@ export interface Opportunity {
   created_at: string;
   updated_at: string;
   views?: number;
+  exchanges?: Interest[];
 }
 
 export interface Interest {

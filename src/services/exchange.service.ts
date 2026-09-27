@@ -107,6 +107,7 @@ export class ExchangeService {
     fixed_amount?: number | null;
     currency?: string | null;
     additional_terms?: string | null;
+    highlighted_terms?: string[] | null;
   }) {
     const {
       interest_id,
@@ -117,6 +118,7 @@ export class ExchangeService {
       fixed_amount,
       currency,
       additional_terms,
+      highlighted_terms,
     } = params;
 
     const interest = await prisma.interest.findUnique({
@@ -169,6 +171,21 @@ export class ExchangeService {
       throw new Error("The interested business must submit the initial exchange proposal.");
     }
 
+    // Extract any highlighted terms from JSON additional_terms or direct params
+    let extractedHighlights: string[] = Array.isArray(highlighted_terms)
+      ? highlighted_terms.filter(Boolean)
+      : [];
+    if (extractedHighlights.length === 0 && additional_terms && additional_terms.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(additional_terms);
+        if (parsed.highlighted_terms && Array.isArray(parsed.highlighted_terms)) {
+          extractedHighlights = parsed.highlighted_terms.filter(Boolean);
+        } else if (parsed.highlightedTerms && Array.isArray(parsed.highlightedTerms)) {
+          extractedHighlights = parsed.highlightedTerms.filter(Boolean);
+        }
+      } catch {}
+    }
+
     // Use transaction to supersede pending proposals and invalidate unconfirmed agreements
     return await prisma.$transaction(async (tx) => {
       // If interest was marked declined, revive it back
@@ -212,6 +229,7 @@ export class ExchangeService {
           fixed_amount: fixed_amount ?? null,
           currency: currency || "USD",
           additional_terms: additional_terms || null,
+          highlighted_terms: extractedHighlights,
           version: newVersion,
           status: "pending_response",
         },

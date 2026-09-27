@@ -35,47 +35,47 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const variantStyles: Record<CardVariant, string> = {
   resting:
-    "bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4 hover:border-slate-300 transition",
+    "bg-white rounded-lg border border-slate-200/90 p-5 shadow-xs space-y-4 hover:border-slate-300 transition",
   default:
-    "bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4 hover:border-slate-300 transition",
+    "bg-white rounded-lg border border-slate-200/90 p-5 shadow-xs space-y-4 hover:border-slate-300 transition",
   float:
-    "bg-white rounded-2xl border border-slate-300 p-5 shadow-md hover:shadow-lg transition cursor-pointer hover:-translate-y-0.5 space-y-4",
+    "bg-white rounded-lg border border-slate-300 p-5 shadow-xs hover:shadow-sm transition cursor-pointer hover:-translate-y-0.5 space-y-4",
   hover:
-    "bg-white rounded-2xl border border-slate-300 p-5 shadow-md hover:shadow-lg transition cursor-pointer hover:-translate-y-0.5 space-y-4",
+    "bg-white rounded-lg border border-slate-300 p-5 shadow-xs hover:shadow-sm transition cursor-pointer hover:-translate-y-0.5 space-y-4",
   elevated:
-    "bg-white rounded-2xl border border-slate-300 p-5 shadow-md hover:shadow-lg transition cursor-pointer hover:-translate-y-0.5 space-y-4",
+    "bg-white rounded-lg border border-slate-300 p-5 shadow-xs hover:shadow-sm transition cursor-pointer hover:-translate-y-0.5 space-y-4",
   selected:
-    "bg-white rounded-2xl border-2 border-black p-5 shadow-md ring-2 ring-black/10 space-y-4 cursor-pointer",
+    "bg-white rounded-lg border-2 border-black p-5 shadow-xs space-y-4 cursor-pointer",
   active:
-    "bg-white rounded-2xl border-2 border-black p-5 shadow-md ring-2 ring-black/10 space-y-4 cursor-pointer",
+    "bg-white rounded-lg border-2 border-black p-5 shadow-xs space-y-4",
   locked:
-    "bg-slate-50/80 rounded-2xl border border-slate-200/70 p-5 shadow-none space-y-4 opacity-75",
+    "bg-slate-50/80 rounded-lg border border-slate-200/80 p-5 shadow-none space-y-4 opacity-75",
   disabled:
-    "bg-slate-50/80 rounded-2xl border border-slate-200/70 p-5 shadow-none space-y-4 opacity-75 cursor-not-allowed",
+    "bg-slate-50/80 rounded-lg border border-slate-200/80 p-5 shadow-none space-y-4 opacity-75 cursor-not-allowed",
   blinded:
-    "bg-slate-50/80 rounded-2xl border border-slate-200/70 p-5 shadow-none space-y-4 opacity-75",
+    "bg-slate-50/80 rounded-lg border border-slate-200/80 p-5 shadow-none space-y-4 opacity-75",
   feature:
-    "bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm hover:border-slate-300 hover:shadow-md transition",
+    "bg-white rounded-lg border border-slate-200/90 p-6 shadow-xs hover:border-slate-300 hover:shadow-sm transition",
   pill:
-    "bg-white rounded-full border border-slate-200/80 px-4 py-2.5 shadow-sm flex items-center justify-between hover:border-slate-300 hover:shadow transition",
+    "bg-white rounded-full border border-slate-200/90 px-4 py-2.5 shadow-2xs flex items-center justify-between hover:border-slate-300 hover:shadow-xs transition",
   "pill-active":
-    "bg-white rounded-full border-2 border-black px-4 py-2.5 shadow-md flex items-center justify-between ring-2 ring-black/10",
+    "bg-white rounded-full border-2 border-black px-4 py-2.5 shadow-xs flex items-center justify-between",
   "pill-selected":
-    "bg-white rounded-full border-2 border-black px-4 py-2.5 shadow-md flex items-center justify-between ring-2 ring-black/10",
+    "bg-white rounded-full border-2 border-black px-4 py-2.5 shadow-xs flex items-center justify-between",
 };
 
 const elevationStyles: Record<CardElevation, string> = {
-  rest: "border border-slate-200/80 shadow-sm",
-  float: "border border-slate-300 shadow-md hover:shadow-lg hover:-translate-y-0.5",
-  selected: "border-2 border-black shadow-md ring-2 ring-black/10",
-  locked: "border border-slate-200/60 shadow-none opacity-60",
+  rest: "border border-slate-200/90 shadow-xs",
+  float: "border border-slate-300 shadow-sm hover:shadow-md hover:-translate-y-0.5",
+  selected: "border-2 border-black shadow-xs",
+  locked: "border border-slate-200/70 shadow-none opacity-60",
 };
 
 const radiusStyles: Record<CardRadius, string> = {
-  sm: "rounded-lg",
-  md: "rounded-xl",
-  lg: "rounded-2xl",
-  xl: "rounded-3xl",
+  sm: "rounded-md",
+  md: "rounded-lg",
+  lg: "rounded-xl",
+  xl: "rounded-2xl",
   full: "rounded-full",
 };
 

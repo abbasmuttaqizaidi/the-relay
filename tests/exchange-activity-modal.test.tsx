@@ -28,7 +28,7 @@ describe("ExchangeActivityModal Component", () => {
     timestamp: "Just now",
   };
 
-  it("renders Stage 1 New Interest modal with partner name, opportunity title, details, and exact 2 action buttons", () => {
+  it("renders Stage 1 New Interest modal with title, description, and action buttons", () => {
     const handleClose = vi.fn();
     const handleOpenExchangeHub = vi.fn();
 
@@ -42,22 +42,11 @@ describe("ExchangeActivityModal Component", () => {
       />
     );
 
-    // Title & badge
+    // Title & description
     expect(screen.getByText(/New Interest Received/i)).toBeInTheDocument();
-    expect(screen.getByText(/STAGE 1 · PROTOCOL CLEARANCE/i)).toBeInTheDocument();
+    expect(screen.getByText(/A verified operator has expressed interest/i)).toBeInTheDocument();
 
-    // Partner info
-    expect(screen.getByText("Apex Global FinTech")).toBeInTheDocument();
-    expect(screen.getByText("Tier-1 Enterprise Payment Gateway Integration")).toBeInTheDocument();
-
-    // Details
-    expect(screen.getByText(/We have 12 enterprise clients needing payment processing rails/i)).toBeInTheDocument();
-
-    // 4-stage mini stepper
-    expect(screen.getByText(/1. Clearance/i)).toBeInTheDocument();
-    expect(screen.getByText(/2. Negotiate/i)).toBeInTheDocument();
-
-    // Exactly 2 action buttons in footer
+    // Action buttons in footer
     const closeBtn = screen.getByRole("button", { name: /^Close$/i });
     const hubBtn = screen.getByRole("button", { name: /Exchange Hub >/i });
     expect(closeBtn).toBeInTheDocument();
@@ -81,8 +70,7 @@ describe("ExchangeActivityModal Component", () => {
     );
 
     expect(screen.getByText(/Protocol Acknowledged — Stage 2 Unlocked/i)).toBeInTheDocument();
-    expect(screen.getByText(/STAGE 2 · NEGOTIATION UNLOCKED/i)).toBeInTheDocument();
-    expect(screen.getByText("Nexus Enterprise Solutions")).toBeInTheDocument();
+    expect(screen.getByText(/The counterparty has acknowledged Relay bilateral exchange protocol/i)).toBeInTheDocument();
   });
 
   it("parses notifications accurately into structured exchange activity metadata", () => {

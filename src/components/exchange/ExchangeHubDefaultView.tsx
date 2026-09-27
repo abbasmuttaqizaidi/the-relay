@@ -174,7 +174,35 @@ export function ExchangeHubDefaultView({
       {/* Stage 2: Bilateral Negotiation Workspace (Default Feed + Drawer from seo_code_guide.md) */}
       {currentStep === 2 && (
         <div className="space-y-5">
-          {/* Top Banner: Awaiting Counterparty Turn (Official Design System ExecutiveAlertBanner) */}
+          {/* Top Banner: Active Decision Turn - Counterparty Proposal In Your Court (Action Required) */}
+          {activeRound && !activeRound.isMe && activeRound.status === "active" && (
+            <ExecutiveAlertBanner
+              variant="warning"
+              title="Active Decision Turn — Counterparty Proposal Received"
+              badgeText="Action Required"
+              badgeFormat="mono"
+              icon={<Clock className="w-5 h-5 text-amber-700 animate-pulse" />}
+              description={
+                <span>
+                  <strong className="font-semibold text-slate-900">{targetBusiness?.company_name || "Partner"}</strong> submitted Round 0{activeRound.roundNum} terms ({activeRound.rate}). Review the proposal below to accept terms, send a counter-offer, or decline.
+                </span>
+              }
+              primaryAction={{
+                label: "Review & Respond",
+                onClick: onOpenCounterProposalModal,
+              }}
+              secondaryAction={
+                activeRound.proposalId
+                  ? {
+                      label: "Accept Terms",
+                      onClick: () => onAcceptProposal(activeRound.proposalId!),
+                    }
+                  : undefined
+              }
+            />
+          )}
+
+          {/* Top Banner: Awaiting Counterparty Turn (Official Design System ExecutiveAlertBanner - Sent State) */}
           {activeRound && activeRound.isMe && (
             <ExecutiveAlertBanner
               variant="warning"
@@ -258,6 +286,26 @@ export function ExchangeHubDefaultView({
             />
           )}
 
+          {/* Top Banner: Partner Withdrew Their Offer */}
+          {didPartnerWithdrawLatest && latestRound && (
+            <ExecutiveAlertBanner
+              variant="neutral"
+              title="Proposal Withdrawn by Partner • Submit New Offer"
+              badgeText="Awaiting Your Offer"
+              badgeFormat="mono"
+              icon={<X className="w-5 h-5 text-slate-600" />}
+              description={
+                <span>
+                  <strong className="font-semibold text-slate-900">{targetBusiness?.company_name || "Partner"}</strong> withdrew their proposal. You can submit a new offer whenever you are ready.
+                </span>
+              }
+              primaryAction={{
+                label: "Send New Offer",
+                onClick: onOpenCounterProposalModal,
+              }}
+            />
+          )}
+
 
 
           <div className="relative w-full grid grid-cols-1 xl:grid-cols-12 gap-6 items-start pb-8">
@@ -312,7 +360,7 @@ export function ExchangeHubDefaultView({
                     )}
 
                     <div
-                      className={`w-full max-w-[92%] sm:max-w-[85%] flex flex-col ${
+                      className={`w-full max-w-[92%] sm:max-w-[85%] flex flex-col relative pb-4 ${
                         r.isMe ? "ml-auto items-end" : "mr-auto items-start"
                       }`}
                     >
@@ -329,97 +377,152 @@ export function ExchangeHubDefaultView({
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-900 animate-pulse"></span>
                       </div>
 
-                      {/* High-Impact Solid Border Active Card (No drop shadow, only black border) */}
+                      {/* High-Impact Solid Border Active Card (Compact layout with top-right actions) */}
                       <Card
                         variant="active"
-                        className={`w-full !p-5 sm:!p-6 border-2 border-black !shadow-none !space-y-4 cursor-default !ring-0 text-left ${
-                          r.isMe ? "bg-slate-50/50" : "bg-white"
-                        }`}
+                        className="w-full relative z-10 !p-4 sm:!p-5 border-2 border-black !shadow-none !space-y-3 cursor-default !ring-0 text-left bg-white"
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                        {/* Top Header Row: Round Spec on Left, Action Buttons / Status on Right */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-slate-900"></span>
                             <span className="font-mono text-[10px] uppercase tracking-widest text-slate-900 font-bold">
-                              Round 0{r.roundNum} Specification • {r.isMe ? "Awaiting Partner Review" : "In Your Court"}
+                              Round 0{r.roundNum} Specification
                             </span>
                           </div>
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950 text-white font-mono text-[9px] font-bold uppercase tracking-wider select-none shadow-sm ring-1 ring-slate-900/20">
-                            <span className="relative flex h-1.5 w-1.5 shrink-0">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400" />
-                            </span>
-                            <span>{r.isMe ? "Waiting for Partner" : "Awaiting Your Decision"}</span>
-                            <span className="inline-flex items-center gap-0.5 shrink-0 pl-0.5">
-                              <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
-                              <span className="w-1 h-1 rounded-full bg-white animate-pulse [animation-delay:200ms]" />
-                              <span className="w-1 h-1 rounded-full bg-white animate-pulse [animation-delay:400ms]" />
-                            </span>
-                          </span>
-                        </div>
 
-                        {/* New Active Card Content Layout */}
-                        <div className="flex flex-col gap-4 pt-1">
-                          {/* Row 1: Heading -> Company Name proposed highlighted_substring or Terms */}
-                          <div>
-                            <h2 className="font-display text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                              {r.proposerName} proposed{" "}
-                              {r.highlightedTerms && r.highlightedTerms.length > 0
-                                ? r.highlightedTerms.join(", ")
-                                : "Terms"}
-                            </h2>
-                          </div>
-
-                          {/* Row 2 & 3: Proposed Terms label & full narrative string with highlighted substring */}
-                          {r.narrative && (
-                            <div className="space-y-1.5">
-                              <span className="font-mono text-[9.5px] uppercase font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/80 inline-block">
-                                Proposed Terms:
-                              </span>
-                              <p className="font-sans text-xs sm:text-sm text-slate-700 leading-relaxed font-normal">
-                                {highlightMatchedText(r.narrative, r.highlightedTerms)}
-                              </p>
+                          {!r.isMe ? (
+                            /* Actions directly in Round 06 row when receiving offer */
+                            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={onOpenDeclineModal}
+                                disabled={Boolean(loadingAction)}
+                                className="text-slate-500 hover:text-slate-900 text-xs h-7.5 px-2.5"
+                              >
+                                Decline
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={onOpenCounterProposalModal}
+                                disabled={Boolean(loadingAction)}
+                                className="text-xs h-7.5 px-3 border-slate-300"
+                              >
+                                Counter-Offer
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="monochrome"
+                                size="sm"
+                                onClick={() => onAcceptProposal(r.proposalId || undefined)}
+                                disabled={Boolean(loadingAction)}
+                                className="text-xs h-7.5 px-3.5 font-semibold"
+                              >
+                                {loadingAction === "respond-accept" ? "Accepting..." : "Accept Offer"}
+                              </Button>
+                            </div>
+                          ) : (
+                            /* Actions directly in Round 06 row when waiting for partner */
+                            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                              {r.proposalId && onWithdrawProposal && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => onWithdrawProposal(r.proposalId!)}
+                                  disabled={Boolean(loadingAction)}
+                                  className="text-slate-500 hover:text-red-700 hover:bg-red-50/80 gap-1 text-xs h-7.5 px-2.5"
+                                >
+                                  <X className="w-3 h-3" />
+                                  <span>Withdraw Offer</span>
+                                </Button>
+                              )}
+                              <Button
+                                type="button"
+                                variant="monochrome"
+                                size="sm"
+                                onClick={onOpenCounterProposalModal}
+                                disabled={Boolean(loadingAction)}
+                                className="h-7.5 px-3 font-semibold"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                                <span>Edit Proposal</span>
+                              </Button>
                             </div>
                           )}
+                        </div>
 
-                          {/* Row 4 & 5: Value Categories & tags */}
-                          <div className="space-y-1.5">
-                            <span className="font-mono text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1.5">
-                              <Building2 className="w-3.5 h-3.5 text-slate-600" />
-                              Value Categories
+                        {/* Title Heading: [Proposer] proposed [Terms] */}
+                        <h2 className="font-display text-xs sm:text-sm font-bold text-slate-900 tracking-tight flex items-baseline flex-wrap gap-1 pt-0">
+                          <span>{r.proposerName} proposed</span>{" "}
+                          {r.highlightedTerms && r.highlightedTerms.length > 0 ? (
+                            <span className="text-amber-950 font-bold bg-amber-100 !p-0 !py-0 !px-0 !m-0 inline leading-tight">
+                              {r.highlightedTerms.join(", ")}
                             </span>
-                            <div className="flex flex-wrap gap-1.5">
+                          ) : (
+                            <span>Terms</span>
+                          )}
+                        </h2>
+
+                        {/* Proposed Terms narrative */}
+                        {r.narrative && (
+                          <div className="space-y-0.5">
+                            <span className="font-mono text-[9px] uppercase font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/80 inline-block">
+                              Proposed Terms:
+                            </span>
+                            <p className="font-sans text-xs text-slate-700 leading-normal font-normal">
+                              {highlightMatchedText(r.narrative, r.highlightedTerms)}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Compact Horizontal Value & Delivery Row */}
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 border-t border-slate-100">
+                          {/* Value Categories */}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-mono text-[9.5px] uppercase font-bold text-slate-400 flex items-center gap-1">
+                              <Building2 className="w-3 h-3 text-slate-400" />
+                              Value:
+                            </span>
+                            <div className="flex flex-wrap gap-1">
                               {r.valueCategories && r.valueCategories.length > 0 ? (
                                 r.valueCategories.map((cat, idx) => (
                                   <SemanticStatusPill
                                     key={`active-cat-${idx}`}
                                     variant="neutral"
                                     format="rounded"
+                                    className="text-[10px] py-0 px-2"
                                   >
                                     {cat}
                                   </SemanticStatusPill>
                                 ))
                               ) : (
-                                <SemanticStatusPill variant="neutral" format="rounded">
+                                <SemanticStatusPill variant="neutral" format="rounded" className="text-[10px] py-0 px-2">
                                   {r.dimension}
                                 </SemanticStatusPill>
                               )}
                             </div>
                           </div>
 
-                          {/* Row 6 & 7: Delivery Methods & tags (with tooltip on other/custom values) */}
-                          <div className="space-y-1.5">
-                            <span className="font-mono text-[10px] uppercase font-bold text-slate-500 flex items-center gap-1.5">
-                              <Handshake className="w-3.5 h-3.5 text-slate-600" />
-                              Delivery Methods
+                          {/* Delivery Methods */}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-mono text-[9.5px] uppercase font-bold text-slate-400 flex items-center gap-1">
+                              <Handshake className="w-3 h-3 text-slate-400" />
+                              Delivery:
                             </span>
-                            <div className="flex flex-wrap gap-1.5">
+                            <div className="flex flex-wrap gap-1">
                               {r.deliveryMethods && r.deliveryMethods.length > 0 ? (
                                 r.deliveryMethods.map((dm, idx) => {
                                   const pillNode = (
                                     <SemanticStatusPill
+                                      key={`active-dm-${idx}`}
                                       variant={dm.isOther ? "warning" : "neutral"}
                                       format="rounded"
-                                      className={dm.isOther ? "cursor-help" : undefined}
+                                      className={`text-[10px] py-0 px-2 ${dm.isOther ? "cursor-help" : ""}`}
                                     >
                                       {dm.label}
                                     </SemanticStatusPill>
@@ -441,10 +544,10 @@ export function ExchangeHubDefaultView({
                                     );
                                   }
 
-                                  return <React.Fragment key={`active-dm-${idx}`}>{pillNode}</React.Fragment>;
+                                  return pillNode;
                                 })
                               ) : (
-                                <SemanticStatusPill variant="neutral" format="rounded">
+                                <SemanticStatusPill variant="neutral" format="rounded" className="text-[10px] py-0 px-2">
                                   {r.archetype}
                                 </SemanticStatusPill>
                               )}
@@ -452,105 +555,46 @@ export function ExchangeHubDefaultView({
                           </div>
                         </div>
 
-                        {/* Action Buttons & Waiting Sub-box */}
-                        <div className="pt-3 border-t border-slate-100 flex flex-col gap-3">
-                          {!r.isMe ? (
-                            <div className="flex flex-wrap items-center justify-end gap-2.5">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={onOpenDeclineModal}
-                                disabled={Boolean(loadingAction)}
-                                className="text-slate-500 hover:text-slate-900"
-                              >
-                                Decline Offer
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={onOpenCounterProposalModal}
-                                disabled={Boolean(loadingAction)}
-                              >
-                                Propose Counter-Offer
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="monochrome"
-                                size="sm"
-                                onClick={() => onAcceptProposal(r.proposalId || undefined)}
-                                disabled={Boolean(loadingAction)}
-                              >
-                                {loadingAction === "respond-accept" ? "Accepting..." : `Accept Offer (${r.rate})`}
-                              </Button>
-                            </div>
-                          ) : (
-                            /* Sub-box when sender is waiting for partner response (from seo_code_guide.md waiting-for-replay) */
-                            <div className="bg-slate-50 rounded-xl p-3.5 sm:p-4 flex flex-col gap-2.5 border border-slate-200">
-                              <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200/70">
-                                <div className="flex items-center gap-2">
-                                  <Hourglass className="w-4 h-4 text-slate-900 animate-pulse" />
-                                  <span className="font-display font-bold text-xs sm:text-sm text-slate-900">
-                                    Waiting for {targetBusiness?.company_name || "Partner"}&apos;s Response
-                                  </span>
+                        {/* Sub-box when sender is waiting for partner response (Warning Banner Design with Animated Hourglass) */}
+                        {r.isMe && (
+                          <div className="bg-[#FFFBEB] rounded-lg p-3 sm:p-3.5 flex flex-col gap-2 border border-[#FDE68A] shadow-2xs mt-2">
+                            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#FDE68A]/80">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-[3px] bg-[#FEF3C7] border border-[#FDE68A] flex items-center justify-center shrink-0 shadow-2xs">
+                                  <Hourglass className="w-3.5 h-3.5 text-[#B45309] animate-hourglass" />
                                 </div>
-                                <span className="px-2 py-0.5 rounded bg-slate-200/80 font-mono text-[9.5px] font-semibold text-slate-700 flex items-center gap-1.5">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-900 animate-pulse" />
-                                  Active SLA: 41h remaining
+                                <span className="font-display font-bold text-xs sm:text-sm text-[#92400E]">
+                                  Waiting for {targetBusiness?.company_name || "Partner"}&apos;s Response
                                 </span>
                               </div>
-
-                              <p className="font-sans text-xs text-slate-600 leading-relaxed">
-                                {targetBusiness?.company_name || "Partner"} currently holds the active decision turn. While their bilateral review window is open, you can revise the commercial terms or withdraw the proposition.
-                              </p>
-
-                              <div className="pt-1 flex flex-wrap items-center justify-between gap-2">
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    type="button"
-                                    variant="monochrome"
-                                    size="sm"
-                                    onClick={onOpenCounterProposalModal}
-                                    disabled={Boolean(loadingAction)}
-                                    className="gap-1.5"
-                                  >
-                                    <Edit3 className="w-3.5 h-3.5" />
-                                    <span>Edit Active Proposal</span>
-                                  </Button>
-                                  {r.proposalId && onWithdrawProposal && (
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => onWithdrawProposal(r.proposalId!)}
-                                      disabled={Boolean(loadingAction)}
-                                      className="text-slate-500 hover:text-red-700 hover:bg-red-50 gap-1"
-                                    >
-                                      <X className="w-3.5 h-3.5" />
-                                      <span>Withdraw Offer</span>
-                                    </Button>
-                                  )}
-                                </div>
-
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    onSelectDrawerRound(r);
-                                    setIsDrawerOpen(true);
-                                  }}
-                                  className="text-slate-900 font-semibold gap-1"
-                                >
-                                  <span>Open Full Specification</span>
-                                  <ExternalLink className="w-3.5 h-3.5 text-slate-700" />
-                                </Button>
-                              </div>
+                              <span className="px-2 py-0.5 rounded bg-[#FEF3C7] border border-[#FDE68A] font-mono text-[9px] font-bold text-[#B45309] flex items-center gap-1.5 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-pulse" />
+                                Active SLA: 41h remaining
+                              </span>
                             </div>
-                          )}
-                        </div>
+
+                            <p className="font-sans text-xs text-[#92400E]/90 leading-relaxed font-normal">
+                              {targetBusiness?.company_name || "Partner"} currently holds the active decision turn. While their bilateral review window is open, you can revise the commercial terms or withdraw the proposition.
+                            </p>
+                          </div>
+                        )}
                       </Card>
+
+                      {/* Attached Bottom-Left Ribbon/Tab tucked underneath the active card */}
+                      <div
+                        className={`absolute -bottom-2 left-4 sm:left-6 z-0 inline-flex items-center gap-1.5 px-2.5 pt-2 pb-1 rounded-b-md text-[9px] font-mono font-bold uppercase tracking-wider select-none border border-t-0 shadow-xs ${
+                          r.isMe
+                            ? "bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]"
+                            : "bg-slate-900 text-white border-slate-950"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            r.isMe ? "bg-[#B45309] animate-pulse" : "bg-emerald-400 animate-pulse"
+                          }`}
+                        />
+                        <span>{r.isMe ? "Waiting for counterparty" : "Waiting for your action"}</span>
+                      </div>
                     </div>
                   </div>
                 );
@@ -791,106 +835,6 @@ export function ExchangeHubDefaultView({
                 </div>
               </div>
             )}
-
-            {/* Quick Bilateral Dispatch Input Bar vs Locked Input Box when waiting */}
-            {activeRound && activeRound.isMe ? (
-              /* Locked Turn Input Box (from seo_code_guide.md waiting-for-replay Message 4/Locked Bar) */
-              <div className="w-full bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col gap-3 mt-2">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-slate-900 animate-pulse" />
-                    <span className="font-mono text-[9.5px] uppercase tracking-wider text-slate-900 font-bold flex items-center gap-1.5">
-                      <Lock className="w-3.5 h-3.5 text-slate-700" />
-                      Bilateral Turn Locked
-                    </span>
-                  </div>
-                  <span className="px-2.5 py-0.5 rounded bg-slate-100 font-mono text-[9.5px] font-semibold text-slate-600 flex items-center gap-1">
-                    <Hourglass className="w-3 h-3 text-slate-500" />
-                    {targetBusiness?.company_name || "Partner"} Turn
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <p className="font-display font-bold text-sm text-slate-900">
-                    Waiting for {targetBusiness?.company_name || "Partner"}&apos;s response
-                  </p>
-                  <p className="font-sans text-xs text-slate-600 leading-relaxed">
-                    You cannot submit a new offer until {targetBusiness?.company_name || "Partner"} responds (Accepts, Declines, or Counters). You may update the current active proposal terms or withdraw the offer before their decision.
-                  </p>
-                </div>
-
-                <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="monochrome"
-                      size="sm"
-                      onClick={onOpenCounterProposalModal}
-                      disabled={Boolean(loadingAction)}
-                      className="gap-1.5 shadow-xs"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span>Edit Active Proposal</span>
-                    </Button>
-                    {activeRound.proposalId && onWithdrawProposal && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onWithdrawProposal(activeRound.proposalId!)}
-                        disabled={Boolean(loadingAction)}
-                        className="text-slate-500 hover:text-red-700 hover:bg-red-50 text-xs font-medium gap-1"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                        <span>Withdraw Offer</span>
-                      </Button>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-slate-500 font-mono text-[10px]">
-                    <ShieldCheck className="w-3.5 h-3.5 text-slate-700" />
-                    <span>Bilateral SLA Active: 41h</span>
-                  </div>
-                </div>
-              </div>
-            ) : activeRound && !activeRound.isMe ? (
-              <div className="w-full bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-slate-200 mt-2 space-y-2.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[9.5px] uppercase tracking-wider text-slate-500 font-bold">
-                    Direct Bilateral Dispatch
-                  </span>
-                  <span className="font-mono text-[9.5px] text-slate-500 flex items-center gap-1">
-                    <Lock className="w-3 h-3 text-slate-400" />
-                    <span>Encrypted Bilateral Session</span>
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
-                  <input
-                    type="text"
-                    value={quickInput}
-                    onChange={(e) => setQuickInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleDispatch();
-                      }
-                    }}
-                    placeholder="Type counter-terms (e.g. 'Proposing 7.5% revenue share with Net 30 days settlement')..."
-                    className="w-full h-8.5 px-3 bg-slate-50 font-sans text-xs text-slate-900 rounded-[4px] border border-slate-300 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:bg-white transition-all"
-                  />
-                  <Button
-                    type="button"
-                    variant="monochrome"
-                    size="sm"
-                    onClick={handleDispatch}
-                    disabled={!quickInput.trim() || Boolean(loadingAction)}
-                    className="shrink-0"
-                  >
-                    <span>Send Proposal</span>
-                    <Send className="w-3.5 h-3.5 text-slate-200" />
-                  </Button>
-                </div>
-              </div>
-            ) : null}
           </div>
 
           {/* Side Drawer Panel (4 cols on desktop sticky from seo_code_guide.md) */}

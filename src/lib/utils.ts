@@ -95,3 +95,50 @@ export function formatTimeAgo(dateInput: string | Date | undefined): string {
   if (diffDays < 7) return `${diffDays}d ago`;
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
+
+/**
+ * Strictly formats an Opportunity Code in standard RY-XXXX format.
+ * E.g., "7117" -> "RY-7117", "RY-7117" -> "RY-7117", "RY-0042" -> "RY-0042".
+ */
+export function formatOpportunityCode(oppNumberOrId?: string | number | null): string {
+  if (!oppNumberOrId) return "RY-0000";
+  const str = String(oppNumberOrId).trim();
+  if (str.toUpperCase().startsWith("RY-")) {
+    return str.toUpperCase();
+  }
+  const clean = str.replace(/^#/, "");
+  return `RY-${clean}`;
+}
+
+/**
+ * Strictly formats a unique Exchange ID tied to its Opportunity in format:
+ * `Exchange-[opp_number]-[seq]`
+ * E.g., for opportunity "RY-7117" and exchange #1 -> "Exchange-7117-01", exchange #2 -> "Exchange-7117-02".
+ */
+export function formatExchangeCode(
+  oppNumberOrId?: string | number | null,
+  exchangeIdOrSeq?: string | number | null
+): string {
+  const oppStr = String(oppNumberOrId || "0000").trim();
+  const oppDigits = oppStr.replace(/\D/g, "") || oppStr.replace(/^RY-?/i, "") || "0000";
+
+  let seq = "01";
+  if (exchangeIdOrSeq != null) {
+    const exStr = String(exchangeIdOrSeq).trim();
+    if (/^\d+$/.test(exStr)) {
+      seq = exStr.padStart(2, "0");
+    } else if (/^Exchange-\d+-\w+/i.test(exStr)) {
+      return exStr;
+    } else {
+      const digits = exStr.replace(/\D/g, "");
+      if (digits.length >= 2) {
+        seq = digits.slice(-2);
+      } else {
+        const clean = exStr.replace(/-/g, "");
+        seq = clean.slice(-2).toUpperCase() || "01";
+      }
+    }
+  }
+  return `Exchange-${oppDigits}-${seq}`;
+}
+

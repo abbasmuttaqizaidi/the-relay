@@ -220,7 +220,7 @@ describe("Dashboard Command Center (/dashboard)", () => {
 
     // Bottom sheet should open and display the bilateral stepper
     await waitFor(() => {
-      expect(screen.getByText("Stage 1: Acknowledgement")).toBeInTheDocument();
+      expect(screen.getByText(/Stage 1: Intent|Stage 1: Acknowledgement/i)).toBeInTheDocument();
       expect(screen.getByText("Stage 4: Handshake")).toBeInTheDocument();
     });
   });

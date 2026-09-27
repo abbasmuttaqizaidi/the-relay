@@ -45,10 +45,10 @@ export const buttonVariants = cva(
           "bg-white hover:bg-[#F8FAFC] text-[#000000] font-semibold shadow-xs",
       },
       size: {
-        default: "h-10 px-4 py-2 text-xs md:text-sm",
-        sm: "h-8 px-3 text-xs",
-        lg: "h-11 px-6 text-sm",
-        icon: "h-9 w-9 p-0",
+        default: "h-9 px-3.5 py-1.5 text-xs font-medium",
+        sm: "h-8 px-2.5 text-xs font-medium",
+        lg: "h-10 px-4 text-xs font-semibold",
+        icon: "h-8.5 w-8.5 p-0",
       },
     },
     defaultVariants: {

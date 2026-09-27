@@ -23,7 +23,7 @@ import {
   Info,
   Send,
 } from "lucide-react";
-import { Modal, Button } from "@/design-system";
+import { Modal, Button, SemanticStatusPill } from "@/design-system";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RelayVerificationSeal } from "@/components/relay-verification-seal";
 import { toast } from "@/components/ui/sonner";
@@ -826,11 +826,11 @@ export function ExpressInterestModal({
         if (!open) onClose();
       }}
       title={modalTitle}
-      maxWidth={isSuccess ? "max-w-[440px]" : "max-w-2xl"}
+      maxWidth={isSuccess ? "max-w-[460px]" : "max-w-2xl sm:max-w-3xl"}
       className={
         isSuccess
-          ? "!h-auto !max-h-fit"
-          : "h-[620px] max-h-[calc(100dvh-2rem)] sm:max-h-[88vh]"
+          ? "h-fit"
+          : "h-fit max-h-[calc(100dvh-2rem)] sm:max-h-[88vh]"
       }
       footer={modalFooter}
     >
@@ -1326,33 +1326,32 @@ export function ExpressInterestModal({
         </div>
       ) : (
         /* Success State - Compact & Content-fitted */
-        <div className="space-y-3.5 text-left py-0.5">
-          <p className="text-xs text-slate-600 leading-relaxed">
+        <div className="space-y-4 text-left py-1">
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans">
             {isCounterMode
               ? `Your commercial terms have been securely transmitted to `
               : `Your proposal has been securely sent to `}
             <strong className="font-semibold text-slate-900">{targetCompanyName}</strong>. They will review your terms and reply.
           </p>
 
-          <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200/80 flex items-center justify-between text-xs">
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
-              <span className="text-slate-400 text-[11px]">Ref:</span>
-              <span className="font-mono font-semibold text-slate-800 text-xs">{referenceCode}</span>
+              <span className="font-mono text-[11px] uppercase tracking-wider text-slate-400 font-bold">Reference:</span>
+              <span className="font-mono font-bold text-slate-900 text-xs">{referenceCode}</span>
             </div>
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <SemanticStatusPill variant="success" format="mono">
               Awaiting Review
-            </span>
+            </SemanticStatusPill>
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2 pt-2">
             {isCounterMode ? (
               <Button
                 type="button"
                 variant="monochrome"
                 size="sm"
                 onClick={onClose}
-                className="w-full text-xs font-semibold h-9 gap-1.5 bg-[#0F172A] hover:bg-slate-800 text-white cursor-pointer"
+                className="w-full text-xs font-semibold h-9 gap-1.5 shadow-xs cursor-pointer"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Return to Exchange</span>
@@ -1373,7 +1372,7 @@ export function ExpressInterestModal({
                   variant="monochrome"
                   size="sm"
                   onClick={handleGoToSentProposals}
-                  className="flex-1 text-xs font-semibold h-9 gap-1.5 bg-[#0F172A] hover:bg-slate-800 text-white cursor-pointer"
+                  className="flex-1 text-xs font-semibold h-9 gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>View Sent</span>
