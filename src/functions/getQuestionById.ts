@@ -3,7 +3,7 @@ import { QuestionService } from "../services/question.service";
 import { z } from "zod";
 
 const getQuestionByIdSchema = z.object({
-  question_id: z.string().uuid("Invalid question ID"),
+  question_id: z.string().min(1, "Identifier is required"),
 });
 
 export const getQuestionById = createServerFn({ method: "GET" })

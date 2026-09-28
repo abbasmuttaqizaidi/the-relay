@@ -51,6 +51,7 @@ export async function getPublicSitemapUrls(): Promise<SitemapBreakdown> {
       },
       select: {
         id: true,
+        slug: true,
       },
       orderBy: {
         created_at: "desc",
@@ -59,7 +60,7 @@ export async function getPublicSitemapUrls(): Promise<SitemapBreakdown> {
 
     questionUrls = questions
       .filter((q) => Boolean(q.id))
-      .map((q) => `${SITE_URL}/insights/${q.id}`);
+      .map((q) => `${SITE_URL}/insights/${q.slug || q.id}`);
   } catch (err) {
     console.error("[Sitemap] Failed to query published questions:", err);
   }
@@ -72,6 +73,7 @@ export async function getPublicSitemapUrls(): Promise<SitemapBreakdown> {
       },
       select: {
         id: true,
+        slug: true,
       },
       orderBy: {
         created_at: "desc",
@@ -80,7 +82,7 @@ export async function getPublicSitemapUrls(): Promise<SitemapBreakdown> {
 
     knowledgeUrls = knowledgeInsights
       .filter((k) => Boolean(k.id))
-      .map((k) => `${SITE_URL}/insights/knowledge/${k.id}`);
+      .map((k) => `${SITE_URL}/insights/knowledge/${k.slug || k.id}`);
   } catch (err) {
     console.error("[Sitemap] Failed to query published knowledge articles:", err);
   }

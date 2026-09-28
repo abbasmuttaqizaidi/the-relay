@@ -378,12 +378,21 @@ export function MiniStageStepper({
    5. MINI STAGE BAR STEPPER (4 COMPACT BARS WITH SHORT STAGE LABELS: ack, neg, agr, shake)
    ========================================================================== */
 
+export interface MiniStageBarStepperProps extends React.HTMLAttributes<HTMLDivElement> {
+  stage?: 1 | 2 | 3 | 4 | number;
+  isCompleted?: boolean;
+  dark?: boolean;
+}
+
 export function MiniStageBarStepper({
   stage = 1,
+  isCompleted = false,
+  dark = false,
   className,
   ...props
 }: MiniStageBarStepperProps) {
-  const safeStage = Math.max(1, Math.min(4, Number(stage) || 1));
+  const safeStage = isCompleted ? 4 : Math.max(1, Math.min(4, Number(stage) || 1));
+  const isDark = dark || isCompleted;
   const steps = [
     { num: 1, label: "ack" },
     { num: 2, label: "neg" },
@@ -402,7 +411,15 @@ export function MiniStageBarStepper({
               key={s.num}
               className={cn(
                 "h-1.5 rounded-[2px] transition-colors",
-                isActive ? "bg-[#171F2C]" : "bg-[#E2E8F0]",
+                isDark
+                  ? isActive
+                    ? isCompleted
+                      ? "bg-emerald-400"
+                      : "bg-white"
+                    : "bg-slate-700"
+                  : isActive
+                    ? "bg-[#171F2C]"
+                    : "bg-[#E2E8F0]",
               )}
             />
           );
@@ -419,11 +436,19 @@ export function MiniStageBarStepper({
               key={s.num}
               className={cn(
                 "transition-colors truncate",
-                isCurrent
-                  ? "font-bold text-[#171F2C]"
-                  : isActive
-                    ? "font-semibold text-[#475569]"
-                    : "font-medium text-[#94A3B8]",
+                isDark
+                  ? isCompleted
+                    ? "font-bold text-emerald-300"
+                    : isCurrent
+                      ? "font-bold text-white"
+                      : isActive
+                        ? "font-semibold text-slate-300"
+                        : "font-medium text-slate-500"
+                  : isCurrent
+                    ? "font-bold text-[#171F2C]"
+                    : isActive
+                      ? "font-semibold text-[#475569]"
+                      : "font-medium text-[#94A3B8]",
               )}
             >
               {s.label}

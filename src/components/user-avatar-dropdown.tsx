@@ -1,6 +1,7 @@
 import { useUser, useClerk } from "@clerk/tanstack-react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/components/ui/sonner";
 import { Building2, User, Shield, LogOut, Check, ChevronDown } from "lucide-react";
 import { TooltipSimple } from "@/components/ui/tooltip";
@@ -14,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getCompanyInitials } from "@/lib/utils";
+import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
 
 interface ProfileData {
   companyName: string;
@@ -34,6 +36,19 @@ export function UserAvatarDropdown({
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [logoFailed, setLogoFailed] = useState(false);
+
+  // Fetch verified business profile from live database
+  const { data: onboardingData } = useQuery({
+    queryKey: ["onboarding-status", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      return await checkOnboardingStatus();
+    },
+    enabled: Boolean(user?.id),
+    staleTime: 1000 * 60 * 1,
+  });
+
+  const dbBusiness = onboardingData?.business;
 
   useEffect(() => {
     const loadProfile = () => {
@@ -59,22 +74,27 @@ export function UserAvatarDropdown({
 
   useEffect(() => {
     setLogoFailed(false);
-  }, [profile?.logoUrl]);
+  }, [profile?.logoUrl, dbBusiness?.logo_url]);
 
   if (!user) return null;
 
-  // Compute display name: company name if onboarding is completed, else operator full name
-  const displayName = profile?.companyName || user.fullName || "Operator";
+  // Compute display name: ALWAYS prioritize registered business name over Google/personal account name
+  const displayName = dbBusiness?.company_name || profile?.companyName || "Your Business";
 
-  // Compute initials based on display name
+  // Compute initials based on business name
   const initials = getCompanyInitials(displayName);
 
-  // Use company logo url if available, otherwise Clerk user profile image
-  const avatarSrc = profile?.logoUrl && !logoFailed ? profile.logoUrl : user.imageUrl;
+  // Use company logo url if uploaded, otherwise undefined (shows business initials, never Google/personal photo)
+  const businessLogoUrl = dbBusiness?.logo_url || profile?.logoUrl;
+  const avatarSrc = businessLogoUrl && !logoFailed ? businessLogoUrl : undefined;
 
   // Tier display config — includes legacy mapping for old L1/L2/L3 values
   const tierMap: Record<string, string> = { L1: "Basic", L2: "Applied", L3: "Approved" };
-  const rawTier = profile?.verificationLevel || "Basic";
+  const rawTier = dbBusiness?.status === "approved"
+    ? "Approved"
+    : dbBusiness?.status
+      ? "Applied"
+      : profile?.verificationLevel || "Basic";
   const tierLabel = tierMap[rawTier] || rawTier;
 
 

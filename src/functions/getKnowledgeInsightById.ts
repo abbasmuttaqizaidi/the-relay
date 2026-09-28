@@ -7,7 +7,7 @@ import { verifyAdminSession } from "../lib/admin-auth.server";
 import { z } from "zod";
 
 const getKnowledgeInsightByIdSchema = z.object({
-  id: z.string().uuid("Invalid knowledge insight ID"),
+  id: z.string().min(1, "Identifier is required"),
 });
 
 export const getKnowledgeInsightById = createServerFn({ method: "GET" })

@@ -81,11 +81,12 @@ export const Route = createFileRoute("/insights/$id")({
       : "";
     const description = `${snippet}${author}`;
 
+    const canonicalSlug = loaderData?.question?.slug || params.id;
     return {
       meta: createSeoMeta({
         title,
         description,
-        canonicalPath: `/insights/${params.id}`,
+        canonicalPath: `/insights/${canonicalSlug}`,
         ogType: "article",
       }),
     };
@@ -938,7 +939,7 @@ export function QuestionDetailPage() {
           title={question.title}
           topic={question.topic}
           authorName={question.business?.company_name}
-          urlPath={`/insights/${question.id}`}
+          urlPath={`/insights/${question.slug || question.id}`}
           type="question"
         />
       )}

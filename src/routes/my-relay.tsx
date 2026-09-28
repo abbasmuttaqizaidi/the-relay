@@ -2094,6 +2094,7 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                               location={deal.opportunity?.location || deal.opportunity?.geo || "Remote / Global"}
                               industry={deal.opportunity?.industry}
                               logoUrl={deal.opportunity?.business?.logo_url || deal.requesting_business?.logo_url}
+                              proposedTerms={scopeTerms || deal.message || deal.opportunity?.offer_text}
                               onView={() =>
                                 setSelectedSheetDeal({
                                   deal,

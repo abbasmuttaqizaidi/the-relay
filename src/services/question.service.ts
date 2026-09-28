@@ -7,6 +7,7 @@ import {
 } from "../types";
 import { submitToIndexNow } from "../lib/indexnow.server";
 import { SITE_URL } from "../lib/seo";
+import { generateUniqueQuestionSlug, isUUID } from "../lib/slug";
 
 const SAFE_BUSINESS_SELECT = {
   id: true,
@@ -43,11 +44,15 @@ export class QuestionService {
         throw new Error("Only approved businesses can ask questions.");
       }
 
-      // 2. Create question in database
+      // 2. Generate unique SEO slug
+      const slug = await generateUniqueQuestionSlug(dto.title);
+
+      // 3. Create question in database
       const question = await prisma.question.create({
         data: {
           business_id: dto.business_id,
           title: dto.title.trim(),
+          slug,
           description: dto.description.trim(),
           topic: dto.topic,
           desired_perspective: dto.desired_perspective || null,
@@ -64,13 +69,14 @@ export class QuestionService {
         },
       });
 
-      // 3. Log activity
+      // 4. Log activity
       try {
         await prisma.activityLog.create({
           data: {
             action: "question_created",
             details: JSON.stringify({
               question_id: question.id,
+              slug: question.slug,
               business_id: dto.business_id,
               title: question.title,
             }),
@@ -80,8 +86,8 @@ export class QuestionService {
         console.warn("[QuestionService.createQuestion] Failed to log activity:", logErr);
       }
 
-      // 4. Notify search engines via IndexNow asynchronously
-      submitToIndexNow(`${SITE_URL}/insights/${question.id}`).catch((err) => {
+      // 5. Notify search engines via IndexNow asynchronously
+      submitToIndexNow(`${SITE_URL}/insights/${question.slug || question.id}`).catch((err) => {
         console.warn("[QuestionService.createQuestion] IndexNow notification failed:", err);
       });
 
@@ -156,12 +162,15 @@ export class QuestionService {
   }
 
   /**
-   * Fetches a single question by ID along with its perspectives.
+   * Fetches a single question by ID or slug along with its perspectives.
    */
-  static async getQuestionById(questionId: string): Promise<Question | null> {
+  static async getQuestionById(identifier: string): Promise<Question | null> {
     try {
-      const question = await prisma.question.findUnique({
-        where: { id: questionId },
+      const isIdentifierUUID = isUUID(identifier);
+      const question = await prisma.question.findFirst({
+        where: isIdentifierUUID
+          ? { OR: [{ id: identifier }, { slug: identifier }] }
+          : { slug: identifier },
         include: {
           business: {
             select: SAFE_BUSINESS_SELECT,
@@ -323,6 +332,7 @@ export class QuestionService {
       id: q.id,
       business_id: q.business_id,
       title: q.title,
+      slug: q.slug ?? null,
       description: q.description,
       topic: q.topic,
       desired_perspective: q.desired_perspective ?? null,

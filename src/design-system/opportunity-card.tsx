@@ -16,6 +16,8 @@ import {
   Repeat,
   Shield,
   Sparkles,
+  Check,
+  Building2,
 } from "lucide-react";
 import { cn, getCompanyInitials } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company-logo";
@@ -394,6 +396,7 @@ export interface BilateralDealOpportunityCardProps {
   location?: string | null;
   industry?: string | null;
   logoUrl?: string | null;
+  proposedTerms?: string | null;
   onView: () => void;
   onExchangeHub: () => void;
   className?: string;
@@ -412,10 +415,113 @@ export function BilateralDealOpportunityCard({
   location,
   industry,
   logoUrl,
+  proposedTerms,
   onView,
   onExchangeHub,
   className,
 }: BilateralDealOpportunityCardProps) {
+  if (isCompleted) {
+    return (
+      <article
+        className={cn(
+          "relative bg-[#171F2C] text-white border border-[#334155] hover:border-slate-500 rounded-lg p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition-all group overflow-hidden select-none",
+          className,
+        )}
+      >
+        {/* Top Right Circular Tick Indicator: White Background with Black Tick */}
+        <div className="absolute top-3.5 right-3.5 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-md z-10 pointer-events-none">
+          <Check className="w-3.5 h-3.5 text-[#171F2C] stroke-[3]" />
+        </div>
+
+        <div className="flex items-start md:items-center gap-3.5 min-w-0 flex-1 pr-7 md:pr-0">
+          {/* Company Logo / Initials Avatar */}
+          <div className="relative shrink-0 mt-0.5 md:mt-0">
+            <CompanyLogo
+              src={logoUrl || undefined}
+              name={partnerName}
+              className="w-9 h-9 rounded-[4px] object-contain border border-slate-700 shrink-0 bg-white"
+              fallbackClassName="w-9 h-9 rounded-[4px] bg-slate-800 text-white flex items-center justify-center font-bold text-xs shrink-0 border border-slate-700"
+              textClassName="text-xs font-mono font-bold text-white"
+            />
+          </div>
+
+          {/* Core Content Block */}
+          <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+            {/* Opportunity Title */}
+            <h2 className="font-display font-bold text-[15px] sm:text-[16px] text-white group-hover:text-slate-100 truncate tracking-tight pt-0.5 leading-snug">
+              {headline}
+            </h2>
+
+            {/* Partner Details & Terms */}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800/90 border border-slate-700/80 text-slate-200">
+                <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="text-slate-400 text-[11px]">Partner:</span>
+                <span className="font-semibold text-white truncate max-w-[180px]">
+                  {partnerName}
+                </span>
+                {isVerified && (
+                  <span className="inline-flex items-center gap-1 text-emerald-400 text-[10px] font-medium shrink-0 ml-1">
+                    <VerifiedBadge size={13} /> Verified
+                  </span>
+                )}
+              </div>
+
+              {(location || industry) && (
+                <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
+                  <span className="text-slate-600">|</span>
+                  <span className="truncate">{location || "Remote / Global"}</span>
+                  {industry && (
+                    <>
+                      <span className="text-slate-600">•</span>
+                      <span className="truncate">{industry}</span>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {proposedTerms && (
+                <p className="text-xs text-slate-300 font-sans line-clamp-1 italic max-w-sm hidden lg:block">
+                  &ldquo;{proposedTerms}&rdquo;
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Stepper & Action Buttons */}
+        <div className="flex flex-col sm:items-end gap-2.5 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-800 justify-center">
+          <div className="space-y-1 w-full sm:w-[170px]">
+            <MiniStageBarStepper stage={4} isCompleted={true} className="w-full" />
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onView}
+              className="gap-1.5 font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border-slate-700"
+            >
+              <Eye className="w-3.5 h-3.5 text-slate-300" />
+              <span>View</span>
+            </Button>
+            <Button
+              type="button"
+              variant="surface-dark"
+              size="sm"
+              onClick={onExchangeHub}
+              className="gap-1.5 font-medium bg-white hover:bg-slate-100 text-[#171F2C] font-mono text-[10.5px] uppercase font-bold tracking-wider px-3.5 py-1.5 shadow-xs"
+            >
+              <span>Exchange Hub</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article
       className={cn(
@@ -441,14 +547,6 @@ export function BilateralDealOpportunityCard({
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             {/* Deal / Exchange Reference Code */}
             {dealCode && <DealCodeStamp code={dealCode} />}
-
-            {/* Handshake Sealed Completed Badge */}
-            {isCompleted && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-[4px] bg-emerald-50 text-emerald-800 border border-emerald-200">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                Handshake Sealed
-              </span>
-            )}
 
             {/* Category / Type */}
             {category && <CategoryPill category={category} />}
@@ -495,12 +593,7 @@ export function BilateralDealOpportunityCard({
       <div className="flex flex-col sm:items-end gap-2.5 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#E2E8F0] justify-center">
         {/* 4 Mini Stepper Bars (Black for passed/current, greyed out for future, with ack, neg, agr, shake labels) */}
         <div className="space-y-1 w-full sm:w-[170px]">
-          <MiniStageBarStepper stage={isCompleted ? 4 : pStage} className="w-full" />
-          {isCompleted && (
-            <span className="text-[9.5px] font-mono text-emerald-700 font-bold uppercase tracking-wider block text-right">
-              ✓ Completed
-            </span>
-          )}
+          <MiniStageBarStepper stage={pStage} className="w-full" />
         </div>
 
         {/* Action Buttons */}

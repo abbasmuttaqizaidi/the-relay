@@ -57,12 +57,17 @@ export const createAdminKnowledgeInsight = createServerFn({ method: "POST" })
       custom_website: data.custom_website,
     });
 
-    // 3. Create knowledge insight in database
+    // 3. Generate unique SEO slug
+    const { generateUniqueKnowledgeSlug } = await import("../lib/slug");
+    const slug = await generateUniqueKnowledgeSlug(data.title);
+
+    // 4. Create knowledge insight in database
     const status = data.status || "published";
     const insight = await prisma.knowledgeInsight.create({
       data: {
         business_id: business.id,
         title: data.title,
+        slug,
         content: data.content,
         content_json: data.content_json || null,
         topic: data.topic,
@@ -82,6 +87,15 @@ export const createAdminKnowledgeInsight = createServerFn({ method: "POST" })
         },
       },
     });
+
+    // 5. Notify IndexNow if published
+    if (status === "published") {
+      const { submitToIndexNow } = await import("../lib/indexnow.server");
+      const { SITE_URL } = await import("../lib/seo");
+      submitToIndexNow(`${SITE_URL}/insights/knowledge/${insight.slug || insight.id}`).catch((err) => {
+        console.warn("[createAdminKnowledgeInsight] IndexNow notification failed:", err);
+      });
+    }
 
     return {
       success: true,

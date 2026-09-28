@@ -35,6 +35,7 @@ import { getSentRequests } from "@/functions/getSentRequests";
 import { getMyOpportunities } from "@/functions/getMyOpportunities";
 import { getSavedOpportunities } from "@/functions/getSavedOpportunities";
 import { getCompanyInitials } from "@/lib/utils";
+import { CompanyLogo } from "@/components/company-logo";
 import { PostTypeSelectionModal } from "@/components/post/PostTypeSelectionModal";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 
@@ -151,6 +152,10 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   const isMyRelayListings = isMyRelay && currentSearch?.tab === "listings";
   const isMyRelayRequests = isMyRelay && (currentSearch?.tab === "requests" || isMyRelayInbound || isMyRelayOutbound);
 
+  // Insights Sub-tab detections
+  const isInsightsQuestions = isInsights && (currentSearch?.tab === "questions" || !currentSearch?.tab);
+  const isInsightsKnowledge = isInsights && currentSearch?.tab === "knowledge";
+
   // Breadcrumb Title Helper
   const breadcrumbTitle = useMemo(() => {
     if (isDashboard) return "Exchange Command Center";
@@ -164,12 +169,12 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
       if (currentSearch?.tab === "requests") return "Opportunities & Request Pipeline";
       return "My Listings";
     }
-    if (isInsights) return "Knowledge & Peer Insights";
+    if (isInsights) return isInsightsKnowledge ? "Knowledge Articles & Playbooks" : "Questions & Peer Advisory";
     if (isNetwork) return "Verified Network";
     if (isFaq) return "Frequently Asked Questions";
     if (isBusinessProfile) return "Entity Settings";
     return "Opportunity Exchange";
-  }, [isDashboard, isConnections, isOpportunities, isProposals, isMyRelay, isInsights, isNetwork, isFaq, isBusinessProfile, currentSearch]);
+  }, [isDashboard, isConnections, isOpportunities, isProposals, isMyRelay, isInsights, isInsightsKnowledge, isNetwork, isFaq, isBusinessProfile, currentSearch]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -303,7 +308,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   // ═══════════════════════════════════════════════════════════════════════════
   // LOGGED-IN NAVIGATION: LEFT SIDEBAR + TOP HEADER (Matching seo_code_guide.md)
   // ═══════════════════════════════════════════════════════════════════════════
-  const companyName = business?.company_name || user?.fullName || "Your Business";
+  const companyName = business?.company_name || "Your Business";
   const userInitials = getCompanyInitials(companyName);
 
   const sidebarContent = (
@@ -533,14 +538,15 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           </div>
           <Link
             to="/insights"
+            search={{ tab: "questions" } as any}
             className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isInsights
+              isInsightsQuestions
                 ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
                 : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <MessageSquare className={`w-4 h-4 ${isInsights ? "text-slate-950" : "text-slate-500"}`} />
+              <MessageSquare className={`w-4 h-4 ${isInsightsQuestions ? "text-slate-950" : "text-slate-500"}`} />
               <span>Questions</span>
             </div>
             <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold">
@@ -549,12 +555,20 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           </Link>
           <Link
             to="/insights"
-            className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-950 transition-colors font-medium"
+            search={{ tab: "knowledge" } as any}
+            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+              isInsightsKnowledge
+                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+            }`}
           >
             <div className="flex items-center gap-2.5">
-              <BookOpen className="w-4 h-4 text-slate-500" />
+              <BookOpen className={`w-4 h-4 ${isInsightsKnowledge ? "text-slate-950" : "text-slate-500"}`} />
               <span>Knowledge Articles</span>
             </div>
+            <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold">
+              Docs
+            </span>
           </Link>
           <Link
             to="/faq"
@@ -610,9 +624,13 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
       <div className="p-3 bg-white border-t border-slate-200/80">
         <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/60 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-slate-950 text-white font-bold text-xs flex items-center justify-center shrink-0">
-              {userInitials}
-            </div>
+            <CompanyLogo
+              src={business?.logo_url}
+              name={companyName}
+              className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
+              fallbackClassName="w-8 h-8 rounded-full bg-slate-950 text-white font-bold text-xs flex items-center justify-center shrink-0"
+              textClassName="font-mono text-xs font-bold"
+            />
             <div className="flex flex-col min-w-0">
               <span className="font-semibold text-xs text-slate-900 truncate">
                 {companyName}

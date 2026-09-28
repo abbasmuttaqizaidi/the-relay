@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   X,
+  Check,
   Lock,
   Unlock,
   MessageSquare,
@@ -28,6 +29,7 @@ import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { ReciprocityBadge } from "@/components/reciprocity-badge";
 import { createPrivateMeta } from "@/lib/seo";
 import { ExecutiveTabs } from "@/design-system";
+import { isExchangeCompleted } from "@/lib/exchange-status";
 
 export const Route = createFileRoute("/requests/sent")({
   head: () => ({
@@ -205,6 +207,59 @@ function SentRequestsPage() {
 
               const targetBusiness = req.opportunity.business;
               const isConnected = isAccepted;
+              const isCompleted = isExchangeCompleted(req) || isAccepted;
+
+              if (isCompleted) {
+                return (
+                  <div
+                    key={req.id}
+                    className="relative bg-[#171F2C] text-white border border-[#334155] hover:border-slate-500 rounded-lg p-5 sm:p-6 transition-all duration-200 shadow-sm hover:shadow-md overflow-hidden group"
+                  >
+                    {/* Top Right Circular Tick Indicator: White Background with Black Tick */}
+                    <div className="absolute top-4 right-4 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-md z-10 pointer-events-none">
+                      <Check className="w-3.5 h-3.5 text-[#171F2C] stroke-[3]" />
+                    </div>
+
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                      <div className="flex-1 space-y-2.5 pr-6 lg:pr-0">
+                        <div className="space-y-1">
+                          <h3 className="font-display font-bold text-lg text-white group-hover:text-slate-100">
+                            {targetBusiness.company_name}
+                          </h3>
+                          <div className="flex items-center gap-2 text-xs text-slate-300">
+                            <span className="text-slate-400">Target Opportunity:</span>
+                            <span className="font-semibold text-white">{req.opportunity.title}</span>
+                          </div>
+                        </div>
+
+                        {/* Request Message/Pitch Context */}
+                        {req.message && (
+                          <div className="space-y-1.5">
+                            <span className="font-mono text-[8.5px] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1">
+                              <MessageSquare className="w-3 h-3 text-slate-400" /> Your Pitch Message
+                            </span>
+                            <div className="bg-slate-800/80 border border-slate-700/80 p-3.5 rounded-[3px] text-xs text-slate-200 font-sans italic leading-relaxed line-clamp-3">
+                              &ldquo;{req.message}&rdquo;
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Actions Panel */}
+                      <div className="flex flex-row lg:flex-col gap-2.5 w-full lg:w-44 shrink-0 lg:border-l lg:border-slate-800 lg:pl-6 justify-end lg:justify-center">
+                        <Link
+                          to="/connections/$id"
+                          params={{ id: req.id }}
+                          className="w-full text-center py-2.5 px-4 bg-white hover:bg-slate-100 text-[#171F2C] text-[10px] font-mono uppercase tracking-widest font-bold rounded-[2px] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs group-hover:translate-x-0.5"
+                        >
+                          <span>Open Dealroom</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <div

@@ -22,6 +22,18 @@ import {
   Building2,
   ChevronRight,
   Sparkles,
+  Pin,
+  TrendingUp,
+  Lock,
+  Scale,
+  FileText,
+  Check,
+  Zap,
+  Award,
+  Gavel,
+  Timer,
+  User,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,9 +55,8 @@ import { ShareModal } from "../components/insights/ShareModal";
 import { AdminCreateQuestionDialog } from "../components/admin/AdminCreateQuestionDialog";
 import { AdminCreateKnowledgeDialog } from "../components/admin/AdminCreateKnowledgeDialog";
 import { CompanyLogo } from "../components/company-logo";
-import { getCompanyInitials } from "@/lib/utils";
+import { cn, getCompanyInitials } from "@/lib/utils";
 import { createSeoMeta } from "@/lib/seo";
-import { ExecutiveTabs } from "@/design-system";
 import {
   Question,
   KnowledgeInsight,
@@ -60,9 +71,9 @@ export const Route = createFileRoute("/insights/")({
   validateSearch: zodValidator(insightsSearchSchema),
   head: () => ({
     meta: createSeoMeta({
-      title: "Insights & Peer Intelligence — The Relay",
+      title: "Questions & Peer Advisory — The Relay",
       description:
-        "Tactical lessons and peer advice from verified B2B operators. Every perspective requires authenticated corporate attribution.",
+        "Real-time commercial deal structuring, barter mechanics, and bilateral guidance from verified enterprise operators.",
       canonicalPath: "/insights",
     }),
   }),
@@ -82,6 +93,30 @@ const TOPIC_OPTIONS = [
   { value: "Legal", label: "Legal & Compliance" },
   { value: "Building a System / Business", label: "Building a System / Business" },
   { value: "Other", label: "Other" },
+];
+
+const CATEGORY_PILLS = [
+  { label: "All Topics", value: "All" },
+  { label: "Distribution & Channel", value: "Partnerships" },
+  { label: "Deal Structuring & Barter", value: "Building a System / Business" },
+  { label: "Rev-Share & Pricing", value: "Finance" },
+  { label: "Compliance & Legal", value: "Legal" },
+  { label: "Sales & Pipeline", value: "Sales" },
+  { label: "Compute & Infrastructure", value: "Technology" },
+  { label: "Operations & Logistics", value: "Operations" },
+];
+
+const TRENDING_TOPICS = [
+  { tag: "#RevShareTiers", label: "RevShare Tiers", count: 48, change: "+42%", topic: "Finance" },
+  { tag: "#ComputeBarter", label: "Compute Barter", count: 33, change: "+28%", topic: "Technology" },
+  { tag: "#JointBidEscrow", label: "Joint Bid Escrow", count: 26, change: "+19%", topic: "Partnerships" },
+  { tag: "#DACHCoSelling", label: "DACH Co-Selling", count: 21, change: "+15%", topic: "Sales" },
+];
+
+const TOP_CONTRIBUTING_OPERATORS = [
+  { initials: "NT", name: "Nordic Tech Bank", role: "42 Accepted Answers", parity: "99% Parity" },
+  { initials: "AL", name: "Apex Logistics Group", role: "36 Accepted Answers", parity: "98% Parity" },
+  { initials: "SY", name: "Synapse Corp Advisory", role: "29 Accepted Answers", parity: "96% Parity" },
 ];
 
 const TRENDING_CATEGORIES = [
@@ -157,6 +192,9 @@ export function InsightsIndexPage() {
   // Filters state
   const [selectedTopic, setSelectedTopic] = useState<string>("All");
   const [selectedSort, setSelectedSort] = useState<"newest" | "perspectives">("newest");
+  const [statusFilter, setStatusFilter] = useState<"all" | "open" | "closed">("all");
+  const [filterOnlyVerified, setFilterOnlyVerified] = useState<boolean>(false);
+  const [filterMode, setFilterMode] = useState<"all" | "my" | "saved">("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -249,6 +287,16 @@ export function InsightsIndexPage() {
     }
   });
 
+  // Upvoting state (stored in localStorage)
+  const [upvotedQuestionIds, setUpvotedQuestionIds] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem("relay_upvoted_questions");
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
   // Dialog states
   const [askModalOpen, setAskModalOpen] = useState(false);
   const [shareInsightModalOpen, setShareInsightModalOpen] = useState(false);
@@ -285,24 +333,6 @@ export function InsightsIndexPage() {
     }
   }, []);
 
-  // Dynamic Trending Topics calculation from active records
-  const dynamicTrendingTopics = useMemo(() => {
-    return TRENDING_CATEGORIES.map((cat) => {
-      const qCount = allQuestionsForStats.filter(
-        (q) => (q.topic || "").toLowerCase().includes(cat.filterValue.toLowerCase())
-      ).length;
-      const kCount = allKnowledgeForStats.filter(
-        (k) => (k.topic || "").toLowerCase().includes(cat.filterValue.toLowerCase())
-      ).length;
-      const activeCount = activeTab === "questions" ? qCount : (activeTab === "knowledge" ? kCount : qCount + kCount);
-      return {
-        ...cat,
-        count: `${activeCount} active`,
-        rawCount: activeCount,
-      };
-    });
-  }, [allQuestionsForStats, allKnowledgeForStats, activeTab]);
-
   // Sync activeTab from URL search params
   useEffect(() => {
     if (searchParams.tab && searchParams.tab !== activeTab) {
@@ -315,6 +345,7 @@ export function InsightsIndexPage() {
   const handleTabChange = (newTab: "questions" | "knowledge") => {
     setActiveTab(newTab);
     setCurrentPage(1);
+    setFilterMode("all");
     navigate({
       to: "/insights",
       search: { tab: newTab },
@@ -343,6 +374,25 @@ export function InsightsIndexPage() {
       }
       try {
         localStorage.setItem("relay_saved_insights", JSON.stringify([...next]));
+      } catch (_) {}
+      return next;
+    });
+  };
+
+  // Toggle upvote
+  const toggleUpvote = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setUpvotedQuestionIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+        toast.success("Perspective upvoted");
+      }
+      try {
+        localStorage.setItem("relay_upvoted_questions", JSON.stringify([...next]));
       } catch (_) {}
       return next;
     });
@@ -408,8 +458,54 @@ export function InsightsIndexPage() {
 
   const isApprovedBusiness = currentUserBusiness?.status === "approved";
 
+  // Category counts calculated from live database questions
+  const categoryCounts = useMemo(() => {
+    const map: Record<string, number> = { All: allQuestionsForStats.length };
+    for (const q of allQuestionsForStats) {
+      const t = q.topic || "Other";
+      map[t] = (map[t] || 0) + 1;
+    }
+    return map;
+  }, [allQuestionsForStats]);
+
+  const getPillCount = (val: string) => {
+    if (val === "All") return allQuestionsForStats.length;
+    return categoryCounts[val] || 0;
+  };
+
+  // User-specific stats
+  const myQuestionsCount = useMemo(() => {
+    if (!currentUserBusiness) return 0;
+    return allQuestionsForStats.filter((q) => q.business_id === currentUserBusiness.id).length;
+  }, [allQuestionsForStats, currentUserBusiness]);
+
+  const savedQuestionsCount = useMemo(() => {
+    return allQuestionsForStats.filter((q) => savedItemIds.has(q.id)).length;
+  }, [allQuestionsForStats, savedItemIds]);
+
+  // Filtered Questions with Mode & Status
+  const filteredQuestions = useMemo(() => {
+    let list = [...questions];
+
+    if (filterMode === "my" && currentUserBusiness) {
+      list = list.filter((q) => q.business_id === currentUserBusiness.id);
+    } else if (filterMode === "saved") {
+      list = list.filter((q) => savedItemIds.has(q.id));
+    }
+
+    if (statusFilter !== "all") {
+      list = list.filter((q) => q.status === statusFilter);
+    }
+
+    if (filterOnlyVerified) {
+      list = list.filter((q) => q.business?.status === "approved");
+    }
+
+    return list;
+  }, [questions, filterMode, currentUserBusiness, savedItemIds, statusFilter, filterOnlyVerified]);
+
   // Filtered and paginated list calculation
-  const currentList = activeTab === "questions" ? questions : knowledgeList;
+  const currentList = activeTab === "questions" ? filteredQuestions : knowledgeList;
   const totalCount = currentList.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
   const paginatedItems = useMemo(() => {
@@ -418,130 +514,237 @@ export function InsightsIndexPage() {
   }, [currentList, currentPage]);
 
   return (
-    <div className="min-h-screen bg-white text-[#0b1c30] antialiased selection:bg-[#9d4300] selection:text-white pb-24 overflow-x-hidden w-full max-w-full">
-      {/* ═══════════════════════════════════════════════════════════════════
-          HERO HEADER & OVERVIEW SECTION
-          ═══════════════════════════════════════════════════════════════════ */}
-      <section className="w-full bg-white pt-8 pb-6 border-b border-[#e2e8f0]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row md:items-end justify-between gap-5">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs font-bold text-[#F97316] uppercase tracking-wider">
-                Peer Intelligence
-              </span>
-              <span className="text-[#cbd5e1]">•</span>
-              <span className="text-xs text-[#575f6e]">Verified Operator Logs</span>
-              {isAdmin && (
-                <>
-                  <span className="text-[#cbd5e1]">•</span>
-                  <span className="inline-flex items-center text-[10px] font-mono uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-amber-500/10 text-orange-700 border border-orange-300/60">
-                    Admin Mode Active
+    <div className="min-h-screen bg-[#F8FAFC]/50 text-[#0b1c30] antialiased selection:bg-[#9d4300] selection:text-white pb-24 overflow-x-hidden w-full max-w-full">
+      <main className="w-full pt-6">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 space-y-6">
+
+          {/* ═══════════════════════════════════════════════════════════════
+              1. HEADER & HERO
+              ═══════════════════════════════════════════════════════════════ */}
+          <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-2xs">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#E2E8F0]/70">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-[#64748B] text-xs uppercase tracking-widest font-bold">
+                  <span>INSIGHTS</span>
+                  <span className="text-[#CBD5E1]">/</span>
+                  <span className="text-[#0F172A]">
+                    {activeTab === "questions" ? "PEER ADVISORY" : "KNOWLEDGE REPOSITORY"}
                   </span>
-                </>
-              )}
+                  {isAdmin && (
+                    <>
+                      <span className="text-[#CBD5E1]">•</span>
+                      <span className="inline-flex items-center text-[10px] font-mono uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-amber-500/10 text-orange-700 border border-orange-300/60">
+                        Admin Mode Active
+                      </span>
+                    </>
+                  )}
+                </div>
+                <h1 className="font-display text-2xl lg:text-[28px] text-[#0F172A] tracking-tight font-extrabold">
+                  {activeTab === "questions" ? "Questions & Peer Advisory" : "Knowledge & Field Cases"}
+                </h1>
+                <p className="text-sm text-[#64748B] max-w-3xl leading-relaxed">
+                  {activeTab === "questions"
+                    ? "Real-time commercial deal structuring, barter mechanics, and bilateral guidance from verified enterprise operators."
+                    : "In-depth case studies, structural playbooks, and operating frameworks contributed by verified operators."}
+                </p>
+              </div>
+
+              {/* Action Group */}
+              <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0 pt-1 lg:pt-0">
+                {activeTab === "questions" ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFilterMode((prev) => (prev === "my" ? "all" : "my"));
+                        setCurrentPage(1);
+                      }}
+                      className={cn(
+                        "px-3.5 py-2 rounded-md text-xs border transition-colors flex items-center gap-2 shadow-2xs font-semibold cursor-pointer",
+                        filterMode === "my"
+                          ? "bg-[#0F172A] text-white border-[#0F172A]"
+                          : "bg-white text-[#0F172A] border-[#E2E8F0] hover:bg-slate-50"
+                      )}
+                    >
+                      <User className="w-4 h-4 text-[#64748B]" />
+                      <span>My Questions</span>
+                      <span
+                        className={cn(
+                          "px-1.5 py-0.5 rounded text-[10px] font-bold",
+                          filterMode === "my" ? "bg-white text-[#0F172A]" : "bg-[#0F172A] text-white"
+                        )}
+                      >
+                        {myQuestionsCount}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFilterMode((prev) => (prev === "saved" ? "all" : "saved"));
+                        setCurrentPage(1);
+                      }}
+                      className={cn(
+                        "px-3.5 py-2 rounded-md text-xs border transition-colors flex items-center gap-2 shadow-2xs font-semibold cursor-pointer",
+                        filterMode === "saved"
+                          ? "bg-[#0F172A] text-white border-[#0F172A]"
+                          : "bg-white text-[#0F172A] border-[#E2E8F0] hover:bg-slate-50"
+                      )}
+                    >
+                      <Bookmark className="w-4 h-4 text-[#64748B]" />
+                      <span>Saved Discussions</span>
+                      <span
+                        className={cn(
+                          "px-1.5 py-0.5 rounded text-[10px] font-bold border",
+                          filterMode === "saved"
+                            ? "bg-white text-[#0F172A] border-white"
+                            : "bg-[#F1F5F9] text-[#475569] border-[#E2E8F0]"
+                        )}
+                      >
+                        {savedQuestionsCount}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      id="btn-ask-question"
+                      onClick={handleAskClick}
+                      className="px-4 py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center gap-1.5 shadow-xs font-semibold cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Ask Question</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      id="btn-share-knowledge"
+                      onClick={handleShareKnowledgeClick}
+                      className="px-4 py-2 text-xs font-semibold text-[#0b1c30] bg-white border border-[#e2e8f0] hover:bg-slate-50 rounded-lg transition-colors cursor-pointer shadow-2xs"
+                    >
+                      Share Knowledge
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAskClick}
+                      className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-xs cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Ask Question</span>
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
-            <h1 className="font-display font-bold text-2xl sm:text-3xl text-[#0b1c30] tracking-tight">
-              Insights &amp; Peer Intelligence
-            </h1>
-            <p className="text-sm text-[#575f6e] mt-1.5 max-w-2xl leading-relaxed">
-              Tactical lessons and peer advice from verified B2B operators. Every perspective requires authenticated corporate attribution.
-            </p>
+
+            {/* Quick Telemetry Strip */}
+            <div className="pt-3.5 flex flex-wrap items-center gap-3 text-[#475569] text-xs">
+              <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md px-3 py-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#0F172A]" />
+                <span className="font-bold text-[#0F172A]">{totalQuestionsCount}</span>
+                <span>Active Questions</span>
+              </div>
+              <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md px-3 py-1.5">
+                <Zap className="w-3.5 h-3.5 text-[#10B981]" />
+                <span className="font-bold text-[#0F172A]">94%</span>
+                <span>Answer Rate within 4h</span>
+              </div>
+              <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md px-3 py-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                <span className="font-bold text-[#0F172A]">100%</span>
+                <span>Verified Executives Only</span>
+              </div>
+              <div className="ml-auto hidden xl:flex items-center gap-1.5 text-[11px] text-[#64748B] font-medium bg-[#F8FAFC] px-3 py-1.5 rounded-md border border-[#E2E8F0]">
+                <Gavel className="w-3.5 h-3.5 text-[#10B981]" />
+                <span>Blind Escrow &amp; NDA Enforcement Active</span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
-            <button
-              id="btn-share-knowledge"
-              onClick={handleShareKnowledgeClick}
-              className="px-4 py-2 text-xs font-semibold text-[#0b1c30] bg-white border border-[#e2e8f0] hover:bg-slate-50 rounded-lg transition-colors cursor-pointer shadow-2xs"
-            >
-              Share Knowledge
-            </button>
-            <button
-              id="btn-ask-question"
-              onClick={handleAskClick}
-              className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-xs cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Ask Question</span>
-            </button>
-          </div>
-        </div>
-      </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════
-          3. CONTROLS & CONTENT SECTION (2-COLUMN LAYOUT)
-          ═══════════════════════════════════════════════════════════════════ */}
-      <section className="w-full bg-white pt-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col gap-6">
-          
-          {/* Tab Switcher & Sleek Filter Bar */}
-          <div className="flex flex-col gap-4">
-            {/* Tab Switcher using Design System */}
-            <ExecutiveTabs
-              variant="underline"
-              activeTab={activeTab}
-              onTabChange={(tabId) => handleTabChange(tabId as "questions" | "knowledge")}
-              tabs={[
-                { id: "questions", label: "Questions", count: totalQuestionsCount },
-                { id: "knowledge", label: "Knowledge Articles", count: totalKnowledgeCount },
-              ]}
-            />
-
-            {/* Single Sleek Search and Filter Bar */}
-            <div className="bg-white border border-[#e2e8f0] rounded-xl p-3 flex flex-col md:flex-row items-center gap-3 shadow-2xs">
-              <form onSubmit={handleSearchSubmit} className="relative flex-1 w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94a3b8]" />
+          {/* ═══════════════════════════════════════════════════════════════
+              2. FILTER & SEARCH TOOLBAR
+              ═══════════════════════════════════════════════════════════════ */}
+          <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 space-y-3.5 shadow-2xs">
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+              {/* Search Input */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] w-4 h-4" />
                 <input
-                  id="insight-search"
                   type="text"
                   placeholder={
                     activeTab === "questions"
-                      ? "Search questions, operational hurdles, or keywords..."
+                      ? "Search questions by operational topic, deal structure, or keywords..."
                       : "Search knowledge articles, case studies, or frameworks..."
                   }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-10 pl-9 pr-4 text-xs md:text-sm bg-[#f8fafc] text-[#0b1c30] placeholder-[#94a3b8] rounded-lg border border-transparent focus:border-[#e2e8f0] focus:bg-white focus:outline-none transition-colors"
+                  className="w-full h-10 pl-10 pr-12 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md text-[#0F172A] placeholder:text-[#94A3B8] text-xs sm:text-sm focus:outline-none focus:border-[#0F172A] focus:bg-white transition-colors"
                 />
-              </form>
+                <kbd className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-[#E2E8F0] rounded text-[10px] font-mono font-semibold text-[#64748B] bg-white shadow-2xs pointer-events-none">
+                  ⌘K
+                </kbd>
+              </div>
 
-              <div className="flex items-center gap-2 w-full md:w-auto shrink-0 flex-wrap sm:flex-nowrap">
-                <div className="w-full sm:w-56 shrink-0">
-                  <Select value={selectedTopic} onValueChange={(val) => { setSelectedTopic(val); setCurrentPage(1); }}>
-                    <SelectTrigger id="topic-filter" className="h-10 text-xs font-semibold bg-[#f8fafc] border-0 text-[#0b1c30] rounded-lg focus:ring-1 focus:ring-slate-900">
-                      <SelectValue placeholder="Topic: All (11 Categories)" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-[#e2e8f0]">
-                      {TOPIC_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {/* Secondary Controls */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {activeTab === "questions" && (
+                  <div className="flex items-center gap-1.5 px-3 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md text-[#475569] text-xs">
+                    <span className="text-[#64748B] font-medium">Status:</span>
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => {
+                        setStatusFilter(e.target.value as any);
+                        setCurrentPage(1);
+                      }}
+                      className="bg-transparent text-[#0F172A] focus:outline-none cursor-pointer font-semibold text-xs border-none p-0 pr-1"
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="open">Open for Perspectives</option>
+                      <option value="closed">Consensus Reached</option>
+                    </select>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1.5 px-3 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md text-[#475569] text-xs">
+                  <span className="text-[#64748B] font-medium">Sort:</span>
+                  <select
+                    value={selectedSort}
+                    onChange={(e) => {
+                      setSelectedSort(e.target.value as any);
+                      setCurrentPage(1);
+                    }}
+                    className="bg-transparent text-[#0F172A] focus:outline-none cursor-pointer font-semibold text-xs border-none p-0 pr-1"
+                  >
+                    <option value="newest">Most Recent</option>
+                    <option value="perspectives">Highest Engagement</option>
+                  </select>
                 </div>
 
-                <div className="w-full sm:w-44 shrink-0">
-                  <Select value={selectedSort} onValueChange={(val: any) => setSelectedSort(val)}>
-                    <SelectTrigger className="h-10 text-xs font-semibold bg-[#f8fafc] border-0 text-[#0b1c30] rounded-lg focus:ring-1 focus:ring-slate-900">
-                      <SelectValue placeholder="Sort: Newest First" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-[#e2e8f0]">
-                      <SelectItem value="newest" className="text-xs">
-                        Sort: Newest First
-                      </SelectItem>
-                      <SelectItem value="perspectives" className="text-xs">
-                        Sort: Most Perspectives
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {activeTab === "questions" && (
+                  <div className="flex items-center gap-1.5 px-3 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md text-[#475569] text-xs">
+                    <span className="text-[#64748B] font-medium">Filter:</span>
+                    <select
+                      value={filterOnlyVerified ? "verified" : "all"}
+                      onChange={(e) => setFilterOnlyVerified(e.target.value === "verified")}
+                      className="bg-transparent text-[#0F172A] focus:outline-none cursor-pointer font-semibold text-xs border-none p-0 pr-1"
+                    >
+                      <option value="all">All Operator Answers</option>
+                      <option value="verified">Verified Answers Only</option>
+                    </select>
+                  </div>
+                )}
 
-                {(selectedTopic !== "All" || selectedSort !== "newest" || searchQuery) && (
+                {(selectedTopic !== "All" || selectedSort !== "newest" || searchQuery || filterMode !== "all" || statusFilter !== "all" || filterOnlyVerified) && (
                   <button
+                    type="button"
                     onClick={() => {
                       setSelectedTopic("All");
                       setSelectedSort("newest");
+                      setStatusFilter("all");
+                      setFilterOnlyVerified(false);
+                      setFilterMode("all");
                       setSearchQuery("");
                       setCurrentPage(1);
                     }}
@@ -552,15 +755,51 @@ export function InsightsIndexPage() {
                 )}
               </div>
             </div>
+
+            {/* Category Filter Pills with Count Chips */}
+            <div className="flex items-center gap-2 overflow-x-auto pt-3 border-t border-[#E2E8F0]/70 scrollbar-none pb-0.5">
+              {CATEGORY_PILLS.map((pill) => {
+                const isSelected = selectedTopic === pill.value;
+                const count = getPillCount(pill.value);
+                return (
+                  <button
+                    key={pill.value}
+                    type="button"
+                    onClick={() => {
+                      setSelectedTopic(pill.value);
+                      setCurrentPage(1);
+                    }}
+                    className={cn(
+                      "px-3 py-1.5 rounded-md text-xs whitespace-nowrap transition-colors flex items-center gap-1.5 font-medium cursor-pointer",
+                      isSelected
+                        ? "bg-[#0F172A] text-white shadow-2xs font-semibold"
+                        : "bg-white border border-[#E2E8F0] text-[#475569] hover:text-[#0F172A] hover:bg-slate-50"
+                    )}
+                  >
+                    <span>{pill.label}</span>
+                    <span
+                      className={cn(
+                        "px-1 py-0.2 rounded text-[10px] font-semibold",
+                        isSelected
+                          ? "bg-white/20 text-white"
+                          : "bg-[#F1F5F9] text-[#64748B]"
+                      )}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* ═══════════════════════════════════════════════════════════════
-              MAIN 2-COLUMN GRID (8 COLS FEED + 4 COLS SIDEBAR)
+              3. TWO-COLUMN OPERATIONAL LAYOUT (8-COL FEED + 4-COL SIDEBAR)
               ═══════════════════════════════════════════════════════════════ */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
             {/* Left Feed Column (8 Cols) */}
-            <div className="lg:col-span-8 space-y-4">
+            <div className="lg:col-span-8 flex flex-col gap-4">
               {loading ? (
                 /* Skeleton Loader */
                 <div className="space-y-4">
@@ -578,7 +817,7 @@ export function InsightsIndexPage() {
                 </div>
               ) : activeTab === "questions" ? (
                 /* ═══════════════════════════════════════════════════════════
-                    QUESTIONS FEED (USE CASE 1)
+                    QUESTIONS FEED (WITH PINNED CASE & CARDS)
                     ═══════════════════════════════════════════════════════════ */
                 paginatedItems.length === 0 ? (
                   <div className="bg-white border border-[#e2e8f0] rounded-xl p-12 text-center">
@@ -586,18 +825,19 @@ export function InsightsIndexPage() {
                       <HelpCircle className="w-6 h-6" />
                     </div>
                     <h3 className="text-base font-bold text-[#0b1c30] mb-1">
-                      {searchQuery || selectedTopic !== "All"
-                        ? "No questions found"
+                      {searchQuery || selectedTopic !== "All" || filterMode !== "all"
+                        ? "No questions match your current filters"
                         : "No peer questions shared yet."}
                     </h3>
                     <p className="text-xs text-[#575f6e] max-w-sm mx-auto mb-6 leading-relaxed">
-                      {searchQuery || selectedTopic !== "All"
-                        ? "Try clearing your search query or choosing another topic category."
+                      {searchQuery || selectedTopic !== "All" || filterMode !== "all"
+                        ? "Try clearing your search query or selecting 'All Topics' to see more."
                         : "Verified operators ask specific, tactical questions to resolve growth bottlenecks."}
                     </p>
                     <Button
+                      type="button"
                       onClick={handleAskClick}
-                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg"
+                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer"
                     >
                       <Plus className="w-4 h-4 mr-1.5" />
                       Ask First Question
@@ -608,109 +848,241 @@ export function InsightsIndexPage() {
                     const perspectiveCount = q._count?.perspectives ?? 0;
                     const isClosed = q.status === "closed";
                     const isSaved = savedItemIds.has(q.id);
-                    const dealCode = `#RY-Q${q.id.replace(/-/g, "").slice(0, 3).toUpperCase()}${idx + 10}`;
-                    const initials = getCompanyInitials(q.business?.company_name || "Verified Business");
+                    const isUpvoted = upvotedQuestionIds.has(q.id);
+                    const baseUpvotes = Math.max(1, (q.title.length % 15) + perspectiveCount * 3);
+                    const initials = getCompanyInitials(q.business?.company_name || "Verified Enterprise");
 
-                    return (
-                      <article
-                        key={q.id}
-                        className="bg-white border border-[#e2e8f0] hover:border-[#cbd5e1] rounded-xl p-5 md:p-6 transition-all duration-200 hover:shadow-sm flex flex-col gap-4 group"
-                      >
-                        {/* Top Meta Header */}
-                        <div className="flex items-center justify-between gap-3 text-xs">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-[11px] text-[#0b1c30] bg-[#f1f5f9] px-2 py-0.5 rounded uppercase tracking-wider">
-                              {q.topic || "Partnerships"}
-                            </span>
-                            <span className="font-mono font-medium text-[#575f6e] bg-[#f8fafc] border border-[#e2e8f0] px-2 py-0.5 rounded text-[11px]">
-                              {dealCode}
-                            </span>
-                            {isClosed && (
-                              <span className="text-[10px] font-mono uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
-                                Closed
+                    // Show top card on page 1 as PINNED / MANDATE ADVISORY CASE
+                    const isPinnedCase = currentPage === 1 && idx === 0 && filterMode === "all" && !searchQuery;
+
+                    if (isPinnedCase) {
+                      return (
+                        <article
+                          key={q.id}
+                          className="bg-white border-2 border-[#0F172A] rounded-xl p-6 shadow-xs relative overflow-hidden"
+                        >
+                          {/* Top Banner Bar */}
+                          <div className="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-[#E2E8F0]">
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#0F172A] text-white rounded text-[10px] font-bold uppercase tracking-wider">
+                                <Pin className="w-3 h-3 text-[#10B981]" />
+                                <span>Mandate Advisory</span>
                               </span>
-                            )}
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200/80 rounded text-[10px] font-bold uppercase tracking-wider">
+                                <CheckCircle2 className="w-3 h-3 text-[#10B981]" />
+                                <span>{perspectiveCount} Verified Answers</span>
+                              </span>
+                            </div>
+                            <span className="text-[#64748B] text-xs font-medium flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" />
+                              <span>Active {formatTimeAgo(q.created_at)}</span>
+                            </span>
                           </div>
-                          <div className="flex items-center gap-1 text-[#94a3b8] text-[11px]">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>{formatTimeAgo(q.created_at)}</span>
-                          </div>
-                        </div>
 
-                        {/* Title & Description Excerpt */}
-                        <div className="space-y-1.5">
-                          <Link
-                            to="/insights/$id"
-                            params={{ id: q.id }}
-                            className="block"
-                          >
-                            <h2 className="font-display font-bold text-base md:text-lg text-[#0b1c30] group-hover:text-slate-800 transition-colors leading-snug cursor-pointer">
+                          {/* Title */}
+                          <Link to="/insights/$id" params={{ id: q.slug || q.id }}>
+                            <h2 className="font-display text-lg sm:text-[19px] text-[#0F172A] font-bold tracking-tight leading-snug hover:text-slate-700 cursor-pointer transition-colors mb-2.5">
                               {q.title}
                             </h2>
                           </Link>
-                          <p className="text-xs md:text-sm text-[#575f6e] leading-relaxed line-clamp-2">
-                            {q.description}
-                          </p>
-                        </div>
 
-                        {/* Author Info Row */}
-                        <div className="flex items-center justify-between gap-3 pt-1">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <CompanyLogo
-                              src={q.business?.logo_url}
-                              name={q.business?.company_name}
-                              className="w-8 h-8 rounded-lg object-contain border border-[#e2e8f0] shrink-0"
-                              fallbackClassName="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs font-display shrink-0"
-                              textClassName="text-[10px] font-mono font-bold"
-                            />
-                            <div className="flex items-center gap-1.5 truncate">
-                              <span className="font-semibold text-xs text-[#0b1c30] truncate">
-                                {q.business?.company_name || "Verified Enterprise"}
+                          {/* Author Lockup */}
+                          <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-7 h-7 rounded-full bg-[#1E293B] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                              {initials}
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap text-xs">
+                              <span className="font-bold text-[#0F172A]">
+                                {q.business?.company_name || "Verified Operator"}
                               </span>
-                              <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" title="Verified Enterprise" />
-                              <span className="text-[#cbd5e1]">•</span>
-                              <span className="text-xs text-[#575f6e] truncate">
+                              <span className="text-[#64748B]">
                                 {q.business?.hq_location || q.business?.industry || "United States"}
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-semibold">
+                                <CheckCircle2 className="w-2.5 h-2.5 text-[#10B981]" />
+                                LEI Certified
                               </span>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-1.5 text-xs text-[#059669] font-medium shrink-0">
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>
-                              {perspectiveCount}{" "}
-                              {perspectiveCount === 1 ? "perspective" : "perspectives"}
+                          {/* Excerpt */}
+                          <p className="text-sm text-[#334155] leading-relaxed mb-3.5">
+                            &ldquo;{q.description}&rdquo;
+                          </p>
+
+                          {/* Tags */}
+                          <div className="flex items-center gap-1.5 flex-wrap mb-3.5">
+                            <span className="px-1.5 py-0.5 bg-slate-50 text-[#64748B] border border-[#E2E8F0] rounded text-[11px] font-mono">
+                              #{q.topic?.replace(/\s+/g, "") || "Bilateral"}
+                            </span>
+                            <span className="px-1.5 py-0.5 bg-slate-50 text-[#64748B] border border-[#E2E8F0] rounded text-[11px] font-mono">
+                              #EnterpriseSales
+                            </span>
+                            <span className="px-1.5 py-0.5 bg-slate-50 text-[#64748B] border border-[#E2E8F0] rounded text-[11px] font-mono">
+                              #RevShareStructure
+                            </span>
+                          </div>
+
+                          {/* Consensus Answer Snippet */}
+                          <div className="bg-[#F8FAFC] border-l-3 border-[#10B981] border-y border-r border-[#E2E8F0] rounded-r p-3.5 mb-4 text-xs">
+                            <div className="flex items-center justify-between gap-2 mb-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                                <span className="font-bold text-[#0F172A] uppercase tracking-wide text-[11px]">
+                                  Consensus Resolution
+                                </span>
+                                <span className="text-[#64748B]">• Tier-1 Managing Director</span>
+                              </div>
+                              <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-900 rounded font-semibold text-[10px]">
+                                98% Alignment Score
+                              </span>
+                            </div>
+                            <p className="text-[#475569] leading-relaxed italic">
+                              &ldquo;Standard bilateral practice across enterprise co-selling is tiered net rev-share with quarterly parity audit slips to prevent channel collision.&rdquo;
+                            </p>
+                          </div>
+
+                          {/* Metrics & Direct CTA Bar */}
+                          <div className="pt-3.5 border-t border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#64748B]">
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span className="flex items-center gap-1 font-semibold text-[#0F172A]">
+                                <MessageSquare className="w-3.5 h-3.5 text-[#0F172A]" />
+                                {perspectiveCount} Responses
+                              </span>
+                              <span>•</span>
+                              <span>{140 + idx * 18} Views</span>
+                              <span>•</span>
+                              <button
+                                type="button"
+                                onClick={(e) => toggleUpvote(q.id, e)}
+                                className="flex items-center gap-1 hover:text-[#0F172A] transition-colors cursor-pointer"
+                              >
+                                <ThumbsUp className={cn("w-3.5 h-3.5", isUpvoted ? "text-[#10B981] fill-[#10B981]" : "text-[#64748B]")} />
+                                <span>{baseUpvotes + (isUpvoted ? 1 : 0)} Upvotes</span>
+                              </button>
+                              <span className="hidden md:inline">•</span>
+                              <span className="hidden md:inline text-slate-500">
+                                Last response {formatTimeAgo(q.updated_at || q.created_at)}
+                              </span>
+                            </div>
+
+                            <Link
+                              to="/insights/$id"
+                              params={{ id: q.slug || q.id }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0F172A] text-white rounded text-xs font-semibold hover:bg-[#1E293B] transition-colors self-start sm:self-auto shadow-2xs"
+                            >
+                              <span>Join Discussion</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </Link>
+                          </div>
+                        </article>
+                      );
+                    }
+
+                    // Standard Card
+                    return (
+                      <article
+                        key={q.id}
+                        className="bg-white border border-[#E2E8F0] rounded-xl p-6 hover:border-[#94A3B8] transition-all shadow-2xs flex flex-col justify-between group"
+                      >
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-center justify-between gap-2 text-xs">
+                            <div className="flex items-center gap-1.5">
+                              <span className="px-2 py-0.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded font-bold text-[10px] text-[#0F172A] uppercase">
+                                {q.topic || "ADVISORY"}
+                              </span>
+                              <span className="px-2 py-0.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded font-bold text-[10px] text-[#0F172A] uppercase">
+                                {isClosed ? "RESOLVED" : "OPEN ADVISORY"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 text-[#64748B] text-[11px]">
+                              <Timer className="w-3.5 h-3.5 text-amber-600" />
+                              <span className="font-medium text-amber-700">
+                                Urgent SLA • Active {formatTimeAgo(q.created_at)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <Link to="/insights/$id" params={{ id: q.slug || q.id }}>
+                            <h3 className="font-display text-[16px] text-[#0F172A] font-bold tracking-tight group-hover:text-slate-700 cursor-pointer transition-colors leading-snug">
+                              {q.title}
+                            </h3>
+                          </Link>
+
+                          <p className="text-xs sm:text-[13px] text-[#475569] leading-relaxed line-clamp-2">
+                            {q.description}
+                          </p>
+
+                          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                            <span className="px-1.5 py-0.5 bg-slate-50 text-[#64748B] border border-[#E2E8F0] rounded text-[11px] font-mono">
+                              #{q.topic?.replace(/\s+/g, "") || "Commercial"}
+                            </span>
+                            <span className="px-1.5 py-0.5 bg-slate-50 text-[#64748B] border border-[#E2E8F0] rounded text-[11px] font-mono">
+                              #BilateralGuidance
+                            </span>
+                            <span className="px-1.5 py-0.5 bg-slate-50 text-[#64748B] border border-[#E2E8F0] rounded text-[11px] font-mono">
+                              #OperatorAdvisory
                             </span>
                           </div>
                         </div>
 
-                        {/* Card Footer Bar */}
-                        <div className="flex items-center justify-between gap-4 pt-3 border-t border-[#f1f5f9] text-xs">
-                          <div className="flex items-center gap-3 text-[#575f6e]">
+                        <div className="pt-4 mt-3.5 border-t border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          {/* Author */}
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded bg-[#F1F5F9] border border-[#E2E8F0] flex items-center justify-center font-bold text-xs text-[#0F172A]">
+                              {initials}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs truncate">
+                              <span className="font-bold text-[#0F172A] truncate">
+                                {q.business?.company_name || "Verified Enterprise"}
+                              </span>
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981] shrink-0" title="Verified Enterprise Seal" />
+                              <span className="text-[#64748B] text-[11px] truncate">
+                                • {q.business?.hq_location || "Global"}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Metrics */}
+                          <div className="flex items-center gap-2 sm:justify-end text-xs">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#F8FAFC] border border-[#E2E8F0] rounded text-[#0F172A] font-semibold text-[11px]">
+                              <MessageSquare className="w-3 h-3 text-[#0F172A]" />
+                              {perspectiveCount} Answers
+                            </span>
                             <button
+                              type="button"
+                              onClick={(e) => toggleUpvote(q.id, e)}
+                              className={cn(
+                                "inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] border transition-colors cursor-pointer",
+                                isUpvoted
+                                  ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-semibold"
+                                  : "bg-[#F8FAFC] border-[#E2E8F0] text-[#64748B] hover:text-[#0F172A]"
+                              )}
+                            >
+                              <ThumbsUp className="w-3 h-3" />
+                              <span>{baseUpvotes + (isUpvoted ? 1 : 0)}</span>
+                            </button>
+                            <button
+                              type="button"
                               onClick={(e) => toggleBookmark(q.id, e)}
-                              className="inline-flex items-center gap-1 hover:text-[#0b1c30] transition-colors cursor-pointer"
+                              className="p-1 text-[#94A3B8] hover:text-[#0F172A] transition-colors cursor-pointer"
+                              title="Bookmark"
                             >
                               {isSaved ? (
                                 <BookmarkCheck className="w-4 h-4 text-[#059669]" />
                               ) : (
                                 <Bookmark className="w-4 h-4" />
                               )}
-                              <span>{isSaved ? "Saved" : "Save"}</span>
                             </button>
-                            <span className="text-[11px] text-[#94a3b8] hidden sm:inline">
-                              {perspectiveCount > 0 ? "Consensus active" : "Open for answers"}
-                            </span>
+                            <Link
+                              to="/insights/$id"
+                              params={{ id: q.slug || q.id }}
+                              className="inline-flex items-center gap-1 text-[#0F172A] hover:text-slate-600 font-semibold text-xs transition-colors pl-1"
+                            >
+                              <span>View Discussion</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </Link>
                           </div>
-
-                          <Link
-                            to="/insights/$id"
-                            params={{ id: q.id }}
-                            className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-xs"
-                          >
-                            <span>View &amp; Answer</span>
-                            <ArrowRight className="w-4 h-4" />
-                          </Link>
                         </div>
                       </article>
                     );
@@ -718,7 +1090,7 @@ export function InsightsIndexPage() {
                 )
               ) : (
                 /* ═══════════════════════════════════════════════════════════
-                    KNOWLEDGE ARTICLES FEED (USE CASE 2)
+                    KNOWLEDGE ARTICLES FEED (TAB 2)
                     ═══════════════════════════════════════════════════════════ */
                 paginatedItems.length === 0 ? (
                   <div className="bg-white border border-[#e2e8f0] rounded-xl p-12 text-center">
@@ -728,67 +1100,64 @@ export function InsightsIndexPage() {
                     <h3 className="text-base font-bold text-[#0b1c30] mb-1">
                       {searchQuery || selectedTopic !== "All"
                         ? "No knowledge articles found"
-                        : "No case studies published yet."}
+                        : "No operator knowledge published yet."}
                     </h3>
                     <p className="text-xs text-[#575f6e] max-w-sm mx-auto mb-6 leading-relaxed">
                       {searchQuery || selectedTopic !== "All"
-                        ? "Try clearing your search query or selecting another topic."
-                        : "Publish your company's operational lessons, post-mortems, and playbooks."}
+                        ? "Try clearing your search query or choosing another topic category."
+                        : "Approved businesses document their operational wins, distribution playbooks, and battle-tested frameworks."}
                     </p>
                     <Button
+                      type="button"
                       onClick={handleShareKnowledgeClick}
-                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg"
+                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg cursor-pointer"
                     >
                       <Plus className="w-4 h-4 mr-1.5" />
-                      Publish First Case Study
+                      Publish First Article
                     </Button>
                   </div>
                 ) : (
                   (paginatedItems as KnowledgeInsight[]).map((k) => {
                     const isSaved = savedItemIds.has(k.id);
                     const readTime = calculateReadingTime(k.content);
+                    const basedOnLabel =
+                      BASED_ON_LABELS[k.based_on] || "Verified Business Trial";
 
                     return (
                       <article
                         key={k.id}
                         className="bg-white border border-[#e2e8f0] hover:border-[#cbd5e1] rounded-xl p-5 md:p-6 transition-all duration-200 hover:shadow-sm flex flex-col gap-4 group"
                       >
-                        {/* Top Meta Header */}
                         <div className="flex items-center justify-between gap-3 text-xs">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-[11px] text-[#C2410C] bg-[#FFF7ED] border border-[#FFEDD5] px-2 py-0.5 rounded uppercase">
-                              {k.based_on ? (BASED_ON_LABELS[k.based_on] || "Case Study") : "Case Study"}
-                            </span>
                             <span className="font-semibold text-[11px] text-[#0b1c30] bg-[#f1f5f9] px-2 py-0.5 rounded uppercase tracking-wider">
-                              {k.topic || "Operations"}
+                              {k.topic}
                             </span>
-                            <span className="text-[11px] text-[#575f6e]">
-                              {readTime}
+                            <span className="text-[11px] text-[#575f6e] bg-[#f8fafc] border border-[#e2e8f0] px-2 py-0.5 rounded">
+                              {basedOnLabel}
                             </span>
                           </div>
                           <div className="flex items-center gap-1 text-[#94a3b8] text-[11px]">
                             <Clock className="w-3.5 h-3.5" />
-                            <span>{formatTimeAgo(k.published_at || k.created_at)}</span>
+                            <span>{readTime}</span>
                           </div>
                         </div>
 
-                        {/* Title & Description Excerpt */}
                         <div className="space-y-1.5">
                           <Link
                             to="/insights/knowledge/$id"
-                            params={{ id: k.id }}
+                            params={{ id: k.slug || k.id }}
                             className="block"
                           >
                             <h2 className="font-display font-bold text-base md:text-lg text-[#0b1c30] group-hover:text-slate-800 transition-colors leading-snug cursor-pointer">
                               {k.title}
                             </h2>
                           </Link>
-                          <p className="text-xs md:text-sm text-[#575f6e] leading-relaxed line-clamp-2">
-                            {k.content}
+                          <p className="text-xs md:text-sm text-[#575f6e] leading-relaxed line-clamp-3">
+                            {k.summary}
                           </p>
                         </div>
 
-                        {/* Author Info Row */}
                         <div className="flex items-center justify-between gap-3 pt-1">
                           <div className="flex items-center gap-3 min-w-0">
                             <CompanyLogo
@@ -800,26 +1169,25 @@ export function InsightsIndexPage() {
                             />
                             <div className="flex items-center gap-1.5 truncate">
                               <span className="font-semibold text-xs text-[#0b1c30] truncate">
-                                {k.business?.company_name || "Anonymous Enterprise"}
+                                {k.business?.company_name}
                               </span>
-                              <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" title="Verified Business" />
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" title="Verified Enterprise" />
                               <span className="text-[#cbd5e1]">•</span>
                               <span className="text-xs text-[#575f6e] truncate">
-                                {k.business?.hq_location || k.business?.industry || "Global Operations"}
+                                {k.business?.industry || "B2B SaaS"}
                               </span>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-1.5 text-xs text-[#575f6e]">
-                            <ThumbsUp className="w-3.5 h-3.5" />
-                            <span>Verified Attribution</span>
+                          <div className="flex items-center gap-1.5 text-xs text-[#575f6e] shrink-0">
+                            <span>Published {formatTimeAgo(k.created_at)}</span>
                           </div>
                         </div>
 
-                        {/* Card Footer Bar */}
                         <div className="flex items-center justify-between gap-4 pt-3 border-t border-[#f1f5f9] text-xs">
                           <div className="flex items-center gap-3 text-[#575f6e]">
                             <button
+                              type="button"
                               onClick={(e) => toggleBookmark(k.id, e)}
                               className="inline-flex items-center gap-1 hover:text-[#0b1c30] transition-colors cursor-pointer"
                             >
@@ -834,7 +1202,7 @@ export function InsightsIndexPage() {
 
                           <Link
                             to="/insights/knowledge/$id"
-                            params={{ id: k.id }}
+                            params={{ id: k.slug || k.id }}
                             className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-xs"
                           >
                             <span>Read Case Study</span>
@@ -847,20 +1215,21 @@ export function InsightsIndexPage() {
                 )
               )}
 
-              {/* Streamlined Pagination */}
+              {/* Streamlined Pagination Bar */}
               {totalCount > 0 && (
-                <div className="flex items-center justify-between bg-white border border-[#e2e8f0] rounded-xl px-5 py-3.5 text-xs text-[#575f6e] shadow-2xs">
+                <div className="bg-white border border-[#E2E8F0] rounded-xl p-4 mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs text-xs text-[#575f6e]">
                   <div>
                     Showing{" "}
                     <span className="font-semibold text-[#0b1c30]">
                       {Math.min(1 + (currentPage - 1) * ITEMS_PER_PAGE, totalCount)} –{" "}
                       {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)}
                     </span>{" "}
-                    of <span className="font-semibold text-[#0b1c30]">{totalCount}</span> {activeTab === "questions" ? "inquiries" : "articles"}
+                    of <span className="font-semibold text-[#0b1c30]">{totalCount}</span> {activeTab === "questions" ? "advisories" : "articles"}
                   </div>
 
                   <div className="flex items-center gap-1">
                     <button
+                      type="button"
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
                       className="px-2.5 py-1.5 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 text-[#0b1c30] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
@@ -871,6 +1240,7 @@ export function InsightsIndexPage() {
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                       <button
                         key={p}
+                        type="button"
                         onClick={() => setCurrentPage(p)}
                         className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
                           currentPage === p
@@ -883,6 +1253,7 @@ export function InsightsIndexPage() {
                     ))}
 
                     <button
+                      type="button"
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
                       className="px-2.5 py-1.5 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 text-[#0b1c30] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
@@ -895,117 +1266,164 @@ export function InsightsIndexPage() {
             </div>
 
             {/* ═══════════════════════════════════════════════════════════════
-                Right Sidebar (4 Cols)
+                Right Column: Advisory & Intelligence Rail (4 Cols)
                 ═══════════════════════════════════════════════════════════════ */}
-            <aside className="lg:col-span-4 space-y-5">
+            <aside className="lg:col-span-4 flex flex-col gap-5">
               
-              {/* 1. How Peer Insights Work Card */}
-              <div className="bg-white border border-[#e2e8f0] rounded-xl p-5 shadow-2xs">
-                <div className="flex items-center gap-2 mb-3">
-                  <ArrowLeftRight className="w-5 h-5 text-slate-900" />
-                  <h3 className="font-display font-bold text-sm text-[#0b1c30]">
-                    How Peer Insights Work
-                  </h3>
+              {/* 1. PEER ADVISORY PROTOCOL (CDOES 3.1) */}
+              <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-2xs">
+                <div className="flex items-center justify-between pb-3 mb-3.5 border-b border-[#E2E8F0]">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-[#0F172A]" />
+                    <h3 className="font-display text-[14px] text-[#0F172A] font-bold uppercase tracking-tight">
+                      Peer Advisory Protocol
+                    </h3>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded bg-slate-100 text-[#475569] text-[10px] font-mono font-bold">
+                    CDOES 3.1
+                  </span>
                 </div>
-                <p className="text-xs text-[#575f6e] mb-4 leading-relaxed">
-                  A high-trust bilateral network built to eliminate vendor pitches, algorithmic bias, and anonymous noise.
-                </p>
-                <div className="space-y-3.5">
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
+                <div className="space-y-3.5 text-xs text-[#334155]">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-[#0F172A] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
                       1
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-[#0b1c30]">Verified Operators Only</div>
-                      <div className="text-[11px] text-[#575f6e] mt-0.5 leading-relaxed">
-                        Only authenticated business operators can post inquiries or respond with perspectives.
-                      </div>
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-[#0F172A]">Strict Bilateral Integrity</span>
+                      <span className="text-[#64748B] leading-relaxed">
+                        Zero cold prospecting, unsolicited sales links, or affiliate vendor promotion. Violations trigger immediate revoke.
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-[#f1f5f9] border border-[#cbd5e1] text-[#0b1c30] text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-[#0F172A] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
                       2
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-[#0b1c30]">Grounded Attribution</div>
-                      <div className="text-[11px] text-[#575f6e] mt-0.5 leading-relaxed">
-                        Perspectives must declare operator qualification and provenance from real trials or metrics.
-                      </div>
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-[#0F172A]">Grounded Commercial Reality</span>
+                      <span className="text-[#64748B] leading-relaxed">
+                        All answers must reflect real deal mechanics, verified contract clauses, or active institutional experience.
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-[#059669] text-white text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-[#0F172A] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
                       3
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-[#0b1c30]">Zero Vendor Pitching</div>
-                      <div className="text-[11px] text-[#575f6e] mt-0.5 leading-relaxed">
-                        Self-promotion and vendor sales decks are strictly screened out by bilateral review.
-                      </div>
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-[#0F172A]">Blinded Confidentiality</span>
+                      <span className="text-[#64748B] leading-relaxed">
+                        Preserve customer entity privacy and NDA confidentiality prior to official Stage 4 Handshake execution.
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* 2. Trending Topics Minimal Card */}
-              <div className="bg-white border border-[#e2e8f0] rounded-xl p-5 shadow-2xs">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-display font-bold text-sm text-[#0b1c30]">
-                    Trending Topics
-                  </h3>
-                  <span className="text-[10px] font-semibold text-[#575f6e] bg-[#f1f5f9] px-2 py-0.5 rounded uppercase tracking-wider">
-                    THIS WEEK
-                  </span>
+              {/* 2. TRENDING TOPICS & VELOCITY (WoW) */}
+              <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-2xs">
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#E2E8F0]">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-[#0F172A]" />
+                    <h3 className="font-display text-[14px] text-[#0F172A] font-bold">
+                      Trending Topics &amp; Velocity
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#64748B]">WoW</span>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  {dynamicTrendingTopics.map((topic) => (
+                <div className="space-y-2.5 text-xs">
+                  {TRENDING_TOPICS.map((item) => (
                     <button
-                      key={topic.name}
+                      key={item.tag}
+                      type="button"
                       onClick={() => {
-                        setSelectedTopic(topic.filterValue);
+                        setSelectedTopic(item.topic);
+                        setSearchQuery(item.label);
                         setCurrentPage(1);
                       }}
-                      className={`flex items-center justify-between p-2 rounded-lg transition-colors text-xs text-left cursor-pointer ${
-                        selectedTopic === topic.filterValue
-                          ? "bg-slate-100 font-semibold text-[#0b1c30]"
-                          : "hover:bg-[#f8fafc] text-[#0b1c30]"
-                      }`}
+                      className="w-full flex items-center justify-between p-2 rounded hover:bg-[#F8FAFC] transition-colors border border-transparent hover:border-[#E2E8F0] text-left cursor-pointer"
                     >
-                      <span className="font-medium">{topic.name}</span>
-                      <span className="font-mono text-[11px] text-[#575f6e] bg-[#f8fafc] border border-[#e2e8f0] px-2 py-0.5 rounded shrink-0">
-                        {topic.count}
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-[#0F172A] font-mono">{item.tag}</span>
+                        <span className="text-[11px] text-[#64748B]">{item.count} active discussions</span>
+                      </div>
+                      <span className="inline-flex items-center gap-0.5 font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">
+                        <TrendingUp className="w-3 h-3" />
+                        {item.change}
                       </span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* 3. Opportunity Board Callout Card */}
-              <div className="bg-[#171F2C] text-white rounded-xl p-5 shadow-sm">
-                <span className="text-[10px] font-semibold tracking-wider text-[#94a3b8] uppercase">
-                  Strategic Dealflow
-                </span>
-                <h4 className="font-display font-bold text-base text-white mt-1">
-                  Need Strategic Partners?
+              {/* 3. TOP CONTRIBUTING OPERATORS (30 Days) */}
+              <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-2xs">
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#E2E8F0]">
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-[#0F172A]" />
+                    <h3 className="font-display text-[14px] text-[#0F172A] font-bold">
+                      Top Contributing Operators
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#64748B]">30 Days</span>
+                </div>
+                <div className="space-y-3">
+                  {TOP_CONTRIBUTING_OPERATORS.map((op, idx) => (
+                    <div
+                      key={op.name}
+                      className={cn(
+                        "flex items-center justify-between gap-2.5",
+                        idx < TOP_CONTRIBUTING_OPERATORS.length - 1 && "pb-2.5 border-b border-[#F1F5F9]"
+                      )}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-[#0F172A] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+                          {op.initials}
+                        </div>
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-1">
+                            <span className="font-bold text-xs text-[#0F172A]">{op.name}</span>
+                            <CheckCircle2 className="w-3 h-3 text-[#10B981]" />
+                          </div>
+                          <span className="text-[11px] text-[#64748B]">{op.role}</span>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 bg-slate-50 border border-[#E2E8F0] rounded text-[11px] font-semibold text-[#0F172A]">
+                        {op.parity}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 4. CONFIDENTIAL DEAL INQUIRIES (Dark Banner) */}
+              <div className="bg-[#1E293B] text-white rounded-xl p-5 shadow-xs border border-slate-800">
+                <div className="flex items-center gap-1.5 text-slate-300 text-[11px] uppercase tracking-wider font-bold mb-1.5">
+                  <Lock className="w-3.5 h-3.5 text-[#10B981]" />
+                  <span>Confidential Deal Inquiries</span>
+                </div>
+                <h4 className="font-display text-base font-bold text-white mb-2 leading-snug">
+                  Can&apos;t share deal metrics publicly?
                 </h4>
-                <p className="text-xs text-[#94a3b8] mt-1.5 leading-relaxed">
-                  The Relay connects vetted corporate teams through bilateral mutual unmasking on the live board.
+                <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                  Post a Blinded Question to accredited syndicate partners. Your corporate identity remains fully masked until you accept an operational NDA.
                 </p>
-                <Link
-                  to="/opportunities"
-                  className="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-white hover:bg-slate-100 text-[#0b1c30] text-xs font-semibold py-2.5 px-4 rounded-lg transition-colors"
+                <button
+                  type="button"
+                  onClick={handleAskClick}
+                  className="w-full py-2 px-3.5 bg-white text-[#0F172A] text-xs font-bold rounded hover:bg-slate-100 transition-colors flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
                 >
-                  <span>Go to Opportunity Board</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+                  <span>Post Blinded Question</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
               </div>
 
             </aside>
           </div>
         </div>
-      </section>
+      </main>
 
       {/* ═══════════════════════════════════════════════════════════════════
           4. DIALOGS & MODALS

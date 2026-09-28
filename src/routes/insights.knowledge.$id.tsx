@@ -60,11 +60,12 @@ export const Route = createFileRoute("/insights/knowledge/$id")({
       : "";
     const description = `${snippet}${author}`;
 
+    const canonicalSlug = loaderData?.insight?.slug || params.id;
     return {
       meta: createSeoMeta({
         title,
         description,
-        canonicalPath: `/insights/knowledge/${params.id}`,
+        canonicalPath: `/insights/knowledge/${canonicalSlug}`,
         ogType: "article",
       }),
     };
@@ -842,7 +843,7 @@ export function KnowledgeDetailPage() {
           title={insight.title}
           topic={insight.topic}
           authorName={insight.business?.company_name}
-          urlPath={`/insights/knowledge/${insight.id}`}
+          urlPath={`/insights/knowledge/${insight.slug || insight.id}`}
           type="insight"
         />
       )}

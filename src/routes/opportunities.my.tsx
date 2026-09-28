@@ -78,7 +78,7 @@ const mySearchSchema = z.object({
 export const Route = createFileRoute("/opportunities/my")({
   validateSearch: zodValidator(mySearchSchema),
   head: () => ({
-    meta: createPrivateMeta("My Opportunities — The Relay"),
+    ...createPrivateMeta("My Opportunities"),
   }),
   component: MyOpportunitiesPage,
 });
@@ -249,7 +249,7 @@ function MyOpportunitiesPage() {
             },
           };
         })
-        .filter(Boolean);
+        .filter((item): item is NonNullable<typeof item> => item !== null);
       return [...(items || []), ...mockItems];
     },
     enabled: Boolean(isLoaded && isSignedIn),

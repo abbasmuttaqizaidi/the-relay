@@ -57,11 +57,16 @@ export const createAdminQuestion = createServerFn({ method: "POST" })
       custom_website: data.custom_website,
     });
 
-    // 3. Create question in database
+    // 3. Generate unique SEO slug
+    const { generateUniqueQuestionSlug } = await import("../lib/slug");
+    const slug = await generateUniqueQuestionSlug(data.title);
+
+    // 4. Create question in database
     const question = await prisma.question.create({
       data: {
         business_id: business.id,
         title: data.title,
+        slug,
         description: data.description,
         topic: data.topic,
         desired_perspective: data.desired_perspective || null,
@@ -79,6 +84,13 @@ export const createAdminQuestion = createServerFn({ method: "POST" })
           },
         },
       },
+    });
+
+    // 5. Notify IndexNow
+    const { submitToIndexNow } = await import("../lib/indexnow.server");
+    const { SITE_URL } = await import("../lib/seo");
+    submitToIndexNow(`${SITE_URL}/insights/${question.slug || question.id}`).catch((err) => {
+      console.warn("[createAdminQuestion] IndexNow notification failed:", err);
     });
 
     return {

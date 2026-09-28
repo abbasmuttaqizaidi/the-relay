@@ -405,6 +405,7 @@ export interface Question {
   id: string;
   business_id: string;
   title: string;
+  slug?: string | null;
   description: string;
   topic: QuestionTopic;
   desired_perspective: DesiredPerspective | null;
@@ -436,6 +437,7 @@ export interface Perspective {
 export interface CreateQuestionDTO {
   business_id: string;
   title: string;
+  slug?: string | null;
   description: string;
   topic: QuestionTopic;
   desired_perspective?: DesiredPerspective | null;
@@ -444,6 +446,7 @@ export interface CreateQuestionDTO {
 
 export interface UpdateQuestionDTO {
   title?: string;
+  slug?: string | null;
   description?: string;
   topic?: QuestionTopic;
   desired_perspective?: DesiredPerspective | null;
@@ -493,6 +496,7 @@ export interface KnowledgeInsight {
   id: string;
   business_id: string;
   title: string;
+  slug?: string | null;
   content: string;
   content_json?: string | null;
   topic: KnowledgeInsightTopic;

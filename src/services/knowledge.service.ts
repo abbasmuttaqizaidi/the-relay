@@ -7,6 +7,7 @@ import {
 } from "../types";
 import { submitToIndexNow } from "../lib/indexnow.server";
 import { SITE_URL } from "../lib/seo";
+import { generateUniqueKnowledgeSlug, isUUID } from "../lib/slug";
 
 const SAFE_BUSINESS_SELECT = {
   id: true,
@@ -47,12 +48,16 @@ export class KnowledgeService {
         );
       }
 
-      // 2. Create Knowledge Insight in database
+      // 2. Generate unique SEO slug
+      const slug = await generateUniqueKnowledgeSlug(dto.title);
+
+      // 3. Create Knowledge Insight in database
       const status = dto.status || "published";
       const insight = await prisma.knowledgeInsight.create({
         data: {
           business_id: dto.business_id,
           title: dto.title.trim(),
+          slug,
           content: dto.content.trim(),
           content_json: dto.content_json || null,
           topic: dto.topic,
@@ -88,7 +93,7 @@ export class KnowledgeService {
 
       // 4. Notify search engines via IndexNow asynchronously if published
       if (insight.status === "published") {
-        submitToIndexNow(`${SITE_URL}/insights/knowledge/${insight.id}`).catch((err) => {
+        submitToIndexNow(`${SITE_URL}/insights/knowledge/${insight.slug || insight.id}`).catch((err) => {
           console.warn(
             "[KnowledgeService.createKnowledgeInsight] IndexNow notification failed:",
             err
@@ -167,12 +172,15 @@ export class KnowledgeService {
   }
 
   /**
-   * Retrieves a single Knowledge Insight by ID.
+   * Retrieves a single Knowledge Insight by ID or slug.
    */
-  static async getKnowledgeInsightById(id: string): Promise<KnowledgeInsight> {
+  static async getKnowledgeInsightById(identifier: string): Promise<KnowledgeInsight> {
     try {
-      const insight = await prisma.knowledgeInsight.findUnique({
-        where: { id },
+      const isIdentifierUUID = isUUID(identifier);
+      const insight = await prisma.knowledgeInsight.findFirst({
+        where: isIdentifierUUID
+          ? { OR: [{ id: identifier }, { slug: identifier }] }
+          : { slug: identifier },
         include: {
           business: {
             select: SAFE_BUSINESS_SELECT,
@@ -396,6 +404,7 @@ export class KnowledgeService {
       id: insight.id,
       business_id: insight.business_id,
       title: insight.title,
+      slug: insight.slug ?? null,
       content: insight.content,
       content_json: insight.content_json || null,
       topic: insight.topic,
