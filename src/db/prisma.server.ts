@@ -12,7 +12,11 @@ declare global {
 
 const getPrismaClient = () => {
   // Read database connection string from environment variables
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString =
+    process.env.DATABASE_URL ||
+    (process.env.NODE_ENV === "test" || process.env.VITEST
+      ? "postgresql://postgres:postgres@localhost:5432/relay_test?schema=public"
+      : undefined);
 
   if (!connectionString) {
     throw new Error(
