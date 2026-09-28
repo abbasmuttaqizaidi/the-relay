@@ -44,7 +44,7 @@ export async function generateUniqueQuestionSlug(
   let counter = 2;
 
   while (true) {
-    const existing = await prisma.question.findUnique({
+    const existing = await prisma.question.findFirst({
       where: { slug: candidate },
       select: { id: true },
     });
@@ -71,7 +71,7 @@ export async function generateUniqueKnowledgeSlug(
   let counter = 2;
 
   while (true) {
-    const existing = await prisma.knowledgeInsight.findUnique({
+    const existing = await prisma.knowledgeInsight.findFirst({
       where: { slug: candidate },
       select: { id: true },
     });

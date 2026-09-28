@@ -38,13 +38,15 @@ const isStalePrisma = Boolean(
       !(globalThis.prisma as any).contactSharingConsent ||
       !(globalThis.prisma as any).exchangeProposal ||
       !(globalThis.prisma as any).exchangeAgreement ||
-      !(globalThis.prisma as any).reliabilityEvent),
+      !(globalThis.prisma as any).reliabilityEvent ||
+      !(globalThis.prisma as any)._relaySlugV1),
 );
 
 export const prisma =
   (!isStalePrisma && globalThis.prisma) ? globalThis.prisma : getPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
+  (prisma as any)._relaySlugV1 = true;
   globalThis.prisma = prisma;
 }
 
