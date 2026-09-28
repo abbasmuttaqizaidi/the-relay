@@ -102,7 +102,7 @@ export const Route = createFileRoute("/insights/")({
     meta: createSeoMeta({
       title: "Questions & Peer Advisory — The Relay",
       description:
-        "Real-time commercial deal structuring, barter mechanics, and bilateral guidance from verified enterprise operators.",
+        "Real-time commercial deal structuring and bilateral guidance from verified enterprise operators.",
       canonicalPath: "/insights",
     }),
   }),
@@ -741,7 +741,7 @@ export function InsightsIndexPage() {
               1. HEADER & HERO
               ═══════════════════════════════════════════════════════════════ */}
           <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-2xs">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-2.5 sm:gap-4">
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 text-[#64748B] text-xs uppercase tracking-widest font-bold">
                   <span>INSIGHTS</span>
@@ -763,33 +763,93 @@ export function InsightsIndexPage() {
                 </h1>
                 <p className="text-sm text-[#64748B] max-w-3xl leading-relaxed">
                   {activeTab === "questions"
-                    ? "Real-time commercial deal structuring, barter mechanics, and bilateral guidance from verified enterprise operators."
+                    ? "Real-time commercial deal structuring, and bilateral guidance from verified enterprise operators."
                     : "In-depth case studies, structural playbooks, and operating frameworks contributed by verified operators."}
                 </p>
               </div>
 
-              {/* Action Group */}
-              <div className="w-full lg:w-auto shrink-0 pt-2 lg:pt-0">
+              {/* Action Group: Wrapped div moved up */}
+              <div className="w-full lg:w-auto shrink-0 flex flex-col items-end -mt-3 sm:-mt-4 lg:-mt-3.5">
                 {activeTab === "questions" ? (
-                  <button
-                    type="button"
-                    id="btn-ask-question"
-                    onClick={handleAskClick}
-                    className="w-full lg:w-auto px-4 py-2.5 sm:py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center justify-center gap-1.5 shadow-xs font-semibold cursor-pointer whitespace-nowrap"
-                  >
-                    <Plus className="w-3.5 h-3.5 shrink-0" />
-                    <span>Ask Question</span>
-                  </button>
+                  <div className="w-full sm:w-auto flex flex-col items-end">
+                    {/* Curved Arrow Callout appearing from the upper side with +2px vertical space */}
+                    <button
+                      type="button"
+                      id="btn-switch-to-knowledge"
+                      onClick={() => handleTabChange("knowledge")}
+                      className="group inline-flex items-center gap-1 cursor-pointer mb-1.5 pr-2 transition-all select-none self-end"
+                      title="Switch to Knowledge"
+                    >
+                      <span
+                        style={{ fontFamily: "'Caveat', 'Dancing Script', cursive" }}
+                        className="text-base sm:text-lg font-bold italic text-[#0F172A] group-hover:text-[#EA580C] transition-colors whitespace-nowrap tracking-wide leading-none"
+                      >
+                        Share knowledge
+                      </span>
+                      <svg
+                        className="w-6 h-3.5 text-slate-400 group-hover:text-[#0F172A] transition-all shrink-0 group-hover:-translate-y-0.5"
+                        viewBox="0 0 32 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M 26 23 C 26 11, 16 6, 6 6" />
+                        <path d="M 11 2 L 5 6 L 11 10" />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      id="btn-ask-question"
+                      onClick={handleAskClick}
+                      className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center justify-center gap-1.5 shadow-xs font-semibold cursor-pointer whitespace-nowrap"
+                    >
+                      <Plus className="w-3.5 h-3.5 shrink-0" />
+                      <span>Ask Question</span>
+                    </button>
+                  </div>
                 ) : (
-                  <button
-                    type="button"
-                    id="btn-share-knowledge"
-                    onClick={handleShareKnowledgeClick}
-                    className="w-full lg:w-auto px-4 py-2.5 sm:py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center justify-center gap-1.5 shadow-xs font-semibold cursor-pointer whitespace-nowrap"
-                  >
-                    <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                    <span>Share Knowledge</span>
-                  </button>
+                  <div className="w-full sm:w-auto flex flex-col items-end">
+                    {/* Curved Arrow Callout appearing from the upper side with +2px vertical space */}
+                    <button
+                      type="button"
+                      id="btn-switch-to-questions"
+                      onClick={() => handleTabChange("questions")}
+                      className="group inline-flex items-center gap-1 cursor-pointer mb-1.5 pr-2 transition-all select-none self-end"
+                      title="Switch to Questions"
+                    >
+                      <span
+                        style={{ fontFamily: "'Caveat', 'Dancing Script', cursive" }}
+                        className="text-base sm:text-lg font-bold italic text-[#0F172A] group-hover:text-[#EA580C] transition-colors whitespace-nowrap tracking-wide leading-none"
+                      >
+                        Ask question
+                      </span>
+                      <svg
+                        className="w-6 h-3.5 text-slate-400 group-hover:text-[#0F172A] transition-all shrink-0 group-hover:-translate-y-0.5"
+                        viewBox="0 0 32 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M 26 23 C 26 11, 16 6, 6 6" />
+                        <path d="M 11 2 L 5 6 L 11 10" />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      id="btn-share-knowledge"
+                      onClick={handleShareKnowledgeClick}
+                      className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center justify-center gap-1.5 shadow-xs font-semibold cursor-pointer whitespace-nowrap"
+                    >
+                      <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                      <span>Share Knowledge</span>
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
