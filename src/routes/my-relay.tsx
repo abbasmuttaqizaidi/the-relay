@@ -2870,9 +2870,13 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
                       Company
                     </span>
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-[2px] bg-[#171F2C] flex items-center justify-center font-sans text-[8px] font-bold text-white uppercase">
-                        {initials}
-                      </div>
+                      <CompanyLogo
+                        src={shouldHide ? undefined : selectedDetailOpp.logo_url || selectedDetailOpp.business?.logo_url}
+                        name={displayName}
+                        className="w-5 h-5 rounded-[2px] object-contain border border-[#E2E8F0] shrink-0 bg-white"
+                        fallbackClassName="w-5 h-5 rounded-[2px] bg-[#171F2C] text-white flex items-center justify-center font-sans text-[8px] font-bold uppercase shrink-0"
+                        textClassName="font-sans text-[8px] font-bold text-white uppercase"
+                      />
                       <span className="text-xs font-semibold text-[#171F2C] break-words">{displayName}</span>
                     </div>
                   </div>

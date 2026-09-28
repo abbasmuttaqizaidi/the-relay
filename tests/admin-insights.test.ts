@@ -393,4 +393,55 @@ describe("Admin Insights Feature: Manual Creation & Management", () => {
       expect(invalidUuid.success).toBe(false);
     });
   });
+
+  // ---------------------------------------------------------
+  // 5. Admin Increase Views Validation
+  // ---------------------------------------------------------
+  describe("Admin Increase Views Validation", () => {
+    const increaseViewsSchema = z.object({
+      type: z.enum(["question", "knowledge"]),
+      id: z.string().min(1, "Item ID is required"),
+      amount: z.number().int().positive().max(100000, "Maximum 100,000 views per boost"),
+    });
+
+    it("accepts valid boost parameters for question and knowledge", () => {
+      const validQuestion = increaseViewsSchema.safeParse({
+        type: "question",
+        id: "1eb1349c-2ab7-4458-afd6-14604cc1c2bd",
+        amount: 50,
+      });
+      expect(validQuestion.success).toBe(true);
+
+      const validKnowledge = increaseViewsSchema.safeParse({
+        type: "knowledge",
+        id: "growth-playbook-2026",
+        amount: 100,
+      });
+      expect(validKnowledge.success).toBe(true);
+    });
+
+    it("rejects non-positive numbers, floats, or excessive boosts", () => {
+      expect(
+        increaseViewsSchema.safeParse({ type: "question", id: "abc", amount: 0 }).success,
+      ).toBe(false);
+      expect(
+        increaseViewsSchema.safeParse({ type: "question", id: "abc", amount: -10 }).success,
+      ).toBe(false);
+      expect(
+        increaseViewsSchema.safeParse({ type: "question", id: "abc", amount: 12.5 }).success,
+      ).toBe(false);
+      expect(
+        increaseViewsSchema.safeParse({ type: "question", id: "abc", amount: 200000 }).success,
+      ).toBe(false);
+    });
+
+    it("rejects invalid entity types or empty IDs", () => {
+      expect(
+        increaseViewsSchema.safeParse({ type: "other", id: "abc", amount: 10 }).success,
+      ).toBe(false);
+      expect(
+        increaseViewsSchema.safeParse({ type: "question", id: "", amount: 10 }).success,
+      ).toBe(false);
+    });
+  });
 });

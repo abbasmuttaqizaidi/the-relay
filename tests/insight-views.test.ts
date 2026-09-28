@@ -174,4 +174,39 @@ describe("Deduplicated Views System (Members & Non-Members)", () => {
     expect(result.isNew).toBe(true);
     expect(result.totalViews).toBe(16);
   });
+
+  describe("Compact View Count Formatting (e.g. 1.7k format)", () => {
+    it("formats counts under 1,000 as raw numbers", async () => {
+      const { formatCompactNumber } = await import("../src/routes/insights.index");
+      expect(formatCompactNumber(0)).toBe("0");
+      expect(formatCompactNumber(42)).toBe("42");
+      expect(formatCompactNumber(999)).toBe("999");
+    });
+
+    it("formats thousands into 1k, 1.7k, 10.5k format", async () => {
+      const { formatCompactNumber } = await import("../src/routes/insights.index");
+      expect(formatCompactNumber(1000)).toBe("1k");
+      expect(formatCompactNumber(1700)).toBe("1.7k");
+      expect(formatCompactNumber(1750)).toBe("1.8k");
+      expect(formatCompactNumber(10500)).toBe("10.5k");
+      expect(formatCompactNumber(250000)).toBe("250k");
+    });
+
+    it("formats millions into 1m, 1.5m format", async () => {
+      const { formatCompactNumber } = await import("../src/routes/insights.index");
+      expect(formatCompactNumber(1000000)).toBe("1m");
+      expect(formatCompactNumber(1500000)).toBe("1.5m");
+    });
+  });
+
+  describe("Published Date Formatting (e.g. 28-sept-26 format)", () => {
+    it("formats ISO date string into DD-month-YY format", async () => {
+      const { formatPublishedDate } = await import("../src/routes/insights.index");
+      expect(formatPublishedDate("2026-09-28T12:00:00Z")).toBe("28-Sept-26");
+      expect(formatPublishedDate("2026-01-15T08:30:00Z")).toBe("15-Jan-26");
+      expect(formatPublishedDate("2025-12-05T00:00:00Z")).toBe("5-Dec-25");
+      expect(formatPublishedDate("")).toBe("");
+      expect(formatPublishedDate(null)).toBe("");
+    });
+  });
 });

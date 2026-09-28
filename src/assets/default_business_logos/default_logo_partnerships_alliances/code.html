@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="bg_part" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="stroke_part" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#475569" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#334155" stop-opacity="0.3"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="12" y="12" width="176" height="176" rx="40" fill="url(#bg_part)"/>
+  <rect x="12" y="12" width="176" height="176" rx="40" stroke="url(#stroke_part)" stroke-width="1.5"/>
+
+  <!-- Subtle grid aura -->
+  <circle cx="100" cy="100" r="68" stroke="#334155" stroke-width="1" stroke-dasharray="3 3" opacity="0.4"/>
+
+  <!-- Partnerships & Alliances Emblem: Two interlocking solid links forming a bilateral handshake loop -->
+  <g transform="translate(100, 100)" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left Handshake Loop -->
+    <path d="M -16 -24 C -36 -24 -46 -10 -46 8 C -46 26 -34 38 -16 38 C -4 38 6 30 12 20" 
+          stroke="#F8FAFC" stroke-width="8" fill="none"/>
+    <!-- Right Handshake Loop (Interlocking) -->
+    <path d="M 16 24 C 36 24 46 10 46 -8 C 46 -26 34 -38 16 -38 C 4 -38 -6 -30 -12 -20" 
+          stroke="#94A3B8" stroke-width="8" fill="none"/>
+
+    <!-- Mutual Connection Core Nodes -->
+    <circle cx="-16" cy="-24" r="5" fill="#F8FAFC"/>
+    <circle cx="16" cy="24" r="5" fill="#94A3B8"/>
+    <!-- Central Bridge Node -->
+    <circle cx="0" cy="0" r="4.5" fill="#10B981"/>
+  </g>
+</svg>

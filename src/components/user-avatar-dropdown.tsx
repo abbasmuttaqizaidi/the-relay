@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getCompanyInitials } from "@/lib/utils";
+import { DefaultBusinessLogo } from "@/default_business_logo";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
 
 interface ProfileData {
@@ -220,8 +221,8 @@ export function UserAvatarDropdown({
                       className="object-cover"
                       onError={() => setLogoFailed(true)}
                     />
-                    <AvatarFallback className="text-[10px] font-mono font-bold bg-slate-950 text-white">
-                      {initials}
+                    <AvatarFallback className="text-[10px] font-mono font-bold bg-slate-950 text-white overflow-hidden">
+                      {logoFailed ? initials : <DefaultBusinessLogo className="w-full h-full object-cover" />}
                     </AvatarFallback>
                   </Avatar>
                   <span className={statusDotClassMobile} />
@@ -261,8 +262,8 @@ export function UserAvatarDropdown({
                     className="object-cover"
                     onError={() => setLogoFailed(true)}
                   />
-                  <AvatarFallback className="text-[9px] font-mono font-bold bg-slate-950 text-white">
-                    {initials}
+                  <AvatarFallback className="text-[9px] font-mono font-bold bg-slate-950 text-white overflow-hidden">
+                    {logoFailed ? initials : <DefaultBusinessLogo className="w-full h-full object-cover" />}
                   </AvatarFallback>
                 </Avatar>
                 <span className={statusDotClass} />

@@ -24,6 +24,7 @@ import {
   Globe,
   ChevronRight,
   Eye,
+  TrendingUp,
 } from "lucide-react";
 import { RelayVerificationSeal } from "@/components/relay-verification-seal";
 import { Button } from "@/components/ui/button";
@@ -51,12 +52,14 @@ import { getQuestions } from "../functions/getQuestions";
 import { closeQuestion } from "../functions/closeQuestion";
 import { deletePerspective } from "../functions/deletePerspective";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
+import { checkAdminSession } from "../functions/checkAdminSession";
 import { recordInsightView } from "../functions/recordInsightView";
 import { getOrCreateVisitorId, hasViewedLocally, markViewedLocally } from "@/lib/visitor";
 import { AskQuestionDialog } from "../components/insights/AskQuestionDialog";
 import { SharePerspectiveDialog } from "../components/insights/SharePerspectiveDialog";
 import { ShareModal } from "../components/insights/ShareModal";
 import { QuestionContentRenderer } from "../components/insights/QuestionContentRenderer";
+import { AdminIncreaseViewsDialog } from "../components/admin/AdminIncreaseViewsDialog";
 import { CompanyLogo } from "../components/company-logo";
 import { Question, Perspective, Business, DesiredPerspective } from "../types";
 import { createSeoMeta, createArticleSchema, SITE_URL } from "@/lib/seo";
@@ -117,6 +120,44 @@ function formatDate(dateStr: string): string {
   }
 }
 
+function formatCompactNumber(num: number = 0): string {
+  if (!num) return "0";
+  if (num < 1000) return num.toString();
+  if (num < 1000000) {
+    const val = num / 1000;
+    return `${parseFloat(val.toFixed(1))}k`;
+  }
+  const val = num / 1000000;
+  return `${parseFloat(val.toFixed(1))}m`;
+}
+
+function formatPublishedDate(dateStr?: string | Date | null): string {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    const day = d.getDate();
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sept",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const month = months[d.getMonth()];
+    const year = d.getFullYear().toString().slice(-2);
+    return `${day}-${month}-${year}`;
+  } catch {
+    return "";
+  }
+}
+
 export function QuestionDetailPage() {
   const { id } = Route.useParams();
   const { isSignedIn } = useAuth();
@@ -127,6 +168,21 @@ export function QuestionDetailPage() {
   const [loading, setLoading] = useState(true);
   const [currentUserBusiness, setCurrentUserBusiness] = useState<Business | null>(null);
   const [viewsCount, setViewsCount] = useState<number>(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [increaseViewsOpen, setIncreaseViewsOpen] = useState(false);
+
+  // Check admin session
+  useEffect(() => {
+    const hasAdminCookie =
+      typeof document !== "undefined" && document.cookie.includes("relay_admin_token=");
+    if (hasAdminCookie) {
+      checkAdminSession()
+        .then((res) => {
+          if (res?.isAdmin) setIsAdmin(true);
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   // Dialog states
   const [editQuestionOpen, setEditQuestionOpen] = useState(false);
@@ -435,6 +491,17 @@ export function QuestionDetailPage() {
                 <div className="flex items-center gap-2 text-slate-400 text-[11px] font-mono">
                   <Eye className="w-3.5 h-3.5 shrink-0" />
                   <span>{viewsCount.toLocaleString()} {viewsCount === 1 ? "view" : "views"}</span>
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => setIncreaseViewsOpen(true)}
+                      className="inline-flex items-center gap-1 ml-auto text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors"
+                      title="Admin: Boost Views"
+                    >
+                      <TrendingUp className="w-3 h-3" />
+                      <span>+ Views</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -498,7 +565,7 @@ export function QuestionDetailPage() {
               )}
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider font-medium rounded bg-slate-100 text-slate-600 border border-slate-200">
                 <Eye className="w-3 h-3 text-slate-400" />
-                <span>{viewsCount.toLocaleString()} {viewsCount === 1 ? "view" : "views"}</span>
+                <span>{formatCompactNumber(viewsCount)}</span>
               </span>
               {isQuestionOwner && (
                 <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider font-bold rounded bg-orange-50 text-orange-700 border border-orange-200">
@@ -577,19 +644,23 @@ export function QuestionDetailPage() {
                   textClassName="text-xs font-mono font-bold"
                 />
                 <div className="min-w-0">
+                  {/* Row 1: Company name + seal */}
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-sm font-semibold text-slate-900 group-hover:text-primary transition-colors truncate">
                       {question.business?.company_name}
                     </span>
                     <BadgeCheck className="w-4 h-4 text-white fill-[#1877f2] shrink-0 animate-badge-shine" />
                   </div>
-                  <div className="text-xs text-slate-500 font-normal flex items-center gap-2 mt-0.5 flex-wrap">
-                    {question.business?.industry && <span>{question.business.industry}</span>}
-                    {question.business?.industry && question.business?.hq_location && <span>·</span>}
-                    {question.business?.hq_location && <span>{question.business.hq_location}</span>}
-                    <span>·</span>
-                    <span>Posted {formatDate(question.created_at)}</span>
+                  {/* Row 2: Posted date */}
+                  <div className="text-xs text-slate-500 font-normal flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    <span>Posted {formatPublishedDate(question.created_at)}</span>
                   </div>
+                  {/* Row 3: Industry or dynamic value */}
+                  {(question.business?.industry || question.topic) && (
+                    <div className="text-xs text-slate-500 font-normal mt-0.5">
+                      <span>{question.business?.industry || question.topic}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1127,6 +1198,20 @@ export function QuestionDetailPage() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {isAdmin && question && (
+        <AdminIncreaseViewsDialog
+          open={increaseViewsOpen}
+          onOpenChange={setIncreaseViewsOpen}
+          item={{
+            id: question.id,
+            title: question.title,
+            type: "question",
+            currentViews: viewsCount,
+          }}
+          onSuccess={loadQuestionData}
+        />
+      )}
     </div>
   );
 }

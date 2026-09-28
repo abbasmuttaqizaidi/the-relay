@@ -18,6 +18,7 @@ import { expressInterest } from "../functions/expressInterest";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
 import { useInterestStore } from "@/lib/interest-store";
 import { getCompanyInitials } from "@/lib/utils";
+import { CompanyLogo } from "@/components/company-logo";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
@@ -1424,9 +1425,13 @@ function MyOpportunitiesPage() {
                           Company
                         </span>
                         <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-[2px] bg-slate-950 border border-slate-900 flex items-center justify-center font-sans text-[8px] font-bold text-white uppercase">
-                            {initials}
-                          </div>
+                          <CompanyLogo
+                            src={shouldHide ? undefined : selectedDetailOpp.logo_url || selectedDetailOpp.business?.logo_url}
+                            name={displayName}
+                            className="w-5 h-5 rounded-[2px] object-contain border border-[#E2E8F0] shrink-0 bg-white"
+                            fallbackClassName="w-5 h-5 rounded-[2px] bg-slate-950 border border-slate-900 flex items-center justify-center font-sans text-[8px] font-bold text-white uppercase shrink-0"
+                            textClassName="font-sans text-[8px] font-bold text-white uppercase"
+                          />
                           <span className="text-xs font-bold text-slate-900 break-words">
                             {displayName}
                           </span>

@@ -13,6 +13,7 @@ import {
   Lock,
   Share2,
   Eye,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,10 +33,12 @@ import { getKnowledgeInsights } from "../functions/getKnowledgeInsights";
 import { deleteKnowledgeInsight } from "../functions/deleteKnowledgeInsight";
 import { archiveKnowledgeInsight } from "../functions/archiveKnowledgeInsight";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
+import { checkAdminSession } from "../functions/checkAdminSession";
 import { recordInsightView } from "../functions/recordInsightView";
 import { getOrCreateVisitorId, hasViewedLocally, markViewedLocally } from "@/lib/visitor";
 import { ShareInsightDialog } from "../components/insights/ShareInsightDialog";
 import { ShareModal } from "../components/insights/ShareModal";
+import { AdminIncreaseViewsDialog } from "../components/admin/AdminIncreaseViewsDialog";
 import { CompanyLogo } from "../components/company-logo";
 import { KnowledgeContentRenderer } from "../components/insights/KnowledgeContentRenderer";
 import { KnowledgeInsight, Business, KnowledgeInsightBasedOn } from "../types";
@@ -104,6 +107,44 @@ function calculateReadingTime(text: string): string {
   const words = text.trim().split(/\s+/).filter(Boolean).length;
   const minutes = Math.max(1, Math.ceil(words / 200));
   return `${minutes} min read`;
+}
+
+function formatCompactNumber(num: number = 0): string {
+  if (!num) return "0";
+  if (num < 1000) return num.toString();
+  if (num < 1000000) {
+    const val = num / 1000;
+    return `${parseFloat(val.toFixed(1))}k`;
+  }
+  const val = num / 1000000;
+  return `${parseFloat(val.toFixed(1))}m`;
+}
+
+function formatPublishedDate(dateStr?: string | Date | null): string {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    const day = d.getDate();
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sept",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const month = months[d.getMonth()];
+    const year = d.getFullYear().toString().slice(-2);
+    return `${day}-${month}-${year}`;
+  } catch {
+    return "";
+  }
 }
 
 function renderFormattedText(text: string): React.ReactNode {
@@ -282,6 +323,21 @@ export function KnowledgeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [currentUserBusiness, setCurrentUserBusiness] = useState<Business | null>(null);
   const [viewsCount, setViewsCount] = useState<number>(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [increaseViewsOpen, setIncreaseViewsOpen] = useState(false);
+
+  // Check admin session
+  useEffect(() => {
+    const hasAdminCookie =
+      typeof document !== "undefined" && document.cookie.includes("relay_admin_token=");
+    if (hasAdminCookie) {
+      checkAdminSession()
+        .then((res) => {
+          if (res?.isAdmin) setIsAdmin(true);
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   // Dialog states
   const [editOpen, setEditOpen] = useState(false);
@@ -557,7 +613,7 @@ export function KnowledgeDetailPage() {
       {/* ═══════════════════════════════════════════════════════════════════
           2. MAIN EDITORIAL ARTICLE CANVAS (NO BOXED CARD)
           ═══════════════════════════════════════════════════════════════════ */}
-      <main className="max-w-[720px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14">
+      <main className="max-w-[720px] mx-auto px-4 sm:px-6 pt-5 sm:pt-7">
         {/* Draft Notice for Owner */}
         {insight.status === "draft" && (
           <div className="mb-8 p-3.5 bg-amber-50/90 border border-amber-200 rounded flex items-center justify-between gap-3 text-xs text-amber-800 font-sans">
@@ -588,19 +644,19 @@ export function KnowledgeDetailPage() {
         )}
 
         {/* 2. Topic Label */}
-        <div className="mb-3 sm:mb-4">
+        <div className="mb-1.5 sm:mb-2">
           <span className="text-xs sm:text-[13px] font-mono uppercase tracking-[0.18em] font-bold text-orange-600">
             {insight.topic}
           </span>
         </div>
 
         {/* 3. Large Editorial Article Title */}
-        <h1 className="text-3xl sm:text-4xl md:text-[44px] font-bold tracking-tight text-slate-950 leading-[1.18] sm:leading-[1.14] font-display mb-6">
+        <h1 className="text-3xl sm:text-4xl md:text-[44px] font-bold tracking-tight text-slate-950 leading-[1.18] sm:leading-[1.14] font-display mb-3.5 sm:mb-4">
           {insight.title}
         </h1>
 
-        {/* 5, 6, 7, 8. Author Info, Date, Reading Time, Share */}
-        <div className="py-5 border-y border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+        {/* 5, 6, 7. Author Info, Date, Reading Time, Views, Industry */}
+        <div className="py-3 sm:py-3.5 border-y border-slate-200/80 flex items-center mb-4 sm:mb-5">
           <div className="flex items-center gap-3.5">
             <CompanyLogo
               src={insight.business?.logo_url}
@@ -610,47 +666,52 @@ export function KnowledgeDetailPage() {
               textClassName="text-xs font-mono font-bold"
             />
             <div>
+              {/* Row 1: Business identity + seal */}
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-bold text-slate-900 font-sans">
                   {insight.business?.company_name || "Verified Business"}
                 </span>
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" title="Verified Enterprise" />
-                <span className="text-[11px] font-mono text-slate-400">Approved Business</span>
+                <span className="hidden sm:inline text-[11px] font-mono text-slate-400">Approved Business</span>
               </div>
+
+              {/* Row 2: Date · Min Read · Views (Eye icon only + 1.7k compact format) */}
               <div className="text-xs text-slate-500 font-sans mt-0.5 flex flex-wrap items-center gap-1.5">
-                <span>{formatDate(insight.published_at || insight.created_at)}</span>
+                <span>{formatPublishedDate(insight.published_at || insight.created_at)}</span>
                 <span>·</span>
                 <span>{calculateReadingTime(insight.content)}</span>
                 <span>·</span>
-                <span className="inline-flex items-center gap-1 text-slate-600 font-mono text-[11px]">
-                  <Eye className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{viewsCount.toLocaleString()} {viewsCount === 1 ? "view" : "views"}</span>
-                </span>
-                {insight.business?.industry && (
-                  <>
-                    <span>·</span>
-                    <span className="text-slate-600">{insight.business.industry}</span>
-                  </>
+                {isAdmin ? (
+                  <button
+                    type="button"
+                    onClick={() => setIncreaseViewsOpen(true)}
+                    className="inline-flex items-center gap-1 text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-300 px-1.5 py-0.5 rounded font-mono text-[11px] cursor-pointer transition-colors"
+                    title="Admin: Boost Views"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-slate-500" />
+                    <span>{formatCompactNumber(viewsCount)}</span>
+                    <TrendingUp className="w-2.5 h-2.5 text-emerald-600" />
+                  </button>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-slate-600 font-mono text-[11px]">
+                    <Eye className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{formatCompactNumber(viewsCount)}</span>
+                  </span>
                 )}
               </div>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShareModalOpen(true)}
-              className="h-8 text-xs font-mono uppercase tracking-wider border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-1.5 cursor-pointer shadow-2xs"
-            >
-              <Share2 className="w-3.5 h-3.5 text-orange-600" />
-              <span>Share</span>
-            </Button>
+              {/* Row 3: Logistics or dynamic industry/topic */}
+              {(insight.business?.industry || insight.topic) && (
+                <div className="text-xs text-slate-500 font-sans mt-0.5">
+                  <span>{insight.business?.industry || insight.topic}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* 9. Article Content Body (Editorial Typography with Tiptap JSON support) */}
-        <article className="pb-12">
+        <article className="pb-12 [&_p:first-child]:mt-0 [&>*:first-child]:mt-0">
           <KnowledgeContentRenderer
             contentJson={insight.content_json}
             plainTextFallback={insight.content}
@@ -669,56 +730,6 @@ export function KnowledgeDetailPage() {
             </div>
           </div>
         )}
-
-        {/* 11. About the Business / Author Section */}
-        <div className="py-10 border-t border-slate-200/80">
-          <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-slate-400 font-bold block mb-4">
-            About the Business
-          </span>
-
-          <div className="p-6 sm:p-7 bg-slate-50/70 border border-slate-200/80 rounded-[4px] flex flex-col sm:flex-row sm:items-start justify-between gap-5">
-            <div className="flex items-start gap-4">
-              <CompanyLogo
-                src={insight.business?.logo_url}
-                name={insight.business?.company_name}
-                className="w-14 h-14 rounded object-contain border border-slate-200 bg-white p-1 shrink-0"
-                fallbackClassName="w-14 h-14 rounded bg-white text-slate-700 flex items-center justify-center font-bold text-base uppercase border border-slate-200 shrink-0"
-                textClassName="text-base font-mono font-bold"
-              />
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-950 font-display">
-                    {insight.business?.company_name || "Verified Business"}
-                  </h3>
-                  <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" title="Verified Enterprise" />
-                  <span className="text-[11px] font-mono text-slate-400">Approved Business</span>
-                </div>
-                <p className="text-xs text-slate-500 font-mono">
-                  {insight.business?.industry}
-                  {insight.business?.hq_location ? ` · ${insight.business.hq_location}` : ""}
-                </p>
-                {insight.business?.description && (
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed pt-1 max-w-xl font-sans">
-                    {insight.business.description}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {insight.business?.company_name && (
-              <div className="shrink-0 sm:self-start pt-1">
-                <Link
-                  to="/network"
-                  search={{ q: insight.business.company_name } as any}
-                  className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider h-8 px-3.5 border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-800 rounded-[2px] transition-colors shadow-2xs cursor-pointer"
-                >
-                  <span>View in Network</span>
-                  <ExternalLink className="w-3 h-3 text-slate-400" />
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* 12. Related Knowledge */}
         {relatedInsights.length > 0 && (
@@ -874,6 +885,20 @@ export function KnowledgeDetailPage() {
           authorName={insight.business?.company_name}
           urlPath={`/insights/knowledge/${insight.slug || insight.id}`}
           type="insight"
+        />
+      )}
+
+      {isAdmin && insight && (
+        <AdminIncreaseViewsDialog
+          open={increaseViewsOpen}
+          onOpenChange={setIncreaseViewsOpen}
+          item={{
+            id: insight.id,
+            title: insight.title,
+            type: "knowledge",
+            currentViews: viewsCount,
+          }}
+          onSuccess={loadInsightData}
         />
       )}
     </div>

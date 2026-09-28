@@ -82,6 +82,10 @@ import { ShareInsightDialog } from "../components/insights/ShareInsightDialog";
 import { ShareModal } from "../components/insights/ShareModal";
 import { AdminCreateQuestionDialog } from "../components/admin/AdminCreateQuestionDialog";
 import { AdminCreateKnowledgeDialog } from "../components/admin/AdminCreateKnowledgeDialog";
+import {
+  AdminIncreaseViewsDialog,
+  AdminIncreaseViewsTarget,
+} from "../components/admin/AdminIncreaseViewsDialog";
 import { CompanyLogo } from "../components/company-logo";
 import { cn, getCompanyInitials } from "@/lib/utils";
 import { createSeoMeta } from "@/lib/seo";
@@ -195,6 +199,44 @@ function calculateReadingTime(text?: string): string {
   return `${minutes} min read`;
 }
 
+export function formatCompactNumber(num: number = 0): string {
+  if (!num) return "0";
+  if (num < 1000) return num.toString();
+  if (num < 1000000) {
+    const val = num / 1000;
+    return `${parseFloat(val.toFixed(1))}k`;
+  }
+  const val = num / 1000000;
+  return `${parseFloat(val.toFixed(1))}m`;
+}
+
+export function formatPublishedDate(dateStr?: string | Date | null): string {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    const day = d.getDate();
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sept",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const month = months[d.getMonth()] || "Sept";
+    const year = d.getFullYear().toString().slice(-2);
+    return `${day}-${month}-${year}`;
+  } catch {
+    return "";
+  }
+}
+
 const getAdminToken = () => {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(/relay_admin_token=([^;]+)/);
@@ -213,6 +255,7 @@ export function InsightsIndexPage() {
   const [adminBusinesses, setAdminBusinesses] = useState<any[]>([]);
   const [adminCreateQuestionOpen, setAdminCreateQuestionOpen] = useState(false);
   const [adminCreateKnowledgeOpen, setAdminCreateKnowledgeOpen] = useState(false);
+  const [increaseViewsTarget, setIncreaseViewsTarget] = useState<AdminIncreaseViewsTarget | null>(null);
 
   // Tab state: "questions" or "knowledge"
   const [activeTab, setActiveTab] = useState<"questions" | "knowledge">(
@@ -859,15 +902,9 @@ export function InsightsIndexPage() {
                 </button>
               )}
             </div>
-          </div>
 
-
-          {/* ═══════════════════════════════════════════════════════════════
-              2. FILTER & SEARCH TOOLBAR
-              ═══════════════════════════════════════════════════════════════ */}
-          <div className="hidden sm:block bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-2xs">
-            {/* Desktop Controls */}
-            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+            {/* Desktop Controls (hidden on mobile, visible on sm and up) */}
+            <div className="hidden sm:flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 pt-4 mt-4 border-t border-[#E2E8F0]/80">
               {/* Search Input */}
               <div className="relative flex-1">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] w-4 h-4" />
@@ -1115,9 +1152,13 @@ export function InsightsIndexPage() {
 
                           {/* Author Lockup */}
                           <div className="flex items-center gap-2.5 mb-3">
-                            <div className="w-7 h-7 rounded-full bg-[#1E293B] text-white flex items-center justify-center font-bold text-xs shrink-0">
-                              {initials}
-                            </div>
+                            <CompanyLogo
+                              src={q.business?.logo_url}
+                              name={q.business?.company_name || "Verified Operator"}
+                              className="w-7 h-7 rounded-full object-contain border border-slate-200 shrink-0"
+                              fallbackClassName="w-7 h-7 rounded-full bg-[#1E293B] text-white flex items-center justify-center font-bold text-xs shrink-0"
+                              textClassName="text-[10px] font-mono font-bold"
+                            />
                             <div className="flex items-center gap-2 flex-wrap text-xs">
                               <span className="font-bold text-[#0F172A]">
                                 {q.business?.company_name || "Verified Operator"}
@@ -1133,7 +1174,7 @@ export function InsightsIndexPage() {
                           </div>
 
                           {/* Excerpt */}
-                          <p className="text-sm text-[#334155] leading-relaxed mb-3.5">
+                          <p className="text-xs text-[#334155] leading-relaxed line-clamp-2 mb-3.5">
                             &ldquo;{q.description}&rdquo;
                           </p>
 
@@ -1177,10 +1218,32 @@ export function InsightsIndexPage() {
                                 {perspectiveCount} Responses
                               </span>
                               <span>•</span>
-                              <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[#64748B]">
-                                <Eye className="w-3.5 h-3.5 text-slate-400" />
-                                <span>{(q.views ?? 0).toLocaleString()} Views</span>
-                              </span>
+                              {isAdmin ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setIncreaseViewsTarget({
+                                      id: q.id,
+                                      title: q.title,
+                                      type: "question",
+                                      currentViews: q.views || 0,
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                                  title="Admin: Boost Views"
+                                >
+                                  <Eye className="w-3.5 h-3.5 text-slate-500" />
+                                  <span>{formatCompactNumber(q.views ?? 0)}</span>
+                                  <span className="hidden sm:inline"> Views</span>
+                                  <TrendingUp className="w-3 h-3 text-emerald-600 ml-0.5" />
+                                </button>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[#64748B]">
+                                  <Eye className="w-3.5 h-3.5 text-slate-400" />
+                                  <span>{formatCompactNumber(q.views ?? 0)}</span>
+                                  <span className="hidden sm:inline"> Views</span>
+                                </span>
+                              )}
                               <span>•</span>
                               <button
                                 type="button"
@@ -1239,7 +1302,7 @@ export function InsightsIndexPage() {
                             </h3>
                           </Link>
 
-                          <p className="text-xs sm:text-[13px] text-[#475569] leading-relaxed line-clamp-2">
+                          <p className="text-xs text-[#475569] leading-relaxed line-clamp-2">
                             {q.description}
                           </p>
 
@@ -1259,9 +1322,13 @@ export function InsightsIndexPage() {
                         <div className="pt-4 mt-3.5 border-t border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                           {/* Author */}
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded bg-[#F1F5F9] border border-[#E2E8F0] flex items-center justify-center font-bold text-xs text-[#0F172A]">
-                              {initials}
-                            </div>
+                            <CompanyLogo
+                              src={q.business?.logo_url}
+                              name={q.business?.company_name || "Verified Enterprise"}
+                              className="w-7 h-7 rounded object-contain border border-[#E2E8F0] shrink-0"
+                              fallbackClassName="w-7 h-7 rounded bg-[#F1F5F9] border border-[#E2E8F0] flex items-center justify-center font-bold text-xs text-[#0F172A] shrink-0"
+                              textClassName="text-[10px] font-mono font-bold"
+                            />
                             <div className="flex items-center gap-1.5 text-xs truncate">
                               <span className="font-bold text-[#0F172A] truncate">
                                 {q.business?.company_name || "Verified Enterprise"}
@@ -1279,10 +1346,30 @@ export function InsightsIndexPage() {
                               <MessageSquare className="w-3 h-3 text-[#0F172A]" />
                               {perspectiveCount} Answers
                             </span>
-                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#F8FAFC] border border-[#E2E8F0] rounded text-[#64748B] font-mono text-[11px]">
-                              <Eye className="w-3 h-3 text-slate-400" />
-                              {(q.views ?? 0).toLocaleString()}
-                            </span>
+                            {isAdmin ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setIncreaseViewsTarget({
+                                    id: q.id,
+                                    title: q.title,
+                                    type: "question",
+                                    currentViews: q.views || 0,
+                                  })
+                                }
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded text-slate-800 font-mono text-[11px] font-semibold cursor-pointer transition-colors"
+                                title="Admin: Boost Views"
+                              >
+                                <Eye className="w-3 h-3 text-slate-500" />
+                                {formatCompactNumber(q.views ?? 0)}
+                                <TrendingUp className="w-2.5 h-2.5 text-emerald-600" />
+                              </button>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#F8FAFC] border border-[#E2E8F0] rounded text-[#64748B] font-mono text-[11px]">
+                                <Eye className="w-3 h-3 text-slate-400" />
+                                {formatCompactNumber(q.views ?? 0)}
+                              </span>
+                            )}
                             <button
                               type="button"
                               onClick={(e) => toggleUpvote(q.id, e)}
@@ -1360,91 +1447,101 @@ export function InsightsIndexPage() {
                     return (
                       <article
                         key={k.id}
-                        className="bg-white border border-[#e2e8f0] hover:border-[#cbd5e1] rounded-xl p-5 md:p-6 transition-all duration-200 hover:shadow-sm flex flex-col gap-4 group"
+                        className="bg-white border border-[#e2e8f0] hover:border-[#cbd5e1] rounded-xl p-5 md:p-6 transition-all duration-200 hover:shadow-sm flex flex-col gap-3.5 group"
                       >
+                        {/* 1. First Row: On mobile strictly only logo & business name; on desktop also topic */}
                         <div className="flex items-center justify-between gap-3 text-xs">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-[11px] text-[#0b1c30] bg-[#f1f5f9] px-2 py-0.5 rounded uppercase tracking-wider">
-                              {k.topic}
-                            </span>
-                            <span className="text-[11px] text-[#575f6e] bg-[#f8fafc] border border-[#e2e8f0] px-2 py-0.5 rounded">
-                              {basedOnLabel}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1 text-[#94a3b8] text-[11px]">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>{readTime}</span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Link
-                            to="/insights/knowledge/$id"
-                            params={{ id: k.slug || k.id }}
-                            className="block"
-                          >
-                            <h2 className="font-display font-bold text-base md:text-lg text-[#0b1c30] group-hover:text-slate-800 transition-colors leading-snug cursor-pointer">
-                              {k.title}
-                            </h2>
-                          </Link>
-                          <p className="text-xs md:text-sm text-[#575f6e] leading-relaxed line-clamp-3">
-                            {k.summary}
-                          </p>
-                        </div>
-
-                        <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 pt-1">
-                          <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex items-center gap-2 min-w-0">
                             <CompanyLogo
                               src={k.business?.logo_url}
                               name={k.business?.company_name}
-                              className="w-8 h-8 rounded-lg object-contain border border-[#e2e8f0] shrink-0"
-                              fallbackClassName="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs font-display shrink-0"
-                              textClassName="text-[10px] font-mono font-bold"
+                              className="w-5 h-5 rounded object-contain border border-[#e2e8f0] shrink-0"
+                              fallbackClassName="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center font-bold text-[10px] shrink-0"
+                              textClassName="text-[9px] font-mono font-bold"
                             />
-                            <div className="flex items-center gap-1.5 truncate">
-                              <span className="font-semibold text-xs text-[#0b1c30] truncate">
-                                {k.business?.company_name}
-                              </span>
-                              <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" title="Verified Enterprise" />
-                              <span className="text-[#cbd5e1]">•</span>
-                              <span className="text-xs text-[#575f6e] truncate">
-                                {k.business?.industry || "B2B SaaS"}
-                              </span>
-                            </div>
+                            <span className="font-semibold text-xs text-[#0b1c30] truncate">
+                              {k.business?.company_name || "Verified Business"}
+                            </span>
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0 hidden sm:inline-block" title="Verified Enterprise" />
                           </div>
 
-                          <div className="flex items-center gap-1.5 text-xs text-[#575f6e] shrink-0">
-                            <span>Published {formatTimeAgo(k.created_at)}</span>
-                          </div>
+                          {k.topic && (
+                            <span className="font-semibold text-[10px] text-[#0b1c30] bg-[#f1f5f9] px-2 py-0.5 rounded uppercase tracking-wider shrink-0 hidden sm:inline-block">
+                              {k.topic}
+                            </span>
+                          )}
                         </div>
 
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[#f1f5f9] text-xs">
-                          <div className="flex items-center gap-3 text-[#575f6e]">
+                        {/* 2. Second Line: Published and date with capitalized month */}
+                        <div className="text-[11px] text-[#64748B] -mt-1 font-sans">
+                          Published {formatPublishedDate(k.published_at || k.created_at)}
+                        </div>
+
+                        {/* 2. Below Row 1: Title */}
+                        <Link
+                          to="/insights/knowledge/$id"
+                          params={{ id: k.slug || k.id }}
+                          className="block"
+                        >
+                          <h2 className="font-display font-bold text-base md:text-lg text-[#0b1c30] group-hover:text-slate-800 transition-colors leading-snug cursor-pointer">
+                            {k.title}
+                          </h2>
+                        </Link>
+
+                        {/* 3. Below Title: Smaller text article description with ellipses on 2nd line for both mobile & desktop */}
+                        <p className="text-xs text-[#575f6e] leading-relaxed line-clamp-2">
+                          {k.summary || k.content}
+                        </p>
+
+                        {/* 4. Footer: Save icon, views icon on left (no text on mobile, 1.7k format), Read Case study on right */}
+                        <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#f1f5f9] text-xs">
+                          <div className="flex items-center gap-2 sm:gap-3 text-[#575f6e]">
                             <button
                               type="button"
                               onClick={(e) => toggleBookmark(k.id, e)}
                               className="inline-flex items-center gap-1 hover:text-[#0b1c30] transition-colors cursor-pointer"
+                              title={isSaved ? "Saved" : "Save"}
                             >
                               {isSaved ? (
                                 <BookmarkCheck className="w-4 h-4 text-[#059669]" />
                               ) : (
                                 <Bookmark className="w-4 h-4" />
                               )}
-                              <span>{isSaved ? "Saved" : "Save"}</span>
+                              <span className="hidden sm:inline">{isSaved ? "Saved" : "Save"}</span>
                             </button>
                             <span>•</span>
-                            <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[#64748B]">
-                              <Eye className="w-3.5 h-3.5 text-slate-400" />
-                              <span>{(k.views ?? 0).toLocaleString()} Views</span>
-                            </span>
+                            {isAdmin ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setIncreaseViewsTarget({
+                                    id: k.id,
+                                    title: k.title,
+                                    type: "knowledge",
+                                    currentViews: k.views || 0,
+                                  })
+                                }
+                                className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-700 bg-slate-100 hover:bg-slate-200 px-1.5 sm:px-2 py-0.5 rounded cursor-pointer transition-colors"
+                                title="Admin: Boost Views"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-slate-500" />
+                                <span>{formatCompactNumber(k.views ?? 0)}</span>
+                                <TrendingUp className="w-3 h-3 text-emerald-600 ml-0.5" />
+                              </button>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[#64748B]">
+                                <Eye className="w-3.5 h-3.5 text-slate-400" />
+                                <span>{formatCompactNumber(k.views ?? 0)}</span>
+                              </span>
+                            )}
                           </div>
 
                           <Link
                             to="/insights/knowledge/$id"
                             params={{ id: k.slug || k.id }}
-                            className="inline-flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-xs w-full sm:w-auto"
+                            className="inline-flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3 sm:px-4 py-2 rounded-lg transition-colors shadow-xs shrink-0"
                           >
-                            <span>Read Case Study</span>
+                            <span>Read Case study</span>
                             <ArrowRight className="w-4 h-4" />
                           </Link>
                         </div>
@@ -1905,6 +2002,17 @@ export function InsightsIndexPage() {
                 .catch(() => {});
             }}
             businesses={adminBusinesses}
+          />
+          <AdminIncreaseViewsDialog
+            open={!!increaseViewsTarget}
+            onOpenChange={(open) => !open && setIncreaseViewsTarget(null)}
+            item={increaseViewsTarget}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ["questions-list"] });
+              queryClient.invalidateQueries({ queryKey: ["knowledge-list"] });
+              queryClient.invalidateQueries({ queryKey: ["all-questions-stats"] });
+              queryClient.invalidateQueries({ queryKey: ["all-knowledge-stats"] });
+            }}
           />
         </>
       )}

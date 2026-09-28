@@ -12,6 +12,7 @@ import { ExpressInterestModal } from "@/components/opportunities/ExpressInterest
 import { Modal } from "@/design-system";
 import { useInterestStore, RECIPROCITY_WEIGHTS } from "@/lib/interest-store";
 import { getCompanyInitials } from "@/lib/utils";
+import { CompanyLogo } from "@/components/company-logo";
 import {
   ArrowLeft,
   Trash2,
@@ -561,9 +562,13 @@ function SavedOpportunitiesPage() {
                 <div className="space-y-1">
                   <span className="font-mono text-[9px] uppercase tracking-widest text-slate-400 font-bold block">Company</span>
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-[2px] bg-slate-950 border border-slate-900 flex items-center justify-center font-sans text-[8px] font-bold text-white uppercase">
-                      {initials}
-                    </div>
+                    <CompanyLogo
+                      src={shouldHide ? undefined : selectedOpp.logo_url}
+                      name={displayName}
+                      className="w-5 h-5 rounded-[2px] object-contain border border-[#E2E8F0] shrink-0 bg-white"
+                      fallbackClassName="w-5 h-5 rounded-[2px] bg-slate-950 border border-slate-900 flex items-center justify-center font-sans text-[8px] font-bold text-white uppercase shrink-0"
+                      textClassName="font-sans text-[8px] font-bold text-white uppercase"
+                    />
                     <span className="text-xs font-bold text-slate-900 break-words">{displayName}</span>
                   </div>
                 </div>

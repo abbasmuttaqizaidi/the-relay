@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="bg_ops" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="stroke_ops" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#475569" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#334155" stop-opacity="0.3"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="12" y="12" width="176" height="176" rx="40" fill="url(#bg_ops)"/>
+  <rect x="12" y="12" width="176" height="176" rx="40" stroke="url(#stroke_ops)" stroke-width="1.5"/>
+
+  <!-- Operations & Logistics Emblem: Precision supply-chain isometric cargo cube integrated with circular orbital logistics routing -->
+  <g transform="translate(100, 100)" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Orbital Waypoint Flight / Freight Path -->
+    <circle cx="0" cy="0" r="48" stroke="#334155" stroke-width="2" stroke-dasharray="6 6"/>
+
+    <!-- Isometric Cargo / Inventory Cube Core -->
+    <!-- Top Face -->
+    <path d="M 0 -34 L 28 -18 L 0 -2 L -28 -18 Z" fill="#F8FAFC" opacity="0.95"/>
+    <!-- Left Face -->
+    <path d="M -28 -18 L 0 -2 V 32 L -28 16 Z" fill="#64748B"/>
+    <!-- Right Face -->
+    <path d="M 28 -18 L 0 -2 V 32 L 28 16 Z" fill="#94A3B8"/>
+
+    <!-- Cargo Straps / Logistics Waypoints lines -->
+    <line x1="0" y1="-2" x2="0" y2="32" stroke="#0F172A" stroke-width="2"/>
+    <path d="M -14 -10 L 0 -2 L 14 -10" stroke="#0F172A" stroke-width="2"/>
+
+    <!-- Routing Vector Nodes -->
+    <circle cx="-38" cy="28" r="4.5" fill="#F8FAFC"/>
+    <circle cx="38" cy="-28" r="4.5" fill="#F8FAFC"/>
+    <!-- Transfer arrow on orbital ring -->
+    <path d="M 44 -20 L 48 -32 L 36 -34" stroke="#F8FAFC" stroke-width="3"/>
+  </g>
+</svg>
