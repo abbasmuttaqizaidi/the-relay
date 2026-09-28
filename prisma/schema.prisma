@@ -293,6 +293,7 @@ model Question {
   desired_perspective String?
   status              String   @default("open")
   context_content_json String?
+  views               Int      @default(0)
   created_at          DateTime @default(now()) @db.Timestamptz(6)
   updated_at          DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
@@ -335,6 +336,7 @@ model KnowledgeInsight {
   topic        String
   based_on     String?
   status       String    @default("published")
+  views        Int       @default(0)
   created_at   DateTime  @default(now()) @db.Timestamptz(6)
   updated_at   DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
   published_at DateTime? @db.Timestamptz(6)
@@ -345,6 +347,18 @@ model KnowledgeInsight {
   @@index([topic, created_at(sort: Desc)])
   @@index([business_id, created_at(sort: Desc)])
   @@map("knowledge_insights")
+}
+
+model InsightView {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  item_type  String   // "question" | "knowledge"
+  item_id    String   @db.Uuid
+  viewer_key String   // "user:<userId>" or "anon:<visitorId>"
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([item_type, item_id, viewer_key])
+  @@index([item_type, item_id])
+  @@map("insight_views")
 }
 
 model CustomContactDetail {

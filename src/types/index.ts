@@ -411,6 +411,7 @@ export interface Question {
   desired_perspective: DesiredPerspective | null;
   status: QuestionStatus;
   context_content_json?: string | null;
+  views?: number;
   created_at: string;
   updated_at: string;
   business?: Business;
@@ -502,6 +503,7 @@ export interface KnowledgeInsight {
   topic: KnowledgeInsightTopic;
   based_on?: KnowledgeInsightBasedOn | null;
   status: KnowledgeInsightStatus;
+  views?: number;
   created_at: string;
   updated_at: string;
   published_at?: string | null;
@@ -536,6 +538,7 @@ export interface ListKnowledgeInsightsFilters {
   search?: string;
   status?: KnowledgeInsightStatus | "all";
   business_id?: string;
+  sortBy?: string;
   limit?: number;
   offset?: number;
   cursor?: string;

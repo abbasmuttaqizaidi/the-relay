@@ -34,7 +34,35 @@ import {
   Timer,
   User,
   Shield,
+  Eye,
+  BookOpen,
+  ChevronDown,
+  SlidersHorizontal,
+  Filter,
 } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  SearchInput,
+  Button as DSButton,
+  Select as DSSelect,
+  SelectTrigger as DSSelectTrigger,
+  SelectContent as DSSelectContent,
+  SelectItem as DSSelectItem,
+  SelectValue as DSSelectValue,
+} from "@/design-system";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -65,6 +93,7 @@ import {
 
 const insightsSearchSchema = z.object({
   tab: fallback(z.enum(["questions", "knowledge"]), "questions").default("questions"),
+  filter: z.string().optional(),
 });
 
 export const Route = createFileRoute("/insights/")({
@@ -97,13 +126,16 @@ const TOPIC_OPTIONS = [
 
 const CATEGORY_PILLS = [
   { label: "All Topics", value: "All" },
+  { label: "Hiring & Talent", value: "Hiring" },
   { label: "Distribution & Channel", value: "Partnerships" },
-  { label: "Deal Structuring & Barter", value: "Building a System / Business" },
-  { label: "Rev-Share & Pricing", value: "Finance" },
-  { label: "Compliance & Legal", value: "Legal" },
   { label: "Sales & Pipeline", value: "Sales" },
-  { label: "Compute & Infrastructure", value: "Technology" },
   { label: "Operations & Logistics", value: "Operations" },
+  { label: "Rev-Share & Finance", value: "Finance" },
+  { label: "Compute & Tech", value: "Technology" },
+  { label: "Product Strategy", value: "Product" },
+  { label: "Marketing & Growth", value: "Marketing" },
+  { label: "Compliance & Legal", value: "Legal" },
+  { label: "Deal Structuring & Barter", value: "Building a System / Business" },
 ];
 
 const TRENDING_TOPICS = [
@@ -194,10 +226,68 @@ export function InsightsIndexPage() {
   const [selectedSort, setSelectedSort] = useState<"newest" | "perspectives">("newest");
   const [statusFilter, setStatusFilter] = useState<"all" | "open" | "closed">("all");
   const [filterOnlyVerified, setFilterOnlyVerified] = useState<boolean>(false);
-  const [filterMode, setFilterMode] = useState<"all" | "my" | "saved">("all");
+  const [filterMode, setFilterMode] = useState<"all" | "my" | "saved">(() => {
+    const f = searchParams.filter;
+    if (f === "my" || f === "saved") return f;
+    return "all";
+  });
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Mobile Bottom Sheet state for Filters (Status, Sort, Verified)
+  const [filtersSheetOpen, setFiltersSheetOpen] = useState(false);
+  const [draftStatus, setDraftStatus] = useState<"all" | "open" | "closed">(statusFilter);
+  const [draftSort, setDraftSort] = useState<"newest" | "perspectives">(selectedSort);
+  const [draftVerified, setDraftVerified] = useState<boolean>(filterOnlyVerified);
+
+  // Mobile Compact Search Popup state
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [mobileSearchDraft, setMobileSearchDraft] = useState(searchQuery);
+
+  // Sync mobile search draft when modal opens
+  useEffect(() => {
+    if (searchModalOpen) {
+      setMobileSearchDraft(searchQuery);
+    }
+  }, [searchModalOpen, searchQuery]);
+
+  // Sync draft states whenever sheet opens
+  useEffect(() => {
+    if (filtersSheetOpen) {
+      setDraftStatus(statusFilter);
+      setDraftSort(selectedSort);
+      setDraftVerified(filterOnlyVerified);
+    }
+  }, [filtersSheetOpen, statusFilter, selectedSort, filterOnlyVerified]);
+
+  const handleApplyMobileFilters = () => {
+    setStatusFilter(draftStatus);
+    setSelectedSort(draftSort);
+    setFilterOnlyVerified(draftVerified);
+    setCurrentPage(1);
+    setFiltersSheetOpen(false);
+  };
+
+  const handleResetDraftFilters = () => {
+    setDraftStatus("all");
+    setDraftSort("newest");
+    setDraftVerified(false);
+  };
+
+  // Peer Advisory Protocol & Sidebar Collapsible states
+  const [isProtocolOpen, setIsProtocolOpen] = useState(false);
+  const [isTrendingOpen, setIsTrendingOpen] = useState(false);
+  const [isTopOperatorsOpen, setIsTopOperatorsOpen] = useState(false);
+
+  // Active filter count for mobile badge
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (statusFilter !== "all" && activeTab === "questions") count++;
+    if (selectedSort !== "newest") count++;
+    if (filterOnlyVerified) count++;
+    return count;
+  }, [statusFilter, selectedSort, filterOnlyVerified, activeTab]);
 
   // Onboarding Status Query
   const { data: onboardingData } = useQuery({
@@ -223,7 +313,7 @@ export function InsightsIndexPage() {
   const { data: allKnowledgeForStats = [] } = useQuery<KnowledgeInsight[]>({
     queryKey: ["all-knowledge-stats"],
     queryFn: async () => {
-      const data = await getKnowledgeInsights({ data: {} });
+      const data = await getKnowledgeInsights({ data: { limit: 200 } });
       return (data as KnowledgeInsight[]) || [];
     },
     staleTime: 1000 * 60 * 2,
@@ -260,14 +350,17 @@ export function InsightsIndexPage() {
     data: knowledgeList = [],
     isLoading: knowledgeLoading,
   } = useQuery<KnowledgeInsight[]>({
-    queryKey: ["knowledge-list", selectedTopic, debouncedSearch],
+    queryKey: ["knowledge-list", selectedTopic, debouncedSearch, selectedSort],
     queryFn: async () => {
-      const filterData: any = {};
+      const filterData: any = { limit: 100 };
       if (selectedTopic && selectedTopic !== "All") {
         filterData.topic = selectedTopic;
       }
       if (debouncedSearch && debouncedSearch.trim()) {
         filterData.search = debouncedSearch.trim();
+      }
+      if (selectedSort) {
+        filterData.sortBy = selectedSort;
       }
       const data = await getKnowledgeInsights({ data: filterData });
       return (data as KnowledgeInsight[]) || [];
@@ -341,11 +434,25 @@ export function InsightsIndexPage() {
     }
   }, [searchParams.tab]);
 
+  // Sync filterMode from URL search params
+  useEffect(() => {
+    const f = searchParams.filter;
+    if (f === "my" || f === "saved") {
+      setFilterMode(f);
+      setCurrentPage(1);
+    } else if (!f && filterMode !== "all") {
+      setFilterMode("all");
+      setCurrentPage(1);
+    }
+  }, [searchParams.filter]);
+
   // Tab switcher helper
   const handleTabChange = (newTab: "questions" | "knowledge") => {
     setActiveTab(newTab);
     setCurrentPage(1);
     setFilterMode("all");
+    setSelectedTopic("All");
+    setSearchQuery("");
     navigate({
       to: "/insights",
       search: { tab: newTab },
@@ -374,6 +481,7 @@ export function InsightsIndexPage() {
       }
       try {
         localStorage.setItem("relay_saved_insights", JSON.stringify([...next]));
+        window.dispatchEvent(new Event("relay:saved_insights"));
       } catch (_) {}
       return next;
     });
@@ -458,22 +566,25 @@ export function InsightsIndexPage() {
 
   const isApprovedBusiness = currentUserBusiness?.status === "approved";
 
-  // Category counts calculated from live database questions
+  // Category counts calculated dynamically from live database items based on activeTab
   const categoryCounts = useMemo(() => {
-    const map: Record<string, number> = { All: allQuestionsForStats.length };
-    for (const q of allQuestionsForStats) {
-      const t = q.topic || "Other";
+    const list = activeTab === "questions" ? allQuestionsForStats : allKnowledgeForStats;
+    const map: Record<string, number> = { All: list.length };
+    for (const item of list) {
+      const t = item.topic || "Other";
       map[t] = (map[t] || 0) + 1;
     }
     return map;
-  }, [allQuestionsForStats]);
+  }, [activeTab, allQuestionsForStats, allKnowledgeForStats]);
 
   const getPillCount = (val: string) => {
-    if (val === "All") return allQuestionsForStats.length;
+    if (val === "All") {
+      return activeTab === "questions" ? allQuestionsForStats.length : allKnowledgeForStats.length;
+    }
     return categoryCounts[val] || 0;
   };
 
-  // User-specific stats
+  // User-specific stats for questions
   const myQuestionsCount = useMemo(() => {
     if (!currentUserBusiness) return 0;
     return allQuestionsForStats.filter((q) => q.business_id === currentUserBusiness.id).length;
@@ -482,6 +593,16 @@ export function InsightsIndexPage() {
   const savedQuestionsCount = useMemo(() => {
     return allQuestionsForStats.filter((q) => savedItemIds.has(q.id)).length;
   }, [allQuestionsForStats, savedItemIds]);
+
+  // User-specific stats for knowledge articles
+  const myKnowledgeCount = useMemo(() => {
+    if (!currentUserBusiness) return 0;
+    return allKnowledgeForStats.filter((k) => k.business_id === currentUserBusiness.id).length;
+  }, [allKnowledgeForStats, currentUserBusiness]);
+
+  const savedKnowledgeCount = useMemo(() => {
+    return allKnowledgeForStats.filter((k) => savedItemIds.has(k.id)).length;
+  }, [allKnowledgeForStats, savedItemIds]);
 
   // Filtered Questions with Mode & Status
   const filteredQuestions = useMemo(() => {
@@ -504,8 +625,34 @@ export function InsightsIndexPage() {
     return list;
   }, [questions, filterMode, currentUserBusiness, savedItemIds, statusFilter, filterOnlyVerified]);
 
+  // Filtered Knowledge Insights with Mode, Verified, and Sort
+  const filteredKnowledge = useMemo(() => {
+    let list = [...knowledgeList];
+
+    if (filterMode === "my" && currentUserBusiness) {
+      list = list.filter((k) => k.business_id === currentUserBusiness.id);
+    } else if (filterMode === "saved") {
+      list = list.filter((k) => savedItemIds.has(k.id));
+    }
+
+    if (filterOnlyVerified) {
+      list = list.filter((k) => k.business?.status === "approved");
+    }
+
+    // Apply sorting
+    if (selectedSort === "perspectives") {
+      // Sort by views descending
+      list.sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
+    } else {
+      // Default: Most Recent
+      list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
+    return list;
+  }, [knowledgeList, filterMode, currentUserBusiness, savedItemIds, filterOnlyVerified, selectedSort]);
+
   // Filtered and paginated list calculation
-  const currentList = activeTab === "questions" ? filteredQuestions : knowledgeList;
+  const currentList = activeTab === "questions" ? filteredQuestions : filteredKnowledge;
   const totalCount = currentList.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
   const paginatedItems = useMemo(() => {
@@ -522,7 +669,7 @@ export function InsightsIndexPage() {
               1. HEADER & HERO
               ═══════════════════════════════════════════════════════════════ */}
           <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-2xs">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#E2E8F0]/70">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 text-[#64748B] text-xs uppercase tracking-widest font-bold">
                   <span>INSIGHTS</span>
@@ -549,8 +696,8 @@ export function InsightsIndexPage() {
                 </p>
               </div>
 
-              {/* Action Group */}
-              <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0 pt-1 lg:pt-0">
+              {/* Action Group: Always a single row */}
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap shrink-0 pt-1 lg:pt-0 overflow-x-auto scrollbar-none max-w-full pb-0.5">
                 {activeTab === "questions" ? (
                   <>
                     <button
@@ -560,17 +707,17 @@ export function InsightsIndexPage() {
                         setCurrentPage(1);
                       }}
                       className={cn(
-                        "px-3.5 py-2 rounded-md text-xs border transition-colors flex items-center gap-2 shadow-2xs font-semibold cursor-pointer",
+                        "px-2.5 sm:px-3.5 py-2 rounded-md text-xs border transition-colors flex items-center gap-1.5 sm:gap-2 shadow-2xs font-semibold cursor-pointer shrink-0 whitespace-nowrap",
                         filterMode === "my"
                           ? "bg-[#0F172A] text-white border-[#0F172A]"
                           : "bg-white text-[#0F172A] border-[#E2E8F0] hover:bg-slate-50"
                       )}
                     >
-                      <User className="w-4 h-4 text-[#64748B]" />
+                      <User className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
                       <span>My Questions</span>
                       <span
                         className={cn(
-                          "px-1.5 py-0.5 rounded text-[10px] font-bold",
+                          "px-1.5 py-0.5 rounded text-[10px] font-bold font-mono",
                           filterMode === "my" ? "bg-white text-[#0F172A]" : "bg-[#0F172A] text-white"
                         )}
                       >
@@ -585,17 +732,17 @@ export function InsightsIndexPage() {
                         setCurrentPage(1);
                       }}
                       className={cn(
-                        "px-3.5 py-2 rounded-md text-xs border transition-colors flex items-center gap-2 shadow-2xs font-semibold cursor-pointer",
+                        "px-2.5 sm:px-3.5 py-2 rounded-md text-xs border transition-colors flex items-center gap-1.5 sm:gap-2 shadow-2xs font-semibold cursor-pointer shrink-0 whitespace-nowrap",
                         filterMode === "saved"
                           ? "bg-[#0F172A] text-white border-[#0F172A]"
                           : "bg-white text-[#0F172A] border-[#E2E8F0] hover:bg-slate-50"
                       )}
                     >
-                      <Bookmark className="w-4 h-4 text-[#64748B]" />
-                      <span>Saved Discussions</span>
+                      <Bookmark className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
+                      <span>Saved</span>
                       <span
                         className={cn(
-                          "px-1.5 py-0.5 rounded text-[10px] font-bold border",
+                          "px-1.5 py-0.5 rounded text-[10px] font-bold font-mono border",
                           filterMode === "saved"
                             ? "bg-white text-[#0F172A] border-white"
                             : "bg-[#F1F5F9] text-[#475569] border-[#E2E8F0]"
@@ -609,9 +756,9 @@ export function InsightsIndexPage() {
                       type="button"
                       id="btn-ask-question"
                       onClick={handleAskClick}
-                      className="px-4 py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center gap-1.5 shadow-xs font-semibold cursor-pointer"
+                      className="px-3 sm:px-4 py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center gap-1.5 shadow-xs font-semibold cursor-pointer shrink-0 whitespace-nowrap"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-3.5 h-3.5 shrink-0" />
                       <span>Ask Question</span>
                     </button>
                   </>
@@ -621,44 +768,96 @@ export function InsightsIndexPage() {
                       type="button"
                       id="btn-share-knowledge"
                       onClick={handleShareKnowledgeClick}
-                      className="px-4 py-2 text-xs font-semibold text-[#0b1c30] bg-white border border-[#e2e8f0] hover:bg-slate-50 rounded-lg transition-colors cursor-pointer shadow-2xs"
+                      className="px-3 sm:px-4 py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center gap-1.5 shadow-xs font-semibold cursor-pointer shrink-0 whitespace-nowrap"
                     >
-                      Share Knowledge
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleAskClick}
-                      className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-xs cursor-pointer"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>Ask Question</span>
+                      <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                      <span>Share Knowledge</span>
                     </button>
                   </>
                 )}
               </div>
             </div>
 
-            {/* Quick Telemetry Strip */}
-            <div className="pt-3.5 flex flex-wrap items-center gap-3 text-[#475569] text-xs">
-              <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md px-3 py-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#0F172A]" />
-                <span className="font-bold text-[#0F172A]">{totalQuestionsCount}</span>
-                <span>Active Questions</span>
+            {/* Mobile Controls Row: Topics Dropdown (Design System) + Magnifying Glass Icon Button + Filters Icon Button */}
+            <div className="flex sm:hidden items-center gap-2 pt-4 mt-4 border-t border-[#E2E8F0]/80">
+              <div className="relative flex-1 min-w-0">
+                <DSSelect
+                  value={selectedTopic}
+                  onValueChange={(val) => {
+                    setSelectedTopic(val);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <DSSelectTrigger className="h-9 text-xs rounded-md bg-[#F8FAFC] border-[#E2E8F0] font-semibold text-[#0F172A]">
+                    <DSSelectValue placeholder="All Topics" />
+                  </DSSelectTrigger>
+                  <DSSelectContent className="max-h-72">
+                    {CATEGORY_PILLS.map((pill) => (
+                      <DSSelectItem key={pill.value} value={pill.value} className="text-xs">
+                        {pill.label}
+                      </DSSelectItem>
+                    ))}
+                  </DSSelectContent>
+                </DSSelect>
               </div>
-              <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md px-3 py-1.5">
-                <Zap className="w-3.5 h-3.5 text-[#10B981]" />
-                <span className="font-bold text-[#0F172A]">94%</span>
-                <span>Answer Rate within 4h</span>
-              </div>
-              <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md px-3 py-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
-                <span className="font-bold text-[#0F172A]">100%</span>
-                <span>Verified Executives Only</span>
-              </div>
-              <div className="ml-auto hidden xl:flex items-center gap-1.5 text-[11px] text-[#64748B] font-medium bg-[#F8FAFC] px-3 py-1.5 rounded-md border border-[#E2E8F0]">
-                <Gavel className="w-3.5 h-3.5 text-[#10B981]" />
-                <span>Blind Escrow &amp; NDA Enforcement Active</span>
-              </div>
+
+              {/* Magnifying Glass Search Icon Button */}
+              <button
+                type="button"
+                onClick={() => setSearchModalOpen(true)}
+                aria-label="Search"
+                title="Search"
+                className={cn(
+                  "w-9 h-9 flex items-center justify-center border rounded-md transition-colors shrink-0 cursor-pointer shadow-2xs relative",
+                  searchQuery
+                    ? "bg-[#0F172A] text-white border-[#0F172A]"
+                    : "bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-slate-100 hover:text-[#0F172A]"
+                )}
+              >
+                <Search className="w-4 h-4" />
+                {searchQuery && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white" />
+                )}
+              </button>
+
+              {/* Filters Icon Button */}
+              <button
+                type="button"
+                onClick={() => setFiltersSheetOpen(true)}
+                aria-label="Open Filters"
+                title="Filters"
+                className={cn(
+                  "w-9 h-9 flex items-center justify-center border rounded-md transition-colors shrink-0 cursor-pointer shadow-2xs relative",
+                  activeFilterCount > 0
+                    ? "bg-[#0F172A] text-white border-[#0F172A]"
+                    : "bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-slate-100 hover:text-[#0F172A]"
+                )}
+              >
+                <Filter className="w-4 h-4" />
+                {activeFilterCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 rounded-full bg-[#EA580C] text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+
+              {(selectedTopic !== "All" || selectedSort !== "newest" || searchQuery || filterMode !== "all" || statusFilter !== "all" || filterOnlyVerified) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedTopic("All");
+                    setSelectedSort("newest");
+                    setStatusFilter("all");
+                    setFilterOnlyVerified(false);
+                    setFilterMode("all");
+                    setSearchQuery("");
+                    setCurrentPage(1);
+                  }}
+                  className="text-xs text-[#575f6e] hover:text-[#0b1c30] underline px-1 shrink-0 cursor-pointer font-medium"
+                >
+                  Reset
+                </button>
+              )}
             </div>
           </div>
 
@@ -666,7 +865,8 @@ export function InsightsIndexPage() {
           {/* ═══════════════════════════════════════════════════════════════
               2. FILTER & SEARCH TOOLBAR
               ═══════════════════════════════════════════════════════════════ */}
-          <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 space-y-3.5 shadow-2xs">
+          <div className="hidden sm:block bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-2xs">
+            {/* Desktop Controls */}
             <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
               {/* Search Input */}
               <div className="relative flex-1">
@@ -687,8 +887,30 @@ export function InsightsIndexPage() {
                 </kbd>
               </div>
 
-              {/* Secondary Controls */}
+              {/* Desktop Secondary Controls */}
               <div className="flex items-center gap-2 flex-wrap">
+                {/* Topics Dropdown (Design System) */}
+                <div className="w-52">
+                  <DSSelect
+                    value={selectedTopic}
+                    onValueChange={(val) => {
+                      setSelectedTopic(val);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <DSSelectTrigger className="h-10 text-xs rounded-md bg-[#F8FAFC] border-[#E2E8F0] font-semibold text-[#0F172A] hover:bg-slate-50">
+                      <DSSelectValue placeholder="All Topics" />
+                    </DSSelectTrigger>
+                    <DSSelectContent className="max-h-72">
+                      {CATEGORY_PILLS.map((pill) => (
+                        <DSSelectItem key={pill.value} value={pill.value} className="text-xs">
+                          {pill.label}
+                        </DSSelectItem>
+                      ))}
+                    </DSSelectContent>
+                  </DSSelect>
+                </div>
+
                 {activeTab === "questions" && (
                   <div className="flex items-center gap-1.5 px-3 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md text-[#475569] text-xs">
                     <span className="text-[#64748B] font-medium">Status:</span>
@@ -718,23 +940,30 @@ export function InsightsIndexPage() {
                     className="bg-transparent text-[#0F172A] focus:outline-none cursor-pointer font-semibold text-xs border-none p-0 pr-1"
                   >
                     <option value="newest">Most Recent</option>
-                    <option value="perspectives">Highest Engagement</option>
+                    <option value="perspectives">
+                      {activeTab === "questions" ? "Highest Engagement" : "Most Viewed"}
+                    </option>
                   </select>
                 </div>
 
-                {activeTab === "questions" && (
-                  <div className="flex items-center gap-1.5 px-3 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md text-[#475569] text-xs">
-                    <span className="text-[#64748B] font-medium">Filter:</span>
-                    <select
-                      value={filterOnlyVerified ? "verified" : "all"}
-                      onChange={(e) => setFilterOnlyVerified(e.target.value === "verified")}
-                      className="bg-transparent text-[#0F172A] focus:outline-none cursor-pointer font-semibold text-xs border-none p-0 pr-1"
-                    >
-                      <option value="all">All Operator Answers</option>
-                      <option value="verified">Verified Answers Only</option>
-                    </select>
-                  </div>
-                )}
+                <div className="flex items-center gap-1.5 px-3 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md text-[#475569] text-xs">
+                  <span className="text-[#64748B] font-medium">Filter:</span>
+                  <select
+                    value={filterOnlyVerified ? "verified" : "all"}
+                    onChange={(e) => {
+                      setFilterOnlyVerified(e.target.value === "verified");
+                      setCurrentPage(1);
+                    }}
+                    className="bg-transparent text-[#0F172A] focus:outline-none cursor-pointer font-semibold text-xs border-none p-0 pr-1"
+                  >
+                    <option value="all">
+                      {activeTab === "questions" ? "All Operator Answers" : "All Authors"}
+                    </option>
+                    <option value="verified">
+                      {activeTab === "questions" ? "Verified Answers Only" : "Verified Businesses Only"}
+                    </option>
+                  </select>
+                </div>
 
                 {(selectedTopic !== "All" || selectedSort !== "newest" || searchQuery || filterMode !== "all" || statusFilter !== "all" || filterOnlyVerified) && (
                   <button
@@ -755,42 +984,6 @@ export function InsightsIndexPage() {
                 )}
               </div>
             </div>
-
-            {/* Category Filter Pills with Count Chips */}
-            <div className="flex items-center gap-2 overflow-x-auto pt-3 border-t border-[#E2E8F0]/70 scrollbar-none pb-0.5">
-              {CATEGORY_PILLS.map((pill) => {
-                const isSelected = selectedTopic === pill.value;
-                const count = getPillCount(pill.value);
-                return (
-                  <button
-                    key={pill.value}
-                    type="button"
-                    onClick={() => {
-                      setSelectedTopic(pill.value);
-                      setCurrentPage(1);
-                    }}
-                    className={cn(
-                      "px-3 py-1.5 rounded-md text-xs whitespace-nowrap transition-colors flex items-center gap-1.5 font-medium cursor-pointer",
-                      isSelected
-                        ? "bg-[#0F172A] text-white shadow-2xs font-semibold"
-                        : "bg-white border border-[#E2E8F0] text-[#475569] hover:text-[#0F172A] hover:bg-slate-50"
-                    )}
-                  >
-                    <span>{pill.label}</span>
-                    <span
-                      className={cn(
-                        "px-1 py-0.2 rounded text-[10px] font-semibold",
-                        isSelected
-                          ? "bg-white/20 text-white"
-                          : "bg-[#F1F5F9] text-[#64748B]"
-                      )}
-                    >
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
           {/* ═══════════════════════════════════════════════════════════════
@@ -800,6 +993,40 @@ export function InsightsIndexPage() {
             
             {/* Left Feed Column (8 Cols) */}
             <div className="lg:col-span-8 flex flex-col gap-4">
+              {activeTab === "knowledge" && filterMode !== "all" && (
+                <div className="flex items-center justify-between bg-white border border-[#E2E8F0] px-4 py-3 rounded-xl text-xs shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    {filterMode === "my" ? (
+                      <User className="w-4 h-4 text-slate-700 shrink-0" />
+                    ) : (
+                      <Bookmark className="w-4 h-4 text-slate-700 shrink-0" />
+                    )}
+                    <span className="text-slate-600 font-medium">
+                      Filtered by:{" "}
+                      <span className="text-slate-900 font-bold">
+                        {filterMode === "my" ? "My Articles" : "Saved Articles"}
+                      </span>
+                    </span>
+                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-bold">
+                      {totalCount} {totalCount === 1 ? "article" : "articles"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFilterMode("all");
+                      navigate({
+                        to: "/insights",
+                        search: { tab: "knowledge" } as any,
+                      });
+                    }}
+                    className="text-xs text-slate-600 hover:text-slate-950 font-semibold underline cursor-pointer"
+                  >
+                    Show All Articles
+                  </button>
+                </div>
+              )}
+
               {loading ? (
                 /* Skeleton Loader */
                 <div className="space-y-4">
@@ -950,7 +1177,10 @@ export function InsightsIndexPage() {
                                 {perspectiveCount} Responses
                               </span>
                               <span>•</span>
-                              <span>{140 + idx * 18} Views</span>
+                              <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[#64748B]">
+                                <Eye className="w-3.5 h-3.5 text-slate-400" />
+                                <span>{(q.views ?? 0).toLocaleString()} Views</span>
+                              </span>
                               <span>•</span>
                               <button
                                 type="button"
@@ -1049,6 +1279,10 @@ export function InsightsIndexPage() {
                               <MessageSquare className="w-3 h-3 text-[#0F172A]" />
                               {perspectiveCount} Answers
                             </span>
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#F8FAFC] border border-[#E2E8F0] rounded text-[#64748B] font-mono text-[11px]">
+                              <Eye className="w-3 h-3 text-slate-400" />
+                              {(q.views ?? 0).toLocaleString()}
+                            </span>
                             <button
                               type="button"
                               onClick={(e) => toggleUpvote(q.id, e)}
@@ -1098,13 +1332,13 @@ export function InsightsIndexPage() {
                       <Lightbulb className="w-6 h-6" />
                     </div>
                     <h3 className="text-base font-bold text-[#0b1c30] mb-1">
-                      {searchQuery || selectedTopic !== "All"
-                        ? "No knowledge articles found"
+                      {searchQuery || selectedTopic !== "All" || filterMode !== "all" || filterOnlyVerified
+                        ? "No knowledge articles match your current filters"
                         : "No operator knowledge published yet."}
                     </h3>
                     <p className="text-xs text-[#575f6e] max-w-sm mx-auto mb-6 leading-relaxed">
-                      {searchQuery || selectedTopic !== "All"
-                        ? "Try clearing your search query or choosing another topic category."
+                      {searchQuery || selectedTopic !== "All" || filterMode !== "all" || filterOnlyVerified
+                        ? "Try resetting your filters or clearing your search query to see more."
                         : "Approved businesses document their operational wins, distribution playbooks, and battle-tested frameworks."}
                     </p>
                     <Button
@@ -1158,7 +1392,7 @@ export function InsightsIndexPage() {
                           </p>
                         </div>
 
-                        <div className="flex items-center justify-between gap-3 pt-1">
+                        <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 pt-1">
                           <div className="flex items-center gap-3 min-w-0">
                             <CompanyLogo
                               src={k.business?.logo_url}
@@ -1184,7 +1418,7 @@ export function InsightsIndexPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between gap-4 pt-3 border-t border-[#f1f5f9] text-xs">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[#f1f5f9] text-xs">
                           <div className="flex items-center gap-3 text-[#575f6e]">
                             <button
                               type="button"
@@ -1198,12 +1432,17 @@ export function InsightsIndexPage() {
                               )}
                               <span>{isSaved ? "Saved" : "Save"}</span>
                             </button>
+                            <span>•</span>
+                            <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[#64748B]">
+                              <Eye className="w-3.5 h-3.5 text-slate-400" />
+                              <span>{(k.views ?? 0).toLocaleString()} Views</span>
+                            </span>
                           </div>
 
                           <Link
                             to="/insights/knowledge/$id"
                             params={{ id: k.slug || k.id }}
-                            className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-xs"
+                            className="inline-flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-xs w-full sm:w-auto"
                           >
                             <span>Read Case Study</span>
                             <ArrowRight className="w-4 h-4" />
@@ -1270,132 +1509,174 @@ export function InsightsIndexPage() {
                 ═══════════════════════════════════════════════════════════════ */}
             <aside className="lg:col-span-4 flex flex-col gap-5">
               
-              {/* 1. PEER ADVISORY PROTOCOL (CDOES 3.1) */}
-              <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-2xs">
-                <div className="flex items-center justify-between pb-3 mb-3.5 border-b border-[#E2E8F0]">
+              {/* 1. PEER ADVISORY PROTOCOL (CDOES 3.1) - COLLAPSIBLE */}
+              <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-2xs overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setIsProtocolOpen(!isProtocolOpen)}
+                  className="w-full flex items-center justify-between p-4 sm:p-5 text-left cursor-pointer hover:bg-slate-50/80 transition-colors"
+                >
                   <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4 text-[#0F172A]" />
                     <h3 className="font-display text-[14px] text-[#0F172A] font-bold uppercase tracking-tight">
                       Peer Advisory Protocol
                     </h3>
                   </div>
-                  <span className="px-1.5 py-0.5 rounded bg-slate-100 text-[#475569] text-[10px] font-mono font-bold">
-                    CDOES 3.1
-                  </span>
-                </div>
-                <div className="space-y-3.5 text-xs text-[#334155]">
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-[#0F172A] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-                      1
+                  <div className="flex items-center gap-2">
+                    <span className="px-1.5 py-0.5 rounded bg-slate-100 text-[#475569] text-[10px] font-mono font-bold">
+                      CDOES 3.1
                     </span>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-[#0F172A]">Strict Bilateral Integrity</span>
-                      <span className="text-[#64748B] leading-relaxed">
-                        Zero cold prospecting, unsolicited sales links, or affiliate vendor promotion. Violations trigger immediate revoke.
-                      </span>
-                    </div>
+                    <ChevronDown
+                      className={cn(
+                        "w-4 h-4 text-slate-500 transition-transform duration-200",
+                        isProtocolOpen ? "rotate-180" : ""
+                      )}
+                    />
                   </div>
+                </button>
+                {isProtocolOpen && (
+                  <div className="px-4 pb-4 sm:px-5 sm:pb-5 space-y-3.5 text-xs text-[#334155] border-t border-[#E2E8F0]/70 pt-3.5">
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-[#0F172A] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                        1
+                      </span>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-[#0F172A]">Strict Bilateral Integrity</span>
+                        <span className="text-[#64748B] leading-relaxed">
+                          Zero cold prospecting, unsolicited sales links, or affiliate vendor promotion. Violations trigger immediate revoke.
+                        </span>
+                      </div>
+                    </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-[#0F172A] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-                      2
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-[#0F172A]">Grounded Commercial Reality</span>
-                      <span className="text-[#64748B] leading-relaxed">
-                        All answers must reflect real deal mechanics, verified contract clauses, or active institutional experience.
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-[#0F172A] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                        2
                       </span>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-[#0F172A]">Grounded Commercial Reality</span>
+                        <span className="text-[#64748B] leading-relaxed">
+                          All answers must reflect real deal mechanics, verified contract clauses, or active institutional experience.
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-[#0F172A] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-                      3
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-[#0F172A]">Blinded Confidentiality</span>
-                      <span className="text-[#64748B] leading-relaxed">
-                        Preserve customer entity privacy and NDA confidentiality prior to official Stage 4 Handshake execution.
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-[#0F172A] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                        3
                       </span>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-[#0F172A]">Blinded Confidentiality</span>
+                        <span className="text-[#64748B] leading-relaxed">
+                          Preserve customer entity privacy and NDA confidentiality prior to official Stage 4 Handshake execution.
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
-              {/* 2. TRENDING TOPICS & VELOCITY (WoW) */}
-              <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-2xs">
-                <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#E2E8F0]">
+              {/* 2. TRENDING TOPICS & VELOCITY (WoW) - COLLAPSIBLE */}
+              <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-2xs overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setIsTrendingOpen(!isTrendingOpen)}
+                  className="w-full flex items-center justify-between p-4 sm:p-5 text-left cursor-pointer hover:bg-slate-50/80 transition-colors"
+                >
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-[#0F172A]" />
                     <h3 className="font-display text-[14px] text-[#0F172A] font-bold">
                       Trending Topics &amp; Velocity
                     </h3>
                   </div>
-                  <span className="text-[11px] font-semibold text-[#64748B]">WoW</span>
-                </div>
-                <div className="space-y-2.5 text-xs">
-                  {TRENDING_TOPICS.map((item) => (
-                    <button
-                      key={item.tag}
-                      type="button"
-                      onClick={() => {
-                        setSelectedTopic(item.topic);
-                        setSearchQuery(item.label);
-                        setCurrentPage(1);
-                      }}
-                      className="w-full flex items-center justify-between p-2 rounded hover:bg-[#F8FAFC] transition-colors border border-transparent hover:border-[#E2E8F0] text-left cursor-pointer"
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-[#0F172A] font-mono">{item.tag}</span>
-                        <span className="text-[11px] text-[#64748B]">{item.count} active discussions</span>
-                      </div>
-                      <span className="inline-flex items-center gap-0.5 font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">
-                        <TrendingUp className="w-3 h-3" />
-                        {item.change}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold text-[#64748B]">WoW</span>
+                    <ChevronDown
+                      className={cn(
+                        "w-4 h-4 text-slate-500 transition-transform duration-200",
+                        isTrendingOpen ? "rotate-180" : ""
+                      )}
+                    />
+                  </div>
+                </button>
+                {isTrendingOpen && (
+                  <div className="px-4 pb-4 sm:px-5 sm:pb-5 space-y-2.5 text-xs border-t border-[#E2E8F0]/70 pt-3.5">
+                    {TRENDING_TOPICS.map((item) => (
+                      <button
+                        key={item.tag}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTopic(item.topic);
+                          setSearchQuery(item.label);
+                          setCurrentPage(1);
+                        }}
+                        className="w-full flex items-center justify-between p-2 rounded hover:bg-[#F8FAFC] transition-colors border border-transparent hover:border-[#E2E8F0] text-left cursor-pointer"
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-[#0F172A] font-mono">{item.tag}</span>
+                          <span className="text-[11px] text-[#64748B]">{item.count} active discussions</span>
+                        </div>
+                        <span className="inline-flex items-center gap-0.5 font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">
+                          <TrendingUp className="w-3 h-3" />
+                          {item.change}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* 3. TOP CONTRIBUTING OPERATORS (30 Days) */}
-              <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-2xs">
-                <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#E2E8F0]">
+              {/* 3. TOP CONTRIBUTING OPERATORS (30 Days) - COLLAPSIBLE */}
+              <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-2xs overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setIsTopOperatorsOpen(!isTopOperatorsOpen)}
+                  className="w-full flex items-center justify-between p-4 sm:p-5 text-left cursor-pointer hover:bg-slate-50/80 transition-colors"
+                >
                   <div className="flex items-center gap-2">
                     <Award className="w-4 h-4 text-[#0F172A]" />
                     <h3 className="font-display text-[14px] text-[#0F172A] font-bold">
                       Top Contributing Operators
                     </h3>
                   </div>
-                  <span className="text-[11px] font-semibold text-[#64748B]">30 Days</span>
-                </div>
-                <div className="space-y-3">
-                  {TOP_CONTRIBUTING_OPERATORS.map((op, idx) => (
-                    <div
-                      key={op.name}
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold text-[#64748B]">30 Days</span>
+                    <ChevronDown
                       className={cn(
-                        "flex items-center justify-between gap-2.5",
-                        idx < TOP_CONTRIBUTING_OPERATORS.length - 1 && "pb-2.5 border-b border-[#F1F5F9]"
+                        "w-4 h-4 text-slate-500 transition-transform duration-200",
+                        isTopOperatorsOpen ? "rotate-180" : ""
                       )}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-[#0F172A] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
-                          {op.initials}
-                        </div>
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-1">
-                            <span className="font-bold text-xs text-[#0F172A]">{op.name}</span>
-                            <CheckCircle2 className="w-3 h-3 text-[#10B981]" />
+                    />
+                  </div>
+                </button>
+                {isTopOperatorsOpen && (
+                  <div className="px-4 pb-4 sm:px-5 sm:pb-5 space-y-3 text-xs border-t border-[#E2E8F0]/70 pt-3.5">
+                    {TOP_CONTRIBUTING_OPERATORS.map((op, idx) => (
+                      <div
+                        key={op.name}
+                        className={cn(
+                          "flex items-center justify-between gap-2.5",
+                          idx < TOP_CONTRIBUTING_OPERATORS.length - 1 && "pb-2.5 border-b border-[#F1F5F9]"
+                        )}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-[#0F172A] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+                            {op.initials}
                           </div>
-                          <span className="text-[11px] text-[#64748B]">{op.role}</span>
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-1">
+                              <span className="font-bold text-xs text-[#0F172A]">{op.name}</span>
+                              <CheckCircle2 className="w-3 h-3 text-[#10B981]" />
+                            </div>
+                            <span className="text-[11px] text-[#64748B]">{op.role}</span>
+                          </div>
                         </div>
+                        <span className="px-2 py-0.5 bg-slate-50 border border-[#E2E8F0] rounded text-[11px] font-semibold text-[#0F172A]">
+                          {op.parity}
+                        </span>
                       </div>
-                      <span className="px-2 py-0.5 bg-slate-50 border border-[#E2E8F0] rounded text-[11px] font-semibold text-[#0F172A]">
-                        {op.parity}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* 4. CONFIDENTIAL DEAL INQUIRIES (Dark Banner) */}
@@ -1428,6 +1709,155 @@ export function InsightsIndexPage() {
       {/* ═══════════════════════════════════════════════════════════════════
           4. DIALOGS & MODALS
           ═══════════════════════════════════════════════════════════════════ */}
+      {/* Mobile Filters Bottom Sheet (Covers 90% of screen) */}
+      <Sheet open={filtersSheetOpen} onOpenChange={setFiltersSheetOpen}>
+        <SheetContent
+          side="bottom"
+          className="h-[90vh] max-h-[90vh] rounded-t-2xl p-5 flex flex-col justify-between overflow-y-auto bg-white border-t border-[#E2E8F0] z-50"
+        >
+          <div className="space-y-4">
+            <SheetHeader className="text-left pb-3 border-b border-[#E2E8F0]">
+              <SheetTitle className="text-base font-bold text-[#0F172A] flex items-center gap-2">
+                <Filter className="w-4 h-4 text-[#0F172A]" />
+                <span>Filters &amp; Sorting</span>
+              </SheetTitle>
+              <SheetDescription className="text-xs text-[#64748B]">
+                Configure advisory status, ranking order, and author verification.
+              </SheetDescription>
+            </SheetHeader>
+
+            <div className="space-y-4 pt-1">
+              {/* 1. Status Filter (Only on Questions) */}
+              {activeTab === "questions" && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#475569]">Advisory Status</label>
+                  <select
+                    value={draftStatus}
+                    onChange={(e) => setDraftStatus(e.target.value as any)}
+                    className="w-full h-10 px-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-xs font-medium text-[#0F172A] focus:outline-none focus:border-[#0F172A]"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="open">Open for Perspectives</option>
+                    <option value="closed">Consensus Reached</option>
+                  </select>
+                </div>
+              )}
+
+              {/* 2. Sort Dropdown */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#475569]">Sort By</label>
+                <select
+                  value={draftSort}
+                  onChange={(e) => setDraftSort(e.target.value as any)}
+                  className="w-full h-10 px-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-xs font-medium text-[#0F172A] focus:outline-none focus:border-[#0F172A]"
+                >
+                  <option value="newest">Most Recent</option>
+                  <option value="perspectives">
+                    {activeTab === "questions" ? "Highest Engagement" : "Most Viewed"}
+                  </option>
+                </select>
+              </div>
+
+              {/* 3. Verification Filter */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#475569]">Author Verification</label>
+                <select
+                  value={draftVerified ? "verified" : "all"}
+                  onChange={(e) => setDraftVerified(e.target.value === "verified")}
+                  className="w-full h-10 px-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-xs font-medium text-[#0F172A] focus:outline-none focus:border-[#0F172A]"
+                >
+                  <option value="all">
+                    {activeTab === "questions" ? "All Operator Answers" : "All Authors"}
+                  </option>
+                  <option value="verified">
+                    {activeTab === "questions" ? "Verified Answers Only" : "Verified Businesses Only"}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Actions Bar */}
+          <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-between gap-3 mt-6">
+            <button
+              type="button"
+              onClick={handleResetDraftFilters}
+              className="px-4 py-2.5 rounded-lg border border-[#E2E8F0] text-xs font-semibold text-[#475569] hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              Reset All
+            </button>
+            <button
+              type="button"
+              onClick={handleApplyMobileFilters}
+              className="flex-1 py-2.5 rounded-lg bg-[#0F172A] text-white text-xs font-bold hover:bg-[#1E293B] transition-colors shadow-xs cursor-pointer text-center"
+            >
+              Apply Filters
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Mobile Compact Search Popup */}
+      <Dialog open={searchModalOpen} onOpenChange={setSearchModalOpen}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-sm p-4 sm:p-5 rounded-xl border border-slate-200 bg-white shadow-xl gap-3">
+          <DialogHeader className="p-0 space-y-1 text-left">
+            <DialogTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Search className="w-4 h-4 text-slate-700 shrink-0" />
+              <span>
+                {activeTab === "questions" ? "Search Questions" : "Search Knowledge Articles"}
+              </span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setSearchQuery(mobileSearchDraft.trim());
+              setCurrentPage(1);
+              setSearchModalOpen(false);
+            }}
+            className="flex flex-col gap-3 pt-1"
+          >
+            <SearchInput
+              value={mobileSearchDraft}
+              onChange={(e) => setMobileSearchDraft(e.target.value)}
+              onClear={() => setMobileSearchDraft("")}
+              placeholder={
+                activeTab === "questions"
+                  ? "Keywords, deal structure, topic..."
+                  : "Articles, case studies, keywords..."
+              }
+              autoFocus
+            />
+            <div className="flex items-center justify-end gap-2 pt-1">
+              {mobileSearchDraft && (
+                <DSButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setMobileSearchDraft("");
+                    setSearchQuery("");
+                    setCurrentPage(1);
+                    setSearchModalOpen(false);
+                  }}
+                >
+                  Clear
+                </DSButton>
+              )}
+              <DSButton
+                type="submit"
+                variant="monochrome"
+                size="sm"
+                className="px-4"
+              >
+                Search
+              </DSButton>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <AskQuestionDialog
         open={askModalOpen}
         onOpenChange={setAskModalOpen}

@@ -338,6 +338,7 @@ export class QuestionService {
       desired_perspective: q.desired_perspective ?? null,
       status: q.status,
       context_content_json: q.context_content_json ?? null,
+      views: q.views ?? 0,
       created_at: q.created_at instanceof Date ? q.created_at.toISOString() : q.created_at,
       updated_at: q.updated_at instanceof Date ? q.updated_at.toISOString() : q.updated_at,
       business: q.business

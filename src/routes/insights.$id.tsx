@@ -23,6 +23,7 @@ import {
   Calendar,
   Globe,
   ChevronRight,
+  Eye,
 } from "lucide-react";
 import { RelayVerificationSeal } from "@/components/relay-verification-seal";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,8 @@ import { getQuestions } from "../functions/getQuestions";
 import { closeQuestion } from "../functions/closeQuestion";
 import { deletePerspective } from "../functions/deletePerspective";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
+import { recordInsightView } from "../functions/recordInsightView";
+import { getOrCreateVisitorId, hasViewedLocally, markViewedLocally } from "@/lib/visitor";
 import { AskQuestionDialog } from "../components/insights/AskQuestionDialog";
 import { SharePerspectiveDialog } from "../components/insights/SharePerspectiveDialog";
 import { ShareModal } from "../components/insights/ShareModal";
@@ -123,6 +126,7 @@ export function QuestionDetailPage() {
   const [relatedQuestions, setRelatedQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserBusiness, setCurrentUserBusiness] = useState<Business | null>(null);
+  const [viewsCount, setViewsCount] = useState<number>(0);
 
   // Dialog states
   const [editQuestionOpen, setEditQuestionOpen] = useState(false);
@@ -160,6 +164,7 @@ export function QuestionDetailPage() {
         data: { question_id: id },
       });
       setQuestion(data);
+      setViewsCount(data?.views ?? 0);
 
       // Fetch related questions based on topic
       if (data?.topic) {
@@ -186,6 +191,34 @@ export function QuestionDetailPage() {
   useEffect(() => {
     loadQuestionData();
   }, [id]);
+
+  // Record strictly deduplicated view for members and non-members
+  useEffect(() => {
+    if (!question?.id) return;
+    // Poster / owner viewing their own question does not count as a view
+    if (currentUserBusiness && currentUserBusiness.id === question.business_id) return;
+
+    if (hasViewedLocally("question", question.id)) return;
+
+    const vid = getOrCreateVisitorId();
+    markViewedLocally("question", question.id);
+
+    recordInsightView({
+      data: {
+        item_id: question.id,
+        item_type: "question",
+        visitor_id: vid,
+      },
+    })
+      .then((res) => {
+        if (res?.success && typeof res.totalViews === "number") {
+          setViewsCount(res.totalViews);
+        }
+      })
+      .catch((err) => {
+        console.warn("[QuestionDetailPage] View record failed:", err);
+      });
+  }, [question?.id, currentUserBusiness?.id]);
 
   // Computed permissions
   const isQuestionOwner = currentUserBusiness && question && currentUserBusiness.id === question.business_id;
@@ -399,6 +432,10 @@ export function QuestionDetailPage() {
                   <Calendar className="w-3.5 h-3.5 shrink-0" />
                   <span>Posted on {formatDate(question.created_at)}</span>
                 </div>
+                <div className="flex items-center gap-2 text-slate-400 text-[11px] font-mono">
+                  <Eye className="w-3.5 h-3.5 shrink-0" />
+                  <span>{viewsCount.toLocaleString()} {viewsCount === 1 ? "view" : "views"}</span>
+                </div>
               </div>
 
               {/* Description (if available) */}
@@ -459,6 +496,10 @@ export function QuestionDetailPage() {
                   Open
                 </span>
               )}
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider font-medium rounded bg-slate-100 text-slate-600 border border-slate-200">
+                <Eye className="w-3 h-3 text-slate-400" />
+                <span>{viewsCount.toLocaleString()} {viewsCount === 1 ? "view" : "views"}</span>
+              </span>
               {isQuestionOwner && (
                 <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider font-bold rounded bg-orange-50 text-orange-700 border border-orange-200">
                   Your Question

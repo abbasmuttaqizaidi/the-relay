@@ -34,6 +34,7 @@ import { getIncomingRequests } from "@/functions/getIncomingRequests";
 import { getSentRequests } from "@/functions/getSentRequests";
 import { getMyOpportunities } from "@/functions/getMyOpportunities";
 import { getSavedOpportunities } from "@/functions/getSavedOpportunities";
+import { getKnowledgeInsights } from "@/functions/getKnowledgeInsights";
 import { getCompanyInitials } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company-logo";
 import { PostTypeSelectionModal } from "@/components/post/PostTypeSelectionModal";
@@ -58,10 +59,10 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   const [isMyOppsExpanded, setIsMyOppsExpanded] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Automatically close mobile menu whenever route changes
+  // Automatically close mobile menu whenever route or search params change
   useEffect(() => {
     setMobileMenuOpen(false);
-  }, [currentPath]);
+  }, [currentPath, currentSearch]);
 
   // 1. Onboarding / Business Profile Query
   const { data: onboardingData } = useQuery({
@@ -129,6 +130,44 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   });
   const savedCount = savedItems.length;
 
+  // 6. My Knowledge Articles Count
+  const { data: myKnowledgeItems = [] } = useQuery({
+    queryKey: ["my-knowledge-articles-count", business?.id],
+    queryFn: async () => {
+      if (!isSignedIn || !business?.id) return [];
+      const data = await getKnowledgeInsights({ data: { business_id: business.id } });
+      return data || [];
+    },
+    enabled: Boolean(isLoaded && isSignedIn && business?.id),
+    staleTime: 1000 * 60 * 2,
+  });
+  const myKnowledgeCount = myKnowledgeItems.length;
+
+  // 7. Saved Knowledge Articles Count
+  const [savedArticlesCount, setSavedArticlesCount] = useState(0);
+  useEffect(() => {
+    const updateSavedCount = () => {
+      try {
+        const saved = localStorage.getItem("relay_saved_insights");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setSavedArticlesCount(Array.isArray(parsed) ? parsed.length : 0);
+        } else {
+          setSavedArticlesCount(0);
+        }
+      } catch (_) {
+        setSavedArticlesCount(0);
+      }
+    };
+    updateSavedCount();
+    window.addEventListener("storage", updateSavedCount);
+    window.addEventListener("relay:saved_insights", updateSavedCount);
+    return () => {
+      window.removeEventListener("storage", updateSavedCount);
+      window.removeEventListener("relay:saved_insights", updateSavedCount);
+    };
+  }, [currentPath, currentSearch]);
+
   // Active route detections
   const isHome = !!matchRoute({ to: "/", fuzzy: false });
   const isDashboard = !!matchRoute({ to: "/dashboard", fuzzy: true });
@@ -155,6 +194,9 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   // Insights Sub-tab detections
   const isInsightsQuestions = isInsights && (currentSearch?.tab === "questions" || !currentSearch?.tab);
   const isInsightsKnowledge = isInsights && currentSearch?.tab === "knowledge";
+  const isMyArticles = isInsightsKnowledge && currentSearch?.filter === "my";
+  const isSavedArticles = isInsightsKnowledge && currentSearch?.filter === "saved";
+  const isAllKnowledge = isInsightsKnowledge && !isMyArticles && !isSavedArticles;
 
   // Breadcrumb Title Helper
   const breadcrumbTitle = useMemo(() => {
@@ -169,12 +211,16 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
       if (currentSearch?.tab === "requests") return "Opportunities & Request Pipeline";
       return "My Listings";
     }
-    if (isInsights) return isInsightsKnowledge ? "Knowledge Articles & Playbooks" : "Questions & Peer Advisory";
+    if (isInsights) {
+      if (isMyArticles) return "My Knowledge Articles";
+      if (isSavedArticles) return "Saved Articles";
+      return isInsightsKnowledge ? "Knowledge Articles & Playbooks" : "Questions & Peer Advisory";
+    }
     if (isNetwork) return "Verified Network";
     if (isFaq) return "Frequently Asked Questions";
     if (isBusinessProfile) return "Entity Settings";
     return "Opportunity Exchange";
-  }, [isDashboard, isConnections, isOpportunities, isProposals, isMyRelay, isInsights, isInsightsKnowledge, isNetwork, isFaq, isBusinessProfile, currentSearch]);
+  }, [isDashboard, isConnections, isOpportunities, isProposals, isMyRelay, isInsights, isInsightsKnowledge, isMyArticles, isSavedArticles, isNetwork, isFaq, isBusinessProfile, currentSearch]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -557,19 +603,55 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
             to="/insights"
             search={{ tab: "knowledge" } as any}
             className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isInsightsKnowledge
+              isAllKnowledge
                 ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
                 : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <BookOpen className={`w-4 h-4 ${isInsightsKnowledge ? "text-slate-950" : "text-slate-500"}`} />
+              <BookOpen className={`w-4 h-4 ${isAllKnowledge ? "text-slate-950" : "text-slate-500"}`} />
               <span>Knowledge Articles</span>
             </div>
             <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold">
               Docs
             </span>
           </Link>
+
+          {/* Sub-items for Knowledge Articles: My Articles & Saved Articles */}
+          <div className="pl-6 flex flex-col gap-1 border-l-2 border-slate-200 ml-4 my-0.5">
+            <Link
+              to="/insights"
+              search={{ tab: "knowledge", filter: "my" } as any}
+              className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
+                isMyArticles
+                  ? "text-slate-950 font-bold bg-slate-100/80"
+                  : "text-slate-600 hover:text-slate-950 hover:bg-slate-50"
+              }`}
+            >
+              <span>My Articles</span>
+              {myKnowledgeCount > 0 && (
+                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-medium">
+                  {myKnowledgeCount}
+                </span>
+              )}
+            </Link>
+            <Link
+              to="/insights"
+              search={{ tab: "knowledge", filter: "saved" } as any}
+              className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
+                isSavedArticles
+                  ? "text-slate-950 font-bold bg-slate-100/80"
+                  : "text-slate-600 hover:text-slate-950 hover:bg-slate-50"
+              }`}
+            >
+              <span>Saved Articles</span>
+              {savedArticlesCount > 0 && (
+                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                  {savedArticlesCount}
+                </span>
+              )}
+            </Link>
+          </div>
           <Link
             to="/faq"
             className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${

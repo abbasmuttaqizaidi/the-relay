@@ -138,14 +138,24 @@ export class KnowledgeService {
         where.business_id = filters.business_id;
       }
 
-      // Keyword search across title AND content
+      // Keyword search across title, content, topic, and company name
       if (filters?.search && filters.search.trim()) {
         const query = filters.search.trim();
         where.OR = [
           { title: { contains: query, mode: "insensitive" } },
           { content: { contains: query, mode: "insensitive" } },
+          { topic: { contains: query, mode: "insensitive" } },
+          { business: { company_name: { contains: query, mode: "insensitive" } } },
         ];
       }
+
+      const orderBy =
+        filters?.sortBy === "perspectives"
+          ? [
+              { views: "desc" as const },
+              { created_at: "desc" as const },
+            ]
+          : { created_at: "desc" as const };
 
       const insights = await prisma.knowledgeInsight.findMany({
         where,
@@ -154,11 +164,9 @@ export class KnowledgeService {
             select: SAFE_BUSINESS_SELECT,
           },
         },
-        orderBy: {
-          created_at: "desc",
-        },
-        take: filters?.limit || 20,
-        skip: filters?.offset || 0,
+        orderBy,
+        take: filters?.limit ?? 100,
+        skip: filters?.offset ?? 0,
       });
 
       return insights.map(KnowledgeService.mapInsightModel);
@@ -410,6 +418,7 @@ export class KnowledgeService {
       topic: insight.topic,
       based_on: insight.based_on || null,
       status: insight.status,
+      views: insight.views ?? 0,
       created_at:
         typeof insight.created_at === "string"
           ? insight.created_at

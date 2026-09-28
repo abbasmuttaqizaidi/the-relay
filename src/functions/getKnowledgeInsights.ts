@@ -10,6 +10,7 @@ const getKnowledgeInsightsFilterSchema = z
     business_id: z.string().optional().nullable(),
     limit: z.union([z.number(), z.string()]).optional().nullable(),
     offset: z.union([z.number(), z.string()]).optional().nullable(),
+    sortBy: z.string().optional().nullable(),
   })
   .optional();
 
@@ -32,6 +33,10 @@ export const getKnowledgeInsights = createServerFn({ method: "GET" })
 
     if (data?.business_id && data.business_id !== "undefined") {
       filters.business_id = data.business_id;
+    }
+
+    if (data?.sortBy && data.sortBy !== "undefined") {
+      filters.sortBy = data.sortBy;
     }
 
     if (data?.limit) {

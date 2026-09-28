@@ -5,13 +5,14 @@ import {
   ArrowLeft,
   ArrowRight,
   ShieldCheck,
-  BadgeCheck,
+  CheckCircle2,
   Edit2,
   Trash2,
   Archive,
   ExternalLink,
   Lock,
   Share2,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogWrap,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { getKnowledgeInsightById } from "../functions/getKnowledgeInsightById";
@@ -30,6 +32,8 @@ import { getKnowledgeInsights } from "../functions/getKnowledgeInsights";
 import { deleteKnowledgeInsight } from "../functions/deleteKnowledgeInsight";
 import { archiveKnowledgeInsight } from "../functions/archiveKnowledgeInsight";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
+import { recordInsightView } from "../functions/recordInsightView";
+import { getOrCreateVisitorId, hasViewedLocally, markViewedLocally } from "@/lib/visitor";
 import { ShareInsightDialog } from "../components/insights/ShareInsightDialog";
 import { ShareModal } from "../components/insights/ShareModal";
 import { CompanyLogo } from "../components/company-logo";
@@ -277,6 +281,7 @@ export function KnowledgeDetailPage() {
   const [relatedInsights, setRelatedInsights] = useState<KnowledgeInsight[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserBusiness, setCurrentUserBusiness] = useState<Business | null>(null);
+  const [viewsCount, setViewsCount] = useState<number>(0);
 
   // Dialog states
   const [editOpen, setEditOpen] = useState(false);
@@ -309,6 +314,7 @@ export function KnowledgeDetailPage() {
         data: { id },
       });
       setInsight(data);
+      setViewsCount(data?.views ?? 0);
 
       // Fetch related published insights
       try {
@@ -353,6 +359,34 @@ export function KnowledgeDetailPage() {
   useEffect(() => {
     loadInsightData();
   }, [id]);
+
+  // Record strictly deduplicated view for members and non-members
+  useEffect(() => {
+    if (!insight?.id) return;
+    // Poster / owner viewing their own knowledge article does not count as a view
+    if (currentUserBusiness && currentUserBusiness.id === insight.business_id) return;
+
+    if (hasViewedLocally("knowledge", insight.id)) return;
+
+    const vid = getOrCreateVisitorId();
+    markViewedLocally("knowledge", insight.id);
+
+    recordInsightView({
+      data: {
+        item_id: insight.id,
+        item_type: "knowledge",
+        visitor_id: vid,
+      },
+    })
+      .then((res) => {
+        if (res?.success && typeof res.totalViews === "number") {
+          setViewsCount(res.totalViews);
+        }
+      })
+      .catch((err) => {
+        console.warn("[KnowledgeDetailPage] View record failed:", err);
+      });
+  }, [insight?.id, currentUserBusiness?.id]);
 
   // Computed permissions
   const isOwner =
@@ -576,22 +610,22 @@ export function KnowledgeDetailPage() {
               textClassName="text-xs font-mono font-bold"
             />
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <span className="text-sm font-bold text-slate-900 font-sans">
                   {insight.business?.company_name || "Verified Business"}
                 </span>
-                <span
-                  className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#1877f2] text-white shrink-0 shadow-2xs"
-                  title="Approved Business on The Relay"
-                >
-                  <BadgeCheck className="w-3.5 h-3.5 fill-current" />
-                </span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" title="Verified Enterprise" />
                 <span className="text-[11px] font-mono text-slate-400">Approved Business</span>
               </div>
               <div className="text-xs text-slate-500 font-sans mt-0.5 flex flex-wrap items-center gap-1.5">
                 <span>{formatDate(insight.published_at || insight.created_at)}</span>
                 <span>·</span>
                 <span>{calculateReadingTime(insight.content)}</span>
+                <span>·</span>
+                <span className="inline-flex items-center gap-1 text-slate-600 font-mono text-[11px]">
+                  <Eye className="w-3.5 h-3.5 text-slate-400" />
+                  <span>{viewsCount.toLocaleString()} {viewsCount === 1 ? "view" : "views"}</span>
+                </span>
                 {insight.business?.industry && (
                   <>
                     <span>·</span>
@@ -656,12 +690,7 @@ export function KnowledgeDetailPage() {
                   <h3 className="text-base sm:text-lg font-bold text-slate-950 font-display">
                     {insight.business?.company_name || "Verified Business"}
                   </h3>
-                  <span
-                    className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#1877f2] text-white shrink-0 shadow-2xs"
-                    title="Approved Business on The Relay"
-                  >
-                    <BadgeCheck className="w-3.5 h-3.5 fill-current" />
-                  </span>
+                  <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" title="Verified Enterprise" />
                   <span className="text-[11px] font-mono text-slate-400">Approved Business</span>
                 </div>
                 <p className="text-xs text-slate-500 font-mono">
