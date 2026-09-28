@@ -346,8 +346,6 @@ export function KnowledgeEditorWorkspace({
 
     if (!title.trim() || title.trim().length < 10) {
       newErrors.title = "Article title must be at least 10 characters.";
-    } else if (title.trim().length > 200) {
-      newErrors.title = "Article title cannot exceed 200 characters.";
     }
 
     if (!topic) {
@@ -357,8 +355,6 @@ export function KnowledgeEditorWorkspace({
     const cleanLength = contentText.trim().length;
     if (cleanLength < 50) {
       newErrors.content = `Article body is too short (${cleanLength} characters). Please write at least 50 characters of practical insight.`;
-    } else if (cleanLength > 5000) {
-      newErrors.content = `Article body exceeds 5,000 characters limit (${cleanLength} characters).`;
     }
 
     if (!isAdmin && (!business || business.status !== "approved")) {
@@ -847,9 +843,11 @@ export function KnowledgeEditorWorkspace({
               <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-medium">
                 Article Title <span className="text-red-500">*</span>
               </span>
-              <span className="text-[11px] font-mono text-slate-400">
-                {title.length}/200
-              </span>
+              {title.length > 0 && (
+                <span className="text-[11px] font-mono text-slate-400">
+                  {title.length} chars
+                </span>
+              )}
             </div>
             <textarea
               ref={titleInputRef}
@@ -861,7 +859,6 @@ export function KnowledgeEditorWorkspace({
                 if (errors.title) setErrors((prev) => ({ ...prev, title: "" }));
               }}
               onInput={adjustTitleHeight}
-              maxLength={200}
               className="w-full text-xl sm:text-2xl font-bold tracking-tight text-slate-900 placeholder:text-slate-300 border-b border-slate-200 focus:border-slate-900 pb-1.5 pt-0.5 outline-none resize-none leading-snug transition-colors overflow-hidden"
             />
             {errors.title && <p className="text-xs text-red-500">{errors.title}</p>}

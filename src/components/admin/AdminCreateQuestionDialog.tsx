@@ -139,14 +139,10 @@ export function AdminCreateQuestionDialog({
 
     if (!title.trim() || title.trim().length < 10) {
       newErrors.title = "Question title must be at least 10 characters.";
-    } else if (title.trim().length > 200) {
-      newErrors.title = "Question title cannot exceed 200 characters.";
     }
 
     if (!description.trim() || description.trim().length < 30) {
       newErrors.description = "Please describe the question in at least 30 characters.";
-    } else if (description.trim().length > 10000) {
-      newErrors.description = "Description cannot exceed 10000 characters.";
     }
 
     if (!topic) {
@@ -406,14 +402,12 @@ export function AdminCreateQuestionDialog({
               </Label>
               <span
                 className={`text-[10px] font-mono ${
-                  title.length > 200
-                    ? "text-red-500 font-bold"
-                    : title.length >= 10
-                      ? "text-emerald-600 font-bold"
-                      : "text-slate-400"
+                  title.trim().length >= 10
+                    ? "text-emerald-600 font-bold"
+                    : "text-slate-400"
                 }`}
               >
-                {title.length}/200
+                {title.length} chars (min 10)
               </span>
             </div>
             <Input
@@ -425,7 +419,6 @@ export function AdminCreateQuestionDialog({
                 if (errors.title) setErrors((prev) => ({ ...prev, title: "" }));
               }}
               className="h-10 text-xs bg-white border-slate-200 rounded-[2px] focus:ring-1 focus:ring-slate-900"
-              maxLength={200}
             />
             {errors.title && (
               <p className="text-[11px] text-red-500 font-mono">{errors.title}</p>
@@ -440,11 +433,9 @@ export function AdminCreateQuestionDialog({
               </Label>
               <span
                 className={`text-[10px] font-mono ${
-                  description.length > 10000
-                    ? "text-red-500 font-bold"
-                    : description.trim().length >= 30
-                      ? "text-emerald-600 font-bold"
-                      : "text-slate-400"
+                  description.trim().length >= 30
+                    ? "text-emerald-600 font-bold"
+                    : "text-slate-400"
                 }`}
               >
                 {description.trim().length} chars (min 30)

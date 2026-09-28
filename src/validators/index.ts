@@ -144,12 +144,10 @@ export const basedOnSchema = z.enum([
 export const createQuestionSchema = z.object({
   title: z
     .string()
-    .min(10, "Title must be at least 10 characters")
-    .max(200, "Title cannot exceed 200 characters"),
+    .min(10, "Title must be at least 10 characters"),
   description: z
     .string()
-    .min(30, "Description must be at least 30 characters")
-    .max(10000, "Description cannot exceed 10000 characters"),
+    .min(30, "Description must be at least 30 characters"),
   topic: questionTopicSchema,
   desired_perspective: desiredPerspectiveSchema.optional().nullable(),
   context_content_json: z.string().optional().nullable(),
@@ -160,12 +158,10 @@ export const updateQuestionSchema = z.object({
   title: z
     .string()
     .min(10, "Title must be at least 10 characters")
-    .max(200, "Title cannot exceed 200 characters")
     .optional(),
   description: z
     .string()
     .min(30, "Description must be at least 30 characters")
-    .max(10000, "Description cannot exceed 10000 characters")
     .optional(),
   topic: questionTopicSchema.optional(),
   desired_perspective: desiredPerspectiveSchema.optional().nullable(),
@@ -238,12 +234,10 @@ export const createKnowledgeInsightSchema = z
     title: z
       .string()
       .trim()
-      .min(10, "Title must be at least 10 characters")
-      .max(200, "Title cannot exceed 200 characters"),
+      .min(10, "Title must be at least 10 characters"),
     content: z
       .string()
-      .trim()
-      .max(5000, "Content cannot exceed 5000 characters"),
+      .trim(),
     content_json: z.string().optional().nullable(),
     topic: questionTopicSchema,
     based_on: knowledgeInsightBasedOnSchema.optional().nullable(),
@@ -266,12 +260,10 @@ export const updateKnowledgeInsightSchema = z
       .string()
       .trim()
       .min(10, "Title must be at least 10 characters")
-      .max(200, "Title cannot exceed 200 characters")
       .optional(),
     content: z
       .string()
       .trim()
-      .max(5000, "Content cannot exceed 5000 characters")
       .optional(),
     content_json: z.string().optional().nullable(),
     topic: questionTopicSchema.optional(),

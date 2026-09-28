@@ -159,14 +159,10 @@ export function AdminCreateKnowledgeDialog({
 
     if (!title.trim() || title.trim().length < 10) {
       newErrors.title = "Insight title must be at least 10 characters.";
-    } else if (title.trim().length > 200) {
-      newErrors.title = "Insight title cannot exceed 200 characters.";
     }
 
     if (!content.trim() || content.trim().length < 50) {
       newErrors.content = "Insight content must be at least 50 characters.";
-    } else if (content.trim().length > 5000) {
-      newErrors.content = "Content cannot exceed 5000 characters.";
     }
 
     if (!topic) {
@@ -406,14 +402,12 @@ export function AdminCreateKnowledgeDialog({
               </Label>
               <span
                 className={`text-[10px] font-mono ${
-                  title.length > 200
-                    ? "text-red-500 font-bold"
-                    : title.length >= 10
-                      ? "text-emerald-600 font-bold"
-                      : "text-slate-400"
+                  title.trim().length >= 10
+                    ? "text-emerald-600 font-bold"
+                    : "text-slate-400"
                 }`}
               >
-                {title.length}/200
+                {title.length} chars (min 10)
               </span>
             </div>
             <Input
@@ -425,7 +419,6 @@ export function AdminCreateKnowledgeDialog({
                 if (errors.title) setErrors((prev) => ({ ...prev, title: "" }));
               }}
               className="h-10 text-xs bg-white border-slate-200 rounded-[2px] focus:ring-1 focus:ring-slate-900"
-              maxLength={200}
             />
             {errors.title && (
               <p className="text-[11px] text-red-500 font-mono">{errors.title}</p>
@@ -440,14 +433,12 @@ export function AdminCreateKnowledgeDialog({
               </Label>
               <span
                 className={`text-[10px] font-mono ${
-                  content.length > 5000
-                    ? "text-red-500 font-bold"
-                    : content.length >= 50
-                      ? "text-emerald-600 font-bold"
-                      : "text-slate-400"
+                  content.trim().length >= 50
+                    ? "text-emerald-600 font-bold"
+                    : "text-slate-400"
                 }`}
               >
-                {content.length}/5000
+                {content.length} chars (min 50)
               </span>
             </div>
             <Textarea
@@ -458,7 +449,6 @@ export function AdminCreateKnowledgeDialog({
                 if (errors.content) setErrors((prev) => ({ ...prev, content: "" }));
               }}
               className="min-h-[140px] text-xs bg-white border-slate-200 rounded-[2px] leading-relaxed resize-y focus:ring-1 focus:ring-slate-900"
-              maxLength={5000}
             />
             {errors.content && (
               <p className="text-[11px] text-red-500 font-mono">{errors.content}</p>

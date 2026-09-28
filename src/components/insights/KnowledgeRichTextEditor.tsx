@@ -909,8 +909,8 @@ export function KnowledgeRichTextEditor({
         <div className="flex items-center gap-4">
           <span>{wordCount} words</span>
           <span>•</span>
-          <span className={charCount < 50 ? "text-amber-600" : charCount > 5000 ? "text-red-600 font-semibold" : "text-slate-600"}>
-            {charCount} / 5,000 chars {charCount < 50 && "(min 50)"}
+          <span className={charCount < 50 ? "text-amber-600" : "text-slate-600"}>
+            {charCount} chars {charCount < 50 && "(min 50)"}
           </span>
         </div>
         <div className="flex items-center gap-2 text-[11px] text-slate-400">

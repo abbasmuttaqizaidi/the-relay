@@ -219,14 +219,10 @@ function AskQuestionPage() {
 
     if (!title.trim() || title.trim().length < 10) {
       newErrors.title = "Question title must be at least 10 characters.";
-    } else if (title.trim().length > 200) {
-      newErrors.title = "Question title cannot exceed 200 characters.";
     }
 
     if (!description.trim() || description.trim().length < 30) {
       newErrors.description = "Please describe your question in at least 30 characters.";
-    } else if (description.trim().length > 10000) {
-      newErrors.description = "Description cannot exceed 10,000 characters.";
     }
 
     if (!topic) {
@@ -632,9 +628,11 @@ function AskQuestionPage() {
               <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-medium">
                 Question / Problem Statement <span className="text-red-500">*</span>
               </span>
-              <span className="text-[11px] font-mono text-slate-400">
-                {title.length}/200
-              </span>
+              {title.length > 0 && (
+                <span className="text-[11px] font-mono text-slate-400">
+                  {title.length} chars
+                </span>
+              )}
             </div>
             <textarea
               ref={titleInputRef}
@@ -646,7 +644,6 @@ function AskQuestionPage() {
                 if (errors.title) setErrors((prev) => ({ ...prev, title: "" }));
               }}
               onInput={adjustTitleHeight}
-              maxLength={200}
               className="w-full text-xl sm:text-2xl font-bold tracking-tight text-slate-900 placeholder:text-slate-300 border-b border-slate-200 focus:border-slate-900 pb-1.5 pt-0.5 outline-none resize-none leading-snug transition-colors overflow-hidden"
             />
             {errors.title && <p className="text-xs text-red-500">{errors.title}</p>}

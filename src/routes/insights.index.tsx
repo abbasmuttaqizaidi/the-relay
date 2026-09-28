@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useAuth } from "@clerk/tanstack-react-start";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   HelpCircle,
@@ -39,6 +39,7 @@ import {
   ChevronDown,
   SlidersHorizontal,
   Filter,
+  X,
 } from "lucide-react";
 import {
   Sheet,
@@ -48,12 +49,7 @@ import {
   SheetDescription,
   SheetFooter,
 } from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
 import {
   SearchInput,
   Button as DSButton,
@@ -275,7 +271,7 @@ export function InsightsIndexPage() {
     return "all";
   });
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [appliedSearch, setAppliedSearch] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Mobile Bottom Sheet state for Filters (Status, Sort, Verified)
@@ -284,16 +280,46 @@ export function InsightsIndexPage() {
   const [draftSort, setDraftSort] = useState<"newest" | "perspectives">(selectedSort);
   const [draftVerified, setDraftVerified] = useState<boolean>(filterOnlyVerified);
 
-  // Mobile Compact Search Popup state
-  const [searchModalOpen, setSearchModalOpen] = useState(false);
-  const [mobileSearchDraft, setMobileSearchDraft] = useState(searchQuery);
+  // Mobile Inline Expandable Search state
+  const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false);
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
+  const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
 
-  // Sync mobile search draft when modal opens
+  // Auto-focus input when search expands on mobile
   useEffect(() => {
-    if (searchModalOpen) {
-      setMobileSearchDraft(searchQuery);
+    if (mobileSearchExpanded) {
+      const timer = setTimeout(() => {
+        mobileSearchInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [searchModalOpen, searchQuery]);
+  }, [mobileSearchExpanded]);
+
+  // Click outside to restore / collapse mobile search
+  useEffect(() => {
+    if (!mobileSearchExpanded) return;
+
+    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+      if (
+        mobileSearchContainerRef.current &&
+        !mobileSearchContainerRef.current.contains(e.target as Node)
+      ) {
+        setMobileSearchExpanded(false);
+        setSearchQuery(appliedSearch);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      document.addEventListener("mousedown", handleOutsideClick);
+      document.addEventListener("touchstart", handleOutsideClick);
+    }, 10);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, [mobileSearchExpanded, appliedSearch]);
 
   // Sync draft states whenever sheet opens
   useEffect(() => {
@@ -370,14 +396,14 @@ export function InsightsIndexPage() {
     data: questions = [],
     isLoading: questionsLoading,
   } = useQuery<Question[]>({
-    queryKey: ["questions-list", selectedTopic, debouncedSearch, selectedSort],
+    queryKey: ["questions-list", selectedTopic, appliedSearch, selectedSort],
     queryFn: async () => {
       const filterData: any = {};
       if (selectedTopic && selectedTopic !== "All") {
         filterData.topic = selectedTopic;
       }
-      if (debouncedSearch && debouncedSearch.trim()) {
-        filterData.search = debouncedSearch.trim();
+      if (appliedSearch && appliedSearch.trim()) {
+        filterData.search = appliedSearch.trim();
       }
       if (selectedSort) {
         filterData.sortBy = selectedSort;
@@ -393,14 +419,14 @@ export function InsightsIndexPage() {
     data: knowledgeList = [],
     isLoading: knowledgeLoading,
   } = useQuery<KnowledgeInsight[]>({
-    queryKey: ["knowledge-list", selectedTopic, debouncedSearch, selectedSort],
+    queryKey: ["knowledge-list", selectedTopic, appliedSearch, selectedSort],
     queryFn: async () => {
       const filterData: any = { limit: 100 };
       if (selectedTopic && selectedTopic !== "All") {
         filterData.topic = selectedTopic;
       }
-      if (debouncedSearch && debouncedSearch.trim()) {
-        filterData.search = debouncedSearch.trim();
+      if (appliedSearch && appliedSearch.trim()) {
+        filterData.search = appliedSearch.trim();
       }
       if (selectedSort) {
         filterData.sortBy = selectedSort;
@@ -443,14 +469,6 @@ export function InsightsIndexPage() {
     urlPath: string;
     type: "insight" | "question";
   } | null>(null);
-
-  // Debounce search query changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
   // Check admin session on mount
   useEffect(() => {
@@ -496,6 +514,7 @@ export function InsightsIndexPage() {
     setFilterMode("all");
     setSelectedTopic("All");
     setSearchQuery("");
+    setAppliedSearch("");
     navigate({
       to: "/insights",
       search: { tab: newTab },
@@ -503,10 +522,20 @@ export function InsightsIndexPage() {
     });
   };
 
+  // Trigger search handler: updates appliedSearch (triggering API call) and collapses mobile search view
+  const handleTriggerSearch = (overrideQuery?: string) => {
+    const q = (overrideQuery !== undefined ? overrideQuery : searchQuery).trim();
+    setAppliedSearch(q);
+    setSearchQuery(q);
+    setCurrentPage(1);
+    setMobileSearchExpanded(false);
+  };
+
   // Handle search submission
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setCurrentPage(1);
+    mobileSearchInputRef.current?.blur();
+    handleTriggerSearch();
   };
 
   // Toggle bookmark / save
@@ -739,190 +768,252 @@ export function InsightsIndexPage() {
                 </p>
               </div>
 
-              {/* Action Group: Always a single row */}
-              <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap shrink-0 pt-1 lg:pt-0 overflow-x-auto scrollbar-none max-w-full pb-0.5">
+              {/* Action Group */}
+              <div className="w-full lg:w-auto shrink-0 pt-2 lg:pt-0">
                 {activeTab === "questions" ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFilterMode((prev) => (prev === "my" ? "all" : "my"));
-                        setCurrentPage(1);
-                      }}
-                      className={cn(
-                        "px-2.5 sm:px-3.5 py-2 rounded-md text-xs border transition-colors flex items-center gap-1.5 sm:gap-2 shadow-2xs font-semibold cursor-pointer shrink-0 whitespace-nowrap",
-                        filterMode === "my"
-                          ? "bg-[#0F172A] text-white border-[#0F172A]"
-                          : "bg-white text-[#0F172A] border-[#E2E8F0] hover:bg-slate-50"
-                      )}
-                    >
-                      <User className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
-                      <span>My Questions</span>
-                      <span
-                        className={cn(
-                          "px-1.5 py-0.5 rounded text-[10px] font-bold font-mono",
-                          filterMode === "my" ? "bg-white text-[#0F172A]" : "bg-[#0F172A] text-white"
-                        )}
-                      >
-                        {myQuestionsCount}
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFilterMode((prev) => (prev === "saved" ? "all" : "saved"));
-                        setCurrentPage(1);
-                      }}
-                      className={cn(
-                        "px-2.5 sm:px-3.5 py-2 rounded-md text-xs border transition-colors flex items-center gap-1.5 sm:gap-2 shadow-2xs font-semibold cursor-pointer shrink-0 whitespace-nowrap",
-                        filterMode === "saved"
-                          ? "bg-[#0F172A] text-white border-[#0F172A]"
-                          : "bg-white text-[#0F172A] border-[#E2E8F0] hover:bg-slate-50"
-                      )}
-                    >
-                      <Bookmark className="w-3.5 h-3.5 text-[#64748B] shrink-0" />
-                      <span>Saved</span>
-                      <span
-                        className={cn(
-                          "px-1.5 py-0.5 rounded text-[10px] font-bold font-mono border",
-                          filterMode === "saved"
-                            ? "bg-white text-[#0F172A] border-white"
-                            : "bg-[#F1F5F9] text-[#475569] border-[#E2E8F0]"
-                        )}
-                      >
-                        {savedQuestionsCount}
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      id="btn-ask-question"
-                      onClick={handleAskClick}
-                      className="px-3 sm:px-4 py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center gap-1.5 shadow-xs font-semibold cursor-pointer shrink-0 whitespace-nowrap"
-                    >
-                      <Plus className="w-3.5 h-3.5 shrink-0" />
-                      <span>Ask Question</span>
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    id="btn-ask-question"
+                    onClick={handleAskClick}
+                    className="w-full lg:w-auto px-4 py-2.5 sm:py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center justify-center gap-1.5 shadow-xs font-semibold cursor-pointer whitespace-nowrap"
+                  >
+                    <Plus className="w-3.5 h-3.5 shrink-0" />
+                    <span>Ask Question</span>
+                  </button>
                 ) : (
-                  <>
-                    <button
-                      type="button"
-                      id="btn-share-knowledge"
-                      onClick={handleShareKnowledgeClick}
-                      className="px-3 sm:px-4 py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center gap-1.5 shadow-xs font-semibold cursor-pointer shrink-0 whitespace-nowrap"
-                    >
-                      <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                      <span>Share Knowledge</span>
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    id="btn-share-knowledge"
+                    onClick={handleShareKnowledgeClick}
+                    className="w-full lg:w-auto px-4 py-2.5 sm:py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center justify-center gap-1.5 shadow-xs font-semibold cursor-pointer whitespace-nowrap"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                    <span>Share Knowledge</span>
+                  </button>
                 )}
               </div>
             </div>
 
-            {/* Mobile Controls Row: Topics Dropdown (Design System) + Magnifying Glass Icon Button + Filters Icon Button */}
-            <div className="flex sm:hidden items-center gap-2 pt-4 mt-4 border-t border-[#E2E8F0]/80">
-              <div className="relative flex-1 min-w-0">
-                <DSSelect
-                  value={selectedTopic}
-                  onValueChange={(val) => {
-                    setSelectedTopic(val);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <DSSelectTrigger className="h-9 text-xs rounded-md bg-[#F8FAFC] border-[#E2E8F0] font-semibold text-[#0F172A]">
-                    <DSSelectValue placeholder="All Topics" />
-                  </DSSelectTrigger>
-                  <DSSelectContent className="max-h-72">
-                    {CATEGORY_PILLS.map((pill) => (
-                      <DSSelectItem key={pill.value} value={pill.value} className="text-xs">
-                        {pill.label}
-                      </DSSelectItem>
-                    ))}
-                  </DSSelectContent>
-                </DSSelect>
-              </div>
-
-              {/* Magnifying Glass Search Icon Button */}
-              <button
-                type="button"
-                onClick={() => setSearchModalOpen(true)}
-                aria-label="Search"
-                title="Search"
+            {/* Mobile Controls Row: Topics Dropdown + Magnifying Glass + Filters / Expandable Search */}
+            <div ref={mobileSearchContainerRef} className="relative flex sm:hidden items-center pt-4 mt-4 border-t border-[#E2E8F0]/80 min-h-[53px]">
+              {/* Default Row: Topics Dropdown + Magnifying Glass + Filter + Reset */}
+              <div
                 className={cn(
-                  "w-9 h-9 flex items-center justify-center border rounded-md transition-colors shrink-0 cursor-pointer shadow-2xs relative",
-                  searchQuery
-                    ? "bg-[#0F172A] text-white border-[#0F172A]"
-                    : "bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-slate-100 hover:text-[#0F172A]"
+                  "flex items-center gap-2 w-full transition-all duration-300 ease-in-out",
+                  mobileSearchExpanded
+                    ? "opacity-0 scale-95 pointer-events-none invisible"
+                    : "opacity-100 scale-100 pointer-events-auto visible"
                 )}
               >
-                <Search className="w-4 h-4" />
-                {searchQuery && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white" />
-                )}
-              </button>
+                <div className="relative flex-1 min-w-0">
+                  <DSSelect
+                    value={selectedTopic}
+                    onValueChange={(val) => {
+                      setSelectedTopic(val);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <DSSelectTrigger className="h-9 text-xs rounded-md bg-[#F8FAFC] border-[#E2E8F0] font-semibold text-[#0F172A]">
+                      <DSSelectValue placeholder="All Topics" />
+                    </DSSelectTrigger>
+                    <DSSelectContent className="max-h-72">
+                      {CATEGORY_PILLS.map((pill) => (
+                        <DSSelectItem key={pill.value} value={pill.value} className="text-xs">
+                          {pill.label}
+                        </DSSelectItem>
+                      ))}
+                    </DSSelectContent>
+                  </DSSelect>
+                </div>
 
-              {/* Filters Icon Button */}
-              <button
-                type="button"
-                onClick={() => setFiltersSheetOpen(true)}
-                aria-label="Open Filters"
-                title="Filters"
-                className={cn(
-                  "w-9 h-9 flex items-center justify-center border rounded-md transition-colors shrink-0 cursor-pointer shadow-2xs relative",
-                  activeFilterCount > 0
-                    ? "bg-[#0F172A] text-white border-[#0F172A]"
-                    : "bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-slate-100 hover:text-[#0F172A]"
-                )}
-              >
-                <Filter className="w-4 h-4" />
-                {activeFilterCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 rounded-full bg-[#EA580C] text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </button>
-
-              {(selectedTopic !== "All" || selectedSort !== "newest" || searchQuery || filterMode !== "all" || statusFilter !== "all" || filterOnlyVerified) && (
+                {/* Magnifying Glass Search Icon Button */}
                 <button
                   type="button"
                   onClick={() => {
-                    setSelectedTopic("All");
-                    setSelectedSort("newest");
-                    setStatusFilter("all");
-                    setFilterOnlyVerified(false);
-                    setFilterMode("all");
+                    setSearchQuery(appliedSearch);
+                    setMobileSearchExpanded(true);
+                  }}
+                  aria-label="Open Search"
+                  title="Search"
+                  className={cn(
+                    "w-9 h-9 flex items-center justify-center border rounded-md transition-colors shrink-0 cursor-pointer shadow-2xs relative",
+                    appliedSearch
+                      ? "bg-[#0F172A] text-white border-[#0F172A]"
+                      : "bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-slate-100 hover:text-[#0F172A]"
+                  )}
+                >
+                  <Search className="w-4 h-4" />
+                  {appliedSearch && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white" />
+                  )}
+                </button>
+
+                {/* Filters Icon Button */}
+                <button
+                  type="button"
+                  onClick={() => setFiltersSheetOpen(true)}
+                  aria-label="Open Filters"
+                  title="Filters"
+                  className={cn(
+                    "w-9 h-9 flex items-center justify-center border rounded-md transition-colors shrink-0 cursor-pointer shadow-2xs relative",
+                    activeFilterCount > 0
+                      ? "bg-[#0F172A] text-white border-[#0F172A]"
+                      : "bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-slate-100 hover:text-[#0F172A]"
+                  )}
+                >
+                  <Filter className="w-4 h-4" />
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 rounded-full bg-[#EA580C] text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+
+                {(selectedTopic !== "All" || selectedSort !== "newest" || appliedSearch || searchQuery || filterMode !== "all" || statusFilter !== "all" || filterOnlyVerified) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedTopic("All");
+                      setSelectedSort("newest");
+                      setStatusFilter("all");
+                      setFilterOnlyVerified(false);
+                      setFilterMode("all");
+                      setSearchQuery("");
+                      setAppliedSearch("");
+                      setCurrentPage(1);
+                    }}
+                    className="text-xs text-[#575f6e] hover:text-[#0b1c30] underline px-1 shrink-0 cursor-pointer font-medium"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+
+              {/* Animated Expandable Search Bar: Expands Left & Right to Cover the Entire Row */}
+              <form
+                onSubmit={handleSearchSubmit}
+                className={cn(
+                  "absolute inset-x-0 bottom-0 top-4 flex items-center gap-2 transition-all duration-300 ease-out z-10",
+                  mobileSearchExpanded
+                    ? "opacity-100 scale-x-100 pointer-events-auto"
+                    : "opacity-0 scale-x-0 pointer-events-none origin-center"
+                )}
+              >
+                <div className="relative flex-1 flex items-center bg-[#F8FAFC] border border-[#0F172A] rounded-md h-9 px-2.5 shadow-2xs transition-all">
+                  <Search className="w-4 h-4 text-[#0F172A] shrink-0 mr-2" />
+                  <input
+                    ref={mobileSearchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                    }}
+                    placeholder={
+                      activeTab === "questions"
+                        ? "Search questions by topic, keyword..."
+                        : "Search practical insight articles..."
+                    }
+                    className="w-full h-full bg-transparent text-xs text-[#0F172A] placeholder-[#94A3B8] outline-none font-medium"
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        setSearchQuery(appliedSearch);
+                        setMobileSearchExpanded(false);
+                      }
+                    }}
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery("");
+                        mobileSearchInputRef.current?.focus();
+                      }}
+                      aria-label="Clear search text"
+                      className="p-1 text-slate-400 hover:text-slate-700 cursor-pointer transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Search Button */}
+                <button
+                  type="submit"
+                  aria-label="Search"
+                  title="Search"
+                  className="h-9 px-3 rounded-md bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Search</span>
+                </button>
+              </form>
+            </div>
+
+            {/* Active Search Query display below row (Mobile) */}
+            {appliedSearch && (
+              <div className="flex sm:hidden items-center gap-1.5 pt-2 text-xs">
+                <span className="text-black font-semibold">Results:</span>
+                <span className="text-slate-500 font-medium">{appliedSearch}</span>
+                <button
+                  type="button"
+                  onClick={() => {
                     setSearchQuery("");
+                    setAppliedSearch("");
                     setCurrentPage(1);
                   }}
-                  className="text-xs text-[#575f6e] hover:text-[#0b1c30] underline px-1 shrink-0 cursor-pointer font-medium"
+                  title="Clear search"
+                  aria-label="Clear search"
+                  className="inline-flex items-center justify-center p-0.5 ml-0.5 text-slate-400 hover:text-slate-700 rounded transition-colors cursor-pointer"
                 >
-                  Reset
+                  <X className="w-3.5 h-3.5" />
                 </button>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Desktop Controls (hidden on mobile, visible on sm and up) */}
             <div className="hidden sm:flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 pt-4 mt-4 border-t border-[#E2E8F0]/80">
-              {/* Search Input */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder={
-                    activeTab === "questions"
-                      ? "Search questions by operational topic, deal structure, or keywords..."
-                      : "Search knowledge articles, case studies, or frameworks..."
-                  }
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-10 pl-10 pr-12 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md text-[#0F172A] placeholder:text-[#94A3B8] text-xs sm:text-sm focus:outline-none focus:border-[#0F172A] focus:bg-white transition-colors"
-                />
-                <kbd className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-[#E2E8F0] rounded text-[10px] font-mono font-semibold text-[#64748B] bg-white shadow-2xs pointer-events-none">
-                  ⌘K
-                </kbd>
-              </div>
+              {/* Search Input Form */}
+              <form
+                onSubmit={handleSearchSubmit}
+                className="relative flex-1 flex items-center gap-2"
+              >
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder={
+                      activeTab === "questions"
+                        ? "Search questions by operational topic, deal structure, or keywords..."
+                        : "Search knowledge articles, case studies, or frameworks..."
+                    }
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full h-10 pl-10 pr-10 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md text-[#0F172A] placeholder:text-[#94A3B8] text-xs sm:text-sm focus:outline-none focus:border-[#0F172A] focus:bg-white transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery("");
+                        if (appliedSearch) {
+                          setAppliedSearch("");
+                          setCurrentPage(1);
+                        }
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  className="h-10 px-3.5 rounded-md bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Search</span>
+                </button>
+              </form>
 
               {/* Desktop Secondary Controls */}
               <div className="flex items-center gap-2 flex-wrap">
@@ -1002,7 +1093,7 @@ export function InsightsIndexPage() {
                   </select>
                 </div>
 
-                {(selectedTopic !== "All" || selectedSort !== "newest" || searchQuery || filterMode !== "all" || statusFilter !== "all" || filterOnlyVerified) && (
+                {(selectedTopic !== "All" || selectedSort !== "newest" || appliedSearch || searchQuery || filterMode !== "all" || statusFilter !== "all" || filterOnlyVerified) && (
                   <button
                     type="button"
                     onClick={() => {
@@ -1012,6 +1103,7 @@ export function InsightsIndexPage() {
                       setFilterOnlyVerified(false);
                       setFilterMode("all");
                       setSearchQuery("");
+                      setAppliedSearch("");
                       setCurrentPage(1);
                     }}
                     className="text-xs text-[#575f6e] hover:text-[#0b1c30] underline px-2 shrink-0 cursor-pointer"
@@ -1021,6 +1113,27 @@ export function InsightsIndexPage() {
                 )}
               </div>
             </div>
+
+            {/* Active Search Query display below row (Desktop) */}
+            {appliedSearch && (
+              <div className="hidden sm:flex items-center gap-1.5 pt-2 text-xs">
+                <span className="text-black font-semibold">Results:</span>
+                <span className="text-slate-500 font-medium">{appliedSearch}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setAppliedSearch("");
+                    setCurrentPage(1);
+                  }}
+                  title="Clear search"
+                  aria-label="Clear search"
+                  className="inline-flex items-center justify-center p-0.5 ml-0.5 text-slate-400 hover:text-slate-700 rounded transition-colors cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* ═══════════════════════════════════════════════════════════════
@@ -1089,12 +1202,12 @@ export function InsightsIndexPage() {
                       <HelpCircle className="w-6 h-6" />
                     </div>
                     <h3 className="text-base font-bold text-[#0b1c30] mb-1">
-                      {searchQuery || selectedTopic !== "All" || filterMode !== "all"
+                      {appliedSearch || selectedTopic !== "All" || filterMode !== "all"
                         ? "No questions match your current filters"
                         : "No peer questions shared yet."}
                     </h3>
                     <p className="text-xs text-[#575f6e] max-w-sm mx-auto mb-6 leading-relaxed">
-                      {searchQuery || selectedTopic !== "All" || filterMode !== "all"
+                      {appliedSearch || selectedTopic !== "All" || filterMode !== "all"
                         ? "Try clearing your search query or selecting 'All Topics' to see more."
                         : "Verified operators ask specific, tactical questions to resolve growth bottlenecks."}
                     </p>
@@ -1117,7 +1230,7 @@ export function InsightsIndexPage() {
                     const initials = getCompanyInitials(q.business?.company_name || "Verified Enterprise");
 
                     // Show top card on page 1 as PINNED / MANDATE ADVISORY CASE
-                    const isPinnedCase = currentPage === 1 && idx === 0 && filterMode === "all" && !searchQuery;
+                    const isPinnedCase = currentPage === 1 && idx === 0 && filterMode === "all" && !appliedSearch;
 
                     if (isPinnedCase) {
                       return (
@@ -1419,12 +1532,12 @@ export function InsightsIndexPage() {
                       <Lightbulb className="w-6 h-6" />
                     </div>
                     <h3 className="text-base font-bold text-[#0b1c30] mb-1">
-                      {searchQuery || selectedTopic !== "All" || filterMode !== "all" || filterOnlyVerified
+                      {appliedSearch || selectedTopic !== "All" || filterMode !== "all" || filterOnlyVerified
                         ? "No knowledge articles match your current filters"
                         : "No operator knowledge published yet."}
                     </h3>
                     <p className="text-xs text-[#575f6e] max-w-sm mx-auto mb-6 leading-relaxed">
-                      {searchQuery || selectedTopic !== "All" || filterMode !== "all" || filterOnlyVerified
+                      {appliedSearch || selectedTopic !== "All" || filterMode !== "all" || filterOnlyVerified
                         ? "Try resetting your filters or clearing your search query to see more."
                         : "Approved businesses document their operational wins, distribution playbooks, and battle-tested frameworks."}
                     </p>
@@ -1894,66 +2007,6 @@ export function InsightsIndexPage() {
         </SheetContent>
       </Sheet>
 
-      {/* Mobile Compact Search Popup */}
-      <Dialog open={searchModalOpen} onOpenChange={setSearchModalOpen}>
-        <DialogContent className="w-[calc(100vw-2rem)] max-w-sm p-4 sm:p-5 rounded-xl border border-slate-200 bg-white shadow-xl gap-3">
-          <DialogHeader className="p-0 space-y-1 text-left">
-            <DialogTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Search className="w-4 h-4 text-slate-700 shrink-0" />
-              <span>
-                {activeTab === "questions" ? "Search Questions" : "Search Knowledge Articles"}
-              </span>
-            </DialogTitle>
-          </DialogHeader>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSearchQuery(mobileSearchDraft.trim());
-              setCurrentPage(1);
-              setSearchModalOpen(false);
-            }}
-            className="flex flex-col gap-3 pt-1"
-          >
-            <SearchInput
-              value={mobileSearchDraft}
-              onChange={(e) => setMobileSearchDraft(e.target.value)}
-              onClear={() => setMobileSearchDraft("")}
-              placeholder={
-                activeTab === "questions"
-                  ? "Keywords, deal structure, topic..."
-                  : "Articles, case studies, keywords..."
-              }
-              autoFocus
-            />
-            <div className="flex items-center justify-end gap-2 pt-1">
-              {mobileSearchDraft && (
-                <DSButton
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setMobileSearchDraft("");
-                    setSearchQuery("");
-                    setCurrentPage(1);
-                    setSearchModalOpen(false);
-                  }}
-                >
-                  Clear
-                </DSButton>
-              )}
-              <DSButton
-                type="submit"
-                variant="monochrome"
-                size="sm"
-                className="px-4"
-              >
-                Search
-              </DSButton>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       <AskQuestionDialog
         open={askModalOpen}

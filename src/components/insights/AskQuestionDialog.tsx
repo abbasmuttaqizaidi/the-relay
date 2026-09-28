@@ -91,14 +91,10 @@ export function AskQuestionDialog({
 
     if (!title.trim() || title.trim().length < 10) {
       newErrors.title = "Question title must be at least 10 characters.";
-    } else if (title.trim().length > 200) {
-      newErrors.title = "Question title cannot exceed 200 characters.";
     }
 
     if (!description.trim() || description.trim().length < 30) {
       newErrors.description = "Please describe your question in at least 30 characters.";
-    } else if (description.trim().length > 10000) {
-      newErrors.description = "Description cannot exceed 10,000 characters.";
     }
 
     if (!topic) {
@@ -243,16 +239,17 @@ export function AskQuestionDialog({
               <Label htmlFor="question-title" className="text-xs font-semibold text-slate-700">
                 Question / Problem Statement <span className="text-red-500">*</span>
               </Label>
-              <span className="text-[11px] font-mono text-slate-400">
-                {title.length}/200
-              </span>
+              {title.length > 0 && (
+                <span className="text-[11px] font-mono text-slate-400">
+                  {title.length} chars
+                </span>
+              )}
             </div>
             <Input
               id="question-title"
               placeholder="e.g., How do you structure pilot agreements for enterprise SaaS without giving away IP?"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              maxLength={200}
               className="h-10 text-sm bg-white border-slate-200 focus:border-slate-800"
             />
             {errors.title && <p className="text-[11px] text-red-500">{errors.title}</p>}

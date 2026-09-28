@@ -119,14 +119,10 @@ export function ShareInsightDialog({
 
     if (!title.trim() || title.trim().length < 10) {
       newErrors.title = "Insight title must be at least 10 characters.";
-    } else if (title.trim().length > 200) {
-      newErrors.title = "Insight title cannot exceed 200 characters.";
     }
 
     if (!content.trim() || content.trim().length < 50) {
       newErrors.content = "Please write at least 50 characters sharing your insight.";
-    } else if (content.trim().length > 5000) {
-      newErrors.content = "Content cannot exceed 5000 characters.";
     }
 
     if (!topic) {
@@ -243,16 +239,17 @@ export function ShareInsightDialog({
               <Label htmlFor="insight-title" className="text-xs font-semibold text-slate-700">
                 Title <span className="text-red-500">*</span>
               </Label>
-              <span className="text-[11px] font-mono text-slate-400">
-                {title.length}/200
-              </span>
+              {title.length > 0 && (
+                <span className="text-[11px] font-mono text-slate-400">
+                  {title.length} chars
+                </span>
+              )}
             </div>
             <Input
               id="insight-title"
               placeholder="e.g., 3 things we learned while building our B2B sales process"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              maxLength={200}
               className="h-10 text-sm bg-white border-slate-200 focus:border-slate-800"
             />
             {errors.title && <p className="text-[11px] text-red-500">{errors.title}</p>}
@@ -264,9 +261,11 @@ export function ShareInsightDialog({
               <Label htmlFor="insight-content" className="text-xs font-semibold text-slate-700">
                 Content & Takeaway <span className="text-red-500">*</span>
               </Label>
-              <span className="text-[11px] font-mono text-slate-400">
-                {content.length.toLocaleString()}/5,000
-              </span>
+              {content.length > 0 && (
+                <span className="text-[11px] font-mono text-slate-400">
+                  {content.length.toLocaleString()} chars
+                </span>
+              )}
             </div>
             <Textarea
               id="insight-content"
@@ -274,7 +273,6 @@ export function ShareInsightDialog({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={8}
-              maxLength={5000}
               className="text-sm bg-white border-slate-200 focus:border-slate-800 resize-y leading-relaxed"
             />
             {errors.content && <p className="text-[11px] text-red-500">{errors.content}</p>}

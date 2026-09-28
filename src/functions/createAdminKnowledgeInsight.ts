@@ -21,13 +21,11 @@ const createAdminKnowledgeInsightSchema = z
     title: z
       .string()
       .trim()
-      .min(10, "Title must be at least 10 characters")
-      .max(200, "Title cannot exceed 200 characters"),
+      .min(10, "Title must be at least 10 characters"),
     content: z
       .string()
       .trim()
-      .min(50, "Content must be at least 50 characters")
-      .max(5000, "Content cannot exceed 5000 characters"),
+      .min(50, "Content must be at least 50 characters"),
     topic: questionTopicSchema,
     based_on: knowledgeInsightBasedOnSchema.optional().nullable(),
     content_json: z.string().optional().nullable(),

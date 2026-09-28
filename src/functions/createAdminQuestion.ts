@@ -21,13 +21,11 @@ const createAdminQuestionSchema = z
     title: z
       .string()
       .trim()
-      .min(10, "Title must be at least 10 characters")
-      .max(200, "Title cannot exceed 200 characters"),
+      .min(10, "Title must be at least 10 characters"),
     description: z
       .string()
       .trim()
-      .min(30, "Description must be at least 30 characters")
-      .max(10000, "Description cannot exceed 10000 characters"),
+      .min(30, "Description must be at least 30 characters"),
     topic: questionTopicSchema,
     desired_perspective: desiredPerspectiveSchema.optional().nullable(),
     context_content_json: z.string().optional().nullable(),

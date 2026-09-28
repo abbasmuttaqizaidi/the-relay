@@ -72,16 +72,16 @@ describe("Question Rich-Text System", () => {
       expect(result.success).toBe(true);
     });
 
-    it("rejects descriptions exceeding 10,000 characters", () => {
-      const tooLongText = "A".repeat(10001);
+    it("accepts descriptions exceeding 10,000 characters without upper limit", () => {
+      const longText = "A".repeat(10001);
       const input = {
         title: "How do B2B companies automate audit logging at scale?",
-        description: tooLongText,
+        description: longText,
         topic: "Operations",
       };
 
       const result = createQuestionSchema.safeParse(input);
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
     });
 
     it("validates updateQuestionSchema with context_content_json", () => {

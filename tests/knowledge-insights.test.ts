@@ -71,19 +71,16 @@ describe("Insights Feature: Use Case 2 (Knowledge Insights)", () => {
       }
     });
 
-    it("rejects title exceeding 200 characters", () => {
-      const invalid = {
+    it("accepts title exceeding 200 characters without upper limit", () => {
+      const longTitleInput = {
         title: "a".repeat(201),
         content:
           "This is content that is more than fifty characters long to pass the content length validation rule.",
         topic: "Sales",
       };
 
-      const result = createKnowledgeInsightSchema.safeParse(invalid);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain("cannot exceed 200 characters");
-      }
+      const result = createKnowledgeInsightSchema.safeParse(longTitleInput);
+      expect(result.success).toBe(true);
     });
 
     it("rejects content shorter than 50 characters", () => {
@@ -100,18 +97,15 @@ describe("Insights Feature: Use Case 2 (Knowledge Insights)", () => {
       }
     });
 
-    it("rejects content exceeding 5000 characters", () => {
-      const invalid = {
+    it("accepts content exceeding 5000 characters without upper limit", () => {
+      const longContentInput = {
         title: "Valid title for sales process",
         content: "a".repeat(5001),
         topic: "Sales",
       };
 
-      const result = createKnowledgeInsightSchema.safeParse(invalid);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain("cannot exceed 5000 characters");
-      }
+      const result = createKnowledgeInsightSchema.safeParse(longContentInput);
+      expect(result.success).toBe(true);
     });
 
     it("accepts all approved topics including 'Building a System / Business'", () => {
