@@ -772,32 +772,40 @@ export function InsightsIndexPage() {
               <div className="w-full lg:w-auto shrink-0 flex flex-col items-end -mt-3 sm:-mt-4 lg:-mt-3.5">
                 {activeTab === "questions" ? (
                   <div className="w-full sm:w-auto flex flex-col items-end">
-                    {/* Curved Arrow Callout appearing from the upper side with +2px vertical space */}
+                    {/* Curved Arrow Callout appearing from the upper side in orange theme with 'or' at top-right */}
                     <button
                       type="button"
                       id="btn-switch-to-knowledge"
                       onClick={() => handleTabChange("knowledge")}
-                      className="group inline-flex items-center gap-1 cursor-pointer mb-1.5 pr-2 transition-all select-none self-end"
+                      className="group inline-flex items-center gap-1 cursor-pointer mb-1.5 pr-2 transition-all select-none self-end active:scale-95"
                       title="Switch to Knowledge"
                     >
                       <span
                         style={{ fontFamily: "'Caveat', 'Dancing Script', cursive" }}
-                        className="text-base sm:text-lg font-bold italic text-[#0F172A] group-hover:text-[#EA580C] transition-colors whitespace-nowrap tracking-wide leading-none"
+                        className="text-base sm:text-lg font-bold italic text-[#EA580C] group-hover:text-[#C2410C] transition-colors whitespace-nowrap tracking-wide leading-none"
                       >
                         Share knowledge
                       </span>
-                      <svg
-                        className="w-6 h-3.5 text-slate-400 group-hover:text-[#0F172A] transition-all shrink-0 group-hover:-translate-y-0.5"
-                        viewBox="0 0 32 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M 26 23 C 26 11, 16 6, 6 6" />
-                        <path d="M 11 2 L 5 6 L 11 10" />
-                      </svg>
+                      <div className="relative inline-flex items-center shrink-0">
+                        <svg
+                          className="w-6 h-3.5 text-[#EA580C] group-hover:text-[#C2410C] transition-all shrink-0 group-hover:-translate-y-0.5"
+                          viewBox="0 0 32 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M 26 23 C 26 11, 16 6, 6 6" />
+                          <path d="M 11 2 L 5 6 L 11 10" />
+                        </svg>
+                        <span
+                          style={{ fontFamily: "'Caveat', 'Dancing Script', cursive" }}
+                          className="absolute -top-2 -right-0.5 text-sm sm:text-base font-bold italic text-[#EA580C] group-hover:text-[#C2410C] transition-colors leading-none select-none pointer-events-none"
+                        >
+                          or
+                        </span>
+                      </div>
                     </button>
 
                     <button
@@ -812,32 +820,40 @@ export function InsightsIndexPage() {
                   </div>
                 ) : (
                   <div className="w-full sm:w-auto flex flex-col items-end">
-                    {/* Curved Arrow Callout appearing from the upper side with +2px vertical space */}
+                    {/* Curved Arrow Callout appearing from the upper side in orange theme with 'or' at top-right */}
                     <button
                       type="button"
                       id="btn-switch-to-questions"
                       onClick={() => handleTabChange("questions")}
-                      className="group inline-flex items-center gap-1 cursor-pointer mb-1.5 pr-2 transition-all select-none self-end"
+                      className="group inline-flex items-center gap-1 cursor-pointer mb-1.5 pr-2 transition-all select-none self-end active:scale-95"
                       title="Switch to Questions"
                     >
                       <span
                         style={{ fontFamily: "'Caveat', 'Dancing Script', cursive" }}
-                        className="text-base sm:text-lg font-bold italic text-[#0F172A] group-hover:text-[#EA580C] transition-colors whitespace-nowrap tracking-wide leading-none"
+                        className="text-base sm:text-lg font-bold italic text-[#EA580C] group-hover:text-[#C2410C] transition-colors whitespace-nowrap tracking-wide leading-none"
                       >
                         Ask question
                       </span>
-                      <svg
-                        className="w-6 h-3.5 text-slate-400 group-hover:text-[#0F172A] transition-all shrink-0 group-hover:-translate-y-0.5"
-                        viewBox="0 0 32 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M 26 23 C 26 11, 16 6, 6 6" />
-                        <path d="M 11 2 L 5 6 L 11 10" />
-                      </svg>
+                      <div className="relative inline-flex items-center shrink-0">
+                        <svg
+                          className="w-6 h-3.5 text-[#EA580C] group-hover:text-[#C2410C] transition-all shrink-0 group-hover:-translate-y-0.5"
+                          viewBox="0 0 32 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M 26 23 C 26 11, 16 6, 6 6" />
+                          <path d="M 11 2 L 5 6 L 11 10" />
+                        </svg>
+                        <span
+                          style={{ fontFamily: "'Caveat', 'Dancing Script', cursive" }}
+                          className="absolute -top-2 -right-0.5 text-sm sm:text-base font-bold italic text-[#EA580C] group-hover:text-[#C2410C] transition-colors leading-none select-none pointer-events-none"
+                        >
+                          or
+                        </span>
+                      </div>
                     </button>
 
                     <button
