@@ -11,11 +11,33 @@ export type InterestStatus = "pending" | "accepted" | "declined" | "withdrawn" |
 // DATABASE MODELS
 // ---------------------------------------------------------
 
+export type UserType = "business" | "community_member" | "associate";
+
 export interface User {
   id: string; // UUID
   clerk_user_id: string;
   email: string | null;
+  type?: UserType;
+  name?: string | null;
+  handle?: string | null;
+  title?: string | null;
+  bio?: string | null;
+  avatar_type?: string | null;
+  avatar_url?: string | null;
+  expertise_domain?: string | null;
+  linkedin_url?: string | null;
   created_at: string;
+}
+
+export interface UpdateCommunityProfileDTO {
+  name: string;
+  handle: string;
+  title: string;
+  bio?: string;
+  avatar_type?: "monogram" | "photo";
+  avatar_url?: string | null;
+  expertise_domain?: string | null;
+  linkedin_url?: string | null;
 }
 
 export interface ReliabilityEvent {
@@ -543,5 +565,44 @@ export interface ListKnowledgeInsightsFilters {
   offset?: number;
   cursor?: string;
 }
+
+// ---------------------------------------------------------
+// INSIGHT COMMENTS / DISCUSSION TYPES (3 Identity Tiers)
+// ---------------------------------------------------------
+export type CommentAuthorType = "general_public" | "relay_business" | "business_member";
+
+export interface InsightComment {
+  id: string;
+  item_type: "question" | "knowledge";
+  item_id: string;
+  user_id?: string | null;
+  author_type: CommentAuthorType;
+  author_name: string;
+  author_email?: string | null;
+  author_avatar?: string | null;
+  author_title?: string | null;
+  business_id?: string | null;
+  parent_id?: string | null;
+  content: string;
+  status: "published" | "hidden" | "flagged";
+  upvotes: number;
+  created_at: string;
+  updated_at: string;
+  business?: Business | null;
+  replies?: InsightComment[];
+}
+
+export interface CreateInsightCommentDTO {
+  item_type: "question" | "knowledge";
+  item_id: string;
+  author_type: CommentAuthorType;
+  content: string;
+  author_name?: string;
+  author_title?: string | null;
+  author_avatar?: string | null;
+  business_id?: string | null;
+  parent_id?: string | null;
+}
+
 
 

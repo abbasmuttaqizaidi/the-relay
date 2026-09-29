@@ -23,6 +23,8 @@ import {
   Calendar,
   Globe,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Eye,
   TrendingUp,
 } from "lucide-react";
@@ -52,6 +54,7 @@ import { getQuestions } from "../functions/getQuestions";
 import { closeQuestion } from "../functions/closeQuestion";
 import { deletePerspective } from "../functions/deletePerspective";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
+import { getCommunityProfile } from "../functions/communityProfile";
 import { checkAdminSession } from "../functions/checkAdminSession";
 import { recordInsightView } from "../functions/recordInsightView";
 import { getOrCreateVisitorId, hasViewedLocally, markViewedLocally } from "@/lib/visitor";
@@ -61,6 +64,14 @@ import { ShareModal } from "../components/insights/ShareModal";
 import { QuestionContentRenderer } from "../components/insights/QuestionContentRenderer";
 import { AdminIncreaseViewsDialog } from "../components/admin/AdminIncreaseViewsDialog";
 import { CompanyLogo } from "../components/company-logo";
+import { InsightDiscussionSection } from "../components/insights/InsightDiscussionSection";
+import { InsightsPublicAuthPromptModal } from "../components/insights/InsightsPublicAuthPromptModal";
+import { CommunityContributorAuthModal } from "../components/insights/CommunityContributorAuthModal";
+import {
+  hasGlobalAuthPromptBeenShown,
+  markGlobalAuthPromptShown,
+  shouldSkipAuthPrompt,
+} from "@/lib/discussion-session";
 import { Question, Perspective, Business, DesiredPerspective } from "../types";
 import { createSeoMeta, createArticleSchema, SITE_URL } from "@/lib/seo";
 
@@ -160,7 +171,7 @@ function formatPublishedDate(dateStr?: string | Date | null): string {
 
 export function QuestionDetailPage() {
   const { id } = Route.useParams();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
 
   const [question, setQuestion] = useState<Question | null>(null);
@@ -170,6 +181,45 @@ export function QuestionDetailPage() {
   const [viewsCount, setViewsCount] = useState<number>(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [increaseViewsOpen, setIncreaseViewsOpen] = useState(false);
+
+  // Public user discussion authentication prompt modal state
+  const [publicAuthPromptOpen, setPublicAuthPromptOpen] = useState(false);
+  const [contributorModalOpen, setContributorModalOpen] = useState(false);
+
+  // Automatically prompt public users once per session across the entire app
+  useEffect(() => {
+    if (!isLoaded || isSignedIn) return;
+    if (shouldSkipAuthPrompt({ isAdmin })) return;
+
+    const timer = setTimeout(() => {
+      if (!shouldSkipAuthPrompt({ isAdmin })) {
+        setPublicAuthPromptOpen(true);
+        markGlobalAuthPromptShown();
+      }
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [isLoaded, isSignedIn, id, isAdmin]);
+
+  // Check if user returned from Google OAuth initiated from the public prompt modal
+  useEffect(() => {
+    if (isLoaded && isSignedIn && typeof window !== "undefined") {
+      const pendingContributor = sessionStorage.getItem("relay_pending_contributor_onboarding");
+      if (pendingContributor) {
+        sessionStorage.removeItem("relay_pending_contributor_onboarding");
+        getCommunityProfile()
+          .then((profile) => {
+            if (profile?.name && profile?.handle && profile?.type === "community_member") {
+              toast.success(`Welcome back, ${profile.name}! You are ready to join discussions.`);
+            } else {
+              setContributorModalOpen(true);
+            }
+          })
+          .catch(() => {
+            setContributorModalOpen(true);
+          });
+      }
+    }
+  }, [isLoaded, isSignedIn]);
 
   // Check admin session
   useEffect(() => {
@@ -195,6 +245,7 @@ export function QuestionDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [businessSheetOpen, setBusinessSheetOpen] = useState(false);
+  const [expandedPerspectiveIds, setExpandedPerspectiveIds] = useState<Set<string>>(new Set());
 
   // Fetch current user business profile
   useEffect(() => {
@@ -840,9 +891,46 @@ export function QuestionDetailPage() {
                     </div>
 
                     {/* Perspective Content */}
-                    <div className="text-sm sm:text-base text-slate-800 leading-relaxed whitespace-pre-line space-y-3 font-normal py-1">
-                      {perspective.content}
-                    </div>
+                    {(() => {
+                      const isLongContent =
+                        perspective.content.length > 320 ||
+                        (perspective.content.match(/\n/g) || []).length >= 4;
+                      const isExpanded = expandedPerspectiveIds.has(perspective.id);
+
+                      return (
+                        <div className="py-1">
+                          <div
+                            className={`text-sm sm:text-base text-slate-800 leading-relaxed whitespace-pre-line space-y-3 font-normal ${
+                              isLongContent && !isExpanded ? "line-clamp-4" : ""
+                            }`}
+                          >
+                            {perspective.content}
+                          </div>
+
+                          {isLongContent && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setExpandedPerspectiveIds((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(perspective.id)) next.delete(perspective.id);
+                                  else next.add(perspective.id);
+                                  return next;
+                                });
+                              }}
+                              className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-slate-900 hover:text-slate-600 transition-colors cursor-pointer select-none"
+                            >
+                              <span>{isExpanded ? "Show less" : "See more"}</span>
+                              {isExpanded ? (
+                                <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Context & Qualification Section */}
                     <div className="pt-3 border-t border-slate-100 space-y-2.5">
@@ -955,6 +1043,17 @@ export function QuestionDetailPage() {
               </div>
             </div>
           )}
+
+          {/* ═══════════════════════════════════════════════════════════════
+              COMMUNITY & COMMERCIAL DISCUSSION (3 Identity Tiers)
+              ═══════════════════════════════════════════════════════════════ */}
+          <InsightDiscussionSection
+            itemType="question"
+            itemId={question.id}
+            itemTitle={question.title}
+            currentUserBusiness={currentUserBusiness}
+            isSignedIn={isSignedIn}
+          />
         </div>
       </div>
     </div>
@@ -1212,6 +1311,27 @@ export function QuestionDetailPage() {
           onSuccess={loadQuestionData}
         />
       )}
+
+      {/* Public user discussion login prompt modal */}
+      <InsightsPublicAuthPromptModal
+        open={publicAuthPromptOpen}
+        onOpenChange={setPublicAuthPromptOpen}
+        onOpenContributorSetup={() => setContributorModalOpen(true)}
+        tabName="questions"
+      />
+
+      {/* 3-Screen Contributor Profile Setup Modal */}
+      <CommunityContributorAuthModal
+        open={contributorModalOpen}
+        onOpenChange={setContributorModalOpen}
+        pendingComment=""
+        itemType="question"
+        itemId={id}
+        itemTitle={question?.title || "Business Question"}
+        onCommentPublished={() => {
+          loadQuestionData();
+        }}
+      />
     </div>
   );
 }

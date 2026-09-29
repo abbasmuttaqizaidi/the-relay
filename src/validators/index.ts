@@ -431,3 +431,41 @@ export const deleteCustomContactSchema = z.object({
 export const acceptLegalAcknowledgementSchema = z.object({
   marketingConsent: z.boolean().optional(),
 });
+
+export const commentAuthorTypeSchema = z.enum(["general_public", "relay_business", "business_member"]);
+
+export const createInsightCommentSchema = z.object({
+  item_type: z.enum(["question", "knowledge"]),
+  item_id: uuidSchema,
+  author_type: commentAuthorTypeSchema,
+  content: z
+    .string()
+    .trim()
+    .min(3, "Comment must be at least 3 characters")
+    .max(2000, "Comment cannot exceed 2000 characters"),
+  author_name: z.string().trim().max(100).optional(),
+  author_title: z.string().trim().max(100).optional().nullable(),
+  author_avatar: z.union([z.string().url(), z.literal("")]).optional().nullable(),
+  business_id: uuidSchema.optional().nullable(),
+  parent_id: uuidSchema.optional().nullable(),
+});
+
+export const toggleCommentUpvoteSchema = z.object({
+  comment_id: uuidSchema,
+});
+
+export const updateCommunityProfileSchema = z.object({
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
+  handle: z.string().trim().min(2, "Handle must be at least 2 characters").max(50),
+  title: z.string().trim().min(2, "Title must be at least 2 characters").max(100),
+  bio: z.string().trim().max(250).optional().nullable(),
+  avatar_type: z.enum(["monogram", "photo"]).optional(),
+  avatar_url: z.union([z.string().url(), z.literal("")]).optional().nullable(),
+  expertise_domain: z.string().trim().optional().nullable(),
+  linkedin_url: z.string().trim().optional().nullable(),
+});
+
+export const setUserTypeSchema = z.object({
+  type: z.enum(["business", "community_member", "associate"]),
+});
+

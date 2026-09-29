@@ -33,6 +33,7 @@ import { getKnowledgeInsights } from "../functions/getKnowledgeInsights";
 import { deleteKnowledgeInsight } from "../functions/deleteKnowledgeInsight";
 import { archiveKnowledgeInsight } from "../functions/archiveKnowledgeInsight";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
+import { getCommunityProfile } from "../functions/communityProfile";
 import { checkAdminSession } from "../functions/checkAdminSession";
 import { recordInsightView } from "../functions/recordInsightView";
 import { getOrCreateVisitorId, hasViewedLocally, markViewedLocally } from "@/lib/visitor";
@@ -41,6 +42,14 @@ import { ShareModal } from "../components/insights/ShareModal";
 import { AdminIncreaseViewsDialog } from "../components/admin/AdminIncreaseViewsDialog";
 import { CompanyLogo } from "../components/company-logo";
 import { KnowledgeContentRenderer } from "../components/insights/KnowledgeContentRenderer";
+import { InsightDiscussionSection } from "../components/insights/InsightDiscussionSection";
+import { InsightsPublicAuthPromptModal } from "../components/insights/InsightsPublicAuthPromptModal";
+import { CommunityContributorAuthModal } from "../components/insights/CommunityContributorAuthModal";
+import {
+  hasGlobalAuthPromptBeenShown,
+  markGlobalAuthPromptShown,
+  shouldSkipAuthPrompt,
+} from "@/lib/discussion-session";
 import { KnowledgeInsight, Business, KnowledgeInsightBasedOn } from "../types";
 import { createSeoMeta, createArticleSchema, SITE_URL } from "@/lib/seo";
 
@@ -315,7 +324,7 @@ function renderArticleContent(rawContent: string) {
 
 export function KnowledgeDetailPage() {
   const { id } = Route.useParams();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
 
   const [insight, setInsight] = useState<KnowledgeInsight | null>(null);
@@ -325,6 +334,45 @@ export function KnowledgeDetailPage() {
   const [viewsCount, setViewsCount] = useState<number>(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [increaseViewsOpen, setIncreaseViewsOpen] = useState(false);
+
+  // Public user discussion authentication prompt modal state
+  const [publicAuthPromptOpen, setPublicAuthPromptOpen] = useState(false);
+  const [contributorModalOpen, setContributorModalOpen] = useState(false);
+
+  // Automatically prompt public users once per session across the entire app
+  useEffect(() => {
+    if (!isLoaded || isSignedIn) return;
+    if (shouldSkipAuthPrompt({ isAdmin })) return;
+
+    const timer = setTimeout(() => {
+      if (!shouldSkipAuthPrompt({ isAdmin })) {
+        setPublicAuthPromptOpen(true);
+        markGlobalAuthPromptShown();
+      }
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [isLoaded, isSignedIn, id, isAdmin]);
+
+  // Check if user returned from Google OAuth initiated from the public prompt modal
+  useEffect(() => {
+    if (isLoaded && isSignedIn && typeof window !== "undefined") {
+      const pendingContributor = sessionStorage.getItem("relay_pending_contributor_onboarding");
+      if (pendingContributor) {
+        sessionStorage.removeItem("relay_pending_contributor_onboarding");
+        getCommunityProfile()
+          .then((profile) => {
+            if (profile?.name && profile?.handle && profile?.type === "community_member") {
+              toast.success(`Welcome back, ${profile.name}! You are ready to join discussions.`);
+            } else {
+              setContributorModalOpen(true);
+            }
+          })
+          .catch(() => {
+            setContributorModalOpen(true);
+          });
+      }
+    }
+  }, [isLoaded, isSignedIn]);
 
   // Check admin session
   useEffect(() => {
@@ -489,7 +537,7 @@ export function KnowledgeDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white py-16">
-        <div className="max-w-[720px] mx-auto px-4 sm:px-6 space-y-8 animate-pulse">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8 animate-pulse">
           <div className="h-4 w-28 bg-slate-200 rounded" />
           <div className="space-y-3">
             <div className="h-10 w-full bg-slate-200 rounded" />
@@ -551,7 +599,7 @@ export function KnowledgeDetailPage() {
           1. TOP NAVIGATION / BREADCRUMB
           ═══════════════════════════════════════════════════════════════════ */}
       <nav className="border-b border-slate-200/80 bg-white/95 backdrop-blur-xs sticky top-0 z-20">
-        <div className="max-w-[720px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <Link
             to="/insights"
             search={{ tab: "knowledge" } as any}
@@ -613,203 +661,259 @@ export function KnowledgeDetailPage() {
       {/* ═══════════════════════════════════════════════════════════════════
           2. MAIN EDITORIAL ARTICLE CANVAS (NO BOXED CARD)
           ═══════════════════════════════════════════════════════════════════ */}
-      <main className="max-w-[720px] mx-auto px-4 sm:px-6 pt-5 sm:pt-7">
-        {/* Draft Notice for Owner */}
-        {insight.status === "draft" && (
-          <div className="mb-8 p-3.5 bg-amber-50/90 border border-amber-200 rounded flex items-center justify-between gap-3 text-xs text-amber-800 font-sans">
-            <div className="flex items-center gap-2">
-              <Lock className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>
-                This knowledge article is currently saved as a <strong>draft</strong> and is only visible to you.
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-5 sm:pt-7">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          {/* ═══════════════════════════════════════════════════════════════
+              LEFT COLUMN: MAIN ARTICLE CANVAS & DISCUSSION (8 cols)
+              ═══════════════════════════════════════════════════════════════ */}
+          <div className="lg:col-span-8 min-w-0">
+            {/* Draft Notice for Owner */}
+            {insight.status === "draft" && (
+              <div className="mb-8 p-3.5 bg-amber-50/90 border border-amber-200 rounded flex items-center justify-between gap-3 text-xs text-amber-800 font-sans">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>
+                    This knowledge article is currently saved as a <strong>draft</strong> and is only visible to you.
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => navigate({ to: `/insights/knowledge/${insight.id}/edit` })}
+                  className="bg-amber-800 hover:bg-amber-900 text-white text-xs font-mono shrink-0 cursor-pointer"
+                >
+                  Resume Editing
+                </Button>
+              </div>
+            )}
+
+            {/* Archived Notice for Owner */}
+            {insight.status === "archived" && (
+              <div className="mb-8 p-3.5 bg-amber-50/90 border border-amber-200 rounded flex items-center gap-2.5 text-xs text-amber-800 font-sans">
+                <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>
+                  This insight is currently <strong>archived</strong> and is not visible in the public Knowledge directory.
+                </span>
+              </div>
+            )}
+
+            {/* 2. Topic Label */}
+            <div className="mb-1.5 sm:mb-2">
+              <span className="text-xs sm:text-[13px] font-mono uppercase tracking-[0.18em] font-bold text-orange-600">
+                {insight.topic}
               </span>
             </div>
-            <Button
-              size="sm"
-              onClick={() => navigate({ to: `/insights/knowledge/${insight.id}/edit` })}
-              className="bg-amber-800 hover:bg-amber-900 text-white text-xs font-mono shrink-0 cursor-pointer"
-            >
-              Resume Editing
-            </Button>
-          </div>
-        )}
 
-        {/* Archived Notice for Owner */}
-        {insight.status === "archived" && (
-          <div className="mb-8 p-3.5 bg-amber-50/90 border border-amber-200 rounded flex items-center gap-2.5 text-xs text-amber-800 font-sans">
-            <Lock className="w-4 h-4 text-amber-600 shrink-0" />
-            <span>
-              This insight is currently <strong>archived</strong> and is not visible in the public Knowledge directory.
-            </span>
-          </div>
-        )}
+            {/* 3. Large Editorial Article Title */}
+            <h1 className="text-3xl sm:text-4xl md:text-[42px] font-bold tracking-tight text-slate-950 leading-[1.18] sm:leading-[1.14] font-display mb-3.5 sm:mb-4">
+              {insight.title}
+            </h1>
 
-        {/* 2. Topic Label */}
-        <div className="mb-1.5 sm:mb-2">
-          <span className="text-xs sm:text-[13px] font-mono uppercase tracking-[0.18em] font-bold text-orange-600">
-            {insight.topic}
-          </span>
-        </div>
+            {/* 5, 6, 7. Author Info, Date, Reading Time, Views, Industry */}
+            <div className="py-3 sm:py-3.5 border-y border-slate-200/80 flex items-center mb-4 sm:mb-5">
+              <div className="flex items-center gap-3.5">
+                <CompanyLogo
+                  src={insight.business?.logo_url}
+                  name={insight.business?.company_name}
+                  className="w-11 h-11 rounded object-contain border border-slate-200 p-0.5 shrink-0 bg-white"
+                  fallbackClassName="w-11 h-11 rounded bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs uppercase border border-slate-200 shrink-0"
+                  textClassName="text-xs font-mono font-bold"
+                />
+                <div>
+                  {/* Row 1: Business identity + seal */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-slate-900 font-sans">
+                      {insight.business?.company_name || "Verified Business"}
+                    </span>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" title="Verified Enterprise" />
+                    <span className="hidden sm:inline text-[11px] font-mono text-slate-400">Approved Business</span>
+                  </div>
 
-        {/* 3. Large Editorial Article Title */}
-        <h1 className="text-3xl sm:text-4xl md:text-[44px] font-bold tracking-tight text-slate-950 leading-[1.18] sm:leading-[1.14] font-display mb-3.5 sm:mb-4">
-          {insight.title}
-        </h1>
+                  {/* Row 2: Date · Min Read · Views (Eye icon only + 1.7k compact format) */}
+                  <div className="text-xs text-slate-500 font-sans mt-0.5 flex flex-wrap items-center gap-1.5">
+                    <span>{formatPublishedDate(insight.published_at || insight.created_at)}</span>
+                    <span>·</span>
+                    <span>{calculateReadingTime(insight.content)}</span>
+                    <span>·</span>
+                    {isAdmin ? (
+                      <button
+                        type="button"
+                        onClick={() => setIncreaseViewsOpen(true)}
+                        className="inline-flex items-center gap-1 text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-300 px-1.5 py-0.5 rounded font-mono text-[11px] cursor-pointer transition-colors"
+                        title="Admin: Boost Views"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-slate-500" />
+                        <span>{formatCompactNumber(viewsCount)}</span>
+                        <TrendingUp className="w-2.5 h-2.5 text-emerald-600" />
+                      </button>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-slate-600 font-mono text-[11px]">
+                        <Eye className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{formatCompactNumber(viewsCount)}</span>
+                      </span>
+                    )}
+                  </div>
 
-        {/* 5, 6, 7. Author Info, Date, Reading Time, Views, Industry */}
-        <div className="py-3 sm:py-3.5 border-y border-slate-200/80 flex items-center mb-4 sm:mb-5">
-          <div className="flex items-center gap-3.5">
-            <CompanyLogo
-              src={insight.business?.logo_url}
-              name={insight.business?.company_name}
-              className="w-11 h-11 rounded object-contain border border-slate-200 p-0.5 shrink-0 bg-white"
-              fallbackClassName="w-11 h-11 rounded bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs uppercase border border-slate-200 shrink-0"
-              textClassName="text-xs font-mono font-bold"
-            />
-            <div>
-              {/* Row 1: Business identity + seal */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-bold text-slate-900 font-sans">
-                  {insight.business?.company_name || "Verified Business"}
-                </span>
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" title="Verified Enterprise" />
-                <span className="hidden sm:inline text-[11px] font-mono text-slate-400">Approved Business</span>
+                  {/* Row 3: Logistics or dynamic industry/topic */}
+                  {(insight.business?.industry || insight.topic) && (
+                    <div className="text-xs text-slate-500 font-sans mt-0.5">
+                      <span>{insight.business?.industry || insight.topic}</span>
+                    </div>
+                  )}
+                </div>
               </div>
+            </div>
 
-              {/* Row 2: Date · Min Read · Views (Eye icon only + 1.7k compact format) */}
-              <div className="text-xs text-slate-500 font-sans mt-0.5 flex flex-wrap items-center gap-1.5">
-                <span>{formatPublishedDate(insight.published_at || insight.created_at)}</span>
-                <span>·</span>
-                <span>{calculateReadingTime(insight.content)}</span>
-                <span>·</span>
-                {isAdmin ? (
-                  <button
-                    type="button"
-                    onClick={() => setIncreaseViewsOpen(true)}
-                    className="inline-flex items-center gap-1 text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-300 px-1.5 py-0.5 rounded font-mono text-[11px] cursor-pointer transition-colors"
-                    title="Admin: Boost Views"
+            {/* 9. Article Content Body (Editorial Typography with Tiptap JSON support) */}
+            <article className="pb-12 [&_p:first-child]:mt-0 [&>*:first-child]:mt-0">
+              <KnowledgeContentRenderer
+                contentJson={insight.content_json}
+                plainTextFallback={insight.content}
+              />
+            </article>
+
+            {/* 10. Discussion & Comments Section (3 Identity Tiers) */}
+            <InsightDiscussionSection
+              itemType="knowledge"
+              itemId={insight.id}
+              itemTitle={insight.title}
+              currentUserBusiness={currentUserBusiness}
+              isSignedIn={isSignedIn}
+            />
+
+            {/* 12. The Relay Insights Conversion Block */}
+            <div className="py-12 border-t border-slate-200/80">
+              <div className="p-8 sm:p-10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white rounded-[4px] text-center space-y-4 shadow-sm">
+                <span className="text-[10.5px] font-mono uppercase tracking-[0.2em] text-orange-400 font-bold block">
+                  The Relay Insights
+                </span>
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-display">
+                  Practical knowledge and perspectives from verified businesses.
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed font-sans">
+                  Connect with vetted operators, exchange high-value business opportunities, and share lessons without social media noise.
+                </p>
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <Link
+                    to="/signup"
+                    className="w-full sm:w-auto inline-flex items-center justify-center text-xs font-mono uppercase tracking-wider font-bold bg-orange-600 hover:bg-orange-500 text-white px-5 py-2.5 rounded-[2px] transition-colors shadow-xs"
                   >
-                    <Eye className="w-3.5 h-3.5 text-slate-500" />
-                    <span>{formatCompactNumber(viewsCount)}</span>
-                    <TrendingUp className="w-2.5 h-2.5 text-emerald-600" />
-                  </button>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-slate-600 font-mono text-[11px]">
-                    <Eye className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{formatCompactNumber(viewsCount)}</span>
+                    Join The Relay
+                  </Link>
+                  <Link
+                    to="/insights"
+                    className="w-full sm:w-auto inline-flex items-center justify-center text-xs font-mono uppercase tracking-wider font-semibold border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-200 px-4 py-2.5 rounded-[2px] transition-colors"
+                  >
+                    Explore Insights
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              RIGHT SIDEBAR: RELATED KNOWLEDGE & PUBLISHER INFO (4 cols)
+              ═══════════════════════════════════════════════════════════════ */}
+          <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-20">
+            {/* 1. Author / Publisher Profile Card */}
+            {insight.business && (
+              <div className="bg-white border border-slate-200/90 rounded-sm p-5 space-y-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <div className="pb-2 border-b border-slate-100">
+                  <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-400">
+                    Published By
                   </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CompanyLogo
+                    src={insight.business.logo_url}
+                    name={insight.business.company_name}
+                    className="w-10 h-10 rounded object-contain border border-slate-200 p-0.5 shrink-0 bg-white"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-sm text-slate-900 truncate">
+                      {insight.business.company_name}
+                    </div>
+                    <div className="text-xs text-slate-500 truncate">
+                      {insight.business.industry || "Relay Verified Member"}
+                    </div>
+                  </div>
+                </div>
+                {insight.business.description && (
+                  <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed pt-2 border-t border-slate-100">
+                    {insight.business.description}
+                  </p>
+                )}
+                {insight.business.hq_location && (
+                  <div className="text-[11px] font-mono text-slate-400 pt-1 border-t border-slate-100">
+                    📍 {insight.business.hq_location}
+                  </div>
                 )}
               </div>
+            )}
 
-              {/* Row 3: Logistics or dynamic industry/topic */}
-              {(insight.business?.industry || insight.topic) && (
-                <div className="text-xs text-slate-500 font-sans mt-0.5">
-                  <span>{insight.business?.industry || insight.topic}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* 9. Article Content Body (Editorial Typography with Tiptap JSON support) */}
-        <article className="pb-12 [&_p:first-child]:mt-0 [&>*:first-child]:mt-0">
-          <KnowledgeContentRenderer
-            contentJson={insight.content_json}
-            plainTextFallback={insight.content}
-          />
-        </article>
-
-        {/* 10. "Based on" Metadata Block */}
-        {insight.based_on && (
-          <div className="pt-8 pb-10 border-t border-slate-200/80">
-            <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-slate-400 font-bold block mb-2.5">
-              Based On
-            </span>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-slate-100 border border-slate-200/80 text-slate-800 text-xs sm:text-sm font-medium font-sans">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-600 shrink-0" />
-              <span>{BASED_ON_LABELS[insight.based_on] || insight.based_on}</span>
-            </div>
-          </div>
-        )}
-
-        {/* 12. Related Knowledge */}
-        {relatedInsights.length > 0 && (
-          <div className="py-10 border-t border-slate-200/80">
-            <div className="flex items-center justify-between mb-6">
-              <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-slate-400 font-bold">
-                Related Knowledge
-              </span>
-              <Link
-                to="/insights"
-                search={{ tab: "knowledge" } as any}
-                className="text-xs font-mono uppercase tracking-wider text-slate-600 hover:text-orange-600 font-semibold transition-colors flex items-center gap-1"
-              >
-                <span>View all</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-              {relatedInsights.map((rel) => {
-                const readingTime = calculateReadingTime(rel.content);
-                return (
+            {/* 2. Related Knowledge Sidebar Card */}
+            {relatedInsights.length > 0 && (
+              <div className="bg-white border border-slate-200/90 rounded-sm p-5 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-slate-400 font-bold">
+                    Related Knowledge
+                  </span>
                   <Link
-                    key={rel.id}
-                    to="/insights/knowledge/$id"
-                    params={{ id: rel.id }}
-                    className="p-5 bg-white border border-slate-200/80 hover:border-slate-300 rounded-[3px] transition-all hover:shadow-xs flex flex-col justify-between group space-y-3"
+                    to="/insights"
+                    search={{ tab: "knowledge" } as any}
+                    className="text-xs font-mono uppercase tracking-wider text-slate-500 hover:text-orange-600 font-semibold transition-colors flex items-center gap-1"
                   >
-                    <div className="space-y-2">
-                      <span className="text-[9.5px] font-mono uppercase font-bold text-orange-700 bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded inline-block">
-                        {rel.topic}
-                      </span>
-                      <h4 className="text-sm font-bold text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-2 leading-snug font-sans">
-                        {rel.title}
-                      </h4>
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed font-sans">
-                        {rel.content}
-                      </p>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-mono text-slate-400">
-                      <span className="truncate max-w-[130px] text-slate-600 font-sans font-medium">
-                        {rel.business?.company_name || "Verified Business"}
-                      </span>
-                      <span className="shrink-0">{readingTime}</span>
-                    </div>
+                    <span>View all</span>
+                    <ArrowRight className="w-3 h-3" />
                   </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
+                </div>
 
-        {/* 13. The Relay Insights Conversion Block */}
-        <div className="py-12 border-t border-slate-200/80">
-          <div className="p-8 sm:p-10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white rounded-[4px] text-center space-y-4 shadow-sm">
-            <span className="text-[10.5px] font-mono uppercase tracking-[0.2em] text-orange-400 font-bold block">
-              The Relay Insights
-            </span>
-            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-display">
-              Practical knowledge and perspectives from verified businesses.
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed font-sans">
-              Connect with vetted operators, exchange high-value business opportunities, and share lessons without social media noise.
-            </p>
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link
-                to="/signup"
-                className="w-full sm:w-auto inline-flex items-center justify-center text-xs font-mono uppercase tracking-wider font-bold bg-orange-600 hover:bg-orange-500 text-white px-5 py-2.5 rounded-[2px] transition-colors shadow-xs"
-              >
-                Join The Relay
-              </Link>
-              <Link
-                to="/insights"
-                className="w-full sm:w-auto inline-flex items-center justify-center text-xs font-mono uppercase tracking-wider font-semibold border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-200 px-4 py-2.5 rounded-[2px] transition-colors"
-              >
-                Explore Insights
-              </Link>
-            </div>
-          </div>
+                <div className="divide-y divide-slate-100">
+                  {relatedInsights.map((rel) => {
+                    const readingTime = calculateReadingTime(rel.content);
+                    return (
+                      <Link
+                        key={rel.id}
+                        to="/insights/knowledge/$id"
+                        params={{ id: rel.id }}
+                        className="block pt-4 first:pt-0 group space-y-2 transition-all"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9.5px] font-mono uppercase font-bold text-orange-700 bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded">
+                            {rel.topic}
+                          </span>
+                          <span className="text-[11px] font-mono text-slate-400">• {readingTime}</span>
+                        </div>
+                        <h4 className="text-sm font-semibold text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-2 leading-snug font-sans">
+                          {rel.title}
+                        </h4>
+                        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed font-sans">
+                          {rel.content}
+                        </p>
+                        <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 pt-0.5">
+                          <span className="truncate max-w-[200px] text-slate-600 font-sans font-medium">
+                            {rel.business?.company_name || "Verified Business"}
+                          </span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 3. Based on Metadata Card */}
+            {insight.based_on && (
+              <div className="bg-white border border-slate-200/90 rounded-sm p-4 space-y-2 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-slate-400 font-bold block">
+                  Based On
+                </span>
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium font-sans">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-600 shrink-0" />
+                  <span>{BASED_ON_LABELS[insight.based_on] || insight.based_on}</span>
+                </div>
+              </div>
+            )}
+          </aside>
         </div>
       </main>
 
@@ -901,6 +1005,27 @@ export function KnowledgeDetailPage() {
           onSuccess={loadInsightData}
         />
       )}
+
+      {/* Public user discussion login prompt modal */}
+      <InsightsPublicAuthPromptModal
+        open={publicAuthPromptOpen}
+        onOpenChange={setPublicAuthPromptOpen}
+        onOpenContributorSetup={() => setContributorModalOpen(true)}
+        tabName="knowledge"
+      />
+
+      {/* 3-Screen Contributor Profile Setup Modal */}
+      <CommunityContributorAuthModal
+        open={contributorModalOpen}
+        onOpenChange={setContributorModalOpen}
+        pendingComment=""
+        itemType="knowledge"
+        itemId={id}
+        itemTitle={insight?.title || "Knowledge Article"}
+        onCommentPublished={() => {
+          loadInsightData();
+        }}
+      />
     </div>
   );
 }

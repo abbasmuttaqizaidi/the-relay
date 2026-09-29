@@ -73,6 +73,7 @@ import { getQuestions } from "../functions/getQuestions";
 import { getKnowledgeInsights } from "../functions/getKnowledgeInsights";
 import { getAdminInsights } from "../functions/getAdminInsights";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
+import { getCommunityProfile } from "../functions/communityProfile";
 import { AskQuestionDialog } from "../components/insights/AskQuestionDialog";
 import { ShareInsightDialog } from "../components/insights/ShareInsightDialog";
 import { ShareModal } from "../components/insights/ShareModal";
@@ -83,8 +84,15 @@ import {
   AdminIncreaseViewsTarget,
 } from "../components/admin/AdminIncreaseViewsDialog";
 import { CompanyLogo } from "../components/company-logo";
+import { InsightsPublicAuthPromptModal } from "../components/insights/InsightsPublicAuthPromptModal";
+import { CommunityContributorAuthModal } from "../components/insights/CommunityContributorAuthModal";
 import { cn, getCompanyInitials } from "@/lib/utils";
 import { createSeoMeta } from "@/lib/seo";
+import {
+  hasGlobalAuthPromptBeenShown,
+  markGlobalAuthPromptShown,
+  shouldSkipAuthPrompt,
+} from "@/lib/discussion-session";
 import {
   Question,
   KnowledgeInsight,
@@ -242,7 +250,7 @@ const getAdminToken = () => {
 const ITEMS_PER_PAGE = 6;
 
 export function InsightsIndexPage() {
-  const { isSignedIn, userId } = useAuth();
+  const { isSignedIn, isLoaded, userId } = useAuth();
   const navigate = useNavigate();
   const searchParams = Route.useSearch();
 
@@ -257,6 +265,46 @@ export function InsightsIndexPage() {
   const [activeTab, setActiveTab] = useState<"questions" | "knowledge">(
     searchParams.tab || "questions",
   );
+
+  // Public user discussion authentication prompt modal state
+  const [publicAuthPromptOpen, setPublicAuthPromptOpen] = useState(false);
+  const [contributorModalOpen, setContributorModalOpen] = useState(false);
+
+  // Automatically prompt public users once per session to sign in so they can comment
+  useEffect(() => {
+    // Edge case guard: Wait until Clerk is fully loaded to avoid false prompt for logged-in users
+    if (!isLoaded || isSignedIn) return;
+    if (shouldSkipAuthPrompt({ isAdmin })) return;
+
+    const timer = setTimeout(() => {
+      if (!shouldSkipAuthPrompt({ isAdmin })) {
+        setPublicAuthPromptOpen(true);
+        markGlobalAuthPromptShown();
+      }
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [isLoaded, isSignedIn, activeTab, isAdmin]);
+
+  // Check if user returned from Google OAuth initiated from the public prompt modal
+  useEffect(() => {
+    if (isLoaded && isSignedIn && typeof window !== "undefined") {
+      const pendingContributor = sessionStorage.getItem("relay_pending_contributor_onboarding");
+      if (pendingContributor) {
+        sessionStorage.removeItem("relay_pending_contributor_onboarding");
+        getCommunityProfile()
+          .then((profile) => {
+            if (profile?.name && profile?.handle && profile?.type === "community_member") {
+              toast.success(`Welcome back, ${profile.name}! You are ready to join discussions.`);
+            } else {
+              setContributorModalOpen(true);
+            }
+          })
+          .catch(() => {
+            setContributorModalOpen(true);
+          });
+      }
+    }
+  }, [isLoaded, isSignedIn]);
 
   const queryClient = useQueryClient();
 
@@ -2157,6 +2205,28 @@ export function InsightsIndexPage() {
           type={shareItem.type}
         />
       )}
+
+      {/* Public user discussion login prompt modal */}
+      <InsightsPublicAuthPromptModal
+        open={publicAuthPromptOpen}
+        onOpenChange={setPublicAuthPromptOpen}
+        onOpenContributorSetup={() => setContributorModalOpen(true)}
+        tabName={activeTab}
+      />
+
+      {/* 3-Screen Contributor Profile Setup Modal */}
+      <CommunityContributorAuthModal
+        open={contributorModalOpen}
+        onOpenChange={setContributorModalOpen}
+        pendingComment=""
+        itemType={activeTab === "knowledge" ? "knowledge" : "question"}
+        itemId={`insights-${activeTab}`}
+        itemTitle={activeTab === "knowledge" ? "The Relay Knowledge Base" : "The Relay Questions & Discussions"}
+        onCommentPublished={() => {
+          queryClient.invalidateQueries({ queryKey: ["questions-list"] });
+          queryClient.invalidateQueries({ queryKey: ["knowledge-list"] });
+        }}
+      />
     </div>
   );
 }

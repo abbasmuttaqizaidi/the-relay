@@ -14,16 +14,26 @@ datasource db {
 // ---------------------------------------------------------
 
 model User {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  clerk_user_id  String   @unique
-  email          String?
-  tour_completed Boolean  @default(false)
-  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clerk_user_id    String   @unique
+  email            String?
+  type             String   @default("business") // "business" | "community_member" | "associate"
+  name             String?
+  handle           String?
+  title            String?
+  bio              String?
+  avatar_type      String?  @default("monogram")
+  avatar_url       String?
+  expertise_domain String?
+  linkedin_url     String?
+  tour_completed   Boolean  @default(false)
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
 
   businesses          Business[]
   business_members    BusinessMember[]
   saved_opportunities SavedOpportunity[]
   notifications       Notification[]
+  insight_comments    InsightComment[]
 
   @@map("users")
 }
@@ -67,6 +77,7 @@ model Business {
   consents_received     ContactSharingConsent[] @relation("ToBusinessContactConsents")
   custom_contact_details CustomContactDetail[]
   reliability_events    ReliabilityEvent[]
+  insight_comments      InsightComment[]
 
   @@map("businesses")
 }
@@ -373,6 +384,36 @@ model CustomContactDetail {
 
   @@index([business_id])
   @@map("custom_contact_details")
+}
+
+model InsightComment {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  item_type        String    // "question" | "knowledge"
+  item_id          String    @db.Uuid
+  user_id          String?   @db.Uuid
+  author_type      String    // "general_public" | "relay_business" | "business_member"
+  author_name      String
+  author_email     String?
+  author_avatar    String?
+  author_title     String?   // e.g. "HR Director", "VP of Engineering"
+  business_id      String?   @db.Uuid
+  parent_id        String?   @db.Uuid
+  content          String
+  status           String    @default("published") // "published" | "hidden" | "flagged"
+  upvotes          Int       @default(0)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  user             User?     @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  business         Business? @relation(fields: [business_id], references: [id], onDelete: SetNull)
+  parent           InsightComment?  @relation("CommentReplies", fields: [parent_id], references: [id], onDelete: Cascade)
+  replies          InsightComment[] @relation("CommentReplies")
+
+  @@index([item_type, item_id, created_at(sort: Desc)])
+  @@index([user_id])
+  @@index([business_id])
+  @@index([parent_id])
+  @@map("insight_comments")
 }
 
 
