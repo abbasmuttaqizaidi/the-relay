@@ -365,10 +365,12 @@ model InsightView {
   item_type  String   // "question" | "knowledge"
   item_id    String   @db.Uuid
   viewer_key String   // "user:<userId>" or "anon:<visitorId>"
+  source     String   @default("direct") // "google" | "linkedin" | "twitter" | "instagram" | "direct"
   created_at DateTime @default(now()) @db.Timestamptz(6)
 
   @@unique([item_type, item_id, viewer_key])
   @@index([item_type, item_id])
+  @@index([source])
   @@map("insight_views")
 }
 

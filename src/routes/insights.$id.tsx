@@ -57,7 +57,8 @@ import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { getCommunityProfile } from "../functions/communityProfile";
 import { checkAdminSession } from "../functions/checkAdminSession";
 import { recordInsightView } from "../functions/recordInsightView";
-import { getOrCreateVisitorId, hasViewedLocally, markViewedLocally } from "@/lib/visitor";
+import { getOrCreateVisitorId, getDeviceHardwareFingerprint, hasViewedLocally, markViewedLocally } from "@/lib/visitor";
+import { getSessionReferrer } from "@/lib/traffic-source";
 import { AskQuestionDialog } from "../components/insights/AskQuestionDialog";
 import { SharePerspectiveDialog } from "../components/insights/SharePerspectiveDialog";
 import { ShareModal } from "../components/insights/ShareModal";
@@ -308,6 +309,8 @@ export function QuestionDetailPage() {
     if (hasViewedLocally("question", question.id)) return;
 
     const vid = getOrCreateVisitorId();
+    const dfp = getDeviceHardwareFingerprint();
+    const ref = getSessionReferrer();
     markViewedLocally("question", question.id);
 
     recordInsightView({
@@ -315,6 +318,8 @@ export function QuestionDetailPage() {
         item_id: question.id,
         item_type: "question",
         visitor_id: vid,
+        device_fingerprint: dfp,
+        referrer: ref,
       },
     })
       .then((res) => {

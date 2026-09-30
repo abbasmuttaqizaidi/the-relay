@@ -49,6 +49,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { AdminIncreaseViewsDialog, type AdminIncreaseViewsTarget } from "@/components/admin/AdminIncreaseViewsDialog";
+import { AdminTrafficSourcesCard, type TrafficSourceBreakdown } from "@/components/admin/AdminTrafficSourcesCard";
 import { RelayVerificationSeal } from "@/components/relay-verification-seal";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import { Button } from "@/components/ui/button";
@@ -208,6 +209,7 @@ type AdminQuestion = {
   };
   perspectives_count: number;
   views?: number;
+  traffic_sources?: Record<string, number>;
 };
 
 type AdminKnowledgeInsight = {
@@ -219,6 +221,7 @@ type AdminKnowledgeInsight = {
   based_on: string | null;
   status: string;
   views?: number;
+  traffic_sources?: Record<string, number>;
   created_at: string;
   updated_at: string;
   business: {
@@ -345,6 +348,7 @@ function AdminDashboard() {
   const [adminQuestions, setAdminQuestions] = useState<AdminQuestion[]>([]);
   const [adminKnowledge, setAdminKnowledge] = useState<AdminKnowledgeInsight[]>([]);
   const [adminBusinesses, setAdminBusinesses] = useState<AdminBusinessOption[]>([]);
+  const [trafficAnalytics, setTrafficAnalytics] = useState<TrafficSourceBreakdown | null>(null);
   const [isCreateQuestionOpen, setIsCreateQuestionOpen] = useState(false);
   const [isCreateKnowledgeOpen, setIsCreateKnowledgeOpen] = useState(false);
   const [increaseViewsTarget, setIncreaseViewsTarget] = useState<AdminIncreaseViewsTarget | null>(null);
@@ -472,6 +476,9 @@ function AdminDashboard() {
       setAdminQuestions(insightsRes.questions);
       setAdminKnowledge(insightsRes.knowledgeInsights);
       setAdminBusinesses(insightsRes.businesses);
+      if ((insightsRes as any).trafficAnalytics) {
+        setTrafficAnalytics((insightsRes as any).trafficAnalytics);
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Failed to load admin panel data.");
@@ -486,6 +493,9 @@ function AdminDashboard() {
       setAdminQuestions(res.questions);
       setAdminKnowledge(res.knowledgeInsights);
       setAdminBusinesses(res.businesses);
+      if ((res as any).trafficAnalytics) {
+        setTrafficAnalytics((res as any).trafficAnalytics);
+      }
     } catch (err: any) {
       console.error("[Admin] Failed to reload insights:", err);
     }
@@ -2015,6 +2025,9 @@ function AdminDashboard() {
               </div>
             </div>
 
+            {/* Traffic Attribution Summary Widget */}
+            <AdminTrafficSourcesCard data={trafficAnalytics} />
+
             {/* Content Table Container */}
             <div className="border border-[#1f25301f] bg-white rounded-[2px] overflow-hidden">
               {/* Inner Tabs + Search & Filters */}
@@ -2119,23 +2132,54 @@ function AdminDashboard() {
                               </span>
                             </TableCell>
                             <TableCell className="p-4">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setIncreaseViewsTarget({
-                                    id: q.id,
-                                    title: q.title,
-                                    type: "question",
-                                    currentViews: q.views || 0,
-                                  })
-                                }
-                                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-xs font-semibold cursor-pointer transition-colors group"
-                                title="Click to boost views"
-                              >
-                                <Eye className="w-3 h-3 text-slate-400 group-hover:text-slate-700" />
-                                <span>{q.views ?? 0}</span>
-                                <TrendingUp className="w-2.5 h-2.5 text-emerald-600 opacity-60 group-hover:opacity-100" />
-                              </button>
+                              <div className="space-y-1">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setIncreaseViewsTarget({
+                                      id: q.id,
+                                      title: q.title,
+                                      type: "question",
+                                      currentViews: q.views || 0,
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-xs font-semibold cursor-pointer transition-colors group"
+                                  title="Click to boost views"
+                                >
+                                  <Eye className="w-3 h-3 text-slate-400 group-hover:text-slate-700" />
+                                  <span>{q.views ?? 0}</span>
+                                  <TrendingUp className="w-2.5 h-2.5 text-emerald-600 opacity-60 group-hover:opacity-100" />
+                                </button>
+                                {q.traffic_sources && Object.values(q.traffic_sources).some((v) => v > 0) && (
+                                  <div className="flex items-center gap-1 text-[9px] font-mono text-slate-500 flex-wrap">
+                                    {q.traffic_sources.google > 0 && (
+                                      <span className="text-blue-600 bg-blue-50 px-1 py-0.2 rounded" title="Google Search">
+                                        G:{q.traffic_sources.google}
+                                      </span>
+                                    )}
+                                    {q.traffic_sources.linkedin > 0 && (
+                                      <span className="text-[#0a66c2] bg-sky-50 px-1 py-0.2 rounded" title="LinkedIn">
+                                        LI:{q.traffic_sources.linkedin}
+                                      </span>
+                                    )}
+                                    {q.traffic_sources.twitter > 0 && (
+                                      <span className="text-slate-800 bg-slate-100 px-1 py-0.2 rounded" title="Twitter / X">
+                                        𝕏:{q.traffic_sources.twitter}
+                                      </span>
+                                    )}
+                                    {q.traffic_sources.instagram > 0 && (
+                                      <span className="text-pink-600 bg-pink-50 px-1 py-0.2 rounded" title="Instagram">
+                                        IG:{q.traffic_sources.instagram}
+                                      </span>
+                                    )}
+                                    {q.traffic_sources.direct > 0 && (
+                                      <span className="text-slate-500 bg-slate-100 px-1 py-0.2 rounded" title="Direct / Other">
+                                        Dir:{q.traffic_sources.direct}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell className="p-4 text-slate-500 font-mono text-[11px]">
                               {new Date(q.created_at).toLocaleDateString(undefined, {
@@ -2253,23 +2297,54 @@ function AdminDashboard() {
                               </span>
                             </TableCell>
                             <TableCell className="p-4">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setIncreaseViewsTarget({
-                                    id: k.id,
-                                    title: k.title,
-                                    type: "knowledge",
-                                    currentViews: k.views || 0,
-                                  })
-                                }
-                                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-xs font-semibold cursor-pointer transition-colors group"
-                                title="Click to boost views"
-                              >
-                                <Eye className="w-3 h-3 text-slate-400 group-hover:text-slate-700" />
-                                <span>{k.views ?? 0}</span>
-                                <TrendingUp className="w-2.5 h-2.5 text-emerald-600 opacity-60 group-hover:opacity-100" />
-                              </button>
+                              <div className="space-y-1">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setIncreaseViewsTarget({
+                                      id: k.id,
+                                      title: k.title,
+                                      type: "knowledge",
+                                      currentViews: k.views || 0,
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-xs font-semibold cursor-pointer transition-colors group"
+                                  title="Click to boost views"
+                                >
+                                  <Eye className="w-3 h-3 text-slate-400 group-hover:text-slate-700" />
+                                  <span>{k.views ?? 0}</span>
+                                  <TrendingUp className="w-2.5 h-2.5 text-emerald-600 opacity-60 group-hover:opacity-100" />
+                                </button>
+                                {k.traffic_sources && Object.values(k.traffic_sources).some((v) => v > 0) && (
+                                  <div className="flex items-center gap-1 text-[9px] font-mono text-slate-500 flex-wrap">
+                                    {k.traffic_sources.google > 0 && (
+                                      <span className="text-blue-600 bg-blue-50 px-1 py-0.2 rounded" title="Google Search">
+                                        G:{k.traffic_sources.google}
+                                      </span>
+                                    )}
+                                    {k.traffic_sources.linkedin > 0 && (
+                                      <span className="text-[#0a66c2] bg-sky-50 px-1 py-0.2 rounded" title="LinkedIn">
+                                        LI:{k.traffic_sources.linkedin}
+                                      </span>
+                                    )}
+                                    {k.traffic_sources.twitter > 0 && (
+                                      <span className="text-slate-800 bg-slate-100 px-1 py-0.2 rounded" title="Twitter / X">
+                                        𝕏:{k.traffic_sources.twitter}
+                                      </span>
+                                    )}
+                                    {k.traffic_sources.instagram > 0 && (
+                                      <span className="text-pink-600 bg-pink-50 px-1 py-0.2 rounded" title="Instagram">
+                                        IG:{k.traffic_sources.instagram}
+                                      </span>
+                                    )}
+                                    {k.traffic_sources.direct > 0 && (
+                                      <span className="text-slate-500 bg-slate-100 px-1 py-0.2 rounded" title="Direct / Other">
+                                        Dir:{k.traffic_sources.direct}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell className="p-4 text-slate-500 font-mono text-[11px]">
                               {new Date(k.created_at).toLocaleDateString(undefined, {

@@ -131,6 +131,71 @@ describe("Deduplicated Views System (Members & Non-Members)", () => {
     expect(result.totalViews).toBe(6);
   });
 
+  it("strictly deduplicates views across different browsers (Chrome vs Safari) on the same mobile device", async () => {
+    let currentViews = 20;
+    const testArticle = {
+      ...mockKnowledgeArticle,
+      id: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+      views: currentViews,
+    };
+
+    vi.spyOn(prisma.knowledgeInsight, "findFirst").mockImplementation(async () => ({
+      ...testArticle,
+      views: currentViews,
+    } as any));
+    vi.spyOn(prisma.insightView, "findFirst").mockResolvedValue(null);
+
+    vi.spyOn(prisma.insightView, "create").mockResolvedValue({
+      id: "view-chrome-1",
+      item_type: "knowledge",
+      item_id: testArticle.id,
+      viewer_key: "dev:dfp_393x852_apple_gpu_mobile_7a8b_1234567890",
+      created_at: new Date(),
+    } as any);
+
+    vi.spyOn(prisma.knowledgeInsight, "update").mockImplementation(async () => {
+      currentViews += 1;
+      return { views: currentViews } as any;
+    });
+
+    // 1. First visit from Mobile Chrome:
+    const chromeResult = await InsightViewService.recordUniqueView({
+      itemId: testArticle.id,
+      itemType: "knowledge",
+      visitorId: "v_chrome_random_111",
+      deviceFingerprint: "dfp_393x852_apple_gpu_mobile_7a8b",
+      clientIp: "122.161.45.10",
+    });
+
+    expect(chromeResult.isNew).toBe(true);
+    expect(chromeResult.totalViews).toBe(21);
+
+    // 2. Second visit from Mobile Safari on the same mobile phone:
+    // (Different localStorage visitorId, but IDENTICAL deviceFingerprint & IP)
+    const safariResult = await InsightViewService.recordUniqueView({
+      itemId: testArticle.id,
+      itemType: "knowledge",
+      visitorId: "v_safari_random_222",
+      deviceFingerprint: "dfp_393x852_apple_gpu_mobile_7a8b",
+      clientIp: "122.161.45.10",
+    });
+
+    expect(safariResult.isNew).toBe(false);
+    expect(safariResult.totalViews).toBe(21);
+
+    // 3. Third visit from Mobile Firefox or In-App Browser on the same mobile phone with network switch:
+    const firefoxResult = await InsightViewService.recordUniqueView({
+      itemId: testArticle.id,
+      itemType: "knowledge",
+      visitorId: "v_firefox_random_333",
+      deviceFingerprint: "dfp_393x852_apple_gpu_mobile_7a8b",
+      clientIp: "157.34.88.99", // Different IP
+    });
+
+    expect(firefoxResult.isNew).toBe(false);
+    expect(firefoxResult.totalViews).toBe(21);
+  });
+
   it("never increments views when the creator / owner business views their own content", async () => {
     vi.spyOn(prisma.knowledgeInsight, "findFirst").mockResolvedValue(mockKnowledgeArticle as any);
     const updateSpy = vi.spyOn(prisma.knowledgeInsight, "update");

@@ -36,7 +36,8 @@ import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { getCommunityProfile } from "../functions/communityProfile";
 import { checkAdminSession } from "../functions/checkAdminSession";
 import { recordInsightView } from "../functions/recordInsightView";
-import { getOrCreateVisitorId, hasViewedLocally, markViewedLocally } from "@/lib/visitor";
+import { getOrCreateVisitorId, getDeviceHardwareFingerprint, hasViewedLocally, markViewedLocally } from "@/lib/visitor";
+import { getSessionReferrer } from "@/lib/traffic-source";
 import { ShareInsightDialog } from "../components/insights/ShareInsightDialog";
 import { ShareModal } from "../components/insights/ShareModal";
 import { AdminIncreaseViewsDialog } from "../components/admin/AdminIncreaseViewsDialog";
@@ -473,6 +474,8 @@ export function KnowledgeDetailPage() {
     if (hasViewedLocally("knowledge", insight.id)) return;
 
     const vid = getOrCreateVisitorId();
+    const dfp = getDeviceHardwareFingerprint();
+    const ref = getSessionReferrer();
     markViewedLocally("knowledge", insight.id);
 
     recordInsightView({
@@ -480,6 +483,8 @@ export function KnowledgeDetailPage() {
         item_id: insight.id,
         item_type: "knowledge",
         visitor_id: vid,
+        device_fingerprint: dfp,
+        referrer: ref,
       },
     })
       .then((res) => {
