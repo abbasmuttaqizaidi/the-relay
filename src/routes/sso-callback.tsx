@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AuthenticateWithRedirectCallback } from "@clerk/tanstack-react-start";
 import { Loader2 } from "lucide-react";
-import logoUrl from "../assets/icons/white-transparent-horizontal.png";
+import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 
 export const Route = createFileRoute("/sso-callback")({
   head: () => ({
