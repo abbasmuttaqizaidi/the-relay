@@ -75,11 +75,19 @@ function SignUpPage() {
     return false;
   }, [search]);
 
+  const redirectTarget = useMemo(() => {
+    const target = (search as any)?.redirect;
+    if (typeof target === "string" && target.startsWith("/")) {
+      return target;
+    }
+    return "/opportunities";
+  }, [search]);
+
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      navigate({ to: "/opportunities" });
+      navigate({ to: redirectTarget as any });
     }
-  }, [isLoaded, isSignedIn, navigate]);
+  }, [isLoaded, isSignedIn, navigate, redirectTarget]);
 
   // Appearance overrides strictly following sign_up.MD & Monochrome Executive design tokens
   const clerkAppearance = {
@@ -254,7 +262,7 @@ function SignUpPage() {
               routing="path"
               path="/signup"
               signInUrl="/login"
-              forceRedirectUrl="/onboarding"
+              forceRedirectUrl={redirectTarget}
               appearance={clerkAppearance}
             />
           </div>

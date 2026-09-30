@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useClerk } from "@clerk/tanstack-react-start";
+import { useClerk, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { X, MessageSquare, ShieldCheck, ArrowRight, Loader2, Sparkles, Mail, ArrowUp } from "lucide-react";
 import { toast } from "sonner";
@@ -29,6 +29,8 @@ export function InsightsPublicAuthPromptModal({
   triggerSource = "comment",
 }: InsightsPublicAuthPromptModalProps) {
   const clerk = useClerk();
+  const { signIn, isLoaded: isSignInLoaded } = useSignIn();
+  const { signUp, isLoaded: isSignUpLoaded } = useSignUp();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -94,11 +96,39 @@ export function InsightsPublicAuthPromptModal({
         sessionStorage.setItem("relay_pending_contributor_onboarding", "true");
       } catch {}
 
-      await (clerk as any).authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: returnUrl,
-      });
+      let authResource =
+        signIn ||
+        signUp ||
+        (clerk as any)?.client?.signIn ||
+        (clerk as any)?.client?.signUp;
+
+      // If Clerk is still initializing in the browser, wait briefly
+      if (!authResource && (clerk as any)?.loaded === false) {
+        for (let i = 0; i < 10; i++) {
+          await new Promise((r) => setTimeout(r, 150));
+          authResource =
+            signIn ||
+            signUp ||
+            (clerk as any)?.client?.signIn ||
+            (clerk as any)?.client?.signUp;
+          if (authResource) break;
+        }
+      }
+
+      if (authResource && typeof authResource.authenticateWithRedirect === "function") {
+        await authResource.authenticateWithRedirect({
+          strategy: "oauth_google",
+          redirectUrl: "/sso-callback",
+          redirectUrlComplete: returnUrl,
+          continueSignUp: true,
+          continueSignIn: true,
+        });
+        return;
+      }
+
+      // Fallback: If authenticateWithRedirect is not available, navigate to login with returnUrl
+      onOpenChange(false);
+      navigate({ to: "/login", search: { redirect: returnUrl } as any });
     } catch (err: any) {
       console.error("[Google OAuth] Error:", err);
       toast.error(err?.message || "Failed to initialize Google Sign-in");

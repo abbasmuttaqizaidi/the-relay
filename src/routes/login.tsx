@@ -75,11 +75,19 @@ function SignInPage() {
     return false;
   }, [search]);
 
+  const redirectTarget = useMemo(() => {
+    const target = (search as any)?.redirect;
+    if (typeof target === "string" && target.startsWith("/")) {
+      return target;
+    }
+    return "/opportunities";
+  }, [search]);
+
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      navigate({ to: "/opportunities" });
+      navigate({ to: redirectTarget as any });
     }
-  }, [isLoaded, isSignedIn, navigate]);
+  }, [isLoaded, isSignedIn, navigate, redirectTarget]);
 
   // Appearance overrides strictly following SIGN_IN.md & Monochrome Executive design tokens
   const clerkAppearance = {
@@ -203,7 +211,7 @@ function SignInPage() {
               routing="path"
               path="/login"
               signUpUrl="/signup"
-              forceRedirectUrl="/opportunities"
+              forceRedirectUrl={redirectTarget}
               appearance={clerkAppearance}
             />
           </div>

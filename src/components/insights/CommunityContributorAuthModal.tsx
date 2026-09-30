@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useAuth, useClerk, useSignIn, useUser } from "@clerk/tanstack-react-start";
+import { useAuth, useClerk, useSignIn, useSignUp, useUser } from "@clerk/tanstack-react-start";
 import {
   X,
   ArrowRight,
@@ -55,6 +55,7 @@ export function CommunityContributorAuthModal({
   const { user: clerkUser } = useUser();
   const clerk = useClerk();
   const { signIn } = useSignIn();
+  const { signUp } = useSignUp();
   const navigate = useNavigate();
 
   // Screen state: 0 (Login/Registration Form), 1 (Choose Account Type), 2 (Set Up Identity)
@@ -200,11 +201,38 @@ export function CommunityContributorAuthModal({
         window.location.search +
         (window.location.hash || "#discussion");
 
-      await clerk.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: returnUrl,
-      });
+      let authResource =
+        signIn ||
+        signUp ||
+        (clerk as any)?.client?.signIn ||
+        (clerk as any)?.client?.signUp;
+
+      // If Clerk is still initializing in the browser, wait briefly
+      if (!authResource && (clerk as any)?.loaded === false) {
+        for (let i = 0; i < 10; i++) {
+          await new Promise((r) => setTimeout(r, 150));
+          authResource =
+            signIn ||
+            signUp ||
+            (clerk as any)?.client?.signIn ||
+            (clerk as any)?.client?.signUp;
+          if (authResource) break;
+        }
+      }
+
+      if (authResource && typeof authResource.authenticateWithRedirect === "function") {
+        await authResource.authenticateWithRedirect({
+          strategy: "oauth_google",
+          redirectUrl: "/sso-callback",
+          redirectUrlComplete: returnUrl,
+          continueSignUp: true,
+          continueSignIn: true,
+        });
+        return;
+      }
+
+      onOpenChange(false);
+      navigate({ to: "/login", search: { redirect: returnUrl } as any });
     } catch (err: any) {
       console.error("[Google OAuth] Error:", err);
       toast.error(err.message || "Failed to initialize Google Sign-in");

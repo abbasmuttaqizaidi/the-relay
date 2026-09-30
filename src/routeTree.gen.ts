@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatToDoWithUnqualifiedLeadsRouteImport } from './routes/what-to-do-with-unqualified-leads'
 import { Route as TrustAndSafetyRouteImport } from './routes/trust-and-safety'
+import { Route as SsoCallbackRouteImport } from './routes/sso-callback'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SavedOpportunitiesRouteImport } from './routes/saved-opportunities'
@@ -68,6 +69,11 @@ const WhatToDoWithUnqualifiedLeadsRoute =
 const TrustAndSafetyRoute = TrustAndSafetyRouteImport.update({
   id: '/trust-and-safety',
   path: '/trust-and-safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SsoCallbackRoute = SsoCallbackRouteImport.update({
+  id: '/sso-callback',
+  path: '/sso-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SolutionsRoute = SolutionsRouteImport.update({
@@ -346,6 +352,7 @@ export interface FileRoutesByFullPath {
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
+  '/sso-callback': typeof SsoCallbackRoute
   '/trust-and-safety': typeof TrustAndSafetyRoute
   '/what-to-do-with-unqualified-leads': typeof WhatToDoWithUnqualifiedLeadsRoute
   '/connections/$id': typeof ConnectionsIdRoute
@@ -395,6 +402,7 @@ export interface FileRoutesByTo {
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
+  '/sso-callback': typeof SsoCallbackRoute
   '/trust-and-safety': typeof TrustAndSafetyRoute
   '/what-to-do-with-unqualified-leads': typeof WhatToDoWithUnqualifiedLeadsRoute
   '/connections/$id': typeof ConnectionsIdRoute
@@ -447,6 +455,7 @@ export interface FileRoutesById {
   '/saved-opportunities': typeof SavedOpportunitiesRoute
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
+  '/sso-callback': typeof SsoCallbackRoute
   '/trust-and-safety': typeof TrustAndSafetyRoute
   '/what-to-do-with-unqualified-leads': typeof WhatToDoWithUnqualifiedLeadsRoute
   '/connections/$id': typeof ConnectionsIdRoute
@@ -500,6 +509,7 @@ export interface FileRouteTypes {
     | '/saved-opportunities'
     | '/signup'
     | '/solutions'
+    | '/sso-callback'
     | '/trust-and-safety'
     | '/what-to-do-with-unqualified-leads'
     | '/connections/$id'
@@ -549,6 +559,7 @@ export interface FileRouteTypes {
     | '/saved-opportunities'
     | '/signup'
     | '/solutions'
+    | '/sso-callback'
     | '/trust-and-safety'
     | '/what-to-do-with-unqualified-leads'
     | '/connections/$id'
@@ -600,6 +611,7 @@ export interface FileRouteTypes {
     | '/saved-opportunities'
     | '/signup'
     | '/solutions'
+    | '/sso-callback'
     | '/trust-and-safety'
     | '/what-to-do-with-unqualified-leads'
     | '/connections/$id'
@@ -652,6 +664,7 @@ export interface RootRouteChildren {
   SavedOpportunitiesRoute: typeof SavedOpportunitiesRoute
   SignupRoute: typeof SignupRoute
   SolutionsRoute: typeof SolutionsRoute
+  SsoCallbackRoute: typeof SsoCallbackRoute
   TrustAndSafetyRoute: typeof TrustAndSafetyRoute
   WhatToDoWithUnqualifiedLeadsRoute: typeof WhatToDoWithUnqualifiedLeadsRoute
   ConnectionsIdRoute: typeof ConnectionsIdRoute
@@ -674,6 +687,13 @@ declare module '@tanstack/react-router' {
       path: '/trust-and-safety'
       fullPath: '/trust-and-safety'
       preLoaderRoute: typeof TrustAndSafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sso-callback': {
+      id: '/sso-callback'
+      path: '/sso-callback'
+      fullPath: '/sso-callback'
+      preLoaderRoute: typeof SsoCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/solutions': {
@@ -1089,6 +1109,7 @@ const rootRouteChildren: RootRouteChildren = {
   SavedOpportunitiesRoute: SavedOpportunitiesRoute,
   SignupRoute: SignupRoute,
   SolutionsRoute: SolutionsRoute,
+  SsoCallbackRoute: SsoCallbackRoute,
   TrustAndSafetyRoute: TrustAndSafetyRoute,
   WhatToDoWithUnqualifiedLeadsRoute: WhatToDoWithUnqualifiedLeadsRoute,
   ConnectionsIdRoute: ConnectionsIdRoute,
