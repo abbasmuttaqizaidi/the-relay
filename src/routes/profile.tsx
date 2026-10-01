@@ -21,8 +21,16 @@ import {
   CheckCircle2,
   Users,
   ArrowLeftRight,
-  X,
 } from "lucide-react";
+import {
+  Modal,
+  Button,
+  Card,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+  ExecutiveAlertBanner,
+} from "@/design-system";
 import { Navbar } from "@/components/navbar";
 import { getCommunityProfile, saveCommunityProfile } from "@/functions/communityProfile";
 import { getMyContributions } from "@/functions/getMyContributions";
@@ -216,9 +224,9 @@ function SimpleCommunityMemberProfilePage() {
                 </div>
               </div>
 
-              {/* Right: Shining Glass Switch Button */}
+              {/* Right: Shining Glass Switch Button using Design System Button */}
               <div className="flex items-center shrink-0">
-                <button
+                <Button
                   type="button"
                   onClick={() => setIsSwitchModalOpen(true)}
                   className="relative overflow-hidden group inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-white text-xs font-semibold select-none cursor-pointer backdrop-blur-md bg-gradient-to-b from-[#252b3b]/90 via-[#0d1322]/95 to-[#010611] border border-white/20 hover:border-white/40 shadow-[0_4px_14px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.35)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.28),inset_0_1px_2px_rgba(255,255,255,0.6)] active:scale-95 transition-all duration-300"
@@ -229,7 +237,7 @@ function SimpleCommunityMemberProfilePage() {
                   <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/60 to-transparent pointer-events-none" />
                   <ArrowLeftRight className="w-3.5 h-3.5 text-white/90 group-hover:rotate-180 transition-transform duration-500 shrink-0" />
                   <span className="tracking-wide">Switch</span>
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -311,10 +319,12 @@ function SimpleCommunityMemberProfilePage() {
 
             {/* Submit Button */}
             <div className="pt-2 flex justify-end">
-              <button
+              <Button
                 type="submit"
+                variant="monochrome"
+                size="sm"
                 disabled={isSaving || !displayName.trim()}
-                className="px-4 py-2 rounded-lg bg-[#010611] text-white hover:bg-[#1a2332] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+                className="px-4 py-2 gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
               >
                 {isSaving ? (
                   <>
@@ -327,7 +337,7 @@ function SimpleCommunityMemberProfilePage() {
                     <Check className="w-3.5 h-3.5" />
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -403,91 +413,98 @@ function SimpleCommunityMemberProfilePage() {
           )}
         </div>
 
-        {/* Switch Profile Modal */}
-        {isSwitchModalOpen && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
-            onClick={() => setIsSwitchModalOpen(false)}
-          >
-            <div
-              className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-[#010611] text-white flex items-center justify-center">
-                    <ArrowLeftRight className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-[#010611]">Switch Profile</h3>
-                    <p className="text-xs text-[#505f76]">
-                      Choose how you want to operate on The Relay network.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsSwitchModalOpen(false)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-[#010611] hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+        {/* Switch Profile Modal strictly using @/design-system */}
+        <Modal
+          open={isSwitchModalOpen}
+          onOpenChange={setIsSwitchModalOpen}
+          maxWidth="max-w-xl"
+          title={
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[#010611] text-white flex items-center justify-center shrink-0">
+                <ArrowLeftRight className="w-4 h-4" />
               </div>
+              <span className="font-bold text-[#010611] text-base font-display">Switch Profile</span>
+            </div>
+          }
+          description="Choose how you want to operate on The Relay network."
+        >
+          <div className="space-y-4 pt-1 font-sans text-left">
+            {/* Warning State Banner: Policy Transition Guarantee using ExecutiveAlertBanner */}
+            <ExecutiveAlertBanner
+              variant="warning"
+              title="Profile Transition Guarantee"
+              badgeText="Zero Downtime"
+              description={
+                <span>
+                  If you switch to a Business Profile, your account will only convert after your verification is approved. Until then, your{" "}
+                  <strong className="underline decoration-amber-400 font-semibold underline-offset-2">
+                    Community Profile remains 100% active
+                  </strong>{" "}
+                  (zero downtime guarantee).
+                </span>
+              }
+              className="p-3.5 rounded-xl border border-amber-200"
+            />
 
-              {/* Warning State Banner: Policy Transition Guarantee */}
-              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
-                <div className="flex items-center gap-2 font-semibold text-amber-900">
-                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span className="font-bold">Profile Transition Guarantee</span>
-                </div>
-                <p className="text-amber-800 leading-relaxed text-[11.5px] sm:text-xs pl-6">
-                  If you switch to a Business Profile, your account will only convert after your verification is approved. Until then, your <strong className="text-amber-950 font-semibold underline decoration-amber-300 underline-offset-2">Community Profile remains 100% active</strong> (zero downtime guarantee).
-                </p>
-              </div>
-
-              {/* 2 Options Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {/* Option 1: Switch to Business Profile */}
-                <div className="p-4 rounded-xl border-2 border-slate-200 hover:border-[#010611] transition-all flex flex-col justify-between gap-3 group">
-                  <div className="space-y-2">
-                    <div className="w-8 h-8 rounded-lg bg-[#f2f4f6] text-[#010611] flex items-center justify-center">
-                      <Building2 className="w-4 h-4" />
-                    </div>
-                    <h4 className="text-xs font-bold text-[#010611] group-hover:text-black">
-                      Switch to Business Profile
-                    </h4>
-                    <p className="text-[11px] text-[#505f76] leading-relaxed">
-                      Register your company as a primary verified business entity (KYB validation required).
-                    </p>
+            {/* 2 Options Cards using Design System Card & Subcomponents */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {/* Option 1: Switch to Business Profile */}
+              <Card
+                variant="hover"
+                radius="lg"
+                className="p-4 flex flex-col justify-between gap-3 group border-2 border-slate-200 hover:border-black transition-all bg-white"
+              >
+                <div className="space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-[#f2f4f6] text-[#010611] flex items-center justify-center group-hover:bg-[#010611] group-hover:text-white transition-colors">
+                    <Building2 className="w-4 h-4" />
                   </div>
-                  <Link
-                    to="/onboarding"
-                    onClick={() => setIsSwitchModalOpen(false)}
-                    className="w-full h-8 rounded-lg bg-[#010611] hover:bg-[#1a2332] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                  <CardTitle className="text-xs font-bold text-[#010611]">
+                    Switch to Business Profile
+                  </CardTitle>
+                  <CardDescription className="text-[11px] text-[#505f76] leading-relaxed">
+                    Register your company as a primary verified business entity (KYB validation required).
+                  </CardDescription>
+                </div>
+                <CardFooter className="p-0 border-t-0 pt-1">
+                  <Button
+                    asChild
+                    variant="monochrome"
+                    size="sm"
+                    className="w-full h-8 text-xs font-semibold gap-1.5 cursor-pointer"
                   >
-                    <span>{business ? "Manage Registration" : "Setup Business (KYB)"}</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </Link>
-                </div>
+                    <Link
+                      to="/onboarding"
+                      onClick={() => setIsSwitchModalOpen(false)}
+                    >
+                      <span>{business ? "Manage Registration" : "Setup Business (KYB)"}</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
 
-                {/* Option 2: Associate with a Verified Business */}
-                <div className="p-4 rounded-xl border-2 border-slate-200 hover:border-[#010611] transition-all flex flex-col justify-between gap-3 group">
-                  <div className="space-y-2">
-                    <div className="w-8 h-8 rounded-lg bg-[#f2f4f6] text-[#010611] flex items-center justify-center">
-                      <Users className="w-4 h-4" />
-                    </div>
-                    <h4 className="text-xs font-bold text-[#010611] group-hover:text-black">
-                      Associate with a Business
-                    </h4>
-                    <p className="text-[11px] text-[#505f76] leading-relaxed">
-                      Link your account with an existing verified company or join an organization team.
-                    </p>
+              {/* Option 2: Associate with a Verified Business */}
+              <Card
+                variant="hover"
+                radius="lg"
+                className="p-4 flex flex-col justify-between gap-3 group border-2 border-slate-200 hover:border-black transition-all bg-white"
+              >
+                <div className="space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-[#f2f4f6] text-[#010611] flex items-center justify-center group-hover:bg-[#010611] group-hover:text-white transition-colors">
+                    <Users className="w-4 h-4" />
                   </div>
-                  <button
+                  <CardTitle className="text-xs font-bold text-[#010611]">
+                    Associate with a Business
+                  </CardTitle>
+                  <CardDescription className="text-[11px] text-[#505f76] leading-relaxed">
+                    Link your account with an existing verified company or join an organization team.
+                  </CardDescription>
+                </div>
+                <CardFooter className="p-0 border-t-0 pt-1">
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
                       setIsSwitchModalOpen(false);
                       toast.info(
@@ -495,16 +512,16 @@ function SimpleCommunityMemberProfilePage() {
                         { duration: 5000 }
                       );
                     }}
-                    className="w-full h-8 rounded-lg bg-white hover:bg-slate-50 text-[#010611] border border-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    className="w-full h-8 text-xs font-semibold gap-1.5 cursor-pointer border-slate-300 text-[#010611] hover:bg-slate-50"
                   >
                     <span>Request Association</span>
                     <ArrowRight className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
+                  </Button>
+                </CardFooter>
+              </Card>
             </div>
           </div>
-        )}
+        </Modal>
       </main>
     </div>
   );
