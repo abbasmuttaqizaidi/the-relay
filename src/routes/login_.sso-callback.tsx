@@ -4,17 +4,17 @@ import { useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 
-export const Route = createFileRoute("/sso-callback")({
+export const Route = createFileRoute("/login_/sso-callback")({
   head: () => ({
     meta: [
       { title: "Authenticating — The Relay" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  component: SSOCallbackPage,
+  component: LoginSSOCallbackPage,
 });
 
-function SSOCallbackPage() {
+function LoginSSOCallbackPage() {
   const target = useMemo(() => {
     if (typeof window === "undefined") return "/opportunities";
     try {

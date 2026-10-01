@@ -169,9 +169,9 @@ export class CommentService {
       if (!authorAvatar && context?.userId) {
         const u = await prisma.user.findUnique({
           where: { id: context.userId },
-          select: { avatar_url: true, avatar_type: true },
+          select: { avatar_url: true },
         });
-        if (u?.avatar_type === "photo" && u?.avatar_url) {
+        if (u?.avatar_url) {
           authorAvatar = u.avatar_url;
         }
       }

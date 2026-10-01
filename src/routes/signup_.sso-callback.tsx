@@ -4,24 +4,24 @@ import { useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 
-export const Route = createFileRoute("/sso-callback")({
+export const Route = createFileRoute("/signup_/sso-callback")({
   head: () => ({
     meta: [
       { title: "Authenticating — The Relay" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  component: SSOCallbackPage,
+  component: SignUpSSOCallbackPage,
 });
 
-function SSOCallbackPage() {
+function SignUpSSOCallbackPage() {
   const target = useMemo(() => {
     if (typeof window === "undefined") return "/opportunities";
     try {
       const params = new URLSearchParams(window.location.search);
       const fromSearch =
-        params.get("sign_in_force_redirect_url") ||
         params.get("sign_up_force_redirect_url") ||
+        params.get("sign_in_force_redirect_url") ||
         params.get("redirect_url");
       if (fromSearch) return fromSearch;
 

@@ -146,6 +146,24 @@ export function InsightDiscussionSection({
     }
   };
 
+  // Auto-scroll to discussion section when page loads or navigates with discussion hash
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const h = window.location.hash || "";
+    if (h.toLowerCase().includes("discussion")) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById("discussion-system") || document.getElementById("discussion");
+        if (el) {
+          const yOffset = -72;
+          const y = el.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) + yOffset;
+          const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          window.scrollTo({ top: y, behavior: prefersReducedMotion ? "auto" : "smooth" });
+        }
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [itemId]);
+
   useEffect(() => {
     if (currentUserBusiness && selectedRole === "general_public") {
       setSelectedRole("relay_business");
@@ -178,13 +196,21 @@ export function InsightDiscussionSection({
     if (!text || !text.trim()) return;
     try {
       setSubmitting(true);
+      const sessionDraft = getPendingCommentSession(itemId)?.draft;
       const effectiveAuthorName =
         currentUserBusiness?.company_name ||
         communityUser?.name ||
+        sessionDraft?.fullName ||
         "Community Member";
 
       const effectiveAuthorTitle =
-        currentUserBusiness ? "Relay Verified" : communityUser?.title || undefined;
+        currentUserBusiness
+          ? "Relay Verified"
+          : communityUser?.title || sessionDraft?.currentRole || undefined;
+
+      const effectiveAuthorAvatar = currentUserBusiness
+        ? currentUserBusiness.logo_url || undefined
+        : communityUser?.avatar_url || clerkUser?.imageUrl || undefined;
 
       const created = await postInsightComment({
         data: {
@@ -194,6 +220,7 @@ export function InsightDiscussionSection({
           content: text.trim(),
           author_name: effectiveAuthorName,
           author_title: effectiveAuthorTitle,
+          author_avatar: effectiveAuthorAvatar,
           business_id: currentUserBusiness?.id,
           parent_id: pId || undefined,
         },
@@ -229,8 +256,12 @@ export function InsightDiscussionSection({
     if (!hasAutoPublishedRef.current) {
       const pending = getPendingCommentSession(itemId);
       if (pending?.content) {
-        hasAutoPublishedRef.current = true;
-        publishPendingComment(pending.content, pending.parentId);
+        // Only auto-publish if user is already an established business OR has an established community profile.
+        // For new users without a completed profile, CommunityContributorAuthModal handles onboarding and publishes with their chosen credentials.
+        if (currentUserBusiness || communityUser?.name) {
+          hasAutoPublishedRef.current = true;
+          publishPendingComment(pending.content, pending.parentId);
+        }
       }
     }
 
@@ -300,10 +331,10 @@ export function InsightDiscussionSection({
           : communityUser?.name ||
             (selectedRole === "business_member" ? "Associate Member" : "Community Contributor");
 
-      const effectiveAuthorTitle =
+      const effectiveAuthorAvatar =
         selectedRole === "relay_business"
-          ? "Relay Verified"
-          : communityUser?.title || undefined;
+          ? currentUserBusiness?.logo_url || undefined
+          : communityUser?.avatar_url || clerkUser?.imageUrl || undefined;
 
       const created = await postInsightComment({
         data: {
@@ -313,6 +344,7 @@ export function InsightDiscussionSection({
           content: textToSubmit,
           author_name: effectiveAuthorName,
           author_title: effectiveAuthorTitle,
+          author_avatar: effectiveAuthorAvatar,
           business_id:
             selectedRole === "relay_business" || selectedRole === "business_member"
               ? currentUserBusiness?.id
@@ -544,17 +576,17 @@ export function InsightDiscussionSection({
                     className="w-full h-full object-contain p-0.5"
                   />
                 </div>
-              ) : communityUser?.avatar_type === "photo" && communityUser.avatar_url ? (
+              ) : (communityUser?.avatar_url || clerkUser?.imageUrl) ? (
                 <div className="w-6 h-6 rounded-full overflow-hidden border border-[#c5c6cc] shrink-0">
                   <img
-                    src={communityUser.avatar_url}
-                    alt={communityUser.name || "Avatar"}
+                    src={communityUser?.avatar_url || clerkUser?.imageUrl}
+                    alt={communityUser?.name || clerkUser?.fullName || "Avatar"}
                     className="w-full h-full object-cover"
                   />
                 </div>
               ) : (
-                <div className="w-6 h-6 rounded-full bg-[#010611] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-                  {activeAvatarInitials}
+                <div className="w-6 h-6 rounded-full bg-slate-200 text-[#010611] flex items-center justify-center shrink-0">
+                  <User className="w-3.5 h-3.5 text-[#505f76]" />
                 </div>
               )}
 
@@ -892,13 +924,9 @@ function PerspectiveCommentItem({
                 className="w-full h-full object-cover"
               />
             </div>
-          ) : isMember ? (
-            <div className="w-9 h-9 rounded-full bg-[#1e293b] text-white flex items-center justify-center font-bold text-xs shrink-0">
-              {getCompanyInitials(comment.author_name)}
-            </div>
           ) : (
-            <div className="w-9 h-9 rounded-full bg-[#e6e8ea] text-[#505f76] flex items-center justify-center font-bold text-xs border border-[#c5c6cc] shrink-0">
-              {getCompanyInitials(comment.author_name)}
+            <div className="w-9 h-9 rounded-full bg-slate-100 text-[#505f76] flex items-center justify-center border border-[#e2e8f0] shrink-0">
+              <User className="w-4 h-4 text-[#75777c]" />
             </div>
           )}
 

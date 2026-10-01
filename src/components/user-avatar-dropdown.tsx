@@ -17,6 +17,7 @@ import {
 import { getCompanyInitials } from "@/lib/utils";
 import { DefaultBusinessLogo } from "@/default_business_logo";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
+import { getCommunityProfile } from "@/functions/communityProfile";
 
 interface ProfileData {
   companyName: string;
@@ -49,7 +50,18 @@ export function UserAvatarDropdown({
     staleTime: 1000 * 60 * 1,
   });
 
+  const { data: communityProfile } = useQuery({
+    queryKey: ["community-profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      return await getCommunityProfile();
+    },
+    enabled: Boolean(user?.id),
+    staleTime: 1000 * 60 * 2,
+  });
+
   const dbBusiness = onboardingData?.business;
+  const hasBusiness = Boolean(dbBusiness);
 
   useEffect(() => {
     const loadProfile = () => {
@@ -79,23 +91,29 @@ export function UserAvatarDropdown({
 
   if (!user) return null;
 
-  // Compute display name: ALWAYS prioritize registered business name over Google/personal account name
-  const displayName = dbBusiness?.company_name || profile?.companyName || "Your Business";
+  // Compute display name: Prioritize business name if registered, otherwise community contributor name
+  const displayName = hasBusiness
+    ? dbBusiness?.company_name || profile?.companyName || "Your Business"
+    : communityProfile?.name || user.fullName || "Community Contributor";
 
-  // Compute initials based on business name
+  // Compute initials based on active display name
   const initials = getCompanyInitials(displayName);
 
-  // Use company logo url if uploaded, otherwise undefined (shows business initials, never Google/personal photo)
-  const businessLogoUrl = dbBusiness?.logo_url || profile?.logoUrl;
-  const avatarSrc = businessLogoUrl && !logoFailed ? businessLogoUrl : undefined;
+  // Avatar source: business logo if entity, otherwise community avatar / Google photo if photo type selected
+  const communityPhoto = user.imageUrl || communityProfile?.avatar_url || undefined;
+  const avatarSrc = hasBusiness
+    ? (businessLogoUrl && !logoFailed ? businessLogoUrl : undefined)
+    : communityPhoto;
 
-  // Tier display config — includes legacy mapping for old L1/L2/L3 values
+  // Tier display config
   const tierMap: Record<string, string> = { L1: "Basic", L2: "Applied", L3: "Approved" };
-  const rawTier = dbBusiness?.status === "approved"
-    ? "Approved"
-    : dbBusiness?.status
-      ? "Applied"
-      : profile?.verificationLevel || "Basic";
+  const rawTier = hasBusiness
+    ? dbBusiness?.status === "approved"
+      ? "Approved"
+      : dbBusiness?.status
+        ? "Applied"
+        : profile?.verificationLevel || "Basic"
+    : "Community";
   const tierLabel = tierMap[rawTier] || rawTier;
 
 
@@ -306,12 +324,23 @@ export function UserAvatarDropdown({
         <DropdownMenuItem
           onClick={() => {
             onNavigate?.();
+            navigate({ to: "/profile" });
+          }}
+          className="group px-3 py-2 text-xs text-slate-700 hover:text-slate-950 focus:bg-slate-100 cursor-pointer flex items-center gap-2 rounded-md transition-colors"
+        >
+          <User className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-900 transition-colors" />
+          <span>Contributor Profile</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={() => {
+            onNavigate?.();
             navigate({ to: "/onboarding" });
           }}
-          className="group px-3 py-2 text-xs text-slate-600 focus:bg-primary/10 focus:text-primary cursor-pointer flex items-center gap-2 rounded-md transition-colors"
+          className="group px-3 py-2 text-xs text-slate-700 hover:text-slate-950 focus:bg-slate-100 cursor-pointer flex items-center gap-2 rounded-md transition-colors"
         >
-          <Building2 className="w-3.5 h-3.5 text-slate-400 group-focus:text-primary transition-colors" />
-          <span>Business Profile</span>
+          <Building2 className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-900 transition-colors" />
+          <span>{hasBusiness ? "Business Profile" : "Upgrade to Business (KYB)"}</span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator className="bg-slate-100/80 my-1" />

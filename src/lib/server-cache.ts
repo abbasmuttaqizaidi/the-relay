@@ -27,6 +27,10 @@ class ServerCache {
     this.cache.delete(key);
   }
 
+  del(key: string): void {
+    this.delete(key);
+  }
+
   clear(): void {
     this.cache.clear();
   }

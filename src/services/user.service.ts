@@ -102,7 +102,7 @@ export class UserService {
       });
 
       const mappedUser = mapUserRecord(user);
-      serverCache.del(`user:clerk:${user.clerk_user_id}`);
+      serverCache.delete(`user:clerk:${user.clerk_user_id}`);
       serverCache.set(`user:clerk:${user.clerk_user_id}`, mappedUser, 300);
       return mappedUser;
     } catch (error: any) {
@@ -122,7 +122,7 @@ export class UserService {
       });
 
       const mappedUser = mapUserRecord(user);
-      serverCache.del(`user:clerk:${user.clerk_user_id}`);
+      serverCache.delete(`user:clerk:${user.clerk_user_id}`);
       serverCache.set(`user:clerk:${user.clerk_user_id}`, mappedUser, 300);
       return mappedUser;
     } catch (error: any) {

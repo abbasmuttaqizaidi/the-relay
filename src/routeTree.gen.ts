@@ -18,6 +18,7 @@ import { Route as SavedOpportunitiesRouteImport } from './routes/saved-opportuni
 import { Route as ReferralPartnershipsRouteImport } from './routes/referral-partnerships'
 import { Route as QueryRelayRouteImport } from './routes/query-relay'
 import { Route as ProposalsRouteImport } from './routes/proposals'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PostRouteImport } from './routes/post'
 import { Route as OpportunitiesRouteImport } from './routes/opportunities'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -50,9 +51,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as OpportunitiesIndexRouteImport } from './routes/opportunities.index'
 import { Route as InsightsIndexRouteImport } from './routes/insights.index'
 import { Route as ConnectionsIndexRouteImport } from './routes/connections.index'
+import { Route as SignupSsoCallbackRouteImport } from './routes/signup_.sso-callback'
 import { Route as RequestsSentRouteImport } from './routes/requests.sent'
 import { Route as RequestsIncomingRouteImport } from './routes/requests.incoming'
 import { Route as OpportunitiesMyRouteImport } from './routes/opportunities.my'
+import { Route as LoginSsoCallbackRouteImport } from './routes/login_.sso-callback'
 import { Route as InsightsAskRouteImport } from './routes/insights.ask'
 import { Route as InsightsIdRouteImport } from './routes/insights.$id'
 import { Route as ConnectionsIdRouteImport } from './routes/connections.$id'
@@ -104,6 +107,11 @@ const QueryRelayRoute = QueryRelayRouteImport.update({
 const ProposalsRoute = ProposalsRouteImport.update({
   id: '/proposals',
   path: '/proposals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PostRoute = PostRouteImport.update({
@@ -270,6 +278,11 @@ const ConnectionsIndexRoute = ConnectionsIndexRouteImport.update({
   path: '/connections/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupSsoCallbackRoute = SignupSsoCallbackRouteImport.update({
+  id: '/signup_/sso-callback',
+  path: '/signup/sso-callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RequestsSentRoute = RequestsSentRouteImport.update({
   id: '/requests/sent',
   path: '/requests/sent',
@@ -284,6 +297,11 @@ const OpportunitiesMyRoute = OpportunitiesMyRouteImport.update({
   id: '/my',
   path: '/my',
   getParentRoute: () => OpportunitiesRoute,
+} as any)
+const LoginSsoCallbackRoute = LoginSsoCallbackRouteImport.update({
+  id: '/login_/sso-callback',
+  path: '/login/sso-callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const InsightsAskRoute = InsightsAskRouteImport.update({
   id: '/ask',
@@ -346,6 +364,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRouteWithChildren
   '/post': typeof PostRoute
+  '/profile': typeof ProfileRoute
   '/proposals': typeof ProposalsRoute
   '/query-relay': typeof QueryRelayRoute
   '/referral-partnerships': typeof ReferralPartnershipsRoute
@@ -358,9 +377,11 @@ export interface FileRoutesByFullPath {
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
   '/insights/ask': typeof InsightsAskRoute
+  '/login/sso-callback': typeof LoginSsoCallbackRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/requests/incoming': typeof RequestsIncomingRoute
   '/requests/sent': typeof RequestsSentRoute
+  '/signup/sso-callback': typeof SignupSsoCallbackRoute
   '/connections/': typeof ConnectionsIndexRoute
   '/insights/': typeof InsightsIndexRoute
   '/opportunities/': typeof OpportunitiesIndexRoute
@@ -396,6 +417,7 @@ export interface FileRoutesByTo {
   '/network': typeof NetworkRoute
   '/onboarding': typeof OnboardingRoute
   '/post': typeof PostRoute
+  '/profile': typeof ProfileRoute
   '/proposals': typeof ProposalsRoute
   '/query-relay': typeof QueryRelayRoute
   '/referral-partnerships': typeof ReferralPartnershipsRoute
@@ -408,9 +430,11 @@ export interface FileRoutesByTo {
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
   '/insights/ask': typeof InsightsAskRoute
+  '/login/sso-callback': typeof LoginSsoCallbackRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/requests/incoming': typeof RequestsIncomingRoute
   '/requests/sent': typeof RequestsSentRoute
+  '/signup/sso-callback': typeof SignupSsoCallbackRoute
   '/connections': typeof ConnectionsIndexRoute
   '/insights': typeof InsightsIndexRoute
   '/opportunities': typeof OpportunitiesIndexRoute
@@ -449,6 +473,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRouteWithChildren
   '/post': typeof PostRoute
+  '/profile': typeof ProfileRoute
   '/proposals': typeof ProposalsRoute
   '/query-relay': typeof QueryRelayRoute
   '/referral-partnerships': typeof ReferralPartnershipsRoute
@@ -461,9 +486,11 @@ export interface FileRoutesById {
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
   '/insights/ask': typeof InsightsAskRoute
+  '/login_/sso-callback': typeof LoginSsoCallbackRoute
   '/opportunities/my': typeof OpportunitiesMyRoute
   '/requests/incoming': typeof RequestsIncomingRoute
   '/requests/sent': typeof RequestsSentRoute
+  '/signup_/sso-callback': typeof SignupSsoCallbackRoute
   '/connections/': typeof ConnectionsIndexRoute
   '/insights/': typeof InsightsIndexRoute
   '/opportunities/': typeof OpportunitiesIndexRoute
@@ -503,6 +530,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/post'
+    | '/profile'
     | '/proposals'
     | '/query-relay'
     | '/referral-partnerships'
@@ -515,9 +543,11 @@ export interface FileRouteTypes {
     | '/connections/$id'
     | '/insights/$id'
     | '/insights/ask'
+    | '/login/sso-callback'
     | '/opportunities/my'
     | '/requests/incoming'
     | '/requests/sent'
+    | '/signup/sso-callback'
     | '/connections/'
     | '/insights/'
     | '/opportunities/'
@@ -553,6 +583,7 @@ export interface FileRouteTypes {
     | '/network'
     | '/onboarding'
     | '/post'
+    | '/profile'
     | '/proposals'
     | '/query-relay'
     | '/referral-partnerships'
@@ -565,9 +596,11 @@ export interface FileRouteTypes {
     | '/connections/$id'
     | '/insights/$id'
     | '/insights/ask'
+    | '/login/sso-callback'
     | '/opportunities/my'
     | '/requests/incoming'
     | '/requests/sent'
+    | '/signup/sso-callback'
     | '/connections'
     | '/insights'
     | '/opportunities'
@@ -605,6 +638,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/post'
+    | '/profile'
     | '/proposals'
     | '/query-relay'
     | '/referral-partnerships'
@@ -617,9 +651,11 @@ export interface FileRouteTypes {
     | '/connections/$id'
     | '/insights/$id'
     | '/insights/ask'
+    | '/login_/sso-callback'
     | '/opportunities/my'
     | '/requests/incoming'
     | '/requests/sent'
+    | '/signup_/sso-callback'
     | '/connections/'
     | '/insights/'
     | '/opportunities/'
@@ -658,6 +694,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   OpportunitiesRoute: typeof OpportunitiesRouteWithChildren
   PostRoute: typeof PostRoute
+  ProfileRoute: typeof ProfileRoute
   ProposalsRoute: typeof ProposalsRoute
   QueryRelayRoute: typeof QueryRelayRoute
   ReferralPartnershipsRoute: typeof ReferralPartnershipsRoute
@@ -668,8 +705,10 @@ export interface RootRouteChildren {
   TrustAndSafetyRoute: typeof TrustAndSafetyRoute
   WhatToDoWithUnqualifiedLeadsRoute: typeof WhatToDoWithUnqualifiedLeadsRoute
   ConnectionsIdRoute: typeof ConnectionsIdRoute
+  LoginSsoCallbackRoute: typeof LoginSsoCallbackRoute
   RequestsIncomingRoute: typeof RequestsIncomingRoute
   RequestsSentRoute: typeof RequestsSentRoute
+  SignupSsoCallbackRoute: typeof SignupSsoCallbackRoute
   ConnectionsIndexRoute: typeof ConnectionsIndexRoute
 }
 
@@ -736,6 +775,13 @@ declare module '@tanstack/react-router' {
       path: '/proposals'
       fullPath: '/proposals'
       preLoaderRoute: typeof ProposalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/post': {
@@ -962,6 +1008,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConnectionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup_/sso-callback': {
+      id: '/signup_/sso-callback'
+      path: '/signup/sso-callback'
+      fullPath: '/signup/sso-callback'
+      preLoaderRoute: typeof SignupSsoCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/requests/sent': {
       id: '/requests/sent'
       path: '/requests/sent'
@@ -982,6 +1035,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/opportunities/my'
       preLoaderRoute: typeof OpportunitiesMyRouteImport
       parentRoute: typeof OpportunitiesRoute
+    }
+    '/login_/sso-callback': {
+      id: '/login_/sso-callback'
+      path: '/login/sso-callback'
+      fullPath: '/login/sso-callback'
+      preLoaderRoute: typeof LoginSsoCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/insights/ask': {
       id: '/insights/ask'
@@ -1103,6 +1163,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   OpportunitiesRoute: OpportunitiesRouteWithChildren,
   PostRoute: PostRoute,
+  ProfileRoute: ProfileRoute,
   ProposalsRoute: ProposalsRoute,
   QueryRelayRoute: QueryRelayRoute,
   ReferralPartnershipsRoute: ReferralPartnershipsRoute,
@@ -1113,8 +1174,10 @@ const rootRouteChildren: RootRouteChildren = {
   TrustAndSafetyRoute: TrustAndSafetyRoute,
   WhatToDoWithUnqualifiedLeadsRoute: WhatToDoWithUnqualifiedLeadsRoute,
   ConnectionsIdRoute: ConnectionsIdRoute,
+  LoginSsoCallbackRoute: LoginSsoCallbackRoute,
   RequestsIncomingRoute: RequestsIncomingRoute,
   RequestsSentRoute: RequestsSentRoute,
+  SignupSsoCallbackRoute: SignupSsoCallbackRoute,
   ConnectionsIndexRoute: ConnectionsIndexRoute,
 }
 export const routeTree = rootRouteImport

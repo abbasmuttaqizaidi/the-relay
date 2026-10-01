@@ -35,4 +35,19 @@ describe("Community Member Contributor Flow & Validation", () => {
     expect(setUserTypeSchema.safeParse({ type: "admin" }).success).toBe(false);
     expect(setUserTypeSchema.safeParse({ type: "guest" }).success).toBe(false);
   });
+
+  it("ensures serverCache supports both delete() and del() without throwing errors", async () => {
+    const { serverCache } = await import("../src/lib/server-cache");
+    serverCache.set("test:user:1", { id: "1", name: "Sarah" }, 60);
+    expect(serverCache.get("test:user:1")).toEqual({ id: "1", name: "Sarah" });
+
+    // Verify del() alias works properly without throwing TypeError
+    expect(() => serverCache.del("test:user:1")).not.toThrow();
+    expect(serverCache.get("test:user:1")).toBeNull();
+
+    // Verify delete() also works properly
+    serverCache.set("test:user:2", { id: "2", name: "Abbas" }, 60);
+    expect(() => serverCache.delete("test:user:2")).not.toThrow();
+    expect(serverCache.get("test:user:2")).toBeNull();
+  });
 });

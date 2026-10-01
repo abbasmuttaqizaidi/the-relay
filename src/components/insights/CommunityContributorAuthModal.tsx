@@ -78,7 +78,6 @@ export function CommunityContributorAuthModal({
   const [profTitle, setProfTitle] = useState("");
   const [bio, setBio] = useState("");
   const [externalLink, setExternalLink] = useState("");
-  const [avatarType, setAvatarType] = useState<"monogram" | "photo">("monogram");
 
   // Sync clerk user data when authenticated
   useEffect(() => {
@@ -120,10 +119,19 @@ export function CommunityContributorAuthModal({
             if (dbUser.title) setProfTitle(dbUser.title);
             if (dbUser.bio) setBio(dbUser.bio);
             if (dbUser.linkedin_url) setExternalLink(dbUser.linkedin_url);
-            if (dbUser.avatar_type === "photo") setAvatarType("photo");
 
-            // If user already completed identity setup in a prior session
-            if (dbUser.name && dbUser.handle && dbUser.type === "community_member") {
+            // If user is a business user or already completed identity setup
+            if (dbUser.type === "business") {
+              onOpenChange(false);
+              return;
+            }
+
+            if (dbUser.name && dbUser.handle) {
+              const pending = getPendingCommentSession(itemId);
+              if (!pending?.content) {
+                onOpenChange(false);
+                return;
+              }
               setCurrentStep(2);
             }
           }
@@ -286,7 +294,11 @@ export function CommunityContributorAuthModal({
     try {
       setLoading(true);
       if (isSignedIn) {
-        await setUserAccountType({ data: { type: "community_member" } });
+        try {
+          await setUserAccountType({ data: { type: "community_member" } });
+        } catch (apiErr) {
+          console.warn("[handleTierConfirm] setUserAccountType warning:", apiErr);
+        }
       }
       setCurrentStep(2);
     } catch (err: any) {
@@ -336,15 +348,18 @@ export function CommunityContributorAuthModal({
           handle: finalHandle,
           title: profTitle.trim() || "Community Member",
           bio: bio.trim() || undefined,
-          avatar_type: avatarType,
-          avatar_url: avatarType === "photo" ? clerkPhoto : undefined,
+          avatar_type: "photo",
+          avatar_url: clerkPhoto,
           linkedin_url: cleanExternalLink || undefined,
           expertise_domain: expertiseDomain || undefined,
         },
       });
 
       // 2. Post the preserved comment if available (passing parent_id for threaded replies)
-      const commentText = pendingComment.trim();
+      const sessionData = getPendingCommentSession(itemId);
+      const commentText = (pendingComment || sessionData?.content || "").trim();
+      const effectiveParentId = parentId !== undefined && parentId !== null ? parentId : (sessionData?.parentId || null);
+
       if (commentText) {
         await postInsightComment({
           data: {
@@ -354,8 +369,8 @@ export function CommunityContributorAuthModal({
             content: commentText,
             author_name: trimmedName,
             author_title: profTitle.trim() || "Community Member",
-            author_avatar: avatarType === "photo" ? clerkPhoto : undefined,
-            parent_id: parentId || null,
+            author_avatar: clerkPhoto,
+            parent_id: effectiveParentId,
           },
         });
       }
@@ -364,7 +379,7 @@ export function CommunityContributorAuthModal({
 
       toast.success(
         commentText
-          ? parentId
+          ? effectiveParentId
             ? "Profile saved & reply posted!"
             : "Profile saved & perspective published!"
           : "Contributor profile saved successfully!"
@@ -380,10 +395,11 @@ export function CommunityContributorAuthModal({
   };
 
   const monogram = getCompanyInitials(displayName || "Sarah Koenig");
+  const effectiveComment = (pendingComment || getPendingCommentSession(itemId)?.content || "").trim();
 
   return (
     <div
-      onClick={handleDismiss}
+      onClick={isSignedIn ? undefined : handleDismiss}
       className="fixed inset-0 z-50 overflow-y-auto bg-[#010611]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
     >
       <div
@@ -606,7 +622,7 @@ export function CommunityContributorAuthModal({
                 onClick={() => onOpenChange(false)}
                 className="flex items-center gap-1 text-[11px] font-mono uppercase text-[#505f76] hover:text-[#010611] transition-colors cursor-pointer"
               >
-                <span>Cancel &amp; Return</span>
+                <span>Close</span>
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -636,9 +652,14 @@ export function CommunityContributorAuthModal({
                   <div className="space-y-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <span className="text-[11px] font-mono text-[#505f76] uppercase tracking-widest">
-                          Tier I
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-mono text-[#505f76] uppercase tracking-widest">
+                            Tier I
+                          </span>
+                          <span className="text-[9.5px] font-mono uppercase px-2 py-0.5 rounded bg-[#010611] text-white font-bold tracking-wider">
+                            Recommended
+                          </span>
+                        </div>
                         <h3 className="text-lg font-bold text-[#010611] mt-0.5">
                           Community Member
                         </h3>
@@ -802,14 +823,25 @@ export function CommunityContributorAuthModal({
                   <ShieldCheck className="w-4 h-4 text-[#010611]" />
                   <span>Unrestricted Discussion Access</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleDismiss}
-                  className="p-1 rounded-full text-[#505f76] hover:text-[#010611] hover:bg-[#eceef0] transition-colors cursor-pointer"
-                  title="Close and Return"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                {!isSignedIn ? (
+                  <button
+                    type="button"
+                    onClick={handleDismiss}
+                    className="p-1 rounded-full text-[#505f76] hover:text-[#010611] hover:bg-[#eceef0] transition-colors cursor-pointer"
+                    title="Close and Return"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(1)}
+                    className="text-[11px] font-mono uppercase text-[#505f76] hover:text-[#010611] px-2.5 py-1 rounded bg-[#eceef0] hover:bg-[#e0e2e5] transition-colors cursor-pointer flex items-center gap-1 font-semibold"
+                    title="Back to Account Types"
+                  >
+                    <span>← Back to Account Types</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -826,51 +858,28 @@ export function CommunityContributorAuthModal({
                   <span className="text-[10px] font-mono uppercase text-[#75777c]">Public Record</span>
                 </div>
 
-                {/* Avatar Monogram/Photo Selector */}
+                {/* Contributor Photo */}
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-[#010611]">Contributor Avatar</label>
+                  <label className="text-xs font-medium text-[#010611]">Contributor Photo</label>
                   <div className="flex items-center gap-4 p-3 bg-[#f2f4f6] rounded-md">
-                    <div className="w-12 h-12 rounded-full bg-[#010611] overflow-hidden flex items-center justify-center text-white font-bold text-sm shrink-0">
-                      {avatarType === "photo" && clerkUser?.imageUrl ? (
+                    <div className="w-12 h-12 rounded-full bg-[#010611] overflow-hidden flex items-center justify-center text-white font-bold text-sm shrink-0 border border-[#e2e8f0]">
+                      {clerkUser?.imageUrl ? (
                         <img
                           src={clerkUser.imageUrl}
                           alt={displayName}
                           className="w-full h-full object-cover"
                         />
-                      ) : avatarType === "monogram" ? (
-                        monogram
                       ) : (
                         <User className="w-5 h-5 text-white" />
                       )}
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <span className="text-xs font-medium text-[#010611] block">
-                        {avatarType === "photo" && clerkUser?.imageUrl ? "Google Profile Photo" : "Executive Monogram"}
+                    <div className="flex-1 space-y-0.5">
+                      <span className="text-xs font-semibold text-[#010611] block">
+                        Google Profile Photo
                       </span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setAvatarType("monogram")}
-                          className={`px-2.5 py-1 rounded text-[11px] font-mono uppercase transition-colors cursor-pointer ${
-                            avatarType === "monogram"
-                              ? "bg-[#010611] text-white"
-                              : "bg-[#e0e3e5] text-[#505f76] hover:text-[#010611]"
-                          }`}
-                        >
-                          Monogram ({monogram})
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setAvatarType("photo")}
-                          className={`px-2.5 py-1 rounded text-[11px] font-mono uppercase transition-colors cursor-pointer ${
-                            avatarType === "photo"
-                              ? "bg-[#010611] text-white"
-                              : "bg-[#e0e3e5] text-[#505f76] hover:text-[#010611]"
-                          }`}
-                        >
-                          {clerkUser?.imageUrl ? "Photo / Google" : "Default Icon"}
-                        </button>
-                      </div>
+                      <span className="text-[11px] text-[#505f76] block">
+                        Automatically synced with your Google identity
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -965,13 +974,15 @@ export function CommunityContributorAuthModal({
                     >
                       ← Back
                     </button>
-                    <button
-                      type="button"
-                      onClick={handleDismiss}
-                      className="w-full sm:w-auto h-10 px-4 rounded bg-[#e6e8ea] text-[#010611] hover:bg-[#d8dadc] text-xs font-medium transition-colors cursor-pointer"
-                    >
-                      Cancel
-                    </button>
+                    {!isSignedIn && (
+                      <button
+                        type="button"
+                        onClick={handleDismiss}
+                        className="w-full sm:w-auto h-10 px-4 rounded bg-[#e6e8ea] text-[#010611] hover:bg-[#d8dadc] text-xs font-medium transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    )}
                   </div>
                   <button
                     type="button"
@@ -982,11 +993,11 @@ export function CommunityContributorAuthModal({
                     {loading ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>{pendingComment?.trim() ? "Publishing & Joining..." : "Saving Profile..."}</span>
+                        <span>{effectiveComment ? "Publishing & Joining..." : "Saving Profile..."}</span>
                       </>
                     ) : (
                       <>
-                        <span>{pendingComment?.trim() ? "Publish Response & Join Discussion" : "Complete Profile & Join Discussion"}</span>
+                        <span>{effectiveComment ? "Publish Response & Join Discussion" : "Complete Profile & Join Discussion"}</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </>
                     )}
@@ -1022,15 +1033,13 @@ export function CommunityContributorAuthModal({
                   <div className="bg-white rounded-lg p-3.5 border border-[#c5c6cc]/70 shadow-xs space-y-2.5">
                     {/* Author Meta Row */}
                     <div className="flex items-start gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-[#010611] overflow-hidden text-white font-bold text-xs flex items-center justify-center shrink-0">
-                        {avatarType === "photo" && clerkUser?.imageUrl ? (
+                      <div className="w-9 h-9 rounded-full bg-[#010611] overflow-hidden text-white font-bold text-xs flex items-center justify-center shrink-0 border border-[#e2e8f0]">
+                        {clerkUser?.imageUrl ? (
                           <img
                             src={clerkUser.imageUrl}
                             alt={displayName}
                             className="w-full h-full object-cover"
                           />
-                        ) : avatarType === "monogram" ? (
-                          monogram
                         ) : (
                           <User className="w-4 h-4 text-white" />
                         )}
@@ -1057,7 +1066,7 @@ export function CommunityContributorAuthModal({
 
                     {/* Dynamic Body of the Comment */}
                     <div className="text-xs text-[#191c1e] leading-relaxed pl-11 whitespace-pre-line break-words">
-                      "{pendingComment.trim() || "As an operator who recently structured similar workflows, this hits home. When diligence expectations bleed into core delivery loops without clear calibration checkpoints, you end up self-selecting for process tolerance rather than velocity."}"
+                      "{effectiveComment || "As an operator who recently structured similar workflows, this hits home. When diligence expectations bleed into core delivery loops without clear calibration checkpoints, you end up self-selecting for process tolerance rather than velocity."}"
                     </div>
 
                     {/* Bio Pill */}

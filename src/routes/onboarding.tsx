@@ -154,6 +154,7 @@ function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
+  const [isAckAccepted, setIsAckAccepted] = useState<boolean>(true);
   const logoFileInputRef = useRef<HTMLInputElement>(null);
 
   const openFileExplorer = (e?: React.SyntheticEvent) => {
@@ -262,14 +263,14 @@ function OnboardingPage() {
         if (!isMounted) return;
 
         // Check if legal acknowledgement is already accepted on backend or business exists
-        let isAckAccepted = false;
+        let ackStatus = false;
         try {
           const localAck = localStorage.getItem("relay.legal_ack_accepted.v1");
-          if (localAck) isAckAccepted = true;
+          if (localAck) ackStatus = true;
         } catch (_) {}
 
-        if (res && (res.legalAckAccepted || res.hasBusiness || res.business)) {
-          isAckAccepted = true;
+        if (res && (res.legalAckAccepted || res.hasBusiness || (res.business && res.business.status !== "unregistered"))) {
+          ackStatus = true;
           try {
             localStorage.setItem(
               "relay.legal_ack_accepted.v1",
@@ -278,7 +279,9 @@ function OnboardingPage() {
           } catch (_) {}
         }
 
-        if (!isAckAccepted) {
+        setIsAckAccepted(ackStatus);
+
+        if (!ackStatus) {
           setIsLegalModalOpen(true);
         } else {
           setIsLegalModalOpen(false);
@@ -356,6 +359,12 @@ function OnboardingPage() {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+
+    if (!isAckAccepted) {
+      toast.error("Please review and accept the legal framework to save your profile.");
+      setIsLegalModalOpen(true);
+      return;
+    }
 
     if (!companyName.trim()) {
       toast.error("Company name is required.");
@@ -491,13 +500,45 @@ function OnboardingPage() {
                   variant="monochrome"
                   size="sm"
                   onClick={() => handleSubmit()}
-                  disabled={loading}
+                  disabled={!isAckAccepted || loading}
                 >
                   {loading && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />}
                   <span>{loading ? "Saving..." : businessId ? "Save Changes" : "Complete Registration"}</span>
                 </Button>
               </div>
             </div>
+
+            {/* Warning Banner if Legal Terms / Framework Not Accepted */}
+            {!isAckAccepted && (
+              <div
+                role="alert"
+                className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <h4 className="text-xs sm:text-sm font-bold text-amber-950">
+                      Terms of Service &amp; Legal Framework Not Accepted
+                    </h4>
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                      You must review and agree to the Relay Business Onboarding Legal Framework before you can register or edit your business profile. All profile fields are currently disabled.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="monochrome"
+                  size="sm"
+                  onClick={() => setIsLegalModalOpen(true)}
+                  className="shrink-0 w-full sm:w-auto font-semibold px-4 cursor-pointer gap-1.5"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Review &amp; Accept Terms</span>
+                </Button>
+              </div>
+            )}
 
             {/* Hero Profile Identity Card (Dynamic Badge & Status) */}
             <div className="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -516,14 +557,14 @@ function OnboardingPage() {
                     width: "1px",
                     height: "1px",
                   }}
-                  disabled={uploadingLogo || deletingLogo}
+                  disabled={!isAckAccepted || uploadingLogo || deletingLogo}
                 />
                 <div className="relative shrink-0">
                   <button
                     type="button"
                     onClick={openFileExplorer}
-                    disabled={uploadingLogo || deletingLogo}
-                    className="relative group w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center font-mono text-lg sm:text-xl font-bold text-slate-800 shrink-0 overflow-hidden cursor-pointer hover:border-slate-900 transition-all select-none shadow-xs disabled:opacity-50"
+                    disabled={!isAckAccepted || uploadingLogo || deletingLogo}
+                    className="relative group w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center font-mono text-lg sm:text-xl font-bold text-slate-800 shrink-0 overflow-hidden cursor-pointer hover:border-slate-900 transition-all select-none shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Click to choose / change photo"
                   >
                     {logoUrlInput ? (
@@ -569,8 +610,8 @@ function OnboardingPage() {
                   type="button"
                   id="btn-hero-change-logo"
                   onClick={openFileExplorer}
-                  disabled={uploadingLogo || deletingLogo}
-                  className="flex-1 sm:flex-initial relative inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 h-9 px-3.5 text-xs font-semibold gap-1.5 cursor-pointer overflow-hidden shadow-2xs select-none transition-all disabled:opacity-50"
+                  disabled={!isAckAccepted || uploadingLogo || deletingLogo}
+                  className="flex-1 sm:flex-initial relative inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 h-9 px-3.5 text-xs font-semibold gap-1.5 cursor-pointer overflow-hidden shadow-2xs select-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {uploadingLogo ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-900" />
@@ -587,8 +628,8 @@ function OnboardingPage() {
                     variant="outline"
                     size="sm"
                     onClick={handleRemoveLogo}
-                    disabled={uploadingLogo || deletingLogo}
-                    className="flex-1 sm:flex-initial h-9 px-3 gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 active:bg-red-100 border-red-200 transition-all"
+                    disabled={!isAckAccepted || uploadingLogo || deletingLogo}
+                    className="flex-1 sm:flex-initial h-9 px-3 gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 active:bg-red-100 border-red-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {deletingLogo ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -629,6 +670,7 @@ function OnboardingPage() {
                         id="company-name"
                         type="text"
                         required
+                        disabled={!isAckAccepted}
                         placeholder="Apex Services Group, LLC"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
@@ -640,7 +682,7 @@ function OnboardingPage() {
                       <Label htmlFor="industry" required>
                         Primary Industry
                       </Label>
-                      <Select value={industry} onValueChange={setIndustry}>
+                      <Select value={industry} onValueChange={setIndustry} disabled={!isAckAccepted}>
                         <SelectTrigger id="industry">
                           <SelectValue placeholder="Select primary industry" />
                         </SelectTrigger>
@@ -667,6 +709,7 @@ function OnboardingPage() {
                       <Input
                         id="hq-location"
                         type="text"
+                        disabled={!isAckAccepted}
                         placeholder="Chicago, IL, United States"
                         value={hqLocation}
                         onChange={(e) => setHqLocation(e.target.value)}
@@ -681,6 +724,7 @@ function OnboardingPage() {
                       <Input
                         id="founded-year"
                         type="number"
+                        disabled={!isAckAccepted}
                         placeholder="2018"
                         value={foundedYear}
                         onChange={(e) => setFoundedYear(e.target.value ? parseInt(e.target.value) : "")}
@@ -692,7 +736,7 @@ function OnboardingPage() {
                       <Label htmlFor="company-size">
                         Company Size
                       </Label>
-                      <Select value={companySize} onValueChange={setCompanySize}>
+                      <Select value={companySize} onValueChange={setCompanySize} disabled={!isAckAccepted}>
                         <SelectTrigger id="company-size">
                           <SelectValue placeholder="Select company size" />
                         </SelectTrigger>
@@ -716,7 +760,7 @@ function OnboardingPage() {
                       <Label htmlFor="company-type">
                         Company Type
                       </Label>
-                      <Select value={companyType} onValueChange={setCompanyType}>
+                      <Select value={companyType} onValueChange={setCompanyType} disabled={!isAckAccepted}>
                         <SelectTrigger id="company-type">
                           <SelectValue placeholder="Select company type" />
                         </SelectTrigger>
@@ -740,7 +784,7 @@ function OnboardingPage() {
                       <Label htmlFor="funding-stage">
                         Funding Stage
                       </Label>
-                      <Select value={fundingStage} onValueChange={setFundingStage}>
+                      <Select value={fundingStage} onValueChange={setFundingStage} disabled={!isAckAccepted}>
                         <SelectTrigger id="funding-stage">
                           <SelectValue placeholder="Select funding stage" />
                         </SelectTrigger>
@@ -768,6 +812,7 @@ function OnboardingPage() {
                         <Input
                           id="website-url"
                           type="url"
+                          disabled={!isAckAccepted}
                           placeholder="https://apexlogistics.de"
                           value={website}
                           onChange={(e) => setWebsite(e.target.value)}
@@ -808,6 +853,7 @@ function OnboardingPage() {
                           <Input
                             id="logo-url-field"
                             type="url"
+                            disabled={!isAckAccepted}
                             placeholder="https://example.com/logo.png or upload image file"
                             value={logoUrlInput}
                             onChange={(e) => setLogoUrlInput(e.target.value)}
@@ -817,8 +863,8 @@ function OnboardingPage() {
                           type="button"
                           id="btn-form-upload-logo"
                           onClick={openFileExplorer}
-                          disabled={uploadingLogo || deletingLogo}
-                          className="relative inline-flex items-center justify-center rounded-md border border-[#e2e8f0] bg-white hover:bg-slate-50 active:bg-slate-100 text-[#0b1c30] h-10 px-3 text-xs font-semibold gap-1.5 cursor-pointer overflow-hidden shadow-xs shrink-0 select-none disabled:opacity-50"
+                          disabled={!isAckAccepted || uploadingLogo || deletingLogo}
+                          className="relative inline-flex items-center justify-center rounded-md border border-[#e2e8f0] bg-white hover:bg-slate-50 active:bg-slate-100 text-[#0b1c30] h-10 px-3 text-xs font-semibold gap-1.5 cursor-pointer overflow-hidden shadow-xs shrink-0 select-none disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {uploadingLogo ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin text-[#9d4300]" />
@@ -833,8 +879,8 @@ function OnboardingPage() {
                             variant="outline"
                             size="sm"
                             onClick={handleRemoveLogo}
-                            disabled={uploadingLogo || deletingLogo}
-                            className="shrink-0 gap-1.5 h-10 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                            disabled={!isAckAccepted || uploadingLogo || deletingLogo}
+                            className="shrink-0 gap-1.5 h-10 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {deletingLogo ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -861,6 +907,7 @@ function OnboardingPage() {
                         id="description"
                         maxLength={1000}
                         rows={3}
+                        disabled={!isAckAccepted}
                         placeholder="Apex Services manages enterprise freight logistics & tracking integrations for 450+ managed fleets across North America. We actively exchange mid-market CRM implementation dealflow for enterprise marketing automation partnerships."
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
@@ -889,6 +936,7 @@ function OnboardingPage() {
                       <Input
                         id="linkedin"
                         type="text"
+                        disabled={!isAckAccepted}
                         placeholder="linkedin.com/company/apex-services-group"
                         value={linkedinUrl}
                         onChange={(e) => setLinkedinUrl(e.target.value)}
@@ -902,6 +950,7 @@ function OnboardingPage() {
                       <Input
                         id="x-handle"
                         type="text"
+                        disabled={!isAckAccepted}
                         placeholder="x.com/apexservices_hq"
                         value={twitterUrl}
                         onChange={(e) => setTwitterUrl(e.target.value)}
@@ -915,6 +964,7 @@ function OnboardingPage() {
                       <Input
                         id="github-handle"
                         type="text"
+                        disabled={!isAckAccepted}
                         placeholder="github.com/apex-services"
                         value={githubUrl}
                         onChange={(e) => setGithubUrl(e.target.value)}
@@ -928,6 +978,7 @@ function OnboardingPage() {
                       <Input
                         id="crunchbase-url"
                         type="text"
+                        disabled={!isAckAccepted}
                         placeholder="crunchbase.com/organization/apex-services"
                         value={crunchbaseUrl}
                         onChange={(e) => setCrunchbaseUrl(e.target.value)}
@@ -942,7 +993,7 @@ function OnboardingPage() {
                     type="submit"
                     variant="monochrome"
                     size="lg"
-                    disabled={loading}
+                    disabled={!isAckAccepted || loading}
                     className="w-full sm:w-auto px-6"
                   >
                     {loading ? (
@@ -1101,9 +1152,13 @@ function OnboardingPage() {
 
       {/* First-time Onboarding Legal Terms Modal */}
       <LegalAcknowledgementModal
-        open={isLegalModalOpen && !fetchingProfile && !businessId && businessStatus === "unregistered"}
+        open={isLegalModalOpen && !fetchingProfile}
         onOpenChange={setIsLegalModalOpen}
-        onAgree={() => toast.success("Legal framework acknowledged.")}
+        onAgree={() => {
+          setIsAckAccepted(true);
+          setIsLegalModalOpen(false);
+          toast.success("Legal framework acknowledged.");
+        }}
       />
     </div>
   );

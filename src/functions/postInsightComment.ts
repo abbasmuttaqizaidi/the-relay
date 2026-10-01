@@ -25,6 +25,11 @@ export const postInsightComment = createServerFn({ method: "POST" })
         if (dbUser) {
           userId = dbUser.id;
         }
+
+        // Always attach Google photo as author_avatar if available
+        if (!data.author_avatar && clerkUser.imageUrl) {
+          data.author_avatar = clerkUser.imageUrl;
+        }
       }
     } catch (_) {
       // Unauthenticated / general public posting

@@ -50,6 +50,7 @@ import {
   hasGlobalAuthPromptBeenShown,
   markGlobalAuthPromptShown,
   shouldSkipAuthPrompt,
+  getPendingCommentSession,
 } from "@/lib/discussion-session";
 import { KnowledgeInsight, Business, KnowledgeInsightBasedOn } from "../types";
 import { createSeoMeta, createArticleSchema, SITE_URL } from "@/lib/seo";
@@ -354,23 +355,34 @@ export function KnowledgeDetailPage() {
     return () => clearTimeout(timer);
   }, [isLoaded, isSignedIn, id, isAdmin]);
 
-  // Check if user returned from Google OAuth initiated from the public prompt modal
+  // Check if user returned from Google/Phone login initiated from the public prompt modal
   useEffect(() => {
     if (isLoaded && isSignedIn && typeof window !== "undefined") {
       const pendingContributor = sessionStorage.getItem("relay_pending_contributor_onboarding");
       if (pendingContributor) {
         sessionStorage.removeItem("relay_pending_contributor_onboarding");
-        getCommunityProfile()
-          .then((profile) => {
-            if (profile?.name && profile?.handle && profile?.type === "community_member") {
-              toast.success(`Welcome back, ${profile.name}! You are ready to join discussions.`);
-            } else {
-              setContributorModalOpen(true);
+        Promise.all([
+          getCommunityProfile().catch(() => null),
+          checkOnboardingStatus().catch(() => null),
+        ])
+          .then(([profile, onboarding]) => {
+            if (
+              onboarding?.hasBusiness ||
+              onboarding?.business ||
+              profile?.type === "business" ||
+              profile?.type === "associate"
+            ) {
+              toast.success("Welcome back! You are signed in with your business credentials.");
+              return;
             }
-          })
-          .catch(() => {
+            if (profile?.name || profile?.handle) {
+              toast.success(`Welcome back, ${profile.name || "Contributor"}! You are ready to join discussions.`);
+              return;
+            }
+            // Only prompt brand new unconfigured users
             setContributorModalOpen(true);
-          });
+          })
+          .catch(() => {});
       }
     }
   }, [isLoaded, isSignedIn]);
@@ -1023,7 +1035,8 @@ export function KnowledgeDetailPage() {
       <CommunityContributorAuthModal
         open={contributorModalOpen}
         onOpenChange={setContributorModalOpen}
-        pendingComment=""
+        pendingComment={getPendingCommentSession(id)?.content || ""}
+        parentId={getPendingCommentSession(id)?.parentId || null}
         itemType="knowledge"
         itemId={id}
         itemTitle={insight?.title || "Knowledge Article"}

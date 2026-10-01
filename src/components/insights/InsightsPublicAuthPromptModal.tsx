@@ -94,6 +94,7 @@ export function InsightsPublicAuthPromptModal({
 
       try {
         sessionStorage.setItem("relay_pending_contributor_onboarding", "true");
+        sessionStorage.setItem("relay_auth_return_url", returnUrl);
       } catch {}
 
       let authResource =
@@ -147,6 +148,9 @@ export function InsightsPublicAuthPromptModal({
     markGlobalAuthPromptShown();
     onOpenChange(false);
     const returnUrl = getReturnUrl();
+    try {
+      sessionStorage.setItem("relay_auth_return_url", returnUrl);
+    } catch {}
     navigate({ to: "/signup", search: { redirect: returnUrl } as any });
   };
 
@@ -161,6 +165,9 @@ export function InsightsPublicAuthPromptModal({
     markGlobalAuthPromptShown();
     onOpenChange(false);
     const returnUrl = getReturnUrl();
+    try {
+      sessionStorage.setItem("relay_auth_return_url", returnUrl);
+    } catch {}
     navigate({ to: "/login", search: { redirect: returnUrl } as any });
   };
 

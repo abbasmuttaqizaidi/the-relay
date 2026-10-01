@@ -83,11 +83,27 @@ function SignInPage() {
     return "/opportunities";
   }, [search]);
 
+  const { targetPath, targetHash } = useMemo(() => {
+    const [path, hash] = redirectTarget.split("#");
+    return {
+      targetPath: path || "/opportunities",
+      targetHash: hash ? `#${hash}` : undefined,
+    };
+  }, [redirectTarget]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && redirectTarget && redirectTarget !== "/opportunities") {
+      try {
+        sessionStorage.setItem("relay_auth_return_url", redirectTarget);
+      } catch {}
+    }
+  }, [redirectTarget]);
+
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      navigate({ to: redirectTarget as any });
+      navigate({ to: targetPath as any, hash: targetHash as any });
     }
-  }, [isLoaded, isSignedIn, navigate, redirectTarget]);
+  }, [isLoaded, isSignedIn, navigate, targetPath, targetHash]);
 
   // Appearance overrides strictly following SIGN_IN.md & Monochrome Executive design tokens
   const clerkAppearance = {
@@ -212,6 +228,9 @@ function SignInPage() {
               path="/login"
               signUpUrl="/signup"
               forceRedirectUrl={redirectTarget}
+              fallbackRedirectUrl={redirectTarget}
+              signUpForceRedirectUrl={redirectTarget}
+              signUpFallbackRedirectUrl={redirectTarget}
               appearance={clerkAppearance}
             />
           </div>

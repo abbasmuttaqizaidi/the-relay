@@ -24,12 +24,15 @@ import {
   Lock,
   Layers,
   Sparkles,
+  User as UserIcon,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { toast } from "sonner";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
 import { SolutionsDropdown, SolutionsMobileSection } from "@/design-system";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
+import { getCommunityProfile } from "@/functions/communityProfile";
 import { getIncomingRequests } from "@/functions/getIncomingRequests";
 import { getSentRequests } from "@/functions/getSentRequests";
 import { getMyOpportunities } from "@/functions/getMyOpportunities";
@@ -73,6 +76,16 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
     },
     enabled: Boolean(isLoaded && isSignedIn),
     staleTime: 1000 * 60 * 1,
+  });
+
+  const { data: communityProfile } = useQuery({
+    queryKey: ["community-profile", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return null;
+      return await getCommunityProfile();
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60 * 2,
   });
 
   const business = onboardingData?.business || null;
@@ -356,12 +369,48 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   // ═══════════════════════════════════════════════════════════════════════════
   const companyName = business?.company_name || "Your Business";
   const userInitials = getCompanyInitials(companyName);
+  const isCommunityMember = !business || communityProfile?.type === "community_member";
+
+  const renderDisabledItem = (icon: React.ReactNode, label: string, badge?: string) => (
+    <div
+      onClick={() => {
+        toast.info(
+          "Business verification required to access this feature. Please upgrade to a Verified Business Account.",
+          {
+            action: {
+              label: "Upgrade",
+              onClick: () => navigate({ to: "/onboarding" }),
+            },
+          }
+        );
+      }}
+      className="group flex items-center justify-between px-3 py-2 rounded-lg opacity-40 hover:opacity-60 transition-opacity cursor-not-allowed select-none text-slate-500 font-medium"
+      title="Verified Business Account required"
+    >
+      <div className="flex items-center gap-2.5 min-w-0">
+        {icon}
+        <span className="truncate">{label}</span>
+      </div>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <Lock className="w-3 h-3 text-slate-400" />
+        {badge && (
+          <span className="font-mono text-[9px] uppercase px-1 py-0.2 rounded bg-slate-100 text-slate-400 font-bold">
+            {badge}
+          </span>
+        )}
+      </div>
+    </div>
+  );
 
   const sidebarContent = (
     <div className="flex flex-col flex-1 min-h-0 bg-white">
       {/* Brand Header */}
       <div className="h-16 px-6 flex items-center bg-white flex-shrink-0 border-b border-slate-100">
-        <Link to="/opportunities" className="flex items-center group">
+        <Link
+          to={isCommunityMember ? "/insights" : "/opportunities"}
+          search={isCommunityMember ? ({ tab: "knowledge" } as any) : undefined}
+          className="flex items-center group"
+        >
           <img
             src={logoUrl}
             alt="The Relay Logo"
@@ -377,22 +426,30 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
             Exchange
           </div>
-          <Link
-            to="/dashboard"
-            className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isDashboard
-                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Sparkles className={`w-4 h-4 ${isDashboard ? "text-slate-950" : "text-slate-500"}`} />
-              <span>Dashboard</span>
-            </div>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-950 text-white font-bold">
-              Hub
-            </span>
-          </Link>
+          {isCommunityMember ? (
+            renderDisabledItem(
+              <Sparkles className="w-4 h-4 text-slate-400" />,
+              "Dashboard",
+              "Hub"
+            )
+          ) : (
+            <Link
+              to="/dashboard"
+              className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                isDashboard
+                  ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Sparkles className={`w-4 h-4 ${isDashboard ? "text-slate-950" : "text-slate-500"}`} />
+                <span>Dashboard</span>
+              </div>
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-950 text-white font-bold">
+                Hub
+              </span>
+            </Link>
+          )}
         </nav>
 
         {/* 1. MARKETPLACE */}
@@ -400,39 +457,56 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
             Marketplace
           </div>
-          <Link
-            to="/opportunities"
-            className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isOpportunities && !isConnections
-                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <LayoutGrid className={`w-4 h-4 ${isOpportunities && !isConnections ? "text-slate-950" : "text-slate-500"}`} />
-              <span>Opportunities</span>
-            </div>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-bold">
-              Explore
-            </span>
-          </Link>
+          {isCommunityMember ? (
+            <>
+              {renderDisabledItem(
+                <LayoutGrid className="w-4 h-4 text-slate-400" />,
+                "Opportunities",
+                "Explore"
+              )}
+              {renderDisabledItem(
+                <ArrowLeftRight className="w-4 h-4 text-slate-400" />,
+                "Exchange Hub",
+                "Live"
+              )}
+            </>
+          ) : (
+            <>
+              <Link
+                to="/opportunities"
+                className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                  isOpportunities && !isConnections
+                    ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <LayoutGrid className={`w-4 h-4 ${isOpportunities && !isConnections ? "text-slate-950" : "text-slate-500"}`} />
+                  <span>Opportunities</span>
+                </div>
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-bold">
+                  Explore
+                </span>
+              </Link>
 
-          <Link
-            to="/connections"
-            className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isConnections
-                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <ArrowLeftRight className={`w-4 h-4 ${isConnections ? "text-slate-950" : "text-slate-500"}`} />
-              <span>Exchange Hub</span>
-            </div>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-950 text-white font-bold">
-              Live
-            </span>
-          </Link>
+              <Link
+                to="/connections"
+                className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                  isConnections
+                    ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <ArrowLeftRight className={`w-4 h-4 ${isConnections ? "text-slate-950" : "text-slate-500"}`} />
+                  <span>Exchange Hub</span>
+                </div>
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-950 text-white font-bold">
+                  Live
+                </span>
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* 2. HISTORY */}
@@ -440,40 +514,55 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
             History
           </div>
-          <Link
-            to="/proposals"
-            search={{ tab: "received" } as any}
-            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isProposalsReceived
-                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Inbox className={`w-4 h-4 ${isProposalsReceived ? "text-slate-950" : "text-slate-500"}`} />
-              <span>Received</span>
-            </div>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
-              {incomingCount ?? 0}
-            </span>
-          </Link>
-          <Link
-            to="/proposals"
-            search={{ tab: "sent" } as any}
-            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isProposalsSent
-                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Send className={`w-4 h-4 ${isProposalsSent ? "text-slate-950" : "text-slate-500"}`} />
-              <span>Sent</span>
-            </div>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">
-              {sentCount}
-            </span>
-          </Link>
+          {isCommunityMember ? (
+            <>
+              {renderDisabledItem(
+                <Inbox className="w-4 h-4 text-slate-400" />,
+                "Received"
+              )}
+              {renderDisabledItem(
+                <Send className="w-4 h-4 text-slate-400" />,
+                "Sent"
+              )}
+            </>
+          ) : (
+            <>
+              <Link
+                to="/proposals"
+                search={{ tab: "received" } as any}
+                className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                  isProposalsReceived
+                    ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Inbox className={`w-4 h-4 ${isProposalsReceived ? "text-slate-950" : "text-slate-500"}`} />
+                  <span>Received</span>
+                </div>
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                  {incomingCount ?? 0}
+                </span>
+              </Link>
+              <Link
+                to="/proposals"
+                search={{ tab: "sent" } as any}
+                className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                  isProposalsSent
+                    ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Send className={`w-4 h-4 ${isProposalsSent ? "text-slate-950" : "text-slate-500"}`} />
+                  <span>Sent</span>
+                </div>
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">
+                  {sentCount}
+                </span>
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* 3. MY RELAY */}
@@ -481,100 +570,119 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
             My Relay
           </div>
-          <Link
-            to="/my-relay"
-            search={{ tab: "listings" } as any}
-            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isMyRelayListings
-                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <FileText className={`w-4 h-4 ${isMyRelayListings ? "text-slate-950" : "text-slate-500"}`} />
-              <span>Listings</span>
-            </div>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">
-              {listingsCount}
-            </span>
-          </Link>
-          <Link
-            to="/my-relay"
-            search={{ tab: "saved" } as any}
-            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isMyRelaySaved
-                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Bookmark className={`w-4 h-4 ${isMyRelaySaved ? "text-slate-950" : "text-slate-500"}`} />
-              <span>Saved</span>
-            </div>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">
-              {savedCount}
-            </span>
-          </Link>
-
-          {/* Collapsible My Opportunities Sub-Menu */}
-          <div className="flex flex-col gap-0.5 pt-1">
-            <button
-              type="button"
-              onClick={() => {
-                setIsMyOppsExpanded(!isMyOppsExpanded);
-                if (!isMyRelayInbound && !isMyRelayOutbound && !isMyRelayRequests) {
-                  navigate({ to: "/my-relay", search: { tab: "inbound" } as any });
-                }
-              }}
-              className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium cursor-pointer w-full text-left ${
-                isMyRelayRequests
-                  ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <ArrowLeftRight className={`w-4 h-4 ${isMyRelayRequests ? "text-slate-950" : "text-slate-500"}`} />
-                <span>My Opportunities</span>
-              </div>
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-400 transition-transform ${
-                  isMyOppsExpanded ? "rotate-0" : "-rotate-90"
+          {isCommunityMember ? (
+            <>
+              {renderDisabledItem(
+                <FileText className="w-4 h-4 text-slate-400" />,
+                "Listings"
+              )}
+              {renderDisabledItem(
+                <Bookmark className="w-4 h-4 text-slate-400" />,
+                "Saved"
+              )}
+              {renderDisabledItem(
+                <ArrowLeftRight className="w-4 h-4 text-slate-400" />,
+                "My Opportunities"
+              )}
+            </>
+          ) : (
+            <>
+              <Link
+                to="/my-relay"
+                search={{ tab: "listings" } as any}
+                className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                  isMyRelayListings
+                    ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
                 }`}
-              />
-            </button>
-            {isMyOppsExpanded && (
-              <div className="pl-6 flex flex-col gap-1 border-l-2 border-slate-200 ml-4 my-1">
-                <Link
-                  to="/my-relay"
-                  search={{ tab: "inbound" } as any}
-                  className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
-                    isMyRelayInbound
-                      ? "text-slate-950 font-bold bg-slate-100/80"
-                      : "text-slate-600 hover:text-slate-950 hover:bg-slate-50"
+              >
+                <div className="flex items-center gap-2.5">
+                  <FileText className={`w-4 h-4 ${isMyRelayListings ? "text-slate-950" : "text-slate-500"}`} />
+                  <span>Listings</span>
+                </div>
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">
+                  {listingsCount}
+                </span>
+              </Link>
+              <Link
+                to="/my-relay"
+                search={{ tab: "saved" } as any}
+                className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                  isMyRelaySaved
+                    ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Bookmark className={`w-4 h-4 ${isMyRelaySaved ? "text-slate-950" : "text-slate-500"}`} />
+                  <span>Saved</span>
+                </div>
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">
+                  {savedCount}
+                </span>
+              </Link>
+
+              {/* Collapsible My Opportunities Sub-Menu */}
+              <div className="flex flex-col gap-0.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMyOppsExpanded(!isMyOppsExpanded);
+                    if (!isMyRelayInbound && !isMyRelayOutbound && !isMyRelayRequests) {
+                      navigate({ to: "/my-relay", search: { tab: "inbound" } as any });
+                    }
+                  }}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium cursor-pointer w-full text-left ${
+                    isMyRelayRequests
+                      ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
                   }`}
                 >
-                  <span>Inbound</span>
-                  <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-medium">
-                    {incomingCount}
-                  </span>
-                </Link>
-                <Link
-                  to="/my-relay"
-                  search={{ tab: "outbound" } as any}
-                  className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
-                    isMyRelayOutbound
-                      ? "text-slate-950 font-bold bg-slate-100/80"
-                      : "text-slate-600 hover:text-slate-950 hover:bg-slate-50"
-                  }`}
-                >
-                  <span>Outbound</span>
-                  <span className="font-mono text-[9px] px-1 rounded bg-slate-100 text-slate-500 font-medium">
-                    {sentCount}
-                  </span>
-                </Link>
+                  <div className="flex items-center gap-2.5">
+                    <ArrowLeftRight className={`w-4 h-4 ${isMyRelayRequests ? "text-slate-950" : "text-slate-500"}`} />
+                    <span>My Opportunities</span>
+                  </div>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-slate-400 transition-transform ${
+                      isMyOppsExpanded ? "rotate-0" : "-rotate-90"
+                    }`}
+                  />
+                </button>
+                {isMyOppsExpanded && (
+                  <div className="pl-6 flex flex-col gap-1 border-l-2 border-slate-200 ml-4 my-1">
+                    <Link
+                      to="/my-relay"
+                      search={{ tab: "inbound" } as any}
+                      className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
+                        isMyRelayInbound
+                          ? "text-slate-950 font-bold bg-slate-100/80"
+                          : "text-slate-600 hover:text-slate-950 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span>Inbound</span>
+                      <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-medium">
+                        {incomingCount}
+                      </span>
+                    </Link>
+                    <Link
+                      to="/my-relay"
+                      search={{ tab: "outbound" } as any}
+                      className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
+                        isMyRelayOutbound
+                          ? "text-slate-950 font-bold bg-slate-100/80"
+                          : "text-slate-600 hover:text-slate-950 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span>Outbound</span>
+                      <span className="font-mono text-[9px] px-1 rounded bg-slate-100 text-slate-500 font-medium">
+                        {sentCount}
+                      </span>
+                    </Link>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </nav>
 
         {/* 4. INSIGHTS */}
@@ -582,23 +690,33 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
             Insights
           </div>
-          <Link
-            to="/insights"
-            search={{ tab: "questions" } as any}
-            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isInsightsQuestions
-                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <MessageSquare className={`w-4 h-4 ${isInsightsQuestions ? "text-slate-950" : "text-slate-500"}`} />
-              <span>Questions</span>
-            </div>
-            <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold">
-              Q&A
-            </span>
-          </Link>
+          {isCommunityMember ? (
+            renderDisabledItem(
+              <MessageSquare className="w-4 h-4 text-slate-400" />,
+              "Questions",
+              "Q&A"
+            )
+          ) : (
+            <Link
+              to="/insights"
+              search={{ tab: "questions" } as any}
+              className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                isInsightsQuestions
+                  ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <MessageSquare className={`w-4 h-4 ${isInsightsQuestions ? "text-slate-950" : "text-slate-500"}`} />
+                <span>Questions</span>
+              </div>
+              <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold">
+                Q&A
+              </span>
+            </Link>
+          )}
+
+          {/* KNOWLEDGE ARTICLES: FULLY ACCESSIBLE TO COMMUNITY MEMBERS */}
           <Link
             to="/insights"
             search={{ tab: "knowledge" } as any}
@@ -617,24 +735,26 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
             </span>
           </Link>
 
-          {/* Sub-items for Knowledge Articles: My Articles & Saved Articles */}
+          {/* Sub-items for Knowledge Articles */}
           <div className="pl-6 flex flex-col gap-1 border-l-2 border-slate-200 ml-4 my-0.5">
-            <Link
-              to="/insights"
-              search={{ tab: "knowledge", filter: "my" } as any}
-              className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
-                isMyArticles
-                  ? "text-slate-950 font-bold bg-slate-100/80"
-                  : "text-slate-600 hover:text-slate-950 hover:bg-slate-50"
-              }`}
-            >
-              <span>My Articles</span>
-              {myKnowledgeCount > 0 && (
-                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-medium">
-                  {myKnowledgeCount}
-                </span>
-              )}
-            </Link>
+            {!isCommunityMember && (
+              <Link
+                to="/insights"
+                search={{ tab: "knowledge", filter: "my" } as any}
+                className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
+                  isMyArticles
+                    ? "text-slate-950 font-bold bg-slate-100/80"
+                    : "text-slate-600 hover:text-slate-950 hover:bg-slate-50"
+                }`}
+              >
+                <span>My Articles</span>
+                {myKnowledgeCount > 0 && (
+                  <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-medium">
+                    {myKnowledgeCount}
+                  </span>
+                )}
+              </Link>
+            )}
             <Link
               to="/insights"
               search={{ tab: "knowledge", filter: "saved" } as any}
@@ -652,19 +772,28 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               )}
             </Link>
           </div>
-          <Link
-            to="/faq"
-            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isFaq
-                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <HelpCircle className={`w-4 h-4 ${isFaq ? "text-slate-950" : "text-slate-500"}`} />
-              <span>FAQ</span>
-            </div>
-          </Link>
+
+          {/* FAQ */}
+          {isCommunityMember ? (
+            renderDisabledItem(
+              <HelpCircle className="w-4 h-4 text-slate-400" />,
+              "FAQ"
+            )
+          ) : (
+            <Link
+              to="/faq"
+              className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                isFaq
+                  ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <HelpCircle className={`w-4 h-4 ${isFaq ? "text-slate-950" : "text-slate-500"}`} />
+                <span>FAQ</span>
+              </div>
+            </Link>
+          )}
         </nav>
 
         {/* 5. ECOSYSTEM */}
@@ -672,76 +801,103 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
             Ecosystem
           </div>
-          <Link
-            to="/network"
-            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isNetwork
-                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <ShieldCheck className={`w-4 h-4 ${isNetwork ? "text-slate-950" : "text-slate-500"}`} />
-              <span>Verified Network</span>
-            </div>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          </Link>
-          <Link
-            to="/design-system"
-            search={{ tab: "overview" } as any}
-            className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-950 transition-colors font-medium"
-          >
-            <div className="flex items-center gap-2.5">
-              <Layers className="w-4 h-4 text-slate-500" />
-              <span>Design System</span>
-            </div>
-            <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold">
-              Storybook
-            </span>
-          </Link>
+          {isCommunityMember ? (
+            renderDisabledItem(
+              <ShieldCheck className="w-4 h-4 text-slate-400" />,
+              "Verified Network"
+            )
+          ) : (
+            <Link
+              to="/network"
+              className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                isNetwork
+                  ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className={`w-4 h-4 ${isNetwork ? "text-slate-950" : "text-slate-500"}`} />
+                <span>Verified Network</span>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            </Link>
+          )}
         </nav>
       </div>
 
       {/* Bottom Profile Footer Strip */}
-      <div className="p-3 bg-white border-t border-slate-200/80">
-        <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/60 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <CompanyLogo
-              src={business?.logo_url}
-              name={companyName}
-              className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
-              fallbackClassName="w-8 h-8 rounded-full bg-slate-950 text-white font-bold text-xs flex items-center justify-center shrink-0"
-              textClassName="font-mono text-xs font-bold"
-            />
-            <div className="flex flex-col min-w-0">
-              <span className="font-semibold text-xs text-slate-900 truncate">
-                {companyName}
-              </span>
-              <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-700 flex items-center gap-1 font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
-                {isApproved ? "Verified Member" : "Profile Pending"}
-              </span>
+      {(() => {
+        const hasBusiness = Boolean(business);
+        const footerDisplayName = hasBusiness
+          ? business?.company_name || "Your Business"
+          : communityProfile?.name || user?.fullName || "Community Contributor";
+        const footerBadge = hasBusiness
+          ? isApproved
+            ? "Verified Member"
+            : "Profile Pending"
+          : "Community Member";
+        const footerSettingsTo = hasBusiness ? "/onboarding" : "/profile";
+
+        return (
+          <div className="p-3 bg-white border-t border-slate-200/80">
+            <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/60 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                {hasBusiness ? (
+                  <CompanyLogo
+                    src={business?.logo_url}
+                    name={footerDisplayName}
+                    className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
+                    fallbackClassName="w-8 h-8 rounded-full bg-slate-950 text-white font-bold text-xs flex items-center justify-center shrink-0"
+                    textClassName="font-mono text-xs font-bold"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-slate-950 text-white font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden border border-slate-200">
+                    {user?.imageUrl || communityProfile?.avatar_url ? (
+                      <img
+                        src={user?.imageUrl || communityProfile?.avatar_url}
+                        alt={footerDisplayName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <UserIcon className="w-4 h-4 text-white" />
+                    )}
+                  </div>
+                )}
+                <div className="flex flex-col min-w-0">
+                  <span className="font-semibold text-xs text-slate-900 truncate">
+                    {footerDisplayName}
+                  </span>
+                  <span className={`font-mono text-[9px] uppercase tracking-wider flex items-center gap-1 font-bold ${
+                    hasBusiness ? "text-emerald-700" : "text-[#505f76]"
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full inline-block ${
+                      hasBusiness ? "bg-emerald-500" : "bg-[#010611]"
+                    }`} />
+                    {footerBadge}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <Link
+                  to={footerSettingsTo}
+                  title={hasBusiness ? "Entity Settings" : "Contributor Profile"}
+                  className="p-1.5 text-slate-500 hover:text-slate-900 rounded-md hover:bg-slate-200/70 transition-colors"
+                >
+                  <Settings className="w-4 h-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => signOut(() => navigate({ to: "/" }))}
+                  title="Sign Out"
+                  className="p-1.5 text-slate-500 hover:text-red-600 rounded-md hover:bg-slate-200/70 transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Link
-              to="/business-profile"
-              title="Entity Settings"
-              className="p-1.5 text-slate-500 hover:text-slate-900 rounded-md hover:bg-slate-200/70 transition-colors"
-            >
-              <Settings className="w-4 h-4" />
-            </Link>
-            <button
-              type="button"
-              onClick={() => signOut(() => navigate({ to: "/" }))}
-              title="Sign Out"
-              className="p-1.5 text-slate-500 hover:text-red-600 rounded-md hover:bg-slate-200/70 transition-colors cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
+        );
+      })()}
     </div>
   );
 
@@ -805,16 +961,36 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
 
         {/* Right Actions: Post Opportunity + Notification Bell + User Avatar */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={() => setPostTypeModalOpen(true)}
-            id="global-post-opportunity-btn"
-            className="inline-flex items-center gap-1.5 bg-slate-950 text-white hover:bg-slate-800 font-semibold text-xs px-3 sm:px-3.5 py-2 rounded-lg transition-colors shadow-xs cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Post Opportunity</span>
-            <span className="sm:hidden">Post</span>
-          </button>
+          {isCommunityMember ? (
+            <button
+              type="button"
+              onClick={() => {
+                toast.info("Posting commercial opportunities requires a Verified Business Account.", {
+                  action: {
+                    label: "Upgrade",
+                    onClick: () => navigate({ to: "/onboarding" }),
+                  },
+                });
+              }}
+              className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-400 hover:bg-slate-200 font-semibold text-xs px-3 sm:px-3.5 py-2 rounded-lg transition-colors shadow-2xs cursor-not-allowed border border-slate-200/80"
+              title="Verified Business Account required"
+            >
+              <Lock className="w-3.5 h-3.5 text-slate-400" />
+              <span className="hidden sm:inline">Post Opportunity</span>
+              <span className="sm:hidden">Post</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setPostTypeModalOpen(true)}
+              id="global-post-opportunity-btn"
+              className="inline-flex items-center gap-1.5 bg-slate-950 text-white hover:bg-slate-800 font-semibold text-xs px-3 sm:px-3.5 py-2 rounded-lg transition-colors shadow-xs cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Post Opportunity</span>
+              <span className="sm:hidden">Post</span>
+            </button>
+          )}
 
           <div className="h-4 w-px bg-slate-200 hidden sm:block"></div>
 

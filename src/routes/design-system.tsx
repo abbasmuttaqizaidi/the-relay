@@ -129,6 +129,7 @@ export const Route = createFileRoute("/design-system")({
         name: "description",
         content: "Storybook-style interactive showcase of all components, tokens, and variations in The Relay Design System.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: DesignSystemStorybookPage,

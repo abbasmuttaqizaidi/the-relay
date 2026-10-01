@@ -6,6 +6,7 @@ import {
   useRouter,
   useRouterState,
   useMatchRoute,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -113,7 +114,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -141,7 +142,7 @@ function RootShell({ children }: { children: ReactNode }) {
         />
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Scripts />
       </body>
@@ -150,7 +151,33 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function AppLayout() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
+  const navigate = useNavigate();
+  const location = useRouterState({
+    select: (state) => state.location,
+  });
+
+  useEffect(() => {
+    if (isLoaded && typeof document !== "undefined") {
+      document.documentElement.classList.remove("clerk-oauth-resolving");
+    }
+  }, [isLoaded]);
+
+  // OAuth recovery safety net:
+  // If an authenticated user lands on "/" while there is a pending return URL (e.g. from article discussion),
+  // immediately restore navigation to that discussion section!
+  useEffect(() => {
+    if (isLoaded && isSignedIn && typeof window !== "undefined") {
+      if (location.pathname === "/") {
+        const returnUrl = sessionStorage.getItem("relay_auth_return_url");
+        if (returnUrl && returnUrl !== "/" && returnUrl !== "/home") {
+          sessionStorage.removeItem("relay_auth_return_url");
+          const [path, hash] = returnUrl.split("#");
+          navigate({ to: path as any, hash: hash ? `#${hash}` : undefined });
+        }
+      }
+    }
+  }, [isLoaded, isSignedIn, location.pathname, navigate]);
 
   return (
     <div className="min-h-screen bg-[#F7F9FB] flex flex-col">
