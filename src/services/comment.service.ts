@@ -224,6 +224,89 @@ export class CommentService {
     }
   }
 
+  /**
+   * Deletes a comment by ID with authorization checks (Author or Admin)
+   */
+  static async deleteComment(
+    commentId: string,
+    context?: { userId?: string; userEmail?: string; businessId?: string; isAdmin?: boolean }
+  ): Promise<{ success: boolean; id: string }> {
+    try {
+      const comment = await prisma.insightComment.findUnique({
+        where: { id: commentId },
+        select: {
+          id: true,
+          user_id: true,
+          author_email: true,
+          business_id: true,
+        },
+      });
+
+      if (!comment) {
+        throw new Error("Comment not found.");
+      }
+
+      // Check authorization
+      let isAuthorized = false;
+
+      // 1. Super admin can delete any comment
+      if (context?.isAdmin) {
+        isAuthorized = true;
+      }
+
+      // 2. Direct user ID match
+      if (!isAuthorized && context?.userId && comment.user_id && comment.user_id === context.userId) {
+        isAuthorized = true;
+      }
+
+      // 3. User email match
+      if (
+        !isAuthorized &&
+        context?.userEmail &&
+        comment.author_email &&
+        context.userEmail.toLowerCase() === comment.author_email.toLowerCase()
+      ) {
+        isAuthorized = true;
+      }
+
+      // 4. Business owner or member match
+      if (!isAuthorized && comment.business_id && context?.userId) {
+        const biz = await prisma.business.findUnique({
+          where: { id: comment.business_id },
+          select: { owner_user_id: true },
+        });
+        if (biz && biz.owner_user_id === context.userId) {
+          isAuthorized = true;
+        } else {
+          const member = await prisma.businessMember.findUnique({
+            where: {
+              business_id_user_id: {
+                business_id: comment.business_id,
+                user_id: context.userId,
+              },
+            },
+          });
+          if (member) {
+            isAuthorized = true;
+          }
+        }
+      }
+
+      if (!isAuthorized) {
+        throw new Error("Unauthorized: You do not have permission to delete this comment.");
+      }
+
+      await prisma.insightComment.delete({
+        where: { id: commentId },
+      });
+
+      return { success: true, id: commentId };
+    } catch (error: any) {
+      console.error("[CommentService.deleteComment] Error:", error);
+      throw new Error(error.message || "Failed to delete comment");
+    }
+  }
+
   private static mapComment(record: any): InsightComment {
     return {
       id: record.id,

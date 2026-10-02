@@ -454,6 +454,10 @@ export const toggleCommentUpvoteSchema = z.object({
   comment_id: uuidSchema,
 });
 
+export const deleteInsightCommentSchema = z.object({
+  comment_id: uuidSchema,
+});
+
 export const updateCommunityProfileSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
   handle: z.string().trim().min(2, "Handle must be at least 2 characters").max(50),

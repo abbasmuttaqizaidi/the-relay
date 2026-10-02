@@ -800,6 +800,7 @@ export function KnowledgeDetailPage() {
               itemTitle={insight.title}
               currentUserBusiness={currentUserBusiness}
               isSignedIn={isSignedIn}
+              isAdmin={isAdmin}
             />
 
             {/* 12. The Relay Insights Conversion Block */}

@@ -11,6 +11,8 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Trash2,
+  Link as LinkIcon,
 } from "lucide-react";
 import { CompanyLogo } from "@/components/company-logo";
 import { toast } from "sonner";
@@ -21,7 +23,11 @@ import {
   User as UserTypeModel,
 } from "@/types";
 import { getInsightComments } from "@/functions/getInsightComments";
-import { postInsightComment, upvoteInsightComment } from "@/functions/postInsightComment";
+import {
+  postInsightComment,
+  upvoteInsightComment,
+  deleteInsightComment,
+} from "@/functions/postInsightComment";
 import { getCommunityProfile } from "@/functions/communityProfile";
 import { InsightsPublicAuthPromptModal } from "./InsightsPublicAuthPromptModal";
 import { formatTimeAgo, getCompanyInitials } from "@/lib/utils";
@@ -51,6 +57,7 @@ interface InsightDiscussionSectionProps {
   itemTitle?: string;
   currentUserBusiness?: Business | null;
   isSignedIn?: boolean;
+  isAdmin?: boolean;
 }
 
 export function InsightDiscussionSection({
@@ -59,6 +66,7 @@ export function InsightDiscussionSection({
   itemTitle,
   currentUserBusiness,
   isSignedIn,
+  isAdmin,
 }: InsightDiscussionSectionProps) {
   const { user: clerkUser } = useUser();
   const [comments, setComments] = useState<InsightComment[]>([]);
@@ -86,6 +94,8 @@ export function InsightDiscussionSection({
   const [authModalTrigger, setAuthModalTrigger] = useState<"comment" | "upvote" | "landing">("comment");
   const [upvotedIds, setUpvotedIds] = useState<Set<string>>(new Set());
   const [upvotingIds, setUpvotingIds] = useState<Set<string>>(new Set());
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [communityUser, setCommunityUser] = useState<UserTypeModel | null>(null);
 
   const [profileLoading, setProfileLoading] = useState(Boolean(isSignedIn));
@@ -505,6 +515,28 @@ export function InsightDiscussionSection({
     }
   };
 
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      setDeletingId(commentId);
+      setConfirmDeleteId(null);
+      await deleteInsightComment({ data: { comment_id: commentId } });
+      setComments((prev) =>
+        prev
+          .filter((c) => c.id !== commentId)
+          .map((c) => ({
+            ...c,
+            replies: c.replies?.filter((r) => r.id !== commentId) || [],
+          }))
+      );
+      toast.success("Perspective deleted successfully.");
+    } catch (err: any) {
+      console.error("[InsightDiscussionSection] Delete error:", err);
+      toast.error(err?.message || "Failed to delete perspective.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   // Compute counts
   const totalResponses = comments.reduce(
     (acc, curr) => acc + 1 + (curr.replies?.length || 0),
@@ -840,6 +872,14 @@ export function InsightDiscussionSection({
                 onReplyContentChange={setReplyContent}
                 onSubmitReply={() => handlePostComment(comment.id)}
                 submitting={submitting}
+                isAdmin={Boolean(isAdmin || (typeof document !== "undefined" && document.cookie.includes("relay_admin_token=")))}
+                isSignedIn={isSignedIn}
+                currentUserId={communityUser?.id || currentUserBusiness?.owner_user_id}
+                currentUserEmail={clerkUser?.primaryEmailAddress?.emailAddress || clerkUser?.emailAddresses?.[0]?.emailAddress || communityUser?.email}
+                currentUserBusiness={currentUserBusiness}
+                currentUserName={activeComposerName}
+                onDeleteClick={(id) => setConfirmDeleteId(id)}
+                deletingId={deletingId}
               />
             ))}
           </div>
@@ -905,6 +945,47 @@ export function InsightDiscussionSection({
               </span>
             )}
           </button>
+      {/* Delete Confirmation Modal */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-xl border border-[#c5c6cc] p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0 border border-red-200">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-[#010611] text-base">Delete Perspective?</h3>
+                <p className="text-xs text-[#505f76] mt-0.5">This action cannot be undone.</p>
+              </div>
+            </div>
+            <p className="text-xs text-[#505f76] leading-relaxed">
+              Are you sure you want to permanently delete this perspective from the discussion?
+            </p>
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteId(null)}
+                className="px-3.5 py-1.5 text-xs font-medium text-[#010611] bg-[#f2f4f6] hover:bg-[#e6e8ea] rounded-md transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteComment(confirmDeleteId)}
+                disabled={deletingId === confirmDeleteId}
+                className="px-4 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {deletingId === confirmDeleteId ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete</span>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </section>
@@ -928,6 +1009,14 @@ interface PerspectiveCommentItemProps {
   submitting: boolean;
   isReply?: boolean;
   parentAuthorName?: string;
+  isAdmin?: boolean;
+  isSignedIn?: boolean;
+  currentUserId?: string | null;
+  currentUserEmail?: string | null;
+  currentUserBusiness?: Business | null;
+  currentUserName?: string | null;
+  onDeleteClick: (id: string) => void;
+  deletingId: string | null;
 }
 
 function PerspectiveCommentItem({
@@ -943,8 +1032,17 @@ function PerspectiveCommentItem({
   submitting,
   isReply = false,
   parentAuthorName,
+  isAdmin = false,
+  isSignedIn = false,
+  currentUserId,
+  currentUserEmail,
+  currentUserBusiness,
+  currentUserName,
+  onDeleteClick,
+  deletingId,
 }: PerspectiveCommentItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const isBusiness = comment.author_type === "relay_business";
   const isMember = comment.author_type === "business_member";
   const isPublic = comment.author_type === "general_public";
@@ -957,6 +1055,30 @@ function PerspectiveCommentItem({
   const subTitle = isBusiness
     ? "Enterprise Member"
     : comment.author_title || (isMember ? "Associate Member" : "Contributor");
+
+  const canDelete =
+    Boolean(isAdmin) ||
+    Boolean(
+      isSignedIn &&
+        ((comment.user_id && currentUserId && comment.user_id === currentUserId) ||
+          (comment.author_email && currentUserEmail && comment.author_email.toLowerCase() === currentUserEmail.toLowerCase()) ||
+          (comment.business_id && currentUserBusiness?.id && comment.business_id === currentUserBusiness.id) ||
+          (comment.author_name && currentUserName && comment.author_name.toLowerCase() === currentUserName.toLowerCase()))
+    );
+
+  const handleCopyLink = () => {
+    if (typeof window !== "undefined") {
+      const url = `${window.location.origin}${window.location.pathname}#comment-${comment.id}`;
+      if (navigator?.clipboard?.writeText) {
+        navigator.clipboard
+          .writeText(url)
+          .then(() => toast.success("Link to perspective copied to clipboard!"))
+          .catch(() => toast.info(url));
+      } else {
+        toast.info(url);
+      }
+    }
+  };
 
   return (
     <div id={`comment-${comment.id}`} className={`py-5 sm:py-6 ${isReply ? "py-2.5 first:pt-1" : ""}`}>
@@ -1023,27 +1145,52 @@ function PerspectiveCommentItem({
           </div>
         </div>
 
-        {/* More options button (Copy link to perspective) */}
-        <button
-          type="button"
-          onClick={() => {
-            if (typeof window !== "undefined") {
-              const url = `${window.location.origin}${window.location.pathname}#comment-${comment.id}`;
-              if (navigator?.clipboard?.writeText) {
-                navigator.clipboard
-                  .writeText(url)
-                  .then(() => toast.success("Link to perspective copied to clipboard!"))
-                  .catch(() => toast.info(url));
-              } else {
-                toast.info(url);
-              }
-            }
-          }}
-          className="text-[#505f76] hover:text-[#010611] transition-colors p-1 rounded hover:bg-[#f2f4f6] cursor-pointer"
-          title="Copy link to perspective"
-        >
-          <MoreHorizontal className="w-4.5 h-4.5" />
-        </button>
+        {/* More options dropdown menu */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowMenu((prev) => !prev)}
+            className="text-[#505f76] hover:text-[#010611] transition-colors p-1.5 rounded hover:bg-[#f2f4f6] cursor-pointer"
+            title="Perspective options"
+          >
+            <MoreHorizontal className="w-4.5 h-4.5" />
+          </button>
+
+          {showMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowMenu(false)}
+              />
+              <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-[#c5c6cc] rounded-lg shadow-xl z-50 py-1 text-xs divide-y divide-[#eceef0]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMenu(false);
+                    handleCopyLink();
+                  }}
+                  className="w-full px-3 py-2 text-left text-[#010611] hover:bg-[#f2f4f6] flex items-center gap-2 cursor-pointer"
+                >
+                  <LinkIcon className="w-3.5 h-3.5 text-[#505f76]" />
+                  <span>Copy link</span>
+                </button>
+                {canDelete && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMenu(false);
+                      onDeleteClick(comment.id);
+                    }}
+                    className="w-full px-3 py-2 text-left text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer font-medium"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                    <span>Delete perspective</span>
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Body text with See more / Show less toggle */}
@@ -1075,7 +1222,7 @@ function PerspectiveCommentItem({
         </button>
       )}
 
-      {/* Actions Row: Upvote + Reply */}
+      {/* Actions Row: Upvote + Reply + Delete */}
       <div className="flex items-center gap-5 mt-3.5 text-[#505f76] text-[13px]">
         {/* Upvote button */}
         <button
@@ -1105,6 +1252,24 @@ function PerspectiveCommentItem({
           >
             <MessageSquare className="w-3.5 h-3.5" />
             <span>Reply</span>
+          </button>
+        )}
+
+        {/* Direct Delete button (Visible directly to author or admin) */}
+        {canDelete && (
+          <button
+            type="button"
+            onClick={() => onDeleteClick(comment.id)}
+            disabled={deletingId === comment.id}
+            className="inline-flex items-center gap-1 text-[#75777c] hover:text-red-600 transition-colors cursor-pointer group"
+            title="Delete perspective"
+          >
+            {deletingId === comment.id ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-red-600" />
+            ) : (
+              <Trash2 className="w-3.5 h-3.5 text-[#75777c] group-hover:text-red-600" />
+            )}
+            <span className="text-xs group-hover:text-red-600 font-medium">Delete</span>
           </button>
         )}
       </div>
@@ -1164,6 +1329,14 @@ function PerspectiveCommentItem({
               submitting={false}
               isReply={true}
               parentAuthorName={comment.author_name}
+              isAdmin={isAdmin}
+              isSignedIn={isSignedIn}
+              currentUserId={currentUserId}
+              currentUserEmail={currentUserEmail}
+              currentUserBusiness={currentUserBusiness}
+              currentUserName={currentUserName}
+              onDeleteClick={onDeleteClick}
+              deletingId={deletingId}
             />
           ))}
         </div>

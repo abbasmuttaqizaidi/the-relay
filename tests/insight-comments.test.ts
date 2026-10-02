@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { createInsightCommentSchema, commentAuthorTypeSchema } from "../src/validators";
+import {
+  createInsightCommentSchema,
+  commentAuthorTypeSchema,
+  deleteInsightCommentSchema,
+} from "../src/validators";
 import {
   saveArticleCommentDraft,
   getArticleCommentDraft,
@@ -152,6 +156,22 @@ describe("Scoped Article Comment Draft & Multi-Article Isolation", () => {
 
       // Verify localStorage has the dismissal flag set
       expect(localStorage.getItem("relay_insights_auth_prompt_dismissed")).toBe("true");
+    });
+  });
+
+  describe("Delete Insight Comment Schema", () => {
+    it("validates valid comment_id uuid", () => {
+      const parsed = deleteInsightCommentSchema.safeParse({
+        comment_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      });
+      expect(parsed.success).toBe(true);
+    });
+
+    it("rejects invalid comment_id", () => {
+      const parsed = deleteInsightCommentSchema.safeParse({
+        comment_id: "not-a-valid-uuid",
+      });
+      expect(parsed.success).toBe(false);
     });
   });
 });

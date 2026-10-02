@@ -1075,6 +1075,7 @@ export function QuestionDetailPage() {
             itemTitle={question.title}
             currentUserBusiness={currentUserBusiness}
             isSignedIn={isSignedIn}
+            isAdmin={isAdmin}
           />
         </div>
       </div>
