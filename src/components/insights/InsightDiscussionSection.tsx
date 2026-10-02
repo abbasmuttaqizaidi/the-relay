@@ -39,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/design-system/select";
+import { useUser } from "@clerk/tanstack-react-start";
 
 interface InsightDiscussionSectionProps {
   itemType: "question" | "knowledge";
@@ -55,6 +56,7 @@ export function InsightDiscussionSection({
   currentUserBusiness,
   isSignedIn,
 }: InsightDiscussionSectionProps) {
+  const { user: clerkUser } = useUser();
   const [comments, setComments] = useState<InsightComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
