@@ -415,6 +415,7 @@ function SimpleCommunityMemberProfilePage() {
           open={isSwitchModalOpen}
           onOpenChange={setIsSwitchModalOpen}
           maxWidth="max-w-xl"
+          className="max-h-[92dvh] sm:max-h-[88vh]"
           title={
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-[#010611] text-white flex items-center justify-center shrink-0">
