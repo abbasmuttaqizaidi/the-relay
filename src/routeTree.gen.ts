@@ -43,6 +43,7 @@ import { Route as B2bReferralNetworkRouteImport } from './routes/b2b-referral-ne
 import { Route as B2bPartnershipNetworkRouteImport } from './routes/b2b-partnership-network'
 import { Route as B2bOpportunityExchangeRouteImport } from './routes/b2b-opportunity-exchange'
 import { Route as B2bLeadExchangeRouteImport } from './routes/b2b-lead-exchange'
+import { Route as AssociationRouteImport } from './routes/association'
 import { Route as AgencyLeadExchangeRouteImport } from './routes/agency-lead-exchange'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
@@ -238,6 +239,11 @@ const B2bLeadExchangeRoute = B2bLeadExchangeRouteImport.update({
   path: '/b2b-lead-exchange',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssociationRoute = AssociationRouteImport.update({
+  id: '/association',
+  path: '/association',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgencyLeadExchangeRoute = AgencyLeadExchangeRouteImport.update({
   id: '/agency-lead-exchange',
   path: '/agency-lead-exchange',
@@ -340,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/agency-lead-exchange': typeof AgencyLeadExchangeRoute
+  '/association': typeof AssociationRoute
   '/b2b-lead-exchange': typeof B2bLeadExchangeRoute
   '/b2b-opportunity-exchange': typeof B2bOpportunityExchangeRoute
   '/b2b-partnership-network': typeof B2bPartnershipNetworkRoute
@@ -395,6 +402,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/agency-lead-exchange': typeof AgencyLeadExchangeRoute
+  '/association': typeof AssociationRoute
   '/b2b-lead-exchange': typeof B2bLeadExchangeRoute
   '/b2b-opportunity-exchange': typeof B2bOpportunityExchangeRoute
   '/b2b-partnership-network': typeof B2bPartnershipNetworkRoute
@@ -449,6 +457,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/agency-lead-exchange': typeof AgencyLeadExchangeRoute
+  '/association': typeof AssociationRoute
   '/b2b-lead-exchange': typeof B2bLeadExchangeRoute
   '/b2b-opportunity-exchange': typeof B2bOpportunityExchangeRoute
   '/b2b-partnership-network': typeof B2bPartnershipNetworkRoute
@@ -506,6 +515,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/agency-lead-exchange'
+    | '/association'
     | '/b2b-lead-exchange'
     | '/b2b-opportunity-exchange'
     | '/b2b-partnership-network'
@@ -561,6 +571,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/agency-lead-exchange'
+    | '/association'
     | '/b2b-lead-exchange'
     | '/b2b-opportunity-exchange'
     | '/b2b-partnership-network'
@@ -614,6 +625,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/agency-lead-exchange'
+    | '/association'
     | '/b2b-lead-exchange'
     | '/b2b-opportunity-exchange'
     | '/b2b-partnership-network'
@@ -670,6 +682,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   AgencyLeadExchangeRoute: typeof AgencyLeadExchangeRoute
+  AssociationRoute: typeof AssociationRoute
   B2bLeadExchangeRoute: typeof B2bLeadExchangeRoute
   B2bOpportunityExchangeRoute: typeof B2bOpportunityExchangeRoute
   B2bPartnershipNetworkRoute: typeof B2bPartnershipNetworkRoute
@@ -952,6 +965,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof B2bLeadExchangeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/association': {
+      id: '/association'
+      path: '/association'
+      fullPath: '/association'
+      preLoaderRoute: typeof AssociationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agency-lead-exchange': {
       id: '/agency-lead-exchange'
       path: '/agency-lead-exchange'
@@ -1139,6 +1159,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   AgencyLeadExchangeRoute: AgencyLeadExchangeRoute,
+  AssociationRoute: AssociationRoute,
   B2bLeadExchangeRoute: B2bLeadExchangeRoute,
   B2bOpportunityExchangeRoute: B2bOpportunityExchangeRoute,
   B2bPartnershipNetworkRoute: B2bPartnershipNetworkRoute,

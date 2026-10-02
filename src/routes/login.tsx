@@ -21,7 +21,7 @@ export const Route = createFileRoute("/login")({
       const authData = await checkOnboardingStatus();
       if (authData?.isAuthenticated) {
         throw redirect({
-          to: "/opportunities",
+          to: authData.business ? "/opportunities" : "/insights",
           replace: true,
         });
       }
@@ -75,35 +75,43 @@ function SignInPage() {
     return false;
   }, [search]);
 
-  const redirectTarget = useMemo(() => {
+  const explicitRedirect = useMemo(() => {
     const target = (search as any)?.redirect;
     if (typeof target === "string" && target.startsWith("/")) {
       return target;
     }
-    return "/opportunities";
+    return undefined;
   }, [search]);
 
-  const { targetPath, targetHash } = useMemo(() => {
-    const [path, hash] = redirectTarget.split("#");
-    return {
-      targetPath: path || "/opportunities",
-      targetHash: hash ? `#${hash}` : undefined,
-    };
-  }, [redirectTarget]);
-
   useEffect(() => {
-    if (typeof window !== "undefined" && redirectTarget && redirectTarget !== "/opportunities") {
+    if (typeof window !== "undefined" && explicitRedirect) {
       try {
-        sessionStorage.setItem("relay_auth_return_url", redirectTarget);
+        sessionStorage.setItem("relay_auth_return_url", explicitRedirect);
       } catch {}
     }
-  }, [redirectTarget]);
+  }, [explicitRedirect]);
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      navigate({ to: targetPath as any, hash: targetHash as any });
+      if (explicitRedirect) {
+        const [path, hash] = explicitRedirect.split("#");
+        navigate({ to: path as any, hash: hash ? `#${hash}` : undefined });
+      } else {
+        // Community Member lands on /insights; Verified Business lands on /opportunities
+        checkOnboardingStatus()
+          .then((res) => {
+            if (!res?.business) {
+              navigate({ to: "/insights" });
+            } else {
+              navigate({ to: "/opportunities" });
+            }
+          })
+          .catch(() => {
+            navigate({ to: "/insights" });
+          });
+      }
     }
-  }, [isLoaded, isSignedIn, navigate, targetPath, targetHash]);
+  }, [isLoaded, isSignedIn, navigate, explicitRedirect]);
 
   // Appearance overrides strictly following SIGN_IN.md & Monochrome Executive design tokens
   const clerkAppearance = {
@@ -227,10 +235,10 @@ function SignInPage() {
               routing="path"
               path="/login"
               signUpUrl="/signup"
-              forceRedirectUrl={redirectTarget}
-              fallbackRedirectUrl={redirectTarget}
-              signUpForceRedirectUrl={redirectTarget}
-              signUpFallbackRedirectUrl={redirectTarget}
+              forceRedirectUrl={explicitRedirect || "/login"}
+              fallbackRedirectUrl={explicitRedirect || "/login"}
+              signUpForceRedirectUrl={explicitRedirect || "/login"}
+              signUpFallbackRedirectUrl={explicitRedirect || "/login"}
               appearance={clerkAppearance}
             />
           </div>

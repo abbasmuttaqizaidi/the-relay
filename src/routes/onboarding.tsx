@@ -1,11 +1,17 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@clerk/tanstack-react-start";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { createBusiness } from "../functions/createBusiness";
 import { updateBusiness } from "../functions/updateBusiness";
 import { uploadBusinessLogo } from "../functions/uploadBusinessLogo";
 import { deleteBusinessLogo } from "../functions/deleteBusinessLogo";
+import {
+  getBusinessAssociates,
+  respondToAssociationRequest,
+  removeApprovedAssociate,
+} from "../functions/association";
 import {
   Button,
   Input,
@@ -38,6 +44,9 @@ import {
   Upload,
   Trash2,
   Camera,
+  Users,
+  UserPlus,
+  UserMinus,
 } from "lucide-react";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 
@@ -156,6 +165,46 @@ function OnboardingPage() {
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
   const [isAckAccepted, setIsAckAccepted] = useState<boolean>(true);
   const logoFileInputRef = useRef<HTMLInputElement>(null);
+
+  // --- Associates Query & Mutations (only active for approved businesses) ---
+  const queryClient = useQueryClient();
+
+  const { data: associatesData } = useQuery({
+    queryKey: ["business-associates"],
+    queryFn: () => getBusinessAssociates(),
+    enabled: businessStatus === "approved" && !!businessId,
+  });
+
+  const respondMutation = useMutation({
+    mutationFn: (vars: { recordId: string; action: "approve" | "reject" }) =>
+      respondToAssociationRequest({ data: vars }),
+    onSuccess: (_res, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["business-associates"] });
+      toast.success(
+        vars.action === "approve"
+          ? "Associate approved successfully!"
+          : "Request declined."
+      );
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to process request.");
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (vars: { recordId: string }) =>
+      removeApprovedAssociate({ data: vars }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["business-associates"] });
+      toast.success("Associate removed.");
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to remove associate.");
+    },
+  });
+
+  const pendingAssociates = associatesData?.pending ?? [];
+  const approvedAssociates = associatesData?.approved ?? [];
 
   const openFileExplorer = (e?: React.SyntheticEvent) => {
     if (e) {
@@ -536,6 +585,45 @@ function OnboardingPage() {
                 >
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>Review &amp; Accept Terms</span>
+                </Button>
+              </div>
+            )}
+
+            {/* Pending Association Requests Banner */}
+            {businessStatus === "approved" && pendingAssociates.length > 0 && (
+              <div
+                role="alert"
+                className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                    <UserPlus className="w-4 h-4 text-amber-600 shrink-0" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <h4 className="text-xs sm:text-sm font-bold text-amber-950">
+                      {pendingAssociates.length} Pending Association{" "}
+                      {pendingAssociates.length === 1 ? "Request" : "Requests"}
+                    </h4>
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                      {pendingAssociates.length === 1
+                        ? `${pendingAssociates[0].name} wants to associate with your business.`
+                        : `${pendingAssociates.length} people want to associate with your business.`}{" "}
+                      Review and approve or decline below.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="monochrome"
+                  size="sm"
+                  onClick={() => {
+                    const el = document.getElementById("associates-directory-section");
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  className="shrink-0 w-full sm:w-auto font-semibold px-4 cursor-pointer gap-1.5"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Review Requests</span>
                 </Button>
               </div>
             )}
@@ -1106,6 +1194,177 @@ function OnboardingPage() {
                     </div>
                   </div>
                 </section>
+
+                {/* Section 3: Company Associates Directory (only for approved businesses) */}
+                {businessStatus === "approved" && (
+                  <section
+                    id="associates-directory-section"
+                    className="p-4 sm:p-6 rounded-xl bg-white border border-[#e2e8f0] shadow-xs flex flex-col gap-4"
+                  >
+                    <div className="border-b border-[#e2e8f0] pb-3">
+                      <h3 className="text-base font-bold text-[#0b1c30] font-display flex items-center gap-2">
+                        <Users className="w-4 h-4 text-slate-700" />
+                        Company Associates
+                      </h3>
+                      <p className="text-xs text-[#575f6e] mt-0.5">
+                        Manage association requests and active associates.
+                      </p>
+                    </div>
+
+                    {/* Pending Requests */}
+                    {pendingAssociates.length > 0 && (
+                      <div className="flex flex-col gap-2.5">
+                        <span className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider">
+                          Pending Requests ({pendingAssociates.length})
+                        </span>
+                        {pendingAssociates.map((req) => (
+                          <div
+                            key={req.recordId}
+                            className="p-3 rounded-lg bg-amber-50/60 border border-amber-200 flex flex-col gap-2.5"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              {req.avatarUrl ? (
+                                <img
+                                  src={req.avatarUrl}
+                                  alt={req.name}
+                                  className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700 shrink-0">
+                                  {req.name?.charAt(0)?.toUpperCase() || "?"}
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="text-xs font-semibold text-[#0b1c30] truncate">
+                                  {req.name}
+                                </div>
+                                <div className="text-[11px] text-[#575f6e] truncate">
+                                  {req.handle ? `@${req.handle}` : req.email}
+                                </div>
+                              </div>
+                            </div>
+                            {req.requestedAt && (
+                              <div className="flex items-center gap-1 text-[10px] text-amber-700">
+                                <Clock className="w-3 h-3" />
+                                <span>
+                                  Requested{" "}
+                                  {new Date(req.requestedAt).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="monochrome"
+                                size="sm"
+                                className="flex-1 h-8 text-xs gap-1"
+                                disabled={respondMutation.isPending}
+                                onClick={() =>
+                                  respondMutation.mutate({
+                                    recordId: req.recordId,
+                                    action: "approve",
+                                  })
+                                }
+                              >
+                                {respondMutation.isPending ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <CheckCircle2 className="w-3 h-3" />
+                                )}
+                                <span>Approve</span>
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 h-8 text-xs gap-1"
+                                disabled={respondMutation.isPending}
+                                onClick={() =>
+                                  respondMutation.mutate({
+                                    recordId: req.recordId,
+                                    action: "reject",
+                                  })
+                                }
+                              >
+                                <span>Decline</span>
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Active Associates */}
+                    {approvedAssociates.length > 0 && (
+                      <div className="flex flex-col gap-2.5">
+                        <span className="text-[11px] font-semibold text-[#047857] uppercase tracking-wider">
+                          Active Associates ({approvedAssociates.length})
+                        </span>
+                        {approvedAssociates.map((assoc) => (
+                          <div
+                            key={assoc.recordId}
+                            className="p-3 rounded-lg bg-white border border-[#e2e8f0] flex items-center justify-between gap-2"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                              {assoc.avatarUrl ? (
+                                <img
+                                  src={assoc.avatarUrl}
+                                  alt={assoc.name}
+                                  className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700 shrink-0">
+                                  {assoc.name?.charAt(0)?.toUpperCase() || "?"}
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="text-xs font-semibold text-[#0b1c30] truncate">
+                                  {assoc.name}
+                                </div>
+                                <div className="text-[10px] text-[#575f6e] truncate">
+                                  {assoc.joinedAt
+                                    ? `Joined ${new Date(assoc.joinedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}`
+                                    : assoc.handle
+                                      ? `@${assoc.handle}`
+                                      : assoc.email}
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              title="Remove associate"
+                              disabled={removeMutation.isPending}
+                              onClick={() =>
+                                removeMutation.mutate({ recordId: assoc.recordId })
+                              }
+                              className="shrink-0 w-7 h-7 rounded-md border border-slate-200 bg-white hover:bg-red-50 hover:border-red-200 flex items-center justify-center text-slate-400 hover:text-red-500 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {removeMutation.isPending ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <UserMinus className="w-3 h-3" />
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Empty State */}
+                    {pendingAssociates.length === 0 && approvedAssociates.length === 0 && (
+                      <div className="text-center py-4">
+                        <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                        <p className="text-xs text-[#575f6e]">
+                          No association requests or active associates yet.
+                        </p>
+                      </div>
+                    )}
+                  </section>
+                )}
 
               </div>
             </form>

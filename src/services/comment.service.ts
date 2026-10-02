@@ -56,7 +56,7 @@ export class CommentService {
    */
   static async createComment(
     dto: CreateInsightCommentDTO,
-    context?: { userId?: string; userEmail?: string; clerkName?: string }
+    context?: { userId?: string; userEmail?: string; clerkName?: string; isAdmin?: boolean }
   ): Promise<InsightComment> {
     try {
       // 1. Verify target item exists
@@ -79,11 +79,11 @@ export class CommentService {
         }
         const biz = await prisma.business.findUnique({
           where: { id: dto.business_id },
-          select: { id: true, company_name: true, status: true, owner_user_id: true },
+          select: { id: true, company_name: true, status: true, owner_user_id: true, logo_url: true },
         });
         if (!biz) throw new Error("Business not found.");
 
-        if (context?.userId) {
+        if (context?.userId && !context?.isAdmin) {
           const isOwner = biz.owner_user_id === context.userId;
           let isMember = false;
           if (!isOwner) {
@@ -102,7 +102,8 @@ export class CommentService {
           }
         }
         businessId = biz.id;
-        authorName = biz.company_name;
+        authorName = dto.author_name || biz.company_name;
+        authorTitle = dto.author_title || "Relay Verified";
       } else if (dto.author_type === "business_member") {
         if (!dto.business_id) {
           throw new Error("Associated business required for Business Member comments.");
@@ -113,7 +114,7 @@ export class CommentService {
         });
         if (!biz) throw new Error("Associated business not found.");
 
-        if (context?.userId) {
+        if (context?.userId && !context?.isAdmin) {
           const dbUser = await prisma.user.findUnique({
             where: { id: context.userId },
             select: { id: true, type: true },
@@ -135,7 +136,7 @@ export class CommentService {
           if (!isOwner && !isAssociate && !isMember) {
             throw new Error("Posting as a business associate requires verified company approval.");
           }
-        } else {
+        } else if (!context?.userId && !context?.isAdmin) {
           throw new Error("Authentication required to post as a verified business associate.");
         }
 
@@ -144,7 +145,7 @@ export class CommentService {
         authorTitle = dto.author_title || "Team Member";
       } else {
         // general_public
-        authorName = dto.author_name || context?.clerkName || "Public Contributor";
+        authorName = dto.author_name || context?.clerkName || (context?.isAdmin ? "Community Contributor" : "Public Contributor");
         authorTitle = dto.author_title || "Community Member";
       }
 
@@ -166,6 +167,15 @@ export class CommentService {
       }
 
       let authorAvatar = dto.author_avatar || null;
+      if (!authorAvatar && dto.author_type === "relay_business" && businessId) {
+        const bizRecord = await prisma.business.findUnique({
+          where: { id: businessId },
+          select: { logo_url: true },
+        });
+        if (bizRecord?.logo_url) {
+          authorAvatar = bizRecord.logo_url;
+        }
+      }
       if (!authorAvatar && context?.userId) {
         const u = await prisma.user.findUnique({
           where: { id: context.userId },
@@ -173,6 +183,14 @@ export class CommentService {
         });
         if (u?.avatar_url) {
           authorAvatar = u.avatar_url;
+        }
+      }
+
+      let customCreatedAt: Date | undefined;
+      if (context?.isAdmin && dto.created_at) {
+        const parsed = new Date(dto.created_at);
+        if (!isNaN(parsed.getTime())) {
+          customCreatedAt = parsed;
         }
       }
 
@@ -190,6 +208,7 @@ export class CommentService {
           parent_id: resolvedParentId,
           content: dto.content,
           status: "published",
+          ...(customCreatedAt ? { created_at: customCreatedAt } : {}),
         },
         include: {
           business: {

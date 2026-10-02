@@ -25,6 +25,7 @@ import {
   Layers,
   Sparkles,
   User as UserIcon,
+  X,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { toast } from "sonner";
@@ -42,6 +43,118 @@ import { getCompanyInitials } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company-logo";
 import { PostTypeSelectionModal } from "@/components/post/PostTypeSelectionModal";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
+
+interface NavHoverItem {
+  title: string;
+  to: string;
+  search?: Record<string, unknown>;
+  icon: React.ReactNode;
+}
+
+function NavHoverDropdown({
+  label,
+  to,
+  search,
+  isActive,
+  items,
+  onItemClick,
+}: {
+  label: string;
+  to?: string;
+  search?: Record<string, unknown>;
+  isActive?: boolean;
+  items: NavHoverItem[];
+  onItemClick?: () => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setIsOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsOpen(false);
+    }, 150);
+  };
+
+  return (
+    <div
+      className="relative inline-block"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {to ? (
+        <Link
+          to={to as any}
+          search={search as any}
+          className={`flex items-center gap-1.5 py-1 text-xs font-mono uppercase tracking-[0.12em] font-bold transition-colors ${
+            isActive
+              ? "text-slate-950 font-extrabold"
+              : "text-slate-500 hover:text-slate-950"
+          }`}
+        >
+          <span>{label}</span>
+          <ChevronDown
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${
+              isOpen ? "rotate-180 text-slate-900" : "text-slate-400"
+            }`}
+          />
+        </Link>
+      ) : (
+        <button
+          type="button"
+          className={`flex items-center gap-1.5 py-1 text-xs font-mono uppercase tracking-[0.12em] font-bold transition-colors cursor-pointer ${
+            isActive
+              ? "text-slate-950 font-extrabold"
+              : "text-slate-500 hover:text-slate-950"
+          }`}
+        >
+          <span>{label}</span>
+          <ChevronDown
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${
+              isOpen ? "rotate-180 text-slate-900" : "text-slate-400"
+            }`}
+          />
+        </button>
+      )}
+
+      {isOpen && (
+        <div className="absolute top-full left-0 pt-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-1.5 min-w-[210px] flex flex-col gap-0.5">
+            {items.map((item, idx) => (
+              <Link
+                key={idx}
+                to={item.to as any}
+                search={item.search as any}
+                onClick={() => {
+                  setIsOpen(false);
+                  onItemClick?.();
+                }}
+                className="group flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-100/80 transition-colors text-slate-700 hover:text-slate-950 font-sans cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="text-slate-400 group-hover:text-slate-900 transition-colors shrink-0">
+                    {item.icon}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-800 group-hover:text-slate-950 truncate transition-colors">
+                    {item.title}
+                  </span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-300 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-150 shrink-0" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface NavbarProps {
   incomingCount?: number;
@@ -196,7 +309,14 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   const isNetwork = !!matchRoute({ to: "/network", fuzzy: true });
   const isInsights = !!matchRoute({ to: "/insights", fuzzy: true });
   const isFaq = !!matchRoute({ to: "/faq", fuzzy: true });
+  const isAbout = !!matchRoute({ to: "/about", fuzzy: true });
   const isBusinessProfile = !!matchRoute({ to: "/business-profile", fuzzy: true });
+
+  // Platform Route detections
+  const isJourney = !!matchRoute({ to: "/8-step-journey", fuzzy: true });
+  const isPillars = !!matchRoute({ to: "/core-pillars", fuzzy: true });
+  const isTrust = !!matchRoute({ to: "/trust-and-safety", fuzzy: true });
+  const isPlatformActive = isJourney || isPillars || isTrust;
 
   // Proposal Sub-tab detections
   const isProposalsReceived = isProposals && (currentSearch?.tab === "received" || !currentSearch?.tab);
@@ -855,7 +975,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                   <div className="w-8 h-8 rounded-full bg-slate-950 text-white font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden border border-slate-200">
                     {user?.imageUrl || communityProfile?.avatar_url ? (
                       <img
-                        src={user?.imageUrl || communityProfile?.avatar_url}
+                        src={(user?.imageUrl || communityProfile?.avatar_url) || undefined}
                         alt={footerDisplayName}
                         className="w-full h-full object-cover"
                       />
@@ -902,6 +1022,406 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
       })()}
     </div>
   );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COMMUNITY MEMBER NAVIGATION (Desktop Top Bar + Mobile Top-Right Hamburger)
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (isCommunityMember) {
+    const memberDisplayName = communityProfile?.name || user?.fullName || "Community Contributor";
+    const memberInitial = (
+      memberDisplayName
+        .trim()
+        .split(/\s+/)[0]
+        ?.charAt(0)
+        .toUpperCase() || "U"
+    );
+
+    const insightsDropdownItems: NavHoverItem[] = [
+      {
+        title: "Knowledge Articles",
+        to: "/insights",
+        search: { tab: "knowledge" },
+        icon: <BookOpen className="w-4 h-4 text-slate-500" />,
+      },
+      {
+        title: "Questions",
+        to: "/insights",
+        search: { tab: "questions" },
+        icon: <MessageSquare className="w-4 h-4 text-slate-500" />,
+      },
+      {
+        title: "Saved",
+        to: "/insights",
+        search: { tab: "knowledge", filter: "saved" },
+        icon: <Bookmark className="w-4 h-4 text-slate-500" />,
+      },
+    ];
+
+    const platformDropdownItems: NavHoverItem[] = [
+      {
+        title: "8-Step Journey",
+        to: "/8-step-journey",
+        icon: <Layers className="w-4 h-4 text-slate-500" />,
+      },
+      {
+        title: "Core Pillars",
+        to: "/core-pillars",
+        icon: <ShieldCheck className="w-4 h-4 text-slate-500" />,
+      },
+      {
+        title: "Trust & Safety",
+        to: "/trust-and-safety",
+        icon: <Lock className="w-4 h-4 text-slate-500" />,
+      },
+      {
+        title: "Platform FAQ",
+        to: "/faq",
+        icon: <HelpCircle className="w-4 h-4 text-slate-500" />,
+      },
+    ];
+
+    return (
+      <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 border-b border-slate-200/80 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between gap-4">
+          {/* Left: Brand Logo */}
+          <div className="flex items-center gap-8 shrink-0">
+            <Link
+              to="/insights"
+              search={{ tab: "knowledge" } as any}
+              className="flex items-center group shrink-0"
+            >
+              <img
+                src={logoUrl}
+                alt="The Relay Logo"
+                className="h-9 w-auto object-contain mix-blend-multiply transition-transform duration-200 group-hover:scale-[1.02]"
+              />
+            </Link>
+
+            {/* Desktop Navigation Links (Hover sub-menus + direct links) */}
+            <nav className="hidden md:flex items-center gap-6 lg:gap-8 font-sans">
+              <NavHoverDropdown
+                label="Insights"
+                to="/insights"
+                search={{ tab: "knowledge" }}
+                isActive={isInsights}
+                items={insightsDropdownItems}
+              />
+
+              <Link
+                to="/faq"
+                className={`py-1 text-xs font-mono uppercase tracking-[0.12em] font-bold transition-colors ${
+                  isFaq
+                    ? "text-slate-950 font-extrabold"
+                    : "text-slate-500 hover:text-slate-950"
+                }`}
+              >
+                FAQ
+              </Link>
+
+              <Link
+                to="/about"
+                className={`py-1 text-xs font-mono uppercase tracking-[0.12em] font-bold transition-colors ${
+                  isAbout
+                    ? "text-slate-950 font-extrabold"
+                    : "text-slate-500 hover:text-slate-950"
+                }`}
+              >
+                About
+              </Link>
+
+              <NavHoverDropdown
+                label="Platform"
+                isActive={isPlatformActive}
+                items={platformDropdownItems}
+              />
+            </nav>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Desktop Upgrade CTA */}
+            <div className="hidden md:flex items-center gap-2">
+              <Link
+                to="/onboarding"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-950 hover:border-slate-300 transition-colors shadow-2xs font-sans"
+              >
+                <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                <span>Upgrade to Business</span>
+              </Link>
+            </div>
+
+            {/* Profile Avatar Dropdown (First word initial only) */}
+            <UserAvatarDropdown />
+
+            {/* Mobile View Navigation Hamburger (Strictly Top Right) */}
+            <div className="md:hidden flex items-center">
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <button
+                    type="button"
+                    className="p-2 text-slate-700 hover:text-slate-950 rounded hover:bg-slate-100 transition-colors focus:outline-none cursor-pointer"
+                    aria-label="Open Mobile Navigation"
+                  >
+                    <Menu className="w-5 h-5" />
+                  </button>
+                </SheetTrigger>
+                <SheetContent
+                  side="right"
+                  className="w-72 sm:w-80 p-0 flex flex-col z-[100] h-full bg-white border-l border-slate-200"
+                >
+                  <SheetTitle className="sr-only">Community Member Navigation Menu</SheetTitle>
+                  <SheetDescription className="sr-only">Mobile Navigation Drawer</SheetDescription>
+                  
+                  {/* Drawer Header */}
+                  <div className="h-16 px-5 flex items-center justify-between border-b border-slate-100">
+                    <Link
+                      to="/insights"
+                      search={{ tab: "knowledge" } as any}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center"
+                    >
+                      <img
+                        src={logoUrl}
+                        alt="The Relay Logo"
+                        className="h-8 w-auto object-contain mix-blend-multiply"
+                      />
+                    </Link>
+                    <SheetClose asChild>
+                      <button
+                        type="button"
+                        className="p-1.5 text-slate-500 hover:text-slate-900 rounded hover:bg-slate-100 transition-colors cursor-pointer"
+                        aria-label="Close Navigation Menu"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </SheetClose>
+                  </div>
+
+                  {/* Drawer Nav Body (Scrollable) */}
+                  <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-5 text-xs font-sans">
+                    {/* Insights Navigation Section */}
+                    <div className="flex flex-col gap-1">
+                      <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                        Insights
+                      </div>
+                      <Link
+                        to="/insights"
+                        search={{ tab: "knowledge" } as any}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                          isAllKnowledge
+                            ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <BookOpen className="w-4 h-4 text-slate-500" />
+                          <span>Knowledge Articles</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                      </Link>
+                      <Link
+                        to="/insights"
+                        search={{ tab: "questions" } as any}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                          isInsightsQuestions
+                            ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <MessageSquare className="w-4 h-4 text-slate-500" />
+                          <span>Questions</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                      </Link>
+                      <Link
+                        to="/insights"
+                        search={{ tab: "knowledge", filter: "saved" } as any}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                          isSavedArticles
+                            ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Bookmark className="w-4 h-4 text-slate-500" />
+                          <span>Saved Articles</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                      </Link>
+                    </div>
+
+                    {/* FAQ & About Section */}
+                    <div className="flex flex-col gap-1">
+                      <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                        General
+                      </div>
+                      <Link
+                        to="/faq"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                          isFaq
+                            ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <HelpCircle className="w-4 h-4 text-slate-500" />
+                          <span>FAQ</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                      </Link>
+                      <Link
+                        to="/about"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                          isAbout
+                            ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <FileText className="w-4 h-4 text-slate-500" />
+                          <span>About</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                      </Link>
+                    </div>
+
+                    {/* Account Routes: Business Account & Association */}
+                    <div className="flex flex-col gap-1">
+                      <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                        Account & Affiliation
+                      </div>
+                      <Link
+                        to="/onboarding"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-950"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Building2 className="w-4 h-4 text-slate-600" />
+                          <span>Business Account</span>
+                        </div>
+                        <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold border border-slate-200">
+                          Upgrade
+                        </span>
+                      </Link>
+                      <Link
+                        to="/association"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-950"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Building2 className="w-4 h-4 text-slate-600" />
+                          <span>Association</span>
+                        </div>
+                        <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold border border-slate-200">
+                          Connect
+                        </span>
+                      </Link>
+                    </div>
+
+                    {/* Platform Links */}
+                    <div className="flex flex-col gap-1">
+                      <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                        Platform
+                      </div>
+                      <Link
+                        to="/8-step-journey"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                          isJourney
+                            ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Layers className="w-4 h-4 text-slate-500" />
+                          <span>8-Step Journey</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                      </Link>
+                      <Link
+                        to="/core-pillars"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                          isPillars
+                            ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <ShieldCheck className="w-4 h-4 text-slate-500" />
+                          <span>Core Pillars</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                      </Link>
+                      <Link
+                        to="/trust-and-safety"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                          isTrust
+                            ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Lock className="w-4 h-4 text-slate-500" />
+                          <span>Trust & Safety</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Drawer Profile Footer */}
+                  <div className="p-3 bg-white border-t border-slate-200/80">
+                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/60 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-[#010611] text-white font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                          {memberInitial}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-semibold text-xs text-slate-900 truncate">
+                            {memberDisplayName}
+                          </span>
+                          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-500 flex items-center gap-1 font-bold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#010611] inline-block" />
+                            Community Member
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Link
+                          to="/profile"
+                          onClick={() => setMobileMenuOpen(false)}
+                          title="Contributor Profile"
+                          className="p-1.5 text-slate-500 hover:text-slate-900 rounded-md hover:bg-slate-200/70 transition-colors"
+                        >
+                          <Settings className="w-4 h-4" />
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => signOut(() => navigate({ to: "/" }))}
+                          title="Sign Out"
+                          className="p-1.5 text-slate-500 hover:text-red-600 rounded-md hover:bg-slate-200/70 transition-colors cursor-pointer"
+                        >
+                          <LogOut className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <>

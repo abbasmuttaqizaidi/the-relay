@@ -166,11 +166,12 @@ export class QuestionService {
    */
   static async getQuestionById(identifier: string): Promise<Question | null> {
     try {
-      const isIdentifierUUID = isUUID(identifier);
+      const cleanIdentifier = (identifier || "").trim();
+      const isIdentifierUUID = isUUID(cleanIdentifier);
       const question = await prisma.question.findFirst({
         where: isIdentifierUUID
-          ? { OR: [{ id: identifier }, { slug: identifier }] }
-          : { slug: identifier },
+          ? { OR: [{ id: cleanIdentifier }, { slug: cleanIdentifier }] }
+          : { slug: cleanIdentifier },
         include: {
           business: {
             select: SAFE_BUSINESS_SELECT,

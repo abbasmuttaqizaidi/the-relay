@@ -5,6 +5,7 @@ export interface ResolveAdminBusinessInput {
   custom_company_name?: string | null;
   custom_industry?: string | null;
   custom_website?: string | null;
+  custom_logo_url?: string | null;
 }
 
 /**
@@ -66,6 +67,7 @@ export async function resolveAdminBusiness(params: ResolveAdminBusinessInput) {
         website:
           params.custom_website?.trim() || `https://${cleanSlug || "business"}.com`,
         industry: params.custom_industry?.trim() || "Technology & Software",
+        logo_url: params.custom_logo_url?.trim() || null,
         status: "approved",
         website_verified: true,
         description: `Verified B2B profile for ${customName}.`,

@@ -13,6 +13,7 @@ import {
   ChevronUp,
   Trash2,
   Link as LinkIcon,
+  Clock,
 } from "lucide-react";
 import { CompanyLogo } from "@/components/company-logo";
 import { toast } from "sonner";
@@ -27,10 +28,15 @@ import {
   postInsightComment,
   upvoteInsightComment,
   deleteInsightComment,
+  getAdminApprovedBusinesses,
 } from "@/functions/postInsightComment";
 import { getCommunityProfile } from "@/functions/communityProfile";
 import { InsightsPublicAuthPromptModal } from "./InsightsPublicAuthPromptModal";
 import { formatTimeAgo, getCompanyInitials } from "@/lib/utils";
+import {
+  AdminEditPostTimeDialog,
+  type AdminEditPostTimeTarget,
+} from "@/components/admin/AdminEditPostTimeDialog";
 import {
   savePendingCommentSession,
   getPendingCommentSession,
@@ -50,6 +56,50 @@ import {
   SelectValue,
 } from "@/design-system/select";
 import { useUser } from "@clerk/tanstack-react-start";
+
+export interface AdminPersonaState {
+  enabled: boolean;
+  type: "relay_business" | "general_public";
+  businessSelectionType: "existing" | "custom";
+  businessId: string;
+  customCompanyName: string;
+  customIndustry: string;
+  customLogoUrl: string;
+  memberName: string;
+  memberTitle: string;
+  memberAvatar: string;
+  timePreset: "now" | "30m" | "2h" | "yesterday" | "3d" | "custom";
+  customCreatedAt: string;
+}
+
+export const DEFAULT_ADMIN_PERSONA: AdminPersonaState = {
+  enabled: true,
+  type: "relay_business",
+  businessSelectionType: "existing",
+  businessId: "",
+  customCompanyName: "",
+  customIndustry: "Technology & Software",
+  customLogoUrl: "",
+  memberName: "Sarah Jenkins",
+  memberTitle: "VP of Product & Strategy",
+  memberAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+  timePreset: "now",
+  customCreatedAt: "",
+};
+
+export function resolveAdminPostTime(persona: AdminPersonaState): string | undefined {
+  if (persona.timePreset === "now") return undefined;
+  const now = Date.now();
+  if (persona.timePreset === "30m") return new Date(now - 30 * 60 * 1000).toISOString();
+  if (persona.timePreset === "2h") return new Date(now - 2 * 60 * 60 * 1000).toISOString();
+  if (persona.timePreset === "yesterday") return new Date(now - 24 * 60 * 60 * 1000).toISOString();
+  if (persona.timePreset === "3d") return new Date(now - 3 * 24 * 60 * 60 * 1000).toISOString();
+  if (persona.timePreset === "custom" && persona.customCreatedAt) {
+    const d = new Date(persona.customCreatedAt);
+    if (!isNaN(d.getTime())) return d.toISOString();
+  }
+  return undefined;
+}
 
 interface InsightDiscussionSectionProps {
   itemType: "question" | "knowledge";
@@ -82,6 +132,39 @@ export function InsightDiscussionSection({
   // Pagination / visible count
   const [visibleCount, setVisibleCount] = useState(5);
 
+  // Admin session and demo persona state
+  const [effectiveIsAdmin, setEffectiveIsAdmin] = useState(
+    Boolean(isAdmin || (typeof document !== "undefined" && document.cookie.includes("relay_admin_token=")))
+  );
+  const [adminPersona, setAdminPersona] = useState<AdminPersonaState>(DEFAULT_ADMIN_PERSONA);
+  const [adminBusinesses, setAdminBusinesses] = useState<
+    Array<{ id: string; company_name: string; industry: string; logo_url: string | null }>
+  >([]);
+
+  useEffect(() => {
+    if (typeof document !== "undefined" && document.cookie.includes("relay_admin_token=")) {
+      setEffectiveIsAdmin(true);
+    } else if (isAdmin) {
+      setEffectiveIsAdmin(true);
+    }
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (effectiveIsAdmin) {
+      getAdminApprovedBusinesses()
+        .then((businesses) => {
+          if (businesses && businesses.length > 0) {
+            setAdminBusinesses(businesses);
+            setAdminPersona((prev) => ({
+              ...prev,
+              businessId: prev.businessId || businesses[0].id,
+            }));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [effectiveIsAdmin]);
+
   // Identity selector state (strictly authenticated: verified business or verified community contributor)
   const [selectedRole, setSelectedRole] = useState<CommentAuthorType>(
     currentUserBusiness ? "relay_business" : "general_public"
@@ -97,6 +180,8 @@ export function InsightDiscussionSection({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [communityUser, setCommunityUser] = useState<UserTypeModel | null>(null);
+  const [editTimeTarget, setEditTimeTarget] = useState<AdminEditPostTimeTarget | null>(null);
+  const [editTimeModalOpen, setEditTimeModalOpen] = useState(false);
 
   const [profileLoading, setProfileLoading] = useState(Boolean(isSignedIn));
   const [showFloatingButton, setShowFloatingButton] = useState(false);
@@ -162,15 +247,16 @@ export function InsightDiscussionSection({
     }
   };
 
-  // Auto-scroll to discussion section when page loads or navigates with discussion hash
+  // Auto-scroll to discussion section or specific comment when page loads or navigates with hash
   useEffect(() => {
     if (typeof window === "undefined") return;
     const h = window.location.hash || "";
-    if (h.toLowerCase().includes("discussion")) {
+    if (h.toLowerCase().includes("discussion") || h.startsWith("#comment-")) {
+      const targetId = h.startsWith("#comment-") ? h.slice(1) : "discussion-system";
       const timer = setTimeout(() => {
-        const el = document.getElementById("discussion-system") || document.getElementById("discussion");
+        const el = document.getElementById(targetId) || document.getElementById("discussion-system") || document.getElementById("discussion");
         if (el) {
-          const yOffset = -72;
+          const yOffset = -76;
           const y = el.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) + yOffset;
           const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
           window.scrollTo({ top: y, behavior: prefersReducedMotion ? "auto" : "smooth" });
@@ -341,7 +427,26 @@ export function InsightDiscussionSection({
     }
   }, [itemId]);
 
-  const handlePostComment = async (parentId?: string) => {
+  // When comments finish loading, ensure viewport is positioned at targeted comment if hash is present
+  useEffect(() => {
+    if (typeof window === "undefined" || loading || comments.length === 0) return;
+    const h = window.location.hash || "";
+    if (h.startsWith("#comment-")) {
+      const targetId = h.slice(1);
+      const timer = setTimeout(() => {
+        const el = document.getElementById(targetId);
+        if (el) {
+          const yOffset = -76;
+          const y = el.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) + yOffset;
+          const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          window.scrollTo({ top: y, behavior: prefersReducedMotion ? "auto" : "smooth" });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, comments.length]);
+
+  const handlePostComment = async (parentId?: string, personaOverride?: AdminPersonaState) => {
     if (submitting) return;
 
     const textToSubmit = parentId ? replyContent.trim() : content.trim();
@@ -356,7 +461,7 @@ export function InsightDiscussionSection({
     }
 
     // Unauthenticated user -> Save draft and open the sign-up modal ("Your response could be valuable to someone else")
-    if (!isSignedIn) {
+    if (!isSignedIn && !effectiveIsAdmin) {
       setAuthModalTrigger("comment");
       setAuthModalPendingText(textToSubmit);
       setPendingParentId(parentId || null);
@@ -377,37 +482,78 @@ export function InsightDiscussionSection({
     try {
       setSubmitting(true);
 
-      const effectiveAuthorName =
+      const activePersona = personaOverride || adminPersona;
+      let effectiveAuthorType: CommentAuthorType = selectedRole;
+      let effectiveAuthorName =
         selectedRole === "relay_business"
           ? currentUserBusiness?.company_name || "Relay Verified Business"
           : communityUser?.name ||
             (selectedRole === "business_member" ? "Associate Member" : "Community Contributor");
 
-      const effectiveAuthorTitle =
+      let effectiveAuthorTitle: string | undefined =
         selectedRole === "relay_business"
           ? "Relay Verified"
           : selectedRole === "business_member"
           ? communityUser?.title || "Associate Member"
           : communityUser?.title || undefined;
 
-      const effectiveAuthorAvatar =
+      let effectiveAuthorAvatar: string | undefined =
         selectedRole === "relay_business"
           ? currentUserBusiness?.logo_url || undefined
           : communityUser?.avatar_url || clerkUser?.imageUrl || undefined;
+
+      let effectiveBusinessId: string | undefined =
+        selectedRole === "relay_business" || selectedRole === "business_member"
+          ? currentUserBusiness?.id
+          : undefined;
+
+      let effectiveCustomCompanyName: string | undefined;
+      let effectiveCustomIndustry: string | undefined;
+      let effectiveCustomLogoUrl: string | undefined;
+      let effectiveCreatedAt: string | undefined;
+
+      // When admin demo posting is active
+      if (effectiveIsAdmin && activePersona.enabled) {
+        effectiveCreatedAt = resolveAdminPostTime(activePersona);
+        effectiveAuthorType = activePersona.type;
+        if (activePersona.type === "relay_business") {
+          if (activePersona.businessSelectionType === "existing" && activePersona.businessId) {
+            effectiveBusinessId = activePersona.businessId;
+            const chosen = adminBusinesses.find((b) => b.id === activePersona.businessId);
+            effectiveAuthorName = chosen?.company_name || "Relay Verified Business";
+            effectiveAuthorTitle = "Relay Verified";
+            effectiveAuthorAvatar = chosen?.logo_url || undefined;
+          } else {
+            effectiveCustomCompanyName = activePersona.customCompanyName.trim() || "Relay Verified Partner";
+            effectiveAuthorName = effectiveCustomCompanyName;
+            effectiveAuthorTitle = "Relay Verified";
+            effectiveAuthorAvatar = activePersona.customLogoUrl.trim() || undefined;
+            effectiveCustomIndustry = activePersona.customIndustry.trim() || "Technology & Software";
+            effectiveCustomLogoUrl = activePersona.customLogoUrl.trim() || undefined;
+          }
+        } else {
+          // general_public (Community Member)
+          effectiveBusinessId = undefined;
+          effectiveAuthorName = activePersona.memberName.trim() || "Community Member";
+          effectiveAuthorTitle = activePersona.memberTitle.trim() || "Contributor";
+          effectiveAuthorAvatar = activePersona.memberAvatar.trim() || undefined;
+        }
+      }
 
       const created = await postInsightComment({
         data: {
           item_type: itemType,
           item_id: itemId,
-          author_type: selectedRole,
+          author_type: effectiveAuthorType,
           content: textToSubmit,
           author_name: effectiveAuthorName,
           author_title: effectiveAuthorTitle,
           author_avatar: effectiveAuthorAvatar,
-          business_id:
-            selectedRole === "relay_business" || selectedRole === "business_member"
-              ? currentUserBusiness?.id
-              : undefined,
+          business_id: effectiveBusinessId,
+          custom_company_name: effectiveCustomCompanyName,
+          custom_industry: effectiveCustomIndustry,
+          custom_logo_url: effectiveCustomLogoUrl,
+          created_at: effectiveCreatedAt,
           parent_id: parentId || undefined,
         },
       });
@@ -441,7 +587,7 @@ export function InsightDiscussionSection({
 
       clearPendingCommentSession(itemId);
       clearArticleCommentDraft(itemId);
-      toast.success("Perspective posted successfully.");
+      toast.success(parentId ? "Reply posted successfully." : "Perspective posted successfully.");
     } catch (err: any) {
       console.error("[InsightDiscussionSection] Failed to post comment:", err);
       toast.error(err?.message || "Failed to post response.");
@@ -452,7 +598,7 @@ export function InsightDiscussionSection({
 
   const handleUpvote = async (commentId: string) => {
     // Unauthenticated user -> Save draft if typed, remember pending upvote, open auth modal
-    if (!isSignedIn) {
+    if (!isSignedIn && !effectiveIsAdmin) {
       const draft = content.trim() || replyContent.trim();
       if (draft) {
         setAuthModalPendingText(draft);
@@ -581,7 +727,13 @@ export function InsightDiscussionSection({
 
   // Active user name for composer
   const activeComposerName =
-    selectedRole === "relay_business"
+    effectiveIsAdmin && adminPersona.enabled
+      ? adminPersona.type === "relay_business"
+        ? adminPersona.businessSelectionType === "existing"
+          ? adminBusinesses.find((b) => b.id === adminPersona.businessId)?.company_name || "Relay Verified Business"
+          : adminPersona.customCompanyName.trim() || "Verified Business"
+        : adminPersona.memberName.trim() || "Community Member"
+      : selectedRole === "relay_business"
       ? currentUserBusiness?.company_name || "Relay Verified Business"
       : selectedRole === "business_member"
       ? communityUser?.name || "Associate Contributor"
@@ -646,12 +798,248 @@ export function InsightDiscussionSection({
           (seo_code_guide.md line 577)
           ───────────────────────────────────────────────────────────── */}
       <div className="bg-white rounded-lg border border-[#c5c6cc] p-4 sm:p-5 mb-8 shadow-xs">
+        {/* Admin Demo Mode Switch & Identity Panel */}
+        {effectiveIsAdmin && (
+          <div className="mb-4 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-lg space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-slate-950 font-mono">
+                  Admin Demo Mode
+                </span>
+                <span className="text-xs font-semibold text-[#010611]">
+                  Post Demo Perspective
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAdminPersona((p) => ({ ...p, enabled: !p.enabled }))}
+                className={`text-[11px] font-mono px-2 py-0.5 rounded transition-colors cursor-pointer ${
+                  adminPersona.enabled
+                    ? "bg-[#010611] text-white font-medium"
+                    : "bg-white text-slate-600 border border-slate-300"
+                }`}
+              >
+                {adminPersona.enabled ? "Active" : "Disabled (Post as Self)"}
+              </button>
+            </div>
+
+            {adminPersona.enabled && (
+              <div className="space-y-3 pt-2 border-t border-amber-500/20">
+                {/* Persona Type Tabs */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAdminPersona((p) => ({ ...p, type: "relay_business" }))}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                      adminPersona.type === "relay_business"
+                        ? "bg-[#010611] text-white shadow-xs"
+                        : "bg-white text-[#010611] border border-[#c5c6cc] hover:bg-[#e6e8ea]"
+                    }`}
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Verified Network Business</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAdminPersona((p) => ({ ...p, type: "general_public" }))}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                      adminPersona.type === "general_public"
+                        ? "bg-[#010611] text-white shadow-xs"
+                        : "bg-white text-[#010611] border border-[#c5c6cc] hover:bg-[#e6e8ea]"
+                    }`}
+                  >
+                    <User className="w-3.5 h-3.5 text-blue-500" />
+                    <span>Community Member</span>
+                  </button>
+                </div>
+
+                {/* If Verified Network Business */}
+                {adminPersona.type === "relay_business" && (
+                  <div className="space-y-2.5 pt-1">
+                    <div className="flex items-center gap-4 text-xs">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="topBizMode"
+                          checked={adminPersona.businessSelectionType === "existing"}
+                          onChange={() => setAdminPersona((p) => ({ ...p, businessSelectionType: "existing" }))}
+                          className="accent-slate-950"
+                        />
+                        <span className="font-medium text-[#010611]">Select Registered Business</span>
+                      </label>
+
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="topBizMode"
+                          checked={adminPersona.businessSelectionType === "custom"}
+                          onChange={() => setAdminPersona((p) => ({ ...p, businessSelectionType: "custom" }))}
+                          className="accent-slate-950"
+                        />
+                        <span className="font-medium text-[#010611]">Custom Company Name</span>
+                      </label>
+                    </div>
+
+                    {adminPersona.businessSelectionType === "existing" ? (
+                      <div className="w-full">
+                        <select
+                          value={adminPersona.businessId}
+                          onChange={(e) => setAdminPersona((p) => ({ ...p, businessId: e.target.value }))}
+                          className="w-full h-9 bg-white border border-[#c5c6cc] rounded-md px-3 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                        >
+                          <option value="" disabled>-- Select a Verified Business --</option>
+                          {adminBusinesses.map((b) => (
+                            <option key={b.id} value={b.id}>
+                              {b.company_name} ({b.industry})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input
+                          type="text"
+                          placeholder="Company Name (e.g. Apex Logistics)"
+                          value={adminPersona.customCompanyName}
+                          onChange={(e) => setAdminPersona((p) => ({ ...p, customCompanyName: e.target.value }))}
+                          className="h-8 bg-white border border-[#c5c6cc] rounded-md px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Industry (e.g. Supply Chain)"
+                          value={adminPersona.customIndustry}
+                          onChange={(e) => setAdminPersona((p) => ({ ...p, customIndustry: e.target.value }))}
+                          className="h-8 bg-white border border-[#c5c6cc] rounded-md px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Logo URL (optional)"
+                          value={adminPersona.customLogoUrl}
+                          onChange={(e) => setAdminPersona((p) => ({ ...p, customLogoUrl: e.target.value }))}
+                          className="h-8 bg-white border border-[#c5c6cc] rounded-md px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* If Community Member */}
+                {adminPersona.type === "general_public" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                    <input
+                      type="text"
+                      placeholder="Full Name (e.g. Sarah Jenkins)"
+                      value={adminPersona.memberName}
+                      onChange={(e) => setAdminPersona((p) => ({ ...p, memberName: e.target.value }))}
+                      className="h-8 bg-white border border-[#c5c6cc] rounded-md px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Title / Role (e.g. VP of Ops)"
+                      value={adminPersona.memberTitle}
+                      onChange={(e) => setAdminPersona((p) => ({ ...p, memberTitle: e.target.value }))}
+                      className="h-8 bg-white border border-[#c5c6cc] rounded-md px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Avatar Image URL (optional)"
+                      value={adminPersona.memberAvatar}
+                      onChange={(e) => setAdminPersona((p) => ({ ...p, memberAvatar: e.target.value }))}
+                      className="h-8 bg-white border border-[#c5c6cc] rounded-md px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                    />
+                  </div>
+                )}
+
+                {/* Post Time (Timestamp) Controls */}
+                <div className="pt-2 border-t border-amber-500/20 space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-[#010611] flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-amber-800" />
+                      <span>Post Time (Timestamp)</span>
+                    </span>
+                    {adminPersona.timePreset !== "now" && (
+                      <span className="text-[10px] text-amber-900 font-mono">
+                        Relative: {formatTimeAgo(resolveAdminPostTime(adminPersona))}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {[
+                      { label: "Now", key: "now" },
+                      { label: "30m ago", key: "30m" },
+                      { label: "2h ago", key: "2h" },
+                      { label: "Yesterday", key: "yesterday" },
+                      { label: "3d ago", key: "3d" },
+                      { label: "Custom...", key: "custom" },
+                    ].map((preset) => (
+                      <button
+                        key={preset.key}
+                        type="button"
+                        onClick={() =>
+                          setAdminPersona((p) => ({
+                            ...p,
+                            timePreset: preset.key as any,
+                            customCreatedAt:
+                              preset.key === "custom" && !p.customCreatedAt
+                                ? new Date().toISOString().slice(0, 16)
+                                : p.customCreatedAt,
+                          }))
+                        }
+                        className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                          adminPersona.timePreset === preset.key
+                            ? "bg-[#010611] text-white shadow-2xs"
+                            : "bg-white text-[#010611] border border-[#c5c6cc] hover:bg-[#e6e8ea]"
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {adminPersona.timePreset === "custom" && (
+                    <div className="pt-1 flex items-center gap-2">
+                      <input
+                        type="datetime-local"
+                        value={adminPersona.customCreatedAt}
+                        onChange={(e) =>
+                          setAdminPersona((p) => ({ ...p, customCreatedAt: e.target.value }))
+                        }
+                        className="h-8 bg-white border border-[#c5c6cc] rounded px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Top bar: Identity info */}
-        {isSignedIn ? (
+        {isSignedIn || (effectiveIsAdmin && adminPersona.enabled) ? (
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2 min-w-0">
-              {/* Small circular avatar */}
-              {selectedRole === "relay_business" && currentUserBusiness ? (
+              {/* Avatar or Logo */}
+              {effectiveIsAdmin && adminPersona.enabled ? (
+                adminPersona.type === "relay_business" ? (
+                  <div className="w-6 h-6 rounded-md overflow-hidden bg-[#171f2c] border border-[#c5c6cc] flex items-center justify-center shrink-0">
+                    <Building2 className="w-3.5 h-3.5 text-white" />
+                  </div>
+                ) : adminPersona.memberAvatar ? (
+                  <div className="w-6 h-6 rounded-full overflow-hidden border border-[#c5c6cc] shrink-0">
+                    <img
+                      src={adminPersona.memberAvatar}
+                      alt={adminPersona.memberName}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#010611] flex items-center justify-center shrink-0 border border-[#c5c6cc]">
+                    <User className="w-3.5 h-3.5 text-[#505f76]" />
+                  </div>
+                )
+              ) : selectedRole === "relay_business" && currentUserBusiness ? (
                 <div className="w-6 h-6 rounded-full overflow-hidden bg-[#171f2c] border border-[#c5c6cc] flex items-center justify-center shrink-0">
                   <CompanyLogo
                     name={currentUserBusiness.company_name}
@@ -679,7 +1067,7 @@ export function InsightDiscussionSection({
               </span>
             </div>
 
-            {currentUserBusiness && (
+            {!effectiveIsAdmin && currentUserBusiness && (
               <button
                 type="button"
                 onClick={() => setShowIdentitySwitch(!showIdentitySwitch)}
@@ -870,9 +1258,9 @@ export function InsightDiscussionSection({
                 replyOpen={replyToId === comment.id}
                 replyContent={replyContent}
                 onReplyContentChange={setReplyContent}
-                onSubmitReply={() => handlePostComment(comment.id)}
+                onSubmitReply={(persona) => handlePostComment(comment.id, persona)}
                 submitting={submitting}
-                isAdmin={Boolean(isAdmin || (typeof document !== "undefined" && document.cookie.includes("relay_admin_token=")))}
+                isAdmin={effectiveIsAdmin}
                 isSignedIn={isSignedIn}
                 currentUserId={communityUser?.id || currentUserBusiness?.owner_user_id}
                 currentUserEmail={clerkUser?.primaryEmailAddress?.emailAddress || clerkUser?.emailAddresses?.[0]?.emailAddress || communityUser?.email}
@@ -880,6 +1268,17 @@ export function InsightDiscussionSection({
                 currentUserName={activeComposerName}
                 onDeleteClick={(id) => setConfirmDeleteId(id)}
                 deletingId={deletingId}
+                adminBusinesses={adminBusinesses}
+                defaultAdminPersona={adminPersona}
+                onEditTimeClick={(c) => {
+                  setEditTimeTarget({
+                    id: c.id,
+                    title: `Perspective by ${c.author_name}`,
+                    type: "comment",
+                    currentDate: c.created_at,
+                  });
+                  setEditTimeModalOpen(true);
+                }}
               />
             ))}
           </div>
@@ -945,6 +1344,9 @@ export function InsightDiscussionSection({
               </span>
             )}
           </button>
+        </div>
+      )}
+
       {/* Delete Confirmation Modal */}
       {confirmDeleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
@@ -988,6 +1390,17 @@ export function InsightDiscussionSection({
           </div>
         </div>
       )}
+
+      {/* Admin Edit Post Time Dialog */}
+      <AdminEditPostTimeDialog
+        open={editTimeModalOpen}
+        onOpenChange={setEditTimeModalOpen}
+        item={editTimeTarget}
+        onSuccess={() => {
+          loadComments();
+          toast.success("Perspective post time updated.");
+        }}
+      />
     </section>
   );
 }
@@ -1005,7 +1418,7 @@ interface PerspectiveCommentItemProps {
   replyOpen: boolean;
   replyContent: string;
   onReplyContentChange: (val: string) => void;
-  onSubmitReply: () => void;
+  onSubmitReply: (persona?: AdminPersonaState) => void;
   submitting: boolean;
   isReply?: boolean;
   parentAuthorName?: string;
@@ -1017,6 +1430,9 @@ interface PerspectiveCommentItemProps {
   currentUserName?: string | null;
   onDeleteClick: (id: string) => void;
   deletingId: string | null;
+  adminBusinesses?: Array<{ id: string; company_name: string; industry: string; logo_url: string | null }>;
+  defaultAdminPersona?: AdminPersonaState;
+  onEditTimeClick?: (comment: InsightComment) => void;
 }
 
 function PerspectiveCommentItem({
@@ -1040,12 +1456,29 @@ function PerspectiveCommentItem({
   currentUserName,
   onDeleteClick,
   deletingId,
+  adminBusinesses,
+  defaultAdminPersona,
+  onEditTimeClick,
 }: PerspectiveCommentItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const isBusiness = comment.author_type === "relay_business";
   const isMember = comment.author_type === "business_member";
   const isPublic = comment.author_type === "general_public";
+
+  const [replyPersona, setReplyPersona] = useState<AdminPersonaState>(() => ({
+    ...(defaultAdminPersona || DEFAULT_ADMIN_PERSONA),
+    businessId: defaultAdminPersona?.businessId || adminBusinesses?.[0]?.id || "",
+  }));
+
+  useEffect(() => {
+    if (defaultAdminPersona) {
+      setReplyPersona((prev) => ({
+        ...defaultAdminPersona,
+        businessId: prev.businessId || defaultAdminPersona.businessId || adminBusinesses?.[0]?.id || "",
+      }));
+    }
+  }, [defaultAdminPersona, adminBusinesses]);
 
   const hasReplies = comment.replies && comment.replies.length > 0;
   // Truncate if comment is longer than 280 characters or has 3+ line breaks
@@ -1081,7 +1514,12 @@ function PerspectiveCommentItem({
   };
 
   return (
-    <div id={`comment-${comment.id}`} className={`py-5 sm:py-6 ${isReply ? "py-2.5 first:pt-1" : ""}`}>
+    <div
+      id={`comment-${comment.id}`}
+      className={`py-5 sm:py-6 scroll-mt-24 transition-colors duration-300 target:bg-amber-50/60 target:ring-1 target:ring-amber-200 target:rounded-lg target:px-3 target:py-3 ${
+        isReply ? "py-2.5 first:pt-1" : ""
+      }`}
+    >
       {/* Top Row: Author avatar + info + more menu */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
@@ -1187,6 +1625,19 @@ function PerspectiveCommentItem({
                     <span>Delete perspective</span>
                   </button>
                 )}
+                {isAdmin && onEditTimeClick && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMenu(false);
+                      onEditTimeClick(comment);
+                    }}
+                    className="w-full px-3 py-2 text-left text-[#010611] hover:bg-[#f2f4f6] flex items-center gap-2 cursor-pointer font-medium"
+                  >
+                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Edit post time</span>
+                  </button>
+                )}
               </div>
             </>
           )}
@@ -1243,17 +1694,15 @@ function PerspectiveCommentItem({
           </span>
         </button>
 
-        {/* Reply button */}
-        {!isReply && (
-          <button
-            type="button"
-            onClick={() => onReplyClick(comment.id)}
-            className="inline-flex items-center gap-1 hover:text-[#010611] transition-colors cursor-pointer"
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span>Reply</span>
-          </button>
-        )}
+        {/* Reply button (allow replying to both top-level comments and existing replies) */}
+        <button
+          type="button"
+          onClick={() => onReplyClick(comment.id)}
+          className="inline-flex items-center gap-1 hover:text-[#010611] transition-colors cursor-pointer"
+        >
+          <MessageSquare className="w-3.5 h-3.5" />
+          <span>Reply</span>
+        </button>
 
         {/* Direct Delete button (Visible directly to author or admin) */}
         {canDelete && (
@@ -1276,10 +1725,190 @@ function PerspectiveCommentItem({
 
       {/* Inline Reply Composer */}
       {replyOpen && !isReply && (
-        <div className="mt-3.5 bg-white rounded-lg border border-[#c5c6cc] p-3.5 space-y-2.5">
-          <div className="text-xs text-[#505f76]">
-            Replying to <span className="font-semibold text-[#010611]">@{comment.author_name}</span>
+        <div className="mt-3.5 bg-white rounded-lg border border-[#c5c6cc] p-3.5 sm:p-4 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-xs text-[#505f76]">
+              Replying to <span className="font-semibold text-[#010611]">@{comment.author_name}</span>
+            </div>
+            {isAdmin && (
+              <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-bold">
+                Admin Demo Reply
+              </span>
+            )}
           </div>
+
+          {/* Admin Demo Persona Selector for Replies */}
+          {isAdmin && (
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-md space-y-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-semibold text-[#010611]">
+                  Reply Persona
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setReplyPersona((p) => ({ ...p, type: "relay_business" }))}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors cursor-pointer ${
+                      replyPersona.type === "relay_business"
+                        ? "bg-[#010611] text-white shadow-xs"
+                        : "bg-white text-[#010611] border border-[#c5c6cc] hover:bg-[#e6e8ea]"
+                    }`}
+                  >
+                    Verified Business
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReplyPersona((p) => ({ ...p, type: "general_public" }))}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors cursor-pointer ${
+                      replyPersona.type === "general_public"
+                        ? "bg-[#010611] text-white shadow-xs"
+                        : "bg-white text-[#010611] border border-[#c5c6cc] hover:bg-[#e6e8ea]"
+                    }`}
+                  >
+                    Community Member
+                  </button>
+                </div>
+              </div>
+
+              {replyPersona.type === "relay_business" ? (
+                <div className="space-y-2 pt-1 border-t border-amber-500/20">
+                  <div className="flex items-center gap-3 text-xs">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        name={`replyBizMode-${comment.id}`}
+                        checked={replyPersona.businessSelectionType === "existing"}
+                        onChange={() => setReplyPersona((p) => ({ ...p, businessSelectionType: "existing" }))}
+                        className="accent-slate-950"
+                      />
+                      <span className="font-medium text-[#010611]">Select Registered</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        name={`replyBizMode-${comment.id}`}
+                        checked={replyPersona.businessSelectionType === "custom"}
+                        onChange={() => setReplyPersona((p) => ({ ...p, businessSelectionType: "custom" }))}
+                        className="accent-slate-950"
+                      />
+                      <span className="font-medium text-[#010611]">Custom Company</span>
+                    </label>
+                  </div>
+
+                  {replyPersona.businessSelectionType === "existing" ? (
+                    <select
+                      value={replyPersona.businessId}
+                      onChange={(e) => setReplyPersona((p) => ({ ...p, businessId: e.target.value }))}
+                      className="w-full h-8 bg-white border border-[#c5c6cc] rounded px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                    >
+                      <option value="" disabled>-- Select Registered Business --</option>
+                      {(adminBusinesses || []).map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.company_name} ({b.industry})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        placeholder="Company Name (e.g. Apex Corp)"
+                        value={replyPersona.customCompanyName}
+                        onChange={(e) => setReplyPersona((p) => ({ ...p, customCompanyName: e.target.value }))}
+                        className="h-8 bg-white border border-[#c5c6cc] rounded px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Industry (e.g. Fintech)"
+                        value={replyPersona.customIndustry}
+                        onChange={(e) => setReplyPersona((p) => ({ ...p, customIndustry: e.target.value }))}
+                        className="h-8 bg-white border border-[#c5c6cc] rounded px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-amber-500/20">
+                  <input
+                    type="text"
+                    placeholder="Full Name (e.g. Vikram Patel)"
+                    value={replyPersona.memberName}
+                    onChange={(e) => setReplyPersona((p) => ({ ...p, memberName: e.target.value }))}
+                    className="h-8 bg-white border border-[#c5c6cc] rounded px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Title / Role (e.g. Lead Engineer)"
+                    value={replyPersona.memberTitle}
+                    onChange={(e) => setReplyPersona((p) => ({ ...p, memberTitle: e.target.value }))}
+                    className="h-8 bg-white border border-[#c5c6cc] rounded px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                  />
+                </div>
+              )}
+
+              {/* Post Time / Timestamp Selector for Replies */}
+              <div className="pt-2 border-t border-amber-500/20 space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-[#010611] flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Post Time (Timestamp)</span>
+                  </span>
+                  {replyPersona.timePreset !== "now" && (
+                    <span className="text-[10px] text-amber-900 font-mono">
+                      Relative: {formatTimeAgo(resolveAdminPostTime(replyPersona))}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    { label: "Now", key: "now" },
+                    { label: "30m ago", key: "30m" },
+                    { label: "2h ago", key: "2h" },
+                    { label: "Yesterday", key: "yesterday" },
+                    { label: "3d ago", key: "3d" },
+                    { label: "Custom...", key: "custom" },
+                  ].map((preset) => (
+                    <button
+                      key={preset.key}
+                      type="button"
+                      onClick={() =>
+                        setReplyPersona((p) => ({
+                          ...p,
+                          timePreset: preset.key as any,
+                          customCreatedAt:
+                            preset.key === "custom" && !p.customCreatedAt
+                              ? new Date().toISOString().slice(0, 16)
+                              : p.customCreatedAt,
+                        }))
+                      }
+                      className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                        replyPersona.timePreset === preset.key
+                          ? "bg-[#010611] text-white shadow-2xs"
+                          : "bg-white text-[#010611] border border-[#c5c6cc] hover:bg-[#e6e8ea]"
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+
+                {replyPersona.timePreset === "custom" && (
+                  <div className="pt-1 flex items-center gap-2">
+                    <input
+                      type="datetime-local"
+                      value={replyPersona.customCreatedAt}
+                      onChange={(e) =>
+                        setReplyPersona((p) => ({ ...p, customCreatedAt: e.target.value }))
+                      }
+                      className="h-8 bg-white border border-[#c5c6cc] rounded px-2.5 text-xs text-[#010611] focus:outline-none focus:border-[#010611]"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <textarea
             rows={2}
             maxLength={2000}
@@ -1288,6 +1917,7 @@ function PerspectiveCommentItem({
             placeholder={`Reply to ${comment.author_name}...`}
             className="w-full bg-[#f2f4f6]/50 border border-[#c5c6cc] rounded-lg p-2.5 text-[#010611] text-xs sm:text-sm placeholder:text-[#505f76] focus:outline-none focus:border-[#010611] focus:bg-white transition-all resize-y"
           />
+
           <div className="flex items-center justify-between pt-1">
             <span className="text-[11px] text-[#505f76]">Markdown supported</span>
             <div className="flex items-center gap-2">
@@ -1300,7 +1930,7 @@ function PerspectiveCommentItem({
               </button>
               <button
                 type="button"
-                onClick={onSubmitReply}
+                onClick={() => onSubmitReply(isAdmin ? { ...replyPersona, enabled: true } : undefined)}
                 disabled={submitting || !replyContent.trim()}
                 className="px-3.5 py-1 bg-[#010611] text-white font-medium rounded-lg text-xs hover:bg-[#171f2c] transition-colors disabled:opacity-40 cursor-pointer shadow-xs"
               >
@@ -1321,11 +1951,11 @@ function PerspectiveCommentItem({
               onUpvote={onUpvote}
               isUpvoted={upvotedIds?.has(reply.id)}
               upvotedIds={upvotedIds}
-              onReplyClick={() => {}}
+              onReplyClick={() => onReplyClick(comment.id)}
               replyOpen={false}
               replyContent=""
               onReplyContentChange={() => {}}
-              onSubmitReply={() => {}}
+              onSubmitReply={onSubmitReply}
               submitting={false}
               isReply={true}
               parentAuthorName={comment.author_name}
@@ -1337,6 +1967,9 @@ function PerspectiveCommentItem({
               currentUserName={currentUserName}
               onDeleteClick={onDeleteClick}
               deletingId={deletingId}
+              adminBusinesses={adminBusinesses}
+              defaultAdminPersona={defaultAdminPersona}
+              onEditTimeClick={onEditTimeClick}
             />
           ))}
         </div>

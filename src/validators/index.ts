@@ -448,6 +448,11 @@ export const createInsightCommentSchema = z.object({
   author_avatar: z.union([z.string().url(), z.literal("")]).optional().nullable(),
   business_id: uuidSchema.optional().nullable(),
   parent_id: uuidSchema.optional().nullable(),
+  custom_company_name: z.string().trim().max(150).optional().nullable(),
+  custom_industry: z.string().trim().max(100).optional().nullable(),
+  custom_website: z.union([z.string().url(), z.literal("")]).optional().nullable(),
+  custom_logo_url: z.union([z.string().url(), z.literal("")]).optional().nullable(),
+  created_at: z.string().optional().nullable(),
 });
 
 export const toggleCommentUpvoteSchema = z.object({

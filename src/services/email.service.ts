@@ -237,6 +237,35 @@ export class EmailService {
     });
   }
 
+  static async sendAssociationApprovedEmail(params: {
+    toEmail: string;
+    requestorName?: string;
+    companyName: string;
+  }) {
+    const subject = `Your association with ${params.companyName} has been approved!`;
+    const appUrl = process.env.APP_URL || "https://usetherelay.com";
+
+    const bodyHtml = `
+      <h2 style="color: #010611;">Association Approved</h2>
+      <p>Congratulations, <strong>${params.requestorName || "Operator"}</strong>!</p>
+      <p>Your request to associate your account with <strong>${params.companyName}</strong> on The Relay has been officially approved by the organization administrator.</p>
+      <p>You are now connected to <strong>${params.companyName}</strong> as a verified associate member.</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${appUrl}/association" class="cta-button" style="color: #ffffff; background-color: #010611;">View Your Association</a>
+      </div>
+    `;
+
+    const html = this.wrapInBrandTemplate(subject, bodyHtml);
+
+    await this.sendEmail({
+      to: params.toEmail,
+      subject,
+      html,
+      templateName: "association_approved",
+      variables: params,
+    });
+  }
+
   static async sendInterestReceived(
     targetOwnerEmailOrParams:
       | string

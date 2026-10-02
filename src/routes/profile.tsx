@@ -364,10 +364,12 @@ function SimpleCommunityMemberProfilePage() {
           ) : (
             <div className="space-y-3">
               {contributions.map((c) => {
-                const targetUrl =
+                const targetPath =
                   c.item_type === "knowledge"
-                    ? `/insights/knowledge/${c.item_id}`
-                    : `/insights/${c.item_id}`;
+                    ? "/insights/knowledge/$id"
+                    : "/insights/$id";
+                const targetId = c.item_slug || c.item_id;
+                const commentHash = `comment-${c.id}`;
 
                 return (
                   <div
@@ -376,7 +378,9 @@ function SimpleCommunityMemberProfilePage() {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <Link
-                        to={targetUrl}
+                        to={targetPath as any}
+                        params={{ id: targetId } as any}
+                        hash={commentHash}
                         className="font-semibold text-[#010611] hover:underline line-clamp-1"
                       >
                         {c.item_title}
@@ -396,7 +400,9 @@ function SimpleCommunityMemberProfilePage() {
                         <span>{c.upvotes} upvotes</span>
                       </span>
                       <Link
-                        to={targetUrl}
+                        to={targetPath as any}
+                        params={{ id: targetId } as any}
+                        hash={commentHash}
                         className="inline-flex items-center gap-1 text-[#010611] hover:underline font-medium"
                       >
                         <span>View thread</span>

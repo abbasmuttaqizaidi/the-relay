@@ -96,14 +96,18 @@ export function UserAvatarDropdown({
     ? dbBusiness?.company_name || profile?.companyName || "Your Business"
     : communityProfile?.name || user.fullName || "Community Contributor";
 
-  // Compute initials based on active display name
-  const initials = getCompanyInitials(displayName);
+  // Compute initials based on active display name:
+  // For business: standard company initials
+  // For community member: strictly single initial of the first word
+  const initials = hasBusiness
+    ? getCompanyInitials(displayName)
+    : (displayName.trim().split(/\s+/)[0]?.charAt(0).toUpperCase() || "U");
 
-  // Avatar source: business logo if entity, otherwise community avatar / Google photo if photo type selected
-  const communityPhoto = user.imageUrl || communityProfile?.avatar_url || undefined;
+  // Avatar source: business logo if entity; for community member strictly use initial
+  const businessLogoUrl = dbBusiness?.logo_url || profile?.logoUrl;
   const avatarSrc = hasBusiness
     ? (businessLogoUrl && !logoFailed ? businessLogoUrl : undefined)
-    : communityPhoto;
+    : undefined;
 
   // Tier display config
   const tierMap: Record<string, string> = { L1: "Basic", L2: "Applied", L3: "Approved" };
@@ -268,11 +272,21 @@ export function UserAvatarDropdown({
             </div>
           </button>
         ) : (
-          <button className="focus:outline-none cursor-pointer group flex items-center gap-2 border border-slate-200/80 hover:border-slate-300 hover:bg-slate-50/60 rounded-full pl-1.5 pr-2.5 py-1 transition-all bg-white shadow-2xs">
+          <button
+            type="button"
+            className="focus:outline-none cursor-pointer group flex items-center gap-1.5 sm:gap-2 border-0 sm:border border-slate-200/80 hover:border-slate-300 hover:bg-slate-50/60 rounded-full p-0 sm:p-1 sm:pl-1.5 sm:pr-2.5 sm:py-1 transition-all bg-transparent sm:bg-white shadow-none sm:shadow-2xs"
+            aria-label="User Profile Menu"
+          >
             <TooltipSimple content={tierTooltipContent} side="bottom" align="end">
               <div className="relative shrink-0">
-                <Avatar className={`w-7 h-7 border transition-all shrink-0 rounded-full ${
-                  tierLabel === "Approved" ? "border-amber-400/90 ring-1.5 ring-amber-400/20" : tierLabel === "Applied" ? "border-indigo-400/90 ring-1.5 ring-indigo-400/20" : "border-slate-200"
+                <Avatar className={`w-8 h-8 sm:w-7 sm:h-7 transition-all shrink-0 rounded-full ${
+                  !hasBusiness
+                    ? "border-0"
+                    : tierLabel === "Approved"
+                      ? "border border-amber-400/90 ring-1.5 ring-amber-400/20"
+                      : tierLabel === "Applied"
+                        ? "border border-indigo-400/90 ring-1.5 ring-indigo-400/20"
+                        : "border border-slate-200"
                 }`}>
                   <AvatarImage
                     src={avatarSrc}
@@ -280,15 +294,15 @@ export function UserAvatarDropdown({
                     className="object-cover"
                     onError={() => setLogoFailed(true)}
                   />
-                  <AvatarFallback className="text-[9px] font-mono font-bold bg-slate-950 text-white overflow-hidden">
-                    {logoFailed ? initials : <DefaultBusinessLogo className="w-full h-full object-cover" />}
+                  <AvatarFallback className="text-xs sm:text-[10px] font-mono font-bold bg-[#010611] text-white overflow-hidden">
+                    {hasBusiness ? (logoFailed ? initials : <DefaultBusinessLogo className="w-full h-full object-cover" />) : initials}
                   </AvatarFallback>
                 </Avatar>
-                <span className={statusDotClass} />
+                {hasBusiness && <span className={statusDotClass} />}
               </div>
             </TooltipSimple>
 
-            <div className="flex flex-col items-start min-w-0 max-w-[120px] text-left">
+            <div className="hidden sm:flex flex-col items-start min-w-0 max-w-[120px] text-left">
               <span className="text-[11px] font-bold text-slate-800 truncate leading-tight font-sans tracking-tight group-hover:text-slate-950 transition-colors">
                 {displayName}
               </span>
@@ -297,7 +311,7 @@ export function UserAvatarDropdown({
               </span>
             </div>
 
-            <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 group-data-[state=open]:rotate-180 shrink-0" />
+            <ChevronDown className="hidden sm:block w-3 h-3 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 group-data-[state=open]:rotate-180 shrink-0" />
           </button>
         )}
       </DropdownMenuTrigger>
@@ -321,26 +335,30 @@ export function UserAvatarDropdown({
         
         <DropdownMenuSeparator className="bg-slate-100/80 my-1" />
         
-        <DropdownMenuItem
-          onClick={() => {
-            onNavigate?.();
-            navigate({ to: "/profile" });
-          }}
-          className="group px-3 py-2 text-xs text-slate-700 hover:text-slate-950 focus:bg-slate-100 cursor-pointer flex items-center gap-2 rounded-md transition-colors"
-        >
-          <User className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-900 transition-colors" />
-          <span>Contributor Profile</span>
-        </DropdownMenuItem>
+        {!hasBusiness && (
+          <DropdownMenuItem
+            onClick={() => {
+              onNavigate?.();
+              navigate({ to: "/profile" });
+            }}
+            className="group px-3 py-2 text-xs text-slate-700 hover:text-black focus:text-black data-[highlighted]:text-black hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100 cursor-pointer flex items-center gap-2 rounded-md transition-colors"
+          >
+            <User className="w-3.5 h-3.5 text-slate-500 group-hover:text-black group-focus:text-black group-data-[highlighted]:text-black transition-colors shrink-0" />
+            <span className="group-hover:text-black group-focus:text-black group-data-[highlighted]:text-black transition-colors font-medium">Contributor Profile</span>
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuItem
           onClick={() => {
             onNavigate?.();
             navigate({ to: "/onboarding" });
           }}
-          className="group px-3 py-2 text-xs text-slate-700 hover:text-slate-950 focus:bg-slate-100 cursor-pointer flex items-center gap-2 rounded-md transition-colors"
+          className="group px-3 py-2 text-xs text-slate-700 hover:text-black focus:text-black data-[highlighted]:text-black hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100 cursor-pointer flex items-center gap-2 rounded-md transition-colors"
         >
-          <Building2 className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-900 transition-colors" />
-          <span>{hasBusiness ? "Business Profile" : "Upgrade to Business (KYB)"}</span>
+          <Building2 className="w-3.5 h-3.5 text-slate-500 group-hover:text-black group-focus:text-black group-data-[highlighted]:text-black transition-colors shrink-0" />
+          <span className="group-hover:text-black group-focus:text-black group-data-[highlighted]:text-black transition-colors font-medium">
+            {hasBusiness ? "Business Profile" : "Upgrade to Business (KYB)"}
+          </span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator className="bg-slate-100/80 my-1" />
@@ -350,10 +368,10 @@ export function UserAvatarDropdown({
             onNavigate?.();
             handleLogout();
           }}
-          className="group px-3 py-2 text-xs text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer flex items-center gap-2 font-medium rounded-md transition-colors"
+          className="group px-3 py-2 text-xs text-red-600 hover:text-black focus:text-black data-[highlighted]:text-black hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100 cursor-pointer flex items-center gap-2 font-medium rounded-md transition-colors"
         >
-          <LogOut className="w-3.5 h-3.5 text-red-500 group-focus:text-red-600 transition-colors" />
-          <span>Sign Out</span>
+          <LogOut className="w-3.5 h-3.5 text-red-500 group-hover:text-black group-focus:text-black group-data-[highlighted]:text-black transition-colors shrink-0" />
+          <span className="group-hover:text-black group-focus:text-black group-data-[highlighted]:text-black transition-colors font-medium">Sign Out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

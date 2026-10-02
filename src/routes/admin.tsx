@@ -47,8 +47,10 @@ import {
   ArrowRightLeft,
   Eye,
   TrendingUp,
+  Calendar,
 } from "lucide-react";
 import { AdminIncreaseViewsDialog, type AdminIncreaseViewsTarget } from "@/components/admin/AdminIncreaseViewsDialog";
+import { AdminEditPostTimeDialog, type AdminEditPostTimeTarget } from "@/components/admin/AdminEditPostTimeDialog";
 import { AdminTrafficSourcesCard, type TrafficSourceBreakdown } from "@/components/admin/AdminTrafficSourcesCard";
 import { RelayVerificationSeal } from "@/components/relay-verification-seal";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
@@ -352,6 +354,7 @@ function AdminDashboard() {
   const [isCreateQuestionOpen, setIsCreateQuestionOpen] = useState(false);
   const [isCreateKnowledgeOpen, setIsCreateKnowledgeOpen] = useState(false);
   const [increaseViewsTarget, setIncreaseViewsTarget] = useState<AdminIncreaseViewsTarget | null>(null);
+  const [editPostTimeTarget, setEditPostTimeTarget] = useState<AdminEditPostTimeTarget | null>(null);
   const [deletingInsightId, setDeletingInsightId] = useState<string | null>(null);
   const [insightsSearchQuery, setInsightsSearchQuery] = useState("");
   const [insightsTopicFilter, setInsightsTopicFilter] = useState("all");
@@ -2182,11 +2185,28 @@ function AdminDashboard() {
                               </div>
                             </TableCell>
                             <TableCell className="p-4 text-slate-500 font-mono text-[11px]">
-                              {new Date(q.created_at).toLocaleDateString(undefined, {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setEditPostTimeTarget({
+                                    id: q.id,
+                                    title: q.title,
+                                    type: "question",
+                                    currentDate: q.created_at,
+                                  })
+                                }
+                                className="inline-flex items-center gap-1.5 px-2 py-1 rounded hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer group"
+                                title="Click to edit post time"
+                              >
+                                <span>
+                                  {new Date(q.created_at).toLocaleDateString(undefined, {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  })}
+                                </span>
+                                <Calendar className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400" />
+                              </button>
                             </TableCell>
                             <TableCell className="p-4 pr-6 text-right">
                               <div className="flex items-center justify-end gap-2">
@@ -2347,11 +2367,28 @@ function AdminDashboard() {
                               </div>
                             </TableCell>
                             <TableCell className="p-4 text-slate-500 font-mono text-[11px]">
-                              {new Date(k.created_at).toLocaleDateString(undefined, {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setEditPostTimeTarget({
+                                    id: k.id,
+                                    title: k.title,
+                                    type: "knowledge",
+                                    currentDate: k.created_at,
+                                  })
+                                }
+                                className="inline-flex items-center gap-1.5 px-2 py-1 rounded hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer group"
+                                title="Click to edit post time"
+                              >
+                                <span>
+                                  {new Date(k.created_at).toLocaleDateString(undefined, {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  })}
+                                </span>
+                                <Calendar className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400" />
+                              </button>
                             </TableCell>
                             <TableCell className="p-4 pr-6 text-right">
                               <div className="flex items-center justify-end gap-2">
@@ -2424,6 +2461,12 @@ function AdminDashboard() {
           open={!!increaseViewsTarget}
           onOpenChange={(open) => !open && setIncreaseViewsTarget(null)}
           item={increaseViewsTarget}
+          onSuccess={fetchInsightsData}
+        />
+        <AdminEditPostTimeDialog
+          open={!!editPostTimeTarget}
+          onOpenChange={(open) => !open && setEditPostTimeTarget(null)}
+          item={editPostTimeTarget}
           onSuccess={fetchInsightsData}
         />
       </main>

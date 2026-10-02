@@ -19,6 +19,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/navbar";
 import { GlobalTurnDock } from "@/components/GlobalTurnDock";
 import { ExecutiveToastContainer, GlobalExchangeActivityModal } from "@/design-system";
+import { useQuery } from "@tanstack/react-query";
+import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
 
 function NotFoundComponent() {
   return (
@@ -151,11 +153,22 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function AppLayout() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded, userId } = useAuth();
   const navigate = useNavigate();
   const location = useRouterState({
     select: (state) => state.location,
   });
+
+  const { data: onboardingData } = useQuery({
+    queryKey: ["onboarding-status", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return null;
+      return await checkOnboardingStatus();
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60 * 1,
+  });
+  const hasBusiness = Boolean(onboardingData?.business);
 
   useEffect(() => {
     if (isLoaded && typeof document !== "undefined") {
@@ -182,7 +195,15 @@ function AppLayout() {
   return (
     <div className="min-h-screen bg-[#F7F9FB] flex flex-col">
       <Navbar />
-      <main className={isSignedIn ? "pt-16 md:pl-60 flex-1 flex flex-col w-full" : "flex-1 flex flex-col w-full"}>
+      <main
+        className={
+          isSignedIn && hasBusiness
+            ? "pt-16 md:pl-60 flex-1 flex flex-col w-full"
+            : isSignedIn
+              ? "pt-16 flex-1 flex flex-col w-full"
+              : "flex-1 flex flex-col w-full"
+        }
+      >
         <Outlet />
       </main>
       <GlobalTurnDock />

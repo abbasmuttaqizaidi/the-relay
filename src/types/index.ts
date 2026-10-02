@@ -602,6 +602,11 @@ export interface CreateInsightCommentDTO {
   author_avatar?: string | null;
   business_id?: string | null;
   parent_id?: string | null;
+  custom_company_name?: string | null;
+  custom_industry?: string | null;
+  custom_website?: string | null;
+  custom_logo_url?: string | null;
+  created_at?: string | null;
 }
 
 

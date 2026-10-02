@@ -1358,244 +1358,90 @@ export function InsightsIndexPage() {
                     </Button>
                   </div>
                 ) : (
-                  (paginatedItems as Question[]).map((q, idx) => {
+                  (paginatedItems as Question[]).map((q) => {
                     const perspectiveCount = q._count?.perspectives ?? 0;
                     const isClosed = q.status === "closed";
                     const isSaved = savedItemIds.has(q.id);
                     const isUpvoted = upvotedQuestionIds.has(q.id);
                     const baseUpvotes = Math.max(1, (q.title.length % 15) + perspectiveCount * 3);
-                    const initials = getCompanyInitials(q.business?.company_name || "Verified Enterprise");
 
-                    // Show top card on page 1 as PINNED / MANDATE ADVISORY CASE
-                    const isPinnedCase = currentPage === 1 && idx === 0 && filterMode === "all" && !appliedSearch;
-
-                    if (isPinnedCase) {
-                      return (
-                        <article
-                          key={q.id}
-                          className="bg-white border-2 border-[#0F172A] rounded-xl p-6 shadow-xs relative overflow-hidden"
-                        >
-                          {/* Top Banner Bar */}
-                          <div className="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-[#E2E8F0]">
-                            <div className="flex items-center gap-2">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#0F172A] text-white rounded text-[10px] font-bold uppercase tracking-wider">
-                                <Pin className="w-3 h-3 text-[#10B981]" />
-                                <span>Mandate Advisory</span>
-                              </span>
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200/80 rounded text-[10px] font-bold uppercase tracking-wider">
-                                <CheckCircle2 className="w-3 h-3 text-[#10B981]" />
-                                <span>{perspectiveCount} Verified Answers</span>
-                              </span>
-                            </div>
-                            <span className="text-[#64748B] text-xs font-medium flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5" />
-                              <span>Active {formatTimeAgo(q.created_at)}</span>
-                            </span>
-                          </div>
-
-                          {/* Title */}
-                          <Link to="/insights/$id" params={{ id: q.slug || q.id }}>
-                            <h2 className="font-display text-lg sm:text-[19px] text-[#0F172A] font-bold tracking-tight leading-snug hover:text-slate-700 cursor-pointer transition-colors mb-2.5">
-                              {q.title}
-                            </h2>
-                          </Link>
-
-                          {/* Author Lockup */}
-                          <div className="flex items-center gap-2.5 mb-3">
-                            <CompanyLogo
-                              src={q.business?.logo_url}
-                              name={q.business?.company_name || "Verified Operator"}
-                              className="w-7 h-7 rounded-full object-contain border border-slate-200 shrink-0"
-                              fallbackClassName="w-7 h-7 rounded-full bg-[#1E293B] text-white flex items-center justify-center font-bold text-xs shrink-0"
-                              textClassName="text-[10px] font-mono font-bold"
-                            />
-                            <div className="flex items-center gap-2 flex-wrap text-xs">
-                              <span className="font-bold text-[#0F172A]">
-                                {q.business?.company_name || "Verified Operator"}
-                              </span>
-                              <span className="text-[#64748B]">
-                                {q.business?.hq_location || q.business?.industry || "United States"}
-                              </span>
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-semibold">
-                                <CheckCircle2 className="w-2.5 h-2.5 text-[#10B981]" />
-                                LEI Certified
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Excerpt */}
-                          <p className="text-xs text-[#334155] leading-relaxed line-clamp-2 mb-3.5">
-                            &ldquo;{q.description}&rdquo;
-                          </p>
-
-                          {/* Tags */}
-                          <div className="flex items-center gap-1.5 flex-wrap mb-3.5">
-                            <span className="px-1.5 py-0.5 bg-slate-50 text-[#64748B] border border-[#E2E8F0] rounded text-[11px] font-mono">
-                              #{q.topic?.replace(/\s+/g, "") || "Bilateral"}
-                            </span>
-                            <span className="px-1.5 py-0.5 bg-slate-50 text-[#64748B] border border-[#E2E8F0] rounded text-[11px] font-mono">
-                              #EnterpriseSales
-                            </span>
-                            <span className="px-1.5 py-0.5 bg-slate-50 text-[#64748B] border border-[#E2E8F0] rounded text-[11px] font-mono">
-                              #RevShareStructure
-                            </span>
-                          </div>
-
-                          {/* Consensus Answer Snippet */}
-                          <div className="bg-[#F8FAFC] border-l-3 border-[#10B981] border-y border-r border-[#E2E8F0] rounded-r p-3.5 mb-4 text-xs">
-                            <div className="flex items-center justify-between gap-2 mb-1.5">
-                              <div className="flex items-center gap-1.5">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
-                                <span className="font-bold text-[#0F172A] uppercase tracking-wide text-[11px]">
-                                  Consensus Resolution
-                                </span>
-                                <span className="text-[#64748B]">• Tier-1 Managing Director</span>
-                              </div>
-                              <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-900 rounded font-semibold text-[10px]">
-                                98% Alignment Score
-                              </span>
-                            </div>
-                            <p className="text-[#475569] leading-relaxed italic">
-                              &ldquo;Standard bilateral practice across enterprise co-selling is tiered net rev-share with quarterly parity audit slips to prevent channel collision.&rdquo;
-                            </p>
-                          </div>
-
-                          {/* Metrics & Direct CTA Bar */}
-                          <div className="pt-3.5 border-t border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#64748B]">
-                            <div className="flex items-center gap-3 flex-wrap">
-                              <span className="flex items-center gap-1 font-semibold text-[#0F172A]">
-                                <MessageSquare className="w-3.5 h-3.5 text-[#0F172A]" />
-                                {perspectiveCount} Responses
-                              </span>
-                              <span>•</span>
-                              {isAdmin ? (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setIncreaseViewsTarget({
-                                      id: q.id,
-                                      title: q.title,
-                                      type: "question",
-                                      currentViews: q.views || 0,
-                                    })
-                                  }
-                                  className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded cursor-pointer transition-colors"
-                                  title="Admin: Boost Views"
-                                >
-                                  <Eye className="w-3.5 h-3.5 text-slate-500" />
-                                  <span>{formatCompactNumber(q.views ?? 0)}</span>
-                                  <span className="hidden sm:inline"> Views</span>
-                                  <TrendingUp className="w-3 h-3 text-emerald-600 ml-0.5" />
-                                </button>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[#64748B]">
-                                  <Eye className="w-3.5 h-3.5 text-slate-400" />
-                                  <span>{formatCompactNumber(q.views ?? 0)}</span>
-                                  <span className="hidden sm:inline"> Views</span>
-                                </span>
-                              )}
-                              <span>•</span>
-                              <button
-                                type="button"
-                                onClick={(e) => toggleUpvote(q.id, e)}
-                                className="flex items-center gap-1 hover:text-[#0F172A] transition-colors cursor-pointer"
-                              >
-                                <ThumbsUp className={cn("w-3.5 h-3.5", isUpvoted ? "text-[#10B981] fill-[#10B981]" : "text-[#64748B]")} />
-                                <span>{baseUpvotes + (isUpvoted ? 1 : 0)} Upvotes</span>
-                              </button>
-                              <span className="hidden md:inline">•</span>
-                              <span className="hidden md:inline text-slate-500">
-                                Last response {formatTimeAgo(q.updated_at || q.created_at)}
-                              </span>
-                            </div>
-
-                            <Link
-                              to="/insights/$id"
-                              params={{ id: q.slug || q.id }}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0F172A] text-white rounded text-xs font-semibold hover:bg-[#1E293B] transition-colors self-start sm:self-auto shadow-2xs"
-                            >
-                              <span>Join Discussion</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </Link>
-                          </div>
-                        </article>
-                      );
-                    }
-
-                    // Standard Card
                     return (
                       <article
                         key={q.id}
-                        className="bg-white border border-[#E2E8F0] rounded-xl p-6 hover:border-[#94A3B8] transition-all shadow-2xs flex flex-col justify-between group"
+                        className="bg-white border border-[#e2e8f0] hover:border-[#cbd5e1] rounded-xl p-5 md:p-6 transition-all duration-200 hover:shadow-sm flex flex-col gap-3.5 group"
                       >
-                        <div className="flex flex-col gap-3">
-                          <div className="flex items-center justify-between gap-2 text-xs">
-                            <div className="flex items-center gap-1.5">
-                              <span className="px-2 py-0.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded font-bold text-[10px] text-[#0F172A] uppercase">
-                                {q.topic || "ADVISORY"}
-                              </span>
-                              <span className="px-2 py-0.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded font-bold text-[10px] text-[#0F172A] uppercase">
-                                {isClosed ? "RESOLVED" : "OPEN ADVISORY"}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1 text-[#64748B] text-[11px]">
-                              <Timer className="w-3.5 h-3.5 text-amber-600" />
-                              <span className="font-medium text-amber-700">
-                                Urgent SLA • Active {formatTimeAgo(q.created_at)}
-                              </span>
-                            </div>
+                        {/* 1. First Row: Logo, Business Name, Verified Seal, and Topic / Status Badges */}
+                        <div className="flex items-center justify-between gap-3 text-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <CompanyLogo
+                              src={q.business?.logo_url}
+                              name={q.business?.company_name}
+                              className="w-5 h-5 rounded object-contain border border-[#e2e8f0] shrink-0"
+                              fallbackClassName="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center font-bold text-[10px] shrink-0"
+                              textClassName="text-[9px] font-mono font-bold"
+                            />
+                            <span className="font-semibold text-xs text-[#0b1c30] truncate">
+                              {q.business?.company_name || "Verified Business"}
+                            </span>
+                            <span title="Verified Enterprise" className="hidden sm:inline-block">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" />
+                            </span>
                           </div>
 
-                          <Link to="/insights/$id" params={{ id: q.slug || q.id }}>
-                            <h3 className="font-display text-[16px] text-[#0F172A] font-bold tracking-tight group-hover:text-slate-700 cursor-pointer transition-colors leading-snug">
-                              {q.title}
-                            </h3>
-                          </Link>
-
-                          <p className="text-xs text-[#475569] leading-relaxed line-clamp-2">
-                            {q.description}
-                          </p>
-
-                          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                            <span className="px-1.5 py-0.5 bg-slate-50 text-[#64748B] border border-[#E2E8F0] rounded text-[11px] font-mono">
-                              #{q.topic?.replace(/\s+/g, "") || "Commercial"}
-                            </span>
-                            <span className="px-1.5 py-0.5 bg-slate-50 text-[#64748B] border border-[#E2E8F0] rounded text-[11px] font-mono">
-                              #BilateralGuidance
-                            </span>
-                            <span className="px-1.5 py-0.5 bg-slate-50 text-[#64748B] border border-[#E2E8F0] rounded text-[11px] font-mono">
-                              #OperatorAdvisory
-                            </span>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {isClosed && (
+                              <span className="font-semibold text-[10px] text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded uppercase tracking-wider">
+                                Closed
+                              </span>
+                            )}
+                            {q.topic && (
+                              <span className="font-semibold text-[10px] text-[#0b1c30] bg-[#f1f5f9] px-2 py-0.5 rounded uppercase tracking-wider hidden sm:inline-block">
+                                {q.topic}
+                              </span>
+                            )}
                           </div>
                         </div>
 
-                        <div className="pt-4 mt-3.5 border-t border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                          {/* Author */}
-                          <div className="flex items-center gap-2">
-                            <CompanyLogo
-                              src={q.business?.logo_url}
-                              name={q.business?.company_name || "Verified Enterprise"}
-                              className="w-7 h-7 rounded object-contain border border-[#E2E8F0] shrink-0"
-                              fallbackClassName="w-7 h-7 rounded bg-[#F1F5F9] border border-[#E2E8F0] flex items-center justify-center font-bold text-xs text-[#0F172A] shrink-0"
-                              textClassName="text-[10px] font-mono font-bold"
-                            />
-                            <div className="flex items-center gap-1.5 text-xs truncate">
-                              <span className="font-bold text-[#0F172A] truncate">
-                                {q.business?.company_name || "Verified Enterprise"}
-                              </span>
-                              <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981] shrink-0" title="Verified Enterprise Seal" />
-                              <span className="text-[#64748B] text-[11px] truncate">
-                                • {q.business?.hq_location || "Global"}
-                              </span>
-                            </div>
-                          </div>
+                        {/* 2. Second Line: Asked and formatted date */}
+                        <div className="text-[11px] text-[#64748B] -mt-1 font-sans">
+                          Asked {formatPublishedDate(q.created_at)}
+                        </div>
 
-                          {/* Metrics */}
-                          <div className="flex items-center gap-2 sm:justify-end text-xs">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#F8FAFC] border border-[#E2E8F0] rounded text-[#0F172A] font-semibold text-[11px]">
-                              <MessageSquare className="w-3 h-3 text-[#0F172A]" />
-                              {perspectiveCount} Answers
-                            </span>
+                        {/* 3. Title */}
+                        <Link
+                          to="/insights/$id"
+                          params={{ id: q.slug || q.id }}
+                          className="block"
+                        >
+                          <h2 className="font-display font-bold text-base md:text-lg text-[#0b1c30] group-hover:text-slate-800 transition-colors leading-snug cursor-pointer">
+                            {q.title}
+                          </h2>
+                        </Link>
+
+                        {/* 4. Description / Excerpt */}
+                        <p className="text-xs text-[#575f6e] leading-relaxed line-clamp-2">
+                          {q.description}
+                        </p>
+
+                        {/* 5. Footer: Save, views, answers, upvotes on left; Join Discussion CTA on right */}
+                        <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#f1f5f9] text-xs">
+                          <div className="flex items-center gap-2 sm:gap-3 text-[#575f6e] flex-wrap">
+                            <button
+                              type="button"
+                              onClick={(e) => toggleBookmark(q.id, e)}
+                              className="inline-flex items-center gap-1 hover:text-[#0b1c30] transition-colors cursor-pointer"
+                              title={isSaved ? "Saved" : "Save"}
+                            >
+                              {isSaved ? (
+                                <BookmarkCheck className="w-4 h-4 text-[#059669]" />
+                              ) : (
+                                <Bookmark className="w-4 h-4" />
+                              )}
+                              <span className="hidden sm:inline">{isSaved ? "Saved" : "Save"}</span>
+                            </button>
+
+                            <span>•</span>
+
                             {isAdmin ? (
                               <button
                                 type="button"
@@ -1607,53 +1453,55 @@ export function InsightsIndexPage() {
                                     currentViews: q.views || 0,
                                   })
                                 }
-                                className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded text-slate-800 font-mono text-[11px] font-semibold cursor-pointer transition-colors"
+                                className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-700 bg-slate-100 hover:bg-slate-200 px-1.5 sm:px-2 py-0.5 rounded cursor-pointer transition-colors"
                                 title="Admin: Boost Views"
                               >
-                                <Eye className="w-3 h-3 text-slate-500" />
-                                {formatCompactNumber(q.views ?? 0)}
-                                <TrendingUp className="w-2.5 h-2.5 text-emerald-600" />
+                                <Eye className="w-3.5 h-3.5 text-slate-500" />
+                                <span>{formatCompactNumber(q.views ?? 0)}</span>
+                                <TrendingUp className="w-3 h-3 text-emerald-600 ml-0.5" />
                               </button>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#F8FAFC] border border-[#E2E8F0] rounded text-[#64748B] font-mono text-[11px]">
-                                <Eye className="w-3 h-3 text-slate-400" />
-                                {formatCompactNumber(q.views ?? 0)}
+                              <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[#64748B]">
+                                <Eye className="w-3.5 h-3.5 text-slate-400" />
+                                <span>{formatCompactNumber(q.views ?? 0)}</span>
                               </span>
                             )}
+
+                            <span>•</span>
+
+                            <span className="inline-flex items-center gap-1 text-[#575f6e] font-sans">
+                              <MessageSquare className="w-3.5 h-3.5 text-slate-400" />
+                              <span>
+                                {perspectiveCount} {perspectiveCount === 1 ? "Answer" : "Answers"}
+                              </span>
+                            </span>
+
+                            <span>•</span>
+
                             <button
                               type="button"
                               onClick={(e) => toggleUpvote(q.id, e)}
-                              className={cn(
-                                "inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] border transition-colors cursor-pointer",
-                                isUpvoted
-                                  ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-semibold"
-                                  : "bg-[#F8FAFC] border-[#E2E8F0] text-[#64748B] hover:text-[#0F172A]"
-                              )}
+                              className="inline-flex items-center gap-1 hover:text-[#0b1c30] transition-colors cursor-pointer"
+                              title="Upvote"
                             >
-                              <ThumbsUp className="w-3 h-3" />
-                              <span>{baseUpvotes + (isUpvoted ? 1 : 0)}</span>
+                              <ThumbsUp
+                                className={cn(
+                                  "w-3.5 h-3.5",
+                                  isUpvoted ? "text-[#059669] fill-[#059669]" : "text-slate-400"
+                                )}
+                              />
+                              <span className="font-mono text-[11px]">{baseUpvotes + (isUpvoted ? 1 : 0)}</span>
                             </button>
-                            <button
-                              type="button"
-                              onClick={(e) => toggleBookmark(q.id, e)}
-                              className="p-1 text-[#94A3B8] hover:text-[#0F172A] transition-colors cursor-pointer"
-                              title="Bookmark"
-                            >
-                              {isSaved ? (
-                                <BookmarkCheck className="w-4 h-4 text-[#059669]" />
-                              ) : (
-                                <Bookmark className="w-4 h-4" />
-                              )}
-                            </button>
-                            <Link
-                              to="/insights/$id"
-                              params={{ id: q.slug || q.id }}
-                              className="inline-flex items-center gap-1 text-[#0F172A] hover:text-slate-600 font-semibold text-xs transition-colors pl-1"
-                            >
-                              <span>View Discussion</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </Link>
                           </div>
+
+                          <Link
+                            to="/insights/$id"
+                            params={{ id: q.slug || q.id }}
+                            className="inline-flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3 sm:px-4 py-2 rounded-lg transition-colors shadow-xs shrink-0"
+                          >
+                            <span>Join Discussion</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </Link>
                         </div>
                       </article>
                     );
@@ -1692,7 +1540,7 @@ export function InsightsIndexPage() {
                     const isSaved = savedItemIds.has(k.id);
                     const readTime = calculateReadingTime(k.content);
                     const basedOnLabel =
-                      BASED_ON_LABELS[k.based_on] || "Verified Business Trial";
+                      (k.based_on && BASED_ON_LABELS[k.based_on]) || "Verified Business Trial";
 
                     return (
                       <article
@@ -1712,7 +1560,9 @@ export function InsightsIndexPage() {
                             <span className="font-semibold text-xs text-[#0b1c30] truncate">
                               {k.business?.company_name || "Verified Business"}
                             </span>
-                            <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0 hidden sm:inline-block" title="Verified Enterprise" />
+                            <span title="Verified Enterprise" className="hidden sm:inline-block">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" />
+                            </span>
                           </div>
 
                           {k.topic && (
@@ -1740,7 +1590,7 @@ export function InsightsIndexPage() {
 
                         {/* 3. Below Title: Smaller text article description with ellipses on 2nd line for both mobile & desktop */}
                         <p className="text-xs text-[#575f6e] leading-relaxed line-clamp-2">
-                          {k.summary || k.content}
+                          {(k as any).summary || k.content}
                         </p>
 
                         {/* 4. Footer: Save icon, views icon on left (no text on mobile, 1.7k format), Read Case study on right */}

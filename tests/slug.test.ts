@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateBaseSlug } from "@/lib/slug";
+import { generateBaseSlug, isUUID } from "@/lib/slug";
 
 describe("generateBaseSlug", () => {
   it("treats em-dashes as spaces and preserves intra-word apostrophes", () => {
@@ -37,5 +37,25 @@ describe("generateBaseSlug", () => {
     expect(generateBaseSlug("")).toBe("insight");
     expect(generateBaseSlug("   ")).toBe("insight");
     expect(generateBaseSlug("!@#$%^&*()_+")).toBe("insight");
+  });
+});
+
+describe("isUUID", () => {
+  it("recognizes standard lowercase UUIDs", () => {
+    expect(isUUID("d4c0cbca-ac38-41e4-bb7d-a0978ef19ef2")).toBe(true);
+    expect(isUUID("b214740f-ae4a-448a-b477-6b47e1f7b290")).toBe(true);
+  });
+
+  it("recognizes uppercase and trimmed UUIDs", () => {
+    expect(isUUID("D4C0CBCA-AC38-41E4-BB7D-A0978EF19EF2")).toBe(true);
+    expect(isUUID("  d4c0cbca-ac38-41e4-bb7d-a0978ef19ef2  ")).toBe(true);
+  });
+
+  it("returns false for non-UUID slugs and invalid formats", () => {
+    expect(isUUID("why-you're-profitable-on-paper-but-broke-in-the-bank")).toBe(false);
+    expect(isUUID("not-a-uuid")).toBe(false);
+    expect(isUUID("")).toBe(false);
+    expect(isUUID(null as any)).toBe(false);
+    expect(isUUID(undefined as any)).toBe(false);
   });
 });

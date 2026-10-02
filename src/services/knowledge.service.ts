@@ -184,11 +184,12 @@ export class KnowledgeService {
    */
   static async getKnowledgeInsightById(identifier: string): Promise<KnowledgeInsight> {
     try {
-      const isIdentifierUUID = isUUID(identifier);
+      const cleanIdentifier = (identifier || "").trim();
+      const isIdentifierUUID = isUUID(cleanIdentifier);
       const insight = await prisma.knowledgeInsight.findFirst({
         where: isIdentifierUUID
-          ? { OR: [{ id: identifier }, { slug: identifier }] }
-          : { slug: identifier },
+          ? { OR: [{ id: cleanIdentifier }, { slug: cleanIdentifier }] }
+          : { slug: cleanIdentifier },
         include: {
           business: {
             select: SAFE_BUSINESS_SELECT,
