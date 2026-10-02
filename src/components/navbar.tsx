@@ -324,39 +324,46 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               <SheetTrigger asChild>
                 <button
                   type="button"
-                  className="p-2 rounded-md hover:bg-slate-100 text-slate-600 md:hidden"
+                  className="p-2 rounded-md hover:bg-slate-100 text-slate-700 md:hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400"
                   aria-label="Toggle Navigation Menu"
                 >
                   <Menu className="w-5 h-5" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[85vw] sm:w-[350px] p-6 flex flex-col justify-between">
+              <SheetContent side="right" className="w-[85vw] sm:w-[350px] p-6 flex flex-col justify-between z-[100] h-full">
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                <SheetDescription className="sr-only">Public Mobile Navigation Drawer</SheetDescription>
                 <div className="flex flex-col gap-6 pt-4">
-                  <Link to="/" className="flex items-center gap-2">
+                  <Link to="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2">
                     <img src={logoUrl} alt="The Relay" className="h-8 w-auto object-contain" />
                   </Link>
                   <div className="flex flex-col gap-3 font-medium text-sm text-slate-700">
-                    <Link to="/opportunities" className="py-2 border-b border-slate-100">
+                    <Link to="/opportunities" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-slate-100 hover:text-slate-900 transition-colors">
                       Opportunities
                     </Link>
-                    <Link to="/insights" className="py-2 border-b border-slate-100">
-                      Insights
+                    <Link to="/insights" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-slate-100 hover:text-slate-900 transition-colors">
+                      Insights & Knowledge
                     </Link>
-                    <Link to="/faq" className="py-2 border-b border-slate-100">
+                    <Link to="/faq" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-slate-100 hover:text-slate-900 transition-colors">
                       FAQ
+                    </Link>
+                    <Link to="/network" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-slate-100 hover:text-slate-900 transition-colors">
+                      Verified Network
                     </Link>
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 pt-6 border-t border-slate-100">
                   <Link
                     to="/login"
-                    className="w-full py-2.5 text-center text-sm font-semibold border border-slate-200 rounded text-slate-800 hover:bg-slate-50"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full py-2.5 text-center text-sm font-semibold border border-slate-200 rounded text-slate-800 hover:bg-slate-50 transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
                     to="/signup"
-                    className="w-full py-2.5 text-center text-sm font-semibold bg-slate-950 text-white rounded hover:bg-slate-800 shadow-xs"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full py-2.5 text-center text-sm font-semibold bg-slate-950 text-white rounded hover:bg-slate-800 shadow-xs transition-colors"
                   >
                     Get Started
                   </Link>

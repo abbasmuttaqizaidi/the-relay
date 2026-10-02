@@ -210,7 +210,12 @@ function RootComponent() {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    if (
+      typeof window !== 'undefined' &&
+      import.meta.env.PROD &&
+      window.location.hostname !== 'localhost' &&
+      !window.location.hostname.match(/^(127\.|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/)
+    ) {
       (function() {
         const win = window as any;
         win.__insp = win.__insp || [];

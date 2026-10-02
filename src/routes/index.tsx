@@ -195,7 +195,9 @@ export function LandingPage() {
       const card = container.children[1] as HTMLElement | undefined;
       if (card) {
         const targetLeft = card.offsetLeft - (container.clientWidth - card.clientWidth) / 2;
-        container.scrollTo({ left: Math.max(0, targetLeft), behavior: "instant" });
+        try {
+          container.scrollLeft = Math.max(0, targetLeft);
+        } catch (_) {}
       }
     }
   }, []);
