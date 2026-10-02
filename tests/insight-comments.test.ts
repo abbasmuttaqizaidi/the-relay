@@ -7,6 +7,10 @@ import {
   savePendingCommentSession,
   getPendingCommentSession,
   clearPendingCommentSession,
+  markGlobalAuthPromptShown,
+  hasGlobalAuthPromptBeenShown,
+  shouldSkipAuthPrompt,
+  isUserLikelyAuthenticated,
 } from "../src/lib/discussion-session";
 
 describe("Insight Comments Validation (3 Identity Tiers)", () => {
@@ -131,4 +135,24 @@ describe("Scoped Article Comment Draft & Multi-Article Isolation", () => {
     expect(getPendingCommentSession(articleA)).toBeNull();
     expect(getArticleCommentDraft(articleA)).toBe("");
   });
+
+  describe("Public Auth Prompt Dismissal and Login Suppression", () => {
+    it("skips auth prompt when user is signed in", () => {
+      expect(shouldSkipAuthPrompt({ isSignedIn: true })).toBe(true);
+    });
+
+    it("persists dismissal across insights, articles, and questions pages via storage", () => {
+      // Clean previous state
+      localStorage.clear();
+      sessionStorage.clear();
+
+      markGlobalAuthPromptShown();
+      expect(hasGlobalAuthPromptBeenShown()).toBe(true);
+      expect(shouldSkipAuthPrompt()).toBe(true);
+
+      // Verify localStorage has the dismissal flag set
+      expect(localStorage.getItem("relay_insights_auth_prompt_dismissed")).toBe("true");
+    });
+  });
 });
+

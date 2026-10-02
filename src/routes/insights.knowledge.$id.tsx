@@ -50,6 +50,7 @@ import {
   hasGlobalAuthPromptBeenShown,
   markGlobalAuthPromptShown,
   shouldSkipAuthPrompt,
+  isUserLikelyAuthenticated,
   getPendingCommentSession,
   getArticleCommentDraft,
   clearArticleCommentDraft,
@@ -346,17 +347,26 @@ export function KnowledgeDetailPage() {
 
   // Automatically prompt public users once per session across the entire app
   useEffect(() => {
-    if (!isLoaded || isSignedIn) return;
-    if (shouldSkipAuthPrompt({ isAdmin })) return;
+    if (!isLoaded || isSignedIn || isUserLikelyAuthenticated()) return;
+    if (shouldSkipAuthPrompt({ isAdmin, isSignedIn })) return;
 
     const timer = setTimeout(() => {
-      if (!shouldSkipAuthPrompt({ isAdmin })) {
+      if (!isSignedIn && !isUserLikelyAuthenticated() && !shouldSkipAuthPrompt({ isAdmin, isSignedIn })) {
         setPublicAuthPromptOpen(true);
         markGlobalAuthPromptShown();
       }
-    }, 700);
+    }, 1200);
     return () => clearTimeout(timer);
   }, [isLoaded, isSignedIn, id, isAdmin]);
+
+  // Guard: If authenticated, immediately close any auth prompt modal and mark shown
+  useEffect(() => {
+    if (isSignedIn || isUserLikelyAuthenticated()) {
+      setPublicAuthPromptOpen(false);
+      setContributorModalOpen(false);
+      markGlobalAuthPromptShown();
+    }
+  }, [isSignedIn]);
 
   // Check if user returned from Google/Phone login initiated from the public prompt modal
   useEffect(() => {
@@ -364,28 +374,20 @@ export function KnowledgeDetailPage() {
       const pendingContributor = sessionStorage.getItem("relay_pending_contributor_onboarding");
       if (pendingContributor) {
         sessionStorage.removeItem("relay_pending_contributor_onboarding");
-        Promise.all([
-          getCommunityProfile().catch(() => null),
-          checkOnboardingStatus().catch(() => null),
-        ])
-          .then(([profile, onboarding]) => {
-            if (
-              onboarding?.hasBusiness ||
-              onboarding?.business ||
-              profile?.type === "business" ||
-              profile?.type === "associate"
-            ) {
-              toast.success("Welcome back! You are signed in with your business credentials.");
-              return;
-            }
+        sessionStorage.removeItem("relay_auth_return_url");
+        markGlobalAuthPromptShown();
+
+        getCommunityProfile()
+          .then((profile) => {
             if (profile?.name || profile?.handle) {
-              toast.success(`Welcome back, ${profile.name || "Contributor"}! You are ready to join discussions.`);
-              return;
+              toast.success(`Welcome back, ${profile.name}! You are ready to join discussions.`);
+            } else {
+              toast.success("Signed in successfully! You are ready to join discussions.");
             }
-            // Only prompt brand new unconfigured users
-            setContributorModalOpen(true);
           })
-          .catch(() => {});
+          .catch(() => {
+            toast.success("Signed in successfully!");
+          });
       }
     }
   }, [isLoaded, isSignedIn]);
@@ -1029,7 +1031,12 @@ export function KnowledgeDetailPage() {
       {/* Public user discussion login prompt modal */}
       <InsightsPublicAuthPromptModal
         open={publicAuthPromptOpen}
-        onOpenChange={setPublicAuthPromptOpen}
+        onOpenChange={(val) => {
+          setPublicAuthPromptOpen(val);
+          if (!val) {
+            markGlobalAuthPromptShown();
+          }
+        }}
         onOpenContributorSetup={() => setContributorModalOpen(true)}
         tabName="knowledge"
       />

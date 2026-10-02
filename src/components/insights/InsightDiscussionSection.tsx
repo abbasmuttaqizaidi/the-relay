@@ -34,6 +34,7 @@ import {
   clearArticleCommentDraft,
   getStoredUpvotedComments,
   saveStoredUpvotedComment,
+  markGlobalAuthPromptShown,
 } from "@/lib/discussion-session";
 import {
   Select,
@@ -294,18 +295,9 @@ export function InsightDiscussionSection({
       const draftText = (pending?.content || getArticleCommentDraft(itemId) || content).trim();
 
       if (draftText) {
-        // Only auto-publish if user is already an established business OR has an established community profile.
-        // For new users without a completed profile, CommunityContributorAuthModal handles onboarding and publishes with their chosen credentials.
-        if (currentUserBusiness || communityUser?.name) {
+        if (currentUserBusiness || communityUser?.name || clerkUser) {
           hasAutoPublishedRef.current = true;
           publishPendingComment(draftText, pending?.parentId);
-        } else if (!profileLoading && !communityUser?.name && !currentUserBusiness) {
-          // User is signed in with Clerk, but has not completed their community profile yet.
-          // Open CommunityContributorAuthModal so they can finalize name/handle and publish!
-          setAuthModalTrigger("comment");
-          setAuthModalPendingText(draftText);
-          setPendingParentId(pending?.parentId || null);
-          setAuthModalOpen(true);
         }
       }
     }
@@ -882,6 +874,7 @@ export function InsightDiscussionSection({
           setAuthModalOpen(val);
           if (!val) {
             setPendingParentId(null);
+            markGlobalAuthPromptShown();
           }
         }}
         pendingComment={authModalPendingText || (pendingParentId ? replyContent : content)}

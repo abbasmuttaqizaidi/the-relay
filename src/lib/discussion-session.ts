@@ -135,6 +135,43 @@ export function saveStoredUpvotedComment(commentId: string): void {
   } catch (_) {}
 }
 
+/**
+ * Detects if the user has an active authenticated session (via cookies or browser storage),
+ * even before Clerk's async React hooks finish initializing.
+ */
+export function isUserLikelyAuthenticated(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const cookies = document.cookie || "";
+    if (
+      cookies.includes("__session=") ||
+      cookies.includes("__client_uat=") ||
+      cookies.includes("relay_admin_token=") ||
+      cookies.includes("__clerk_db_jwt=")
+    ) {
+      return true;
+    }
+
+    if ((window as any)?.Clerk?.user || (window as any)?.Clerk?.session) {
+      return true;
+    }
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i) || "";
+      if (
+        (key.includes("clerk") || key.includes("__session")) &&
+        !key.includes("dismissed")
+      ) {
+        const val = localStorage.getItem(key);
+        if (val && val !== "null" && val !== "undefined" && val.length > 10) {
+          return true;
+        }
+      }
+    }
+  } catch (_) {}
+  return false;
+}
+
 const GLOBAL_AUTH_PROMPT_KEY = "relay_insights_auth_prompt_dismissed";
 const LEGACY_AUTH_PROMPT_KEY = "relay_insights_auth_prompt_shown";
 const GLOBAL_AUTH_PROMPT_TIMESTAMP_KEY = "relay_insights_auth_prompt_dismissed_at";
@@ -148,7 +185,7 @@ let inMemoryAuthPromptShown = false;
  * Covers:
  * 1. In-memory session state (resilient to blocked/throwing storage)
  * 2. Tab sessionStorage (current tab)
- * 3. Cross-tab localStorage timestamp (24-hour suppression across multiple tabs/windows)
+ * 3. Cross-page and cross-tab localStorage (persisted across insights, questions, and articles pages)
  */
 export function hasGlobalAuthPromptBeenShown(): boolean {
   if (inMemoryAuthPromptShown) return true;
@@ -157,7 +194,9 @@ export function hasGlobalAuthPromptBeenShown(): boolean {
   try {
     if (
       sessionStorage.getItem(GLOBAL_AUTH_PROMPT_KEY) === "true" ||
-      sessionStorage.getItem(LEGACY_AUTH_PROMPT_KEY) === "true"
+      sessionStorage.getItem(LEGACY_AUTH_PROMPT_KEY) === "true" ||
+      localStorage.getItem(GLOBAL_AUTH_PROMPT_KEY) === "true" ||
+      localStorage.getItem(LEGACY_AUTH_PROMPT_KEY) === "true"
     ) {
       return true;
     }
@@ -176,7 +215,7 @@ export function hasGlobalAuthPromptBeenShown(): boolean {
 
 /**
  * Marks the public user discussion authentication prompt as shown/dismissed across all tabs,
- * in-memory session, and cross-tab storage.
+ * in-memory session, and localStorage so it will not reappear on insights, questions, or articles.
  */
 export function markGlobalAuthPromptShown(): void {
   inMemoryAuthPromptShown = true;
@@ -188,22 +227,31 @@ export function markGlobalAuthPromptShown(): void {
   } catch (_) {}
 
   try {
+    localStorage.setItem(GLOBAL_AUTH_PROMPT_KEY, "true");
+    localStorage.setItem(LEGACY_AUTH_PROMPT_KEY, "true");
     localStorage.setItem(GLOBAL_AUTH_PROMPT_TIMESTAMP_KEY, Date.now().toString());
   } catch (_) {}
 }
 
 /**
  * Validates whether the public auth prompt should be skipped based on environmental edge cases:
- * - Already shown/dismissed (in-memory, sessionStorage, or cross-tab localStorage)
+ * - Already authenticated or logged in
+ * - Already shown/dismissed (in-memory, sessionStorage, or cross-page localStorage)
  * - Active Admin session (relay_admin_token cookie present)
  * - Deep anchor links (user explicitly navigated to #discussion or #discussion-system)
  * - Active user typing (user has currently focused a textarea or input, avoiding focus hijacking)
  * - OAuth redirect in progress
  */
-export function shouldSkipAuthPrompt(options?: { isAdmin?: boolean }): boolean {
+export function shouldSkipAuthPrompt(options?: { isAdmin?: boolean; isSignedIn?: boolean }): boolean {
   if (typeof window === "undefined") return true;
 
-  // 1. Guard against repeat presentation
+  // 0. Guard against authenticated users
+  if (options?.isSignedIn || isUserLikelyAuthenticated()) {
+    markGlobalAuthPromptShown();
+    return true;
+  }
+
+  // 1. Guard against repeat presentation across all pages
   if (hasGlobalAuthPromptBeenShown()) return true;
 
   // 2. Guard against Admin users

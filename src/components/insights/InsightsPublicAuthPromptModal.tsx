@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useClerk, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
+import { useClerk, useSignIn, useSignUp, useAuth } from "@clerk/tanstack-react-start";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { X, MessageSquare, ShieldCheck, ArrowRight, Loader2, Sparkles, Mail, ArrowUp } from "lucide-react";
 import { toast } from "sonner";
-import { markGlobalAuthPromptShown, savePendingCommentSession, saveArticleCommentDraft } from "@/lib/discussion-session";
+import {
+  markGlobalAuthPromptShown,
+  savePendingCommentSession,
+  saveArticleCommentDraft,
+  isUserLikelyAuthenticated,
+} from "@/lib/discussion-session";
 
 interface InsightsPublicAuthPromptModalProps {
   open: boolean;
@@ -29,21 +34,32 @@ export function InsightsPublicAuthPromptModal({
   triggerSource = "comment",
 }: InsightsPublicAuthPromptModalProps) {
   const clerk = useClerk();
+  const { isSignedIn } = useAuth();
   const { signIn, isLoaded: isSignInLoaded } = useSignIn();
   const { signUp, isLoaded: isSignUpLoaded } = useSignUp();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
+  // If user is already authenticated or becomes authenticated, immediately dismiss and close
+  useEffect(() => {
+    if (isSignedIn || isUserLikelyAuthenticated()) {
+      if (open) {
+        markGlobalAuthPromptShown();
+        onOpenChange(false);
+      }
+    }
+  }, [isSignedIn, open]);
+
   // Body scroll lock
   useEffect(() => {
-    if (open) {
+    if (open && !isSignedIn && !isUserLikelyAuthenticated()) {
       const original = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       return () => {
         document.body.style.overflow = original;
       };
     }
-  }, [open]);
+  }, [open, isSignedIn]);
 
   // Escape key listener
   useEffect(() => {
@@ -57,7 +73,7 @@ export function InsightsPublicAuthPromptModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open]);
 
-  if (!open) return null;
+  if (!open || isSignedIn || isUserLikelyAuthenticated()) return null;
 
   const handleDismiss = () => {
     markGlobalAuthPromptShown();
