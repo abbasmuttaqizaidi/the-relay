@@ -1,6 +1,6 @@
 import { Link, useMatchRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useAuth, useUser, useClerk, SignInButton } from "@clerk/tanstack-react-start";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Menu,
@@ -26,7 +26,7 @@ import {
   Sparkles,
   User as UserIcon,
 } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { UserAvatarDropdown } from "@/components/user-avatar-dropdown";
 import { NotificationsDropdown } from "@/components/notifications-dropdown";
@@ -56,16 +56,21 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const currentSearch = routerState.location.search as any;
+  const currentHref = routerState.location.href;
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [postTypeModalOpen, setPostTypeModalOpen] = useState(false);
   const [isMyOppsExpanded, setIsMyOppsExpanded] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Automatically close mobile menu whenever route or search params change
+  // Automatically close mobile menu whenever location changes
+  const prevHrefRef = useRef(currentHref);
   useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [currentPath, currentSearch]);
+    if (prevHrefRef.current !== currentHref) {
+      prevHrefRef.current = currentHref;
+      setMobileMenuOpen(false);
+    }
+  }, [currentHref]);
 
   // 1. Onboarding / Business Profile Query
   const { data: onboardingData } = useQuery({
@@ -179,7 +184,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
       window.removeEventListener("storage", updateSavedCount);
       window.removeEventListener("relay:saved_insights", updateSavedCount);
     };
-  }, [currentPath, currentSearch]);
+  }, [currentPath]);
 
   // Active route detections
   const isHome = !!matchRoute({ to: "/", fuzzy: false });
@@ -374,6 +379,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   const renderDisabledItem = (icon: React.ReactNode, label: string, badge?: string) => (
     <div
       onClick={() => {
+        setMobileMenuOpen(false);
         toast.info(
           "Business verification required to access this feature. Please upgrade to a Verified Business Account.",
           {
@@ -384,7 +390,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           }
         );
       }}
-      className="group flex items-center justify-between px-3 py-2 rounded-lg opacity-40 hover:opacity-60 transition-opacity cursor-not-allowed select-none text-slate-500 font-medium"
+      className="group flex items-center justify-between px-3 py-2 rounded-lg opacity-40 hover:opacity-60 transition-opacity cursor-pointer select-none text-slate-500 font-medium"
       title="Verified Business Account required"
     >
       <div className="flex items-center gap-2.5 min-w-0">
@@ -409,6 +415,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
         <Link
           to={isCommunityMember ? "/insights" : "/opportunities"}
           search={isCommunityMember ? ({ tab: "knowledge" } as any) : undefined}
+          onClick={() => setMobileMenuOpen(false)}
           className="flex items-center group"
         >
           <img
@@ -435,6 +442,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           ) : (
             <Link
               to="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
               className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
                 isDashboard
                   ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
@@ -457,55 +465,50 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
             Marketplace
           </div>
-          {isCommunityMember ? (
-            <>
-              {renderDisabledItem(
-                <LayoutGrid className="w-4 h-4 text-slate-400" />,
-                "Opportunities",
-                "Explore"
-              )}
-              {renderDisabledItem(
-                <ArrowLeftRight className="w-4 h-4 text-slate-400" />,
-                "Exchange Hub",
-                "Live"
-              )}
-            </>
-          ) : (
-            <>
-              <Link
-                to="/opportunities"
-                className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-                  isOpportunities && !isConnections
-                    ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <LayoutGrid className={`w-4 h-4 ${isOpportunities && !isConnections ? "text-slate-950" : "text-slate-500"}`} />
-                  <span>Opportunities</span>
-                </div>
-                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-bold">
-                  Explore
-                </span>
-              </Link>
+          {/* Opportunities: PUBLIC ROUTE, fully enabled for everyone */}
+          <Link
+            to="/opportunities"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+              isOpportunities && !isConnections
+                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <LayoutGrid className={`w-4 h-4 ${isOpportunities && !isConnections ? "text-slate-950" : "text-slate-500"}`} />
+              <span>Opportunities</span>
+            </div>
+            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-bold">
+              Explore
+            </span>
+          </Link>
 
-              <Link
-                to="/connections"
-                className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-                  isConnections
-                    ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <ArrowLeftRight className={`w-4 h-4 ${isConnections ? "text-slate-950" : "text-slate-500"}`} />
-                  <span>Exchange Hub</span>
-                </div>
-                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-950 text-white font-bold">
-                  Live
-                </span>
-              </Link>
-            </>
+          {/* Exchange Hub: Requires verified business account */}
+          {isCommunityMember ? (
+            renderDisabledItem(
+              <ArrowLeftRight className="w-4 h-4 text-slate-400" />,
+              "Exchange Hub",
+              "Live"
+            )
+          ) : (
+            <Link
+              to="/connections"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                isConnections
+                  ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <ArrowLeftRight className={`w-4 h-4 ${isConnections ? "text-slate-950" : "text-slate-500"}`} />
+                <span>Exchange Hub</span>
+              </div>
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-950 text-white font-bold">
+                Live
+              </span>
+            </Link>
           )}
         </nav>
 
@@ -530,6 +533,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               <Link
                 to="/proposals"
                 search={{ tab: "received" } as any}
+                onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
                   isProposalsReceived
                     ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
@@ -547,6 +551,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               <Link
                 to="/proposals"
                 search={{ tab: "sent" } as any}
+                onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
                   isProposalsSent
                     ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
@@ -590,6 +595,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               <Link
                 to="/my-relay"
                 search={{ tab: "listings" } as any}
+                onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
                   isMyRelayListings
                     ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
@@ -607,6 +613,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               <Link
                 to="/my-relay"
                 search={{ tab: "saved" } as any}
+                onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
                   isMyRelaySaved
                     ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
@@ -653,6 +660,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                     <Link
                       to="/my-relay"
                       search={{ tab: "inbound" } as any}
+                      onClick={() => setMobileMenuOpen(false)}
                       className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
                         isMyRelayInbound
                           ? "text-slate-950 font-bold bg-slate-100/80"
@@ -667,6 +675,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                     <Link
                       to="/my-relay"
                       search={{ tab: "outbound" } as any}
+                      onClick={() => setMobileMenuOpen(false)}
                       className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
                         isMyRelayOutbound
                           ? "text-slate-950 font-bold bg-slate-100/80"
@@ -690,36 +699,31 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
             Insights
           </div>
-          {isCommunityMember ? (
-            renderDisabledItem(
-              <MessageSquare className="w-4 h-4 text-slate-400" />,
-              "Questions",
-              "Q&A"
-            )
-          ) : (
-            <Link
-              to="/insights"
-              search={{ tab: "questions" } as any}
-              className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-                isInsightsQuestions
-                  ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <MessageSquare className={`w-4 h-4 ${isInsightsQuestions ? "text-slate-950" : "text-slate-500"}`} />
-                <span>Questions</span>
-              </div>
-              <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold">
-                Q&A
-              </span>
-            </Link>
-          )}
+          {/* Questions: PUBLIC Q&A FOR ALL MEMBERS */}
+          <Link
+            to="/insights"
+            search={{ tab: "questions" } as any}
+            onClick={() => setMobileMenuOpen(false)}
+            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+              isInsightsQuestions
+                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <MessageSquare className={`w-4 h-4 ${isInsightsQuestions ? "text-slate-950" : "text-slate-500"}`} />
+              <span>Questions</span>
+            </div>
+            <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-bold">
+              Q&A
+            </span>
+          </Link>
 
-          {/* KNOWLEDGE ARTICLES: FULLY ACCESSIBLE TO COMMUNITY MEMBERS */}
+          {/* KNOWLEDGE ARTICLES: FULLY ACCESSIBLE TO ALL MEMBERS */}
           <Link
             to="/insights"
             search={{ tab: "knowledge" } as any}
+            onClick={() => setMobileMenuOpen(false)}
             className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
               isAllKnowledge
                 ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
@@ -741,6 +745,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               <Link
                 to="/insights"
                 search={{ tab: "knowledge", filter: "my" } as any}
+                onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
                   isMyArticles
                     ? "text-slate-950 font-bold bg-slate-100/80"
@@ -758,6 +763,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
             <Link
               to="/insights"
               search={{ tab: "knowledge", filter: "saved" } as any}
+              onClick={() => setMobileMenuOpen(false)}
               className={`flex items-center justify-between pl-3 pr-3 py-1.5 rounded-md text-xs transition-colors ${
                 isSavedArticles
                   ? "text-slate-950 font-bold bg-slate-100/80"
@@ -773,27 +779,21 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
             </Link>
           </div>
 
-          {/* FAQ */}
-          {isCommunityMember ? (
-            renderDisabledItem(
-              <HelpCircle className="w-4 h-4 text-slate-400" />,
-              "FAQ"
-            )
-          ) : (
-            <Link
-              to="/faq"
-              className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-                isFaq
-                  ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <HelpCircle className={`w-4 h-4 ${isFaq ? "text-slate-950" : "text-slate-500"}`} />
-                <span>FAQ</span>
-              </div>
-            </Link>
-          )}
+          {/* FAQ: PUBLIC ROUTE ACCESSIBLE TO ALL MEMBERS */}
+          <Link
+            to="/faq"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+              isFaq
+                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <HelpCircle className={`w-4 h-4 ${isFaq ? "text-slate-950" : "text-slate-500"}`} />
+              <span>FAQ</span>
+            </div>
+          </Link>
         </nav>
 
         {/* 5. ECOSYSTEM */}
@@ -801,27 +801,21 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
             Ecosystem
           </div>
-          {isCommunityMember ? (
-            renderDisabledItem(
-              <ShieldCheck className="w-4 h-4 text-slate-400" />,
-              "Verified Network"
-            )
-          ) : (
-            <Link
-              to="/network"
-              className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-                isNetwork
-                  ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck className={`w-4 h-4 ${isNetwork ? "text-slate-950" : "text-slate-500"}`} />
-                <span>Verified Network</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            </Link>
-          )}
+          <Link
+            to="/network"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+              isNetwork
+                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck className={`w-4 h-4 ${isNetwork ? "text-slate-950" : "text-slate-500"}`} />
+              <span>Verified Network</span>
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+          </Link>
         </nav>
       </div>
 
@@ -880,6 +874,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               <div className="flex items-center gap-1">
                 <Link
                   to={footerSettingsTo}
+                  onClick={() => setMobileMenuOpen(false)}
                   title={hasBusiness ? "Entity Settings" : "Contributor Profile"}
                   className="p-1.5 text-slate-500 hover:text-slate-900 rounded-md hover:bg-slate-200/70 transition-colors"
                 >
@@ -921,13 +916,15 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
             <SheetTrigger asChild>
               <button
                 type="button"
-                className="p-2 rounded-md hover:bg-slate-100 text-slate-700 md:hidden"
+                className="p-2 rounded-md hover:bg-slate-100 text-slate-700 md:hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400"
                 aria-label="Open Navigation Sidebar"
               >
                 <Menu className="w-5 h-5" />
               </button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-60 p-0 flex flex-col">
+            <SheetContent side="left" className="w-72 sm:w-60 p-0 flex flex-col z-[100] h-full">
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+              <SheetDescription className="sr-only">Mobile Navigation Drawer</SheetDescription>
               {sidebarContent}
             </SheetContent>
           </Sheet>

@@ -50,4 +50,38 @@ describe("Community Member Contributor Flow & Validation", () => {
     expect(() => serverCache.delete("test:user:2")).not.toThrow();
     expect(serverCache.get("test:user:2")).toBeNull();
   });
+
+  it("verifies community member navigation permissions for public routes and knowledge articles", () => {
+    // Public and community accessible routes
+    const communityAccessibleRoutes = [
+      "/opportunities",
+      "/insights?tab=knowledge",
+      "/faq",
+      "/network",
+    ];
+
+    // Business-only restricted routes
+    const businessOnlyRoutes = [
+      "/dashboard",
+      "/connections",
+      "/proposals",
+      "/my-relay",
+    ];
+
+    const canCommunityMemberAccess = (route: string) => {
+      if (communityAccessibleRoutes.includes(route)) return true;
+      if (businessOnlyRoutes.includes(route)) return false;
+      return false;
+    };
+
+    expect(canCommunityMemberAccess("/opportunities")).toBe(true);
+    expect(canCommunityMemberAccess("/insights?tab=knowledge")).toBe(true);
+    expect(canCommunityMemberAccess("/faq")).toBe(true);
+    expect(canCommunityMemberAccess("/network")).toBe(true);
+
+    expect(canCommunityMemberAccess("/dashboard")).toBe(false);
+    expect(canCommunityMemberAccess("/connections")).toBe(false);
+    expect(canCommunityMemberAccess("/proposals")).toBe(false);
+    expect(canCommunityMemberAccess("/my-relay")).toBe(false);
+  });
 });

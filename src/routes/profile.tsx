@@ -31,7 +31,6 @@ import {
   CardFooter,
   ExecutiveAlertBanner,
 } from "@/design-system";
-import { Navbar } from "@/components/navbar";
 import { getCommunityProfile, saveCommunityProfile } from "@/functions/communityProfile";
 import { getMyContributions } from "@/functions/getMyContributions";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
@@ -173,8 +172,6 @@ function SimpleCommunityMemberProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] text-[#191c1e] font-sans">
-      <Navbar />
-
       <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8 space-y-6">
         {/* Header */}
         <div className="space-y-4 pb-4 border-b border-[#e2e8f0]">

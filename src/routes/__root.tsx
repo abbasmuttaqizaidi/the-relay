@@ -182,7 +182,7 @@ function AppLayout() {
   return (
     <div className="min-h-screen bg-[#F7F9FB] flex flex-col">
       <Navbar />
-      <main className={isSignedIn ? "md:pl-60 md:pt-16 flex-1 flex flex-col w-full" : "flex-1 flex flex-col w-full"}>
+      <main className={isSignedIn ? "pt-16 md:pl-60 flex-1 flex flex-col w-full" : "flex-1 flex flex-col w-full"}>
         <Outlet />
       </main>
       <GlobalTurnDock />
