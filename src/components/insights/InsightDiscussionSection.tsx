@@ -381,6 +381,13 @@ export function InsightDiscussionSection({
           : communityUser?.name ||
             (selectedRole === "business_member" ? "Associate Member" : "Community Contributor");
 
+      const effectiveAuthorTitle =
+        selectedRole === "relay_business"
+          ? "Relay Verified"
+          : selectedRole === "business_member"
+          ? communityUser?.title || "Associate Member"
+          : communityUser?.title || undefined;
+
       const effectiveAuthorAvatar =
         selectedRole === "relay_business"
           ? currentUserBusiness?.logo_url || undefined
