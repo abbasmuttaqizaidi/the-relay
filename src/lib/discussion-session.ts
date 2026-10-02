@@ -13,26 +13,32 @@ export interface PendingCommentSession {
 }
 
 const STORAGE_PREFIX = "relay_pending_comment_";
+const DRAFT_PREFIX = "relay_comment_draft_";
 const UPVOTE_KEY = "relay_upvoted_comments";
 const MAX_STORED_UPVOTES = 200;
 
 /**
- * Saves pending comment and contributor draft atomically under a single scoped key.
+ * Saves pending comment and contributor draft atomically under a single scoped key in both sessionStorage and localStorage.
  */
 export function savePendingCommentSession(itemId: string, data: PendingCommentSession): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !itemId) return;
+  const serialized = JSON.stringify(data);
   try {
-    sessionStorage.setItem(`${STORAGE_PREFIX}${itemId}`, JSON.stringify(data));
+    sessionStorage.setItem(`${STORAGE_PREFIX}${itemId}`, serialized);
+  } catch (_) {}
+  try {
+    localStorage.setItem(`${STORAGE_PREFIX}${itemId}`, serialized);
   } catch (_) {}
 }
 
 /**
  * Retrieves the pending comment session with backwards compatibility for legacy strings.
+ * Falls back from sessionStorage to localStorage to survive cross-origin OAuth redirects.
  */
 export function getPendingCommentSession(itemId: string): PendingCommentSession | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined" || !itemId) return null;
   try {
-    const raw = sessionStorage.getItem(`${STORAGE_PREFIX}${itemId}`);
+    const raw = sessionStorage.getItem(`${STORAGE_PREFIX}${itemId}`) || localStorage.getItem(`${STORAGE_PREFIX}${itemId}`);
     if (!raw) return null;
     if (raw.startsWith("{")) {
       return JSON.parse(raw);
@@ -47,13 +53,57 @@ export function getPendingCommentSession(itemId: string): PendingCommentSession 
  * Clears all pending comment data and legacy keys for this item.
  */
 export function clearPendingCommentSession(itemId: string): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !itemId) return;
   try {
     sessionStorage.removeItem(`${STORAGE_PREFIX}${itemId}`);
+    localStorage.removeItem(`${STORAGE_PREFIX}${itemId}`);
     // Clean up any legacy separate keys if present
     sessionStorage.removeItem(`relay_pending_comment_parent_${itemId}`);
     sessionStorage.removeItem("relay_pending_item_type");
     sessionStorage.removeItem("relay_pending_contributor_draft");
+    clearArticleCommentDraft(itemId);
+  } catch (_) {}
+}
+
+/**
+ * Saves a live comment draft strictly scoped to this specific article itemId.
+ */
+export function saveArticleCommentDraft(itemId: string, content: string): void {
+  if (typeof window === "undefined" || !itemId) return;
+  try {
+    const trimmed = content ? content.trim() : "";
+    if (!trimmed) {
+      localStorage.removeItem(`${DRAFT_PREFIX}${itemId}`);
+      sessionStorage.removeItem(`${DRAFT_PREFIX}${itemId}`);
+    } else {
+      localStorage.setItem(`${DRAFT_PREFIX}${itemId}`, content);
+      sessionStorage.setItem(`${DRAFT_PREFIX}${itemId}`, content);
+    }
+  } catch (_) {}
+}
+
+/**
+ * Retrieves the live comment draft strictly for this specific article itemId.
+ * Guarantees zero bleed-through across different articles.
+ */
+export function getArticleCommentDraft(itemId: string): string {
+  if (typeof window === "undefined" || !itemId) return "";
+  try {
+    const draft = localStorage.getItem(`${DRAFT_PREFIX}${itemId}`) || sessionStorage.getItem(`${DRAFT_PREFIX}${itemId}`);
+    return draft || "";
+  } catch (_) {
+    return "";
+  }
+}
+
+/**
+ * Clears the article comment draft for this specific article itemId.
+ */
+export function clearArticleCommentDraft(itemId: string): void {
+  if (typeof window === "undefined" || !itemId) return;
+  try {
+    localStorage.removeItem(`${DRAFT_PREFIX}${itemId}`);
+    sessionStorage.removeItem(`${DRAFT_PREFIX}${itemId}`);
   } catch (_) {}
 }
 

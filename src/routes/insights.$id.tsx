@@ -73,6 +73,9 @@ import {
   markGlobalAuthPromptShown,
   shouldSkipAuthPrompt,
   getPendingCommentSession,
+  getArticleCommentDraft,
+  clearArticleCommentDraft,
+  clearPendingCommentSession,
 } from "@/lib/discussion-session";
 import { Question, Perspective, Business, DesiredPerspective } from "../types";
 import { createSeoMeta, createArticleSchema, SITE_URL } from "@/lib/seo";
@@ -1341,13 +1344,18 @@ export function QuestionDetailPage() {
       <CommunityContributorAuthModal
         open={contributorModalOpen}
         onOpenChange={setContributorModalOpen}
-        pendingComment={getPendingCommentSession(id)?.content || ""}
+        pendingComment={getPendingCommentSession(id)?.content || getArticleCommentDraft(id) || ""}
         parentId={getPendingCommentSession(id)?.parentId || null}
         itemType="question"
         itemId={id}
         itemTitle={question?.title || "Business Question"}
         onCommentPublished={() => {
+          clearArticleCommentDraft(id);
+          clearPendingCommentSession(id);
           loadQuestionData();
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("relay_comment_published", { detail: { itemId: id } }));
+          }
         }}
       />
     </div>

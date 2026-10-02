@@ -51,6 +51,9 @@ import {
   markGlobalAuthPromptShown,
   shouldSkipAuthPrompt,
   getPendingCommentSession,
+  getArticleCommentDraft,
+  clearArticleCommentDraft,
+  clearPendingCommentSession,
 } from "@/lib/discussion-session";
 import { KnowledgeInsight, Business, KnowledgeInsightBasedOn } from "../types";
 import { createSeoMeta, createArticleSchema, SITE_URL } from "@/lib/seo";
@@ -1035,13 +1038,18 @@ export function KnowledgeDetailPage() {
       <CommunityContributorAuthModal
         open={contributorModalOpen}
         onOpenChange={setContributorModalOpen}
-        pendingComment={getPendingCommentSession(id)?.content || ""}
+        pendingComment={getPendingCommentSession(id)?.content || getArticleCommentDraft(id) || ""}
         parentId={getPendingCommentSession(id)?.parentId || null}
         itemType="knowledge"
         itemId={id}
         itemTitle={insight?.title || "Knowledge Article"}
         onCommentPublished={() => {
+          clearArticleCommentDraft(id);
+          clearPendingCommentSession(id);
           loadInsightData();
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("relay_comment_published", { detail: { itemId: id } }));
+          }
         }}
       />
     </div>

@@ -28,6 +28,9 @@ import {
   savePendingCommentSession,
   getPendingCommentSession,
   clearPendingCommentSession,
+  saveArticleCommentDraft,
+  getArticleCommentDraft,
+  clearArticleCommentDraft,
 } from "@/lib/discussion-session";
 
 interface CommunityContributorAuthModalProps {
@@ -163,13 +166,12 @@ export function CommunityContributorAuthModal({
     if (!open) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        clearPendingCommentSession(itemId);
         onOpenChange(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, itemId, onOpenChange]);
+  }, [open, onOpenChange]);
 
   // Lock background scroll when modal is active
   useEffect(() => {
@@ -183,9 +185,8 @@ export function CommunityContributorAuthModal({
 
   if (!open) return null;
 
-  // Cleanly dismiss modal and clear pending comment session keys
+  // Cleanly dismiss modal without destroying user draft on the article
   const handleDismiss = () => {
-    clearPendingCommentSession(itemId);
     onOpenChange(false);
   };
 
@@ -193,8 +194,9 @@ export function CommunityContributorAuthModal({
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
+      const draftContent = (pendingComment || getPendingCommentSession(itemId)?.content || getArticleCommentDraft(itemId) || "").trim();
       savePendingCommentSession(itemId, {
-        content: pendingComment,
+        content: draftContent,
         parentId,
         draft: {
           fullName: fullName || undefined,
@@ -203,6 +205,13 @@ export function CommunityContributorAuthModal({
           expertiseDomain: expertiseDomain || undefined,
         },
       });
+      if (draftContent) {
+        saveArticleCommentDraft(itemId, draftContent);
+      }
+      try {
+        sessionStorage.setItem("relay_pending_contributor_onboarding", "true");
+        sessionStorage.setItem("relay_pending_item_id", itemId);
+      } catch (_) {}
       
       const returnUrl =
         window.location.pathname +
@@ -357,7 +366,7 @@ export function CommunityContributorAuthModal({
 
       // 2. Post the preserved comment if available (passing parent_id for threaded replies)
       const sessionData = getPendingCommentSession(itemId);
-      const commentText = (pendingComment || sessionData?.content || "").trim();
+      const commentText = (pendingComment || sessionData?.content || getArticleCommentDraft(itemId) || "").trim();
       const effectiveParentId = parentId !== undefined && parentId !== null ? parentId : (sessionData?.parentId || null);
 
       if (commentText) {
@@ -376,6 +385,7 @@ export function CommunityContributorAuthModal({
       }
 
       clearPendingCommentSession(itemId);
+      clearArticleCommentDraft(itemId);
 
       toast.success(
         commentText
@@ -386,6 +396,9 @@ export function CommunityContributorAuthModal({
       );
       onOpenChange(false);
       onCommentPublished?.();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("relay_comment_published", { detail: { itemId } }));
+      }
     } catch (err: any) {
       console.error("[CommunityContributorAuthModal] Publish error:", err);
       toast.error(err.message || "Failed to finalize profile and publish response.");
@@ -395,7 +408,7 @@ export function CommunityContributorAuthModal({
   };
 
   const monogram = getCompanyInitials(displayName || "Sarah Koenig");
-  const effectiveComment = (pendingComment || getPendingCommentSession(itemId)?.content || "").trim();
+  const effectiveComment = (pendingComment || getPendingCommentSession(itemId)?.content || getArticleCommentDraft(itemId) || "").trim();
 
   return (
     <div

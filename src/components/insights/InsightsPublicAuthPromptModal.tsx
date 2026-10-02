@@ -3,7 +3,7 @@ import { useClerk, useSignIn, useSignUp } from "@clerk/tanstack-react-start";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { X, MessageSquare, ShieldCheck, ArrowRight, Loader2, Sparkles, Mail, ArrowUp } from "lucide-react";
 import { toast } from "sonner";
-import { markGlobalAuthPromptShown, savePendingCommentSession } from "@/lib/discussion-session";
+import { markGlobalAuthPromptShown, savePendingCommentSession, saveArticleCommentDraft } from "@/lib/discussion-session";
 
 interface InsightsPublicAuthPromptModalProps {
   open: boolean;
@@ -88,12 +88,16 @@ export function InsightsPublicAuthPromptModal({
           parentId: parentId || undefined,
           timestamp: Date.now(),
         });
+        saveArticleCommentDraft(itemId, pendingComment);
       }
 
       const returnUrl = getReturnUrl();
 
       try {
         sessionStorage.setItem("relay_pending_contributor_onboarding", "true");
+        if (itemId) {
+          sessionStorage.setItem("relay_pending_item_id", itemId);
+        }
         sessionStorage.setItem("relay_auth_return_url", returnUrl);
       } catch {}
 
@@ -144,11 +148,16 @@ export function InsightsPublicAuthPromptModal({
         parentId: parentId || undefined,
         timestamp: Date.now(),
       });
+      saveArticleCommentDraft(itemId, pendingComment);
     }
     markGlobalAuthPromptShown();
     onOpenChange(false);
     const returnUrl = getReturnUrl();
     try {
+      sessionStorage.setItem("relay_pending_contributor_onboarding", "true");
+      if (itemId) {
+        sessionStorage.setItem("relay_pending_item_id", itemId);
+      }
       sessionStorage.setItem("relay_auth_return_url", returnUrl);
     } catch {}
     navigate({ to: "/signup", search: { redirect: returnUrl } as any });
@@ -161,11 +170,16 @@ export function InsightsPublicAuthPromptModal({
         parentId: parentId || undefined,
         timestamp: Date.now(),
       });
+      saveArticleCommentDraft(itemId, pendingComment);
     }
     markGlobalAuthPromptShown();
     onOpenChange(false);
     const returnUrl = getReturnUrl();
     try {
+      sessionStorage.setItem("relay_pending_contributor_onboarding", "true");
+      if (itemId) {
+        sessionStorage.setItem("relay_pending_item_id", itemId);
+      }
       sessionStorage.setItem("relay_auth_return_url", returnUrl);
     } catch {}
     navigate({ to: "/login", search: { redirect: returnUrl } as any });

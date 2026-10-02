@@ -29,6 +29,9 @@ import {
   savePendingCommentSession,
   getPendingCommentSession,
   clearPendingCommentSession,
+  saveArticleCommentDraft,
+  getArticleCommentDraft,
+  clearArticleCommentDraft,
   getStoredUpvotedComments,
   saveStoredUpvotedComment,
 } from "@/lib/discussion-session";
@@ -240,6 +243,7 @@ export function InsightDiscussionSection({
           setContent("");
         }
         clearPendingCommentSession(itemId);
+        clearArticleCommentDraft(itemId);
         toast.success("Welcome to The Relay! Your perspective has been published.");
       }
     } catch (err: any) {
@@ -250,6 +254,36 @@ export function InsightDiscussionSection({
     }
   };
 
+  // Synchronize and restore drafted comment strictly for this specific article itemId
+  useEffect(() => {
+    hasAutoPublishedRef.current = false;
+    if (!itemId) {
+      setContent("");
+      return;
+    }
+    const savedDraft = getArticleCommentDraft(itemId) || getPendingCommentSession(itemId)?.content || "";
+    if (savedDraft) {
+      setContent(savedDraft);
+    } else {
+      setContent("");
+    }
+  }, [itemId]);
+
+  // Listen for comment publication events across modals or tabs
+  useEffect(() => {
+    if (typeof window === "undefined" || !itemId) return;
+    const handleCommentEvent = (e: any) => {
+      if (e?.detail?.itemId === itemId) {
+        setContent("");
+        clearPendingCommentSession(itemId);
+        clearArticleCommentDraft(itemId);
+        loadComments();
+      }
+    };
+    window.addEventListener("relay_comment_published", handleCommentEvent);
+    return () => window.removeEventListener("relay_comment_published", handleCommentEvent);
+  }, [itemId]);
+
   useEffect(() => {
     setUpvotedIds(getStoredUpvotedComments());
 
@@ -257,12 +291,21 @@ export function InsightDiscussionSection({
 
     if (!hasAutoPublishedRef.current) {
       const pending = getPendingCommentSession(itemId);
-      if (pending?.content) {
+      const draftText = (pending?.content || getArticleCommentDraft(itemId) || content).trim();
+
+      if (draftText) {
         // Only auto-publish if user is already an established business OR has an established community profile.
         // For new users without a completed profile, CommunityContributorAuthModal handles onboarding and publishes with their chosen credentials.
         if (currentUserBusiness || communityUser?.name) {
           hasAutoPublishedRef.current = true;
-          publishPendingComment(pending.content, pending.parentId);
+          publishPendingComment(draftText, pending?.parentId);
+        } else if (!profileLoading && !communityUser?.name && !currentUserBusiness) {
+          // User is signed in with Clerk, but has not completed their community profile yet.
+          // Open CommunityContributorAuthModal so they can finalize name/handle and publish!
+          setAuthModalTrigger("comment");
+          setAuthModalPendingText(draftText);
+          setPendingParentId(pending?.parentId || null);
+          setAuthModalOpen(true);
         }
       }
     }
@@ -274,7 +317,7 @@ export function InsightDiscussionSection({
         handleUpvote(pendingUpvoteId);
       }
     } catch {}
-  }, [itemId, isSignedIn]);
+  }, [itemId, isSignedIn, communityUser, currentUserBusiness, profileLoading]);
 
   const loadComments = async () => {
     try {
@@ -320,6 +363,11 @@ export function InsightDiscussionSection({
         parentId: parentId || undefined,
         timestamp: Date.now(),
       });
+      saveArticleCommentDraft(itemId, textToSubmit);
+      try {
+        sessionStorage.setItem("relay_pending_contributor_onboarding", "true");
+        sessionStorage.setItem("relay_pending_item_id", itemId);
+      } catch (_) {}
       setAuthModalOpen(true);
       return;
     }
@@ -383,6 +431,7 @@ export function InsightDiscussionSection({
       }
 
       clearPendingCommentSession(itemId);
+      clearArticleCommentDraft(itemId);
       toast.success("Perspective posted successfully.");
     } catch (err: any) {
       console.error("[InsightDiscussionSection] Failed to post comment:", err);
@@ -403,6 +452,7 @@ export function InsightDiscussionSection({
           parentId: replyToId || undefined,
           timestamp: Date.now(),
         });
+        saveArticleCommentDraft(itemId, draft);
       } else {
         setAuthModalPendingText("");
       }
@@ -693,7 +743,13 @@ export function InsightDiscussionSection({
           maxLength={2000}
           value={content}
           onFocus={() => setIsFocused(true)}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            setContent(val);
+            if (itemId) {
+              saveArticleCommentDraft(itemId, val);
+            }
+          }}
           placeholder="Add your perspective or experience..."
           className="w-full bg-[#f2f4f6]/50 border border-[#c5c6cc] rounded-lg p-3.5 text-[#010611] text-sm placeholder:text-[#505f76] focus:outline-none focus:border-[#010611] focus:bg-white transition-all resize-y"
         />
@@ -712,6 +768,7 @@ export function InsightDiscussionSection({
                   setIsFocused(false);
                   setShowIdentitySwitch(false);
                   clearPendingCommentSession(itemId);
+                  clearArticleCommentDraft(itemId);
                 }}
                 className="px-3.5 py-1.5 text-xs sm:text-[13px] font-medium text-[#505f76] hover:text-[#010611] rounded transition-colors cursor-pointer"
               >
