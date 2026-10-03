@@ -108,15 +108,15 @@ export function SolutionsDropdown() {
         onClick={() => setIsOpen((prev) => !prev)}
         className={`inline-flex items-center gap-1 pb-1 text-[11px] font-mono uppercase tracking-[0.15em] font-bold transition-colors cursor-pointer select-none ${
           isSolutionsActive || isOpen
-            ? 'text-slate-900 border-b-2 border-slate-900'
-            : 'text-slate-400 hover:text-slate-800'
+            ? 'text-slate-950 border-b-2 border-slate-950'
+            : 'text-slate-950 hover:text-slate-700'
         }`}
         aria-expanded={isOpen}
       >
         <span>Solutions</span>
         <ChevronDown
-          className={`w-3 h-3 transition-transform duration-150 ${
-            isOpen ? 'rotate-180 text-slate-900' : 'text-slate-400'
+          className={`w-3 h-3 transition-transform duration-150 text-slate-950 ${
+            isOpen ? 'rotate-180' : ''
           }`}
         />
       </button>

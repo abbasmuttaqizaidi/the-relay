@@ -96,13 +96,13 @@ function NavHoverDropdown({
           className={`flex items-center gap-1.5 py-1 text-xs font-mono uppercase tracking-[0.12em] font-bold transition-colors ${
             isActive
               ? "text-slate-950 font-extrabold"
-              : "text-slate-500 hover:text-slate-950"
+              : "text-slate-950 hover:text-slate-700"
           }`}
         >
           <span>{label}</span>
           <ChevronDown
-            className={`w-3.5 h-3.5 transition-transform duration-200 ${
-              isOpen ? "rotate-180 text-slate-900" : "text-slate-400"
+            className={`w-3.5 h-3.5 transition-transform duration-200 text-slate-950 ${
+              isOpen ? "rotate-180" : ""
             }`}
           />
         </Link>
@@ -112,13 +112,13 @@ function NavHoverDropdown({
           className={`flex items-center gap-1.5 py-1 text-xs font-mono uppercase tracking-[0.12em] font-bold transition-colors cursor-pointer ${
             isActive
               ? "text-slate-950 font-extrabold"
-              : "text-slate-500 hover:text-slate-950"
+              : "text-slate-950 hover:text-slate-700"
           }`}
         >
           <span>{label}</span>
           <ChevronDown
-            className={`w-3.5 h-3.5 transition-transform duration-200 ${
-              isOpen ? "rotate-180 text-slate-900" : "text-slate-400"
+            className={`w-3.5 h-3.5 transition-transform duration-200 text-slate-950 ${
+              isOpen ? "rotate-180" : ""
             }`}
           />
         </button>
@@ -402,23 +402,23 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                 className="h-10 w-auto object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-[1.02]"
               />
             </Link>
-            <div className="hidden md:flex items-center gap-7 text-[11px] font-mono uppercase tracking-[0.15em] text-slate-400 font-bold">
+            <div className="hidden md:flex items-center gap-7 text-[11px] font-mono uppercase tracking-[0.15em] text-slate-950 font-bold">
               <SolutionsDropdown />
               <Link
                 to="/opportunities"
-                className="hover:text-slate-800 pb-1 transition-colors"
+                className="text-slate-950 hover:text-slate-700 pb-1 transition-colors"
               >
                 Opportunities
               </Link>
               <Link
                 to="/insights"
-                className="hover:text-slate-800 pb-1 transition-colors"
+                className="text-slate-950 hover:text-slate-700 pb-1 transition-colors"
               >
                 Insights
               </Link>
               <Link
                 to="/faq"
-                className="hover:text-slate-800 pb-1 transition-colors"
+                className="text-slate-950 hover:text-slate-700 pb-1 transition-colors"
               >
                 FAQ
               </Link>
@@ -428,7 +428,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           <div className="flex items-center gap-3">
             <Link
               to="/login"
-              className="text-xs font-semibold text-slate-700 hover:text-slate-900 px-3 py-1.5 transition-colors hidden sm:inline-block"
+              className="text-xs font-semibold text-slate-950 hover:text-slate-700 px-3 py-1.5 transition-colors hidden sm:inline-block"
             >
               Sign In
             </Link>
@@ -1112,7 +1112,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                 className={`py-1 text-xs font-mono uppercase tracking-[0.12em] font-bold transition-colors ${
                   isFaq
                     ? "text-slate-950 font-extrabold"
-                    : "text-slate-500 hover:text-slate-950"
+                    : "text-slate-950 hover:text-slate-700"
                 }`}
               >
                 FAQ
@@ -1123,7 +1123,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                 className={`py-1 text-xs font-mono uppercase tracking-[0.12em] font-bold transition-colors ${
                   isAbout
                     ? "text-slate-950 font-extrabold"
-                    : "text-slate-500 hover:text-slate-950"
+                    : "text-slate-950 hover:text-slate-700"
                 }`}
               >
                 About
@@ -1143,9 +1143,9 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
             <div className="hidden md:flex items-center gap-2">
               <Link
                 to="/onboarding"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-950 hover:border-slate-300 transition-colors shadow-2xs font-sans"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded border border-slate-200 text-slate-950 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-colors shadow-2xs font-sans"
               >
-                <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                <Building2 className="w-3.5 h-3.5 text-slate-950" />
                 <span>Upgrade to Business</span>
               </Link>
             </div>
@@ -1457,10 +1457,10 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           </Sheet>
 
           {/* Breadcrumb Indicator */}
-          <div className="hidden sm:flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold shrink-0">
-            <span className="text-slate-500">Relay B2B</span>
-            <ChevronRight className="w-3 h-3 text-slate-400" />
-            <span className="text-slate-900 font-extrabold">{breadcrumbTitle}</span>
+          <div className="hidden sm:flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-950 font-bold shrink-0">
+            <span className="text-slate-950">Relay B2B</span>
+            <ChevronRight className="w-3 h-3 text-slate-950" />
+            <span className="text-slate-950 font-extrabold">{breadcrumbTitle}</span>
           </div>
 
           {/* Search Input Div (Retained design with ⌘K) */}
