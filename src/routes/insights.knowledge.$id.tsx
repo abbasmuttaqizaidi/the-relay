@@ -347,24 +347,22 @@ export function KnowledgeDetailPage() {
 
   // Automatically prompt public users once per session across the entire app
   useEffect(() => {
-    if (!isLoaded || isSignedIn || isUserLikelyAuthenticated()) return;
-    if (shouldSkipAuthPrompt({ isAdmin, isSignedIn })) return;
+    if (!isLoaded || isSignedIn) return;
+    if (shouldSkipAuthPrompt({ isSignedIn })) return;
 
     const timer = setTimeout(() => {
-      if (!isSignedIn && !isUserLikelyAuthenticated() && !shouldSkipAuthPrompt({ isAdmin, isSignedIn })) {
+      if (!isSignedIn && !shouldSkipAuthPrompt({ isSignedIn })) {
         setPublicAuthPromptOpen(true);
-        markGlobalAuthPromptShown();
       }
-    }, 1200);
+    }, 400);
     return () => clearTimeout(timer);
-  }, [isLoaded, isSignedIn, id, isAdmin]);
+  }, [isLoaded, isSignedIn]);
 
-  // Guard: If authenticated, immediately close any auth prompt modal and mark shown
+  // Guard: If authenticated, immediately close any auth prompt modal
   useEffect(() => {
-    if (isSignedIn || isUserLikelyAuthenticated()) {
+    if (isSignedIn) {
       setPublicAuthPromptOpen(false);
       setContributorModalOpen(false);
-      markGlobalAuthPromptShown();
     }
   }, [isSignedIn]);
 

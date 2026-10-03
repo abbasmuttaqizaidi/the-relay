@@ -15,6 +15,7 @@ import {
   hasGlobalAuthPromptBeenShown,
   shouldSkipAuthPrompt,
   isUserLikelyAuthenticated,
+  clearGlobalAuthPromptFlags,
 } from "../src/lib/discussion-session";
 
 describe("Insight Comments Validation (3 Identity Tiers)", () => {
@@ -145,10 +146,24 @@ describe("Scoped Article Comment Draft & Multi-Article Isolation", () => {
       expect(shouldSkipAuthPrompt({ isSignedIn: true })).toBe(true);
     });
 
+    it("does not skip auth prompt for logged out public user when flags are cleared", () => {
+      clearGlobalAuthPromptFlags();
+      expect(hasGlobalAuthPromptBeenShown()).toBe(false);
+      expect(shouldSkipAuthPrompt({ isSignedIn: false })).toBe(false);
+      // Ensure shouldSkipAuthPrompt has NO side-effects (does not set dismissal flags)
+      expect(hasGlobalAuthPromptBeenShown()).toBe(false);
+      expect(localStorage.getItem("relay_insights_auth_prompt_dismissed")).toBeNull();
+    });
+
+    it("correctly identifies logged-out state in isUserLikelyAuthenticated without false positives", () => {
+      document.cookie = "__client_uat=0";
+      expect(isUserLikelyAuthenticated()).toBe(false);
+      expect(shouldSkipAuthPrompt({ isSignedIn: false })).toBe(false);
+    });
+
     it("persists dismissal across insights, articles, and questions pages via storage", () => {
       // Clean previous state
-      localStorage.clear();
-      sessionStorage.clear();
+      clearGlobalAuthPromptFlags();
 
       markGlobalAuthPromptShown();
       expect(hasGlobalAuthPromptBeenShown()).toBe(true);

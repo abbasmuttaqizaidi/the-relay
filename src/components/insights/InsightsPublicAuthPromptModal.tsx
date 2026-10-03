@@ -42,17 +42,14 @@ export function InsightsPublicAuthPromptModal({
 
   // If user is already authenticated or becomes authenticated, immediately dismiss and close
   useEffect(() => {
-    if (isSignedIn || isUserLikelyAuthenticated()) {
-      if (open) {
-        markGlobalAuthPromptShown();
-        onOpenChange(false);
-      }
+    if (open && (isSignedIn || isUserLikelyAuthenticated())) {
+      onOpenChange(false);
     }
-  }, [isSignedIn, open]);
+  }, [isSignedIn, open, onOpenChange]);
 
   // Body scroll lock
   useEffect(() => {
-    if (open && !isSignedIn && !isUserLikelyAuthenticated()) {
+    if (open && !isSignedIn) {
       const original = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       return () => {
@@ -73,7 +70,7 @@ export function InsightsPublicAuthPromptModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open]);
 
-  if (!open || isSignedIn || isUserLikelyAuthenticated()) return null;
+  if (!open || isSignedIn) return null;
 
   const handleDismiss = () => {
     markGlobalAuthPromptShown();

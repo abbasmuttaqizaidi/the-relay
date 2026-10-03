@@ -274,24 +274,22 @@ export function InsightsIndexPage() {
   // Automatically prompt public users once per session to sign in so they can comment
   useEffect(() => {
     // Edge case guard: Wait until Clerk is fully loaded to avoid false prompt for logged-in users
-    if (!isLoaded || isSignedIn || isUserLikelyAuthenticated()) return;
-    if (shouldSkipAuthPrompt({ isAdmin, isSignedIn })) return;
+    if (!isLoaded || isSignedIn) return;
+    if (shouldSkipAuthPrompt({ isSignedIn })) return;
 
     const timer = setTimeout(() => {
-      if (!isSignedIn && !isUserLikelyAuthenticated() && !shouldSkipAuthPrompt({ isAdmin, isSignedIn })) {
+      if (!isSignedIn && !shouldSkipAuthPrompt({ isSignedIn })) {
         setPublicAuthPromptOpen(true);
-        markGlobalAuthPromptShown();
       }
-    }, 1200);
+    }, 400);
     return () => clearTimeout(timer);
-  }, [isLoaded, isSignedIn, activeTab, isAdmin]);
+  }, [isLoaded, isSignedIn]);
 
-  // Guard: If authenticated, immediately close any auth prompt modal and mark shown
+  // Guard: If authenticated, immediately close any auth prompt modal
   useEffect(() => {
-    if (isSignedIn || isUserLikelyAuthenticated()) {
+    if (isSignedIn) {
       setPublicAuthPromptOpen(false);
       setContributorModalOpen(false);
-      markGlobalAuthPromptShown();
     }
   }, [isSignedIn]);
 

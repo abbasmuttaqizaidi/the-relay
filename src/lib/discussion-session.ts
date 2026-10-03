@@ -136,36 +136,40 @@ export function saveStoredUpvotedComment(commentId: string): void {
 }
 
 /**
- * Detects if the user has an active authenticated session (via cookies or browser storage),
- * even before Clerk's async React hooks finish initializing.
+ * Detects if the user has an active authenticated session (via cookies or Clerk window object).
+ * Accurately ignores logged-out states (e.g. __client_uat=0, empty __session, or anonymous device IDs).
  */
 export function isUserLikelyAuthenticated(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    const cookies = document.cookie || "";
-    if (
-      cookies.includes("__session=") ||
-      cookies.includes("__client_uat=") ||
-      cookies.includes("relay_admin_token=") ||
-      cookies.includes("__clerk_db_jwt=")
-    ) {
+    // 1. Direct Clerk window instance check
+    const clerk = (window as any)?.Clerk;
+    if (clerk && clerk.loaded) {
+      return Boolean(clerk.user || clerk.session);
+    }
+
+    // 2. Active Admin session cookie check
+    const adminMatch = document.cookie.match(/relay_admin_token=([^;]+)/);
+    if (adminMatch && adminMatch[1].trim().length > 5) {
       return true;
     }
 
-    if ((window as any)?.Clerk?.user || (window as any)?.Clerk?.session) {
-      return true;
+    // 3. Clerk session token cookie check
+    // Note: __client_uat=0 explicitly indicates a logged-out state in Clerk
+    const uatMatch = document.cookie.match(/__client_uat=([^;]+)/);
+    if (uatMatch && uatMatch[1] === "0") {
+      return false; // Explicitly logged out!
     }
 
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i) || "";
-      if (
-        (key.includes("clerk") || key.includes("__session")) &&
-        !key.includes("dismissed")
-      ) {
-        const val = localStorage.getItem(key);
-        if (val && val !== "null" && val !== "undefined" && val.length > 10) {
+    const sessionMatch = document.cookie.match(/__session=([^;]+)/);
+    if (sessionMatch && sessionMatch[1].trim().length > 20) {
+      if (uatMatch) {
+        const uatVal = parseInt(uatMatch[1], 10);
+        if (!isNaN(uatVal) && uatVal > 0) {
           return true;
         }
+      } else {
+        return true;
       }
     }
   } catch (_) {}
@@ -183,34 +187,44 @@ let inMemoryAuthPromptShown = false;
 /**
  * Checks if the public user discussion authentication prompt has already been shown/dismissed.
  * Covers:
- * 1. In-memory session state (resilient to blocked/throwing storage)
- * 2. Tab sessionStorage (current tab)
- * 3. Cross-page and cross-tab localStorage (persisted across insights, questions, and articles pages)
+ * 1. Tab sessionStorage (current tab)
+ * 2. Cross-page and cross-tab localStorage (persisted across insights, questions, and articles pages)
+ * 3. In-memory session state fallback (resilient to blocked/throwing storage)
  */
 export function hasGlobalAuthPromptBeenShown(): boolean {
-  if (inMemoryAuthPromptShown) return true;
   if (typeof window === "undefined") return false;
 
   try {
-    if (
+    const isDismissedInSession =
       sessionStorage.getItem(GLOBAL_AUTH_PROMPT_KEY) === "true" ||
-      sessionStorage.getItem(LEGACY_AUTH_PROMPT_KEY) === "true" ||
+      sessionStorage.getItem(LEGACY_AUTH_PROMPT_KEY) === "true";
+
+    const isDismissedInLocal =
       localStorage.getItem(GLOBAL_AUTH_PROMPT_KEY) === "true" ||
-      localStorage.getItem(LEGACY_AUTH_PROMPT_KEY) === "true"
-    ) {
+      localStorage.getItem(LEGACY_AUTH_PROMPT_KEY) === "true";
+
+    if (isDismissedInSession) {
       return true;
     }
 
-    const storedAt = localStorage.getItem(GLOBAL_AUTH_PROMPT_TIMESTAMP_KEY);
-    if (storedAt) {
-      const parsedTime = parseInt(storedAt, 10);
-      if (!isNaN(parsedTime) && Date.now() - parsedTime < AUTH_PROMPT_COOLDOWN_MS) {
-        return true;
+    if (isDismissedInLocal) {
+      // If the dismissal timestamp exists and is older than 24h, expire it
+      const storedAt = localStorage.getItem(GLOBAL_AUTH_PROMPT_TIMESTAMP_KEY);
+      if (storedAt) {
+        const parsedTime = parseInt(storedAt, 10);
+        if (!isNaN(parsedTime) && Date.now() - parsedTime > AUTH_PROMPT_COOLDOWN_MS) {
+          clearGlobalAuthPromptFlags();
+          return false;
+        }
       }
+      return true;
     }
-  } catch (_) {}
 
-  return false;
+    // When storage is accessible and neither key is set to "true", it is NOT shown
+    return false;
+  } catch (_) {
+    return inMemoryAuthPromptShown;
+  }
 }
 
 /**
@@ -234,37 +248,51 @@ export function markGlobalAuthPromptShown(): void {
 }
 
 /**
- * Validates whether the public auth prompt should be skipped based on environmental edge cases:
+ * Resets the public auth prompt flags from in-memory and browser storage.
+ */
+export function clearGlobalAuthPromptFlags(): void {
+  inMemoryAuthPromptShown = false;
+  if (typeof window === "undefined") return;
+
+  try {
+    sessionStorage.removeItem(GLOBAL_AUTH_PROMPT_KEY);
+    sessionStorage.removeItem(LEGACY_AUTH_PROMPT_KEY);
+  } catch (_) {}
+
+  try {
+    localStorage.removeItem(GLOBAL_AUTH_PROMPT_KEY);
+    localStorage.removeItem(LEGACY_AUTH_PROMPT_KEY);
+    localStorage.removeItem(GLOBAL_AUTH_PROMPT_TIMESTAMP_KEY);
+  } catch (_) {}
+}
+
+/**
+ * Pure predicate validating whether the public auth prompt should be skipped based on environmental conditions:
  * - Already authenticated or logged in
- * - Already shown/dismissed (in-memory, sessionStorage, or cross-page localStorage)
- * - Active Admin session (relay_admin_token cookie present)
+ * - Already shown/dismissed (sessionStorage or cross-page localStorage)
  * - Deep anchor links (user explicitly navigated to #discussion or #discussion-system)
  * - Active user typing (user has currently focused a textarea or input, avoiding focus hijacking)
  * - OAuth redirect in progress
+ *
+ * NOTE: This function is pure and has NO side effects (does NOT call markGlobalAuthPromptShown).
  */
 export function shouldSkipAuthPrompt(options?: { isAdmin?: boolean; isSignedIn?: boolean }): boolean {
   if (typeof window === "undefined") return true;
 
   // 0. Guard against authenticated users
-  if (options?.isSignedIn || isUserLikelyAuthenticated()) {
-    markGlobalAuthPromptShown();
+  if (options?.isSignedIn !== undefined) {
+    if (options.isSignedIn) return true;
+  } else if (isUserLikelyAuthenticated()) {
     return true;
   }
 
   // 1. Guard against repeat presentation across all pages
   if (hasGlobalAuthPromptBeenShown()) return true;
 
-  // 2. Guard against Admin users
+  // 2. Guard against Admin users if explicitly requested
   if (options?.isAdmin) {
-    markGlobalAuthPromptShown();
     return true;
   }
-  try {
-    if (document.cookie && document.cookie.includes("relay_admin_token=")) {
-      markGlobalAuthPromptShown();
-      return true;
-    }
-  } catch (_) {}
 
   // 3. Guard against OAuth redirect in flight
   const s = window.location.search || "";
@@ -281,7 +309,6 @@ export function shouldSkipAuthPrompt(options?: { isAdmin?: boolean; isSignedIn?:
 
   // 4. Guard against deep anchor navigation (#discussion, #discussion-system, or #comment-...)
   if (h.toLowerCase().includes("discussion") || h.toLowerCase().includes("comment")) {
-    markGlobalAuthPromptShown();
     return true;
   }
 
