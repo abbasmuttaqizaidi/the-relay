@@ -42,8 +42,11 @@ export interface AssociateMemberItem {
   joinedAt?: string;
 }
 
+import { searchAndRankBusinesses, extractWords, collapseAlphanumeric } from "../lib/business-search-matcher";
+
 /**
  * Searches approved businesses for users to connect/associate with.
+ * Uses token-aware word matching to prevent loose false positive matches.
  */
 export const searchApprovedBusinesses = createServerFn({ method: "GET" })
   .inputValidator((data: { query?: string }) => data)
@@ -51,27 +54,30 @@ export const searchApprovedBusinesses = createServerFn({ method: "GET" })
     const q = (data?.query || "").trim();
 
     if (!q) {
-      const list = await prisma.business.findMany({
-        where: { status: "approved" },
-        select: {
-          id: true,
-          company_name: true,
-          industry: true,
-          logo_url: true,
-          hq_location: true,
-          website: true,
-          description: true,
-        },
-        orderBy: { created_at: "desc" },
-        take: 8,
-      });
-      return list;
+      return [];
     }
 
-    const list = await prisma.business.findMany({
+    // Build database candidate filter conditions for scalability
+    const tokens = extractWords(q);
+    const orConditions: any[] = [
+      { company_name: { contains: q, mode: "insensitive" } },
+    ];
+    for (const t of tokens) {
+      if (t.length >= 2) {
+        orConditions.push({ company_name: { contains: t, mode: "insensitive" } });
+        orConditions.push({ industry: { contains: t, mode: "insensitive" } });
+      }
+    }
+    const collapsed = collapseAlphanumeric(q);
+    if (collapsed.length >= 2 && collapsed !== q.toLowerCase()) {
+      orConditions.push({ company_name: { contains: collapsed, mode: "insensitive" } });
+    }
+
+    // Retrieve candidates from database
+    let approvedList = await prisma.business.findMany({
       where: {
         status: "approved",
-        company_name: { contains: q, mode: "insensitive" },
+        OR: orConditions,
       },
       select: {
         id: true,
@@ -83,9 +89,36 @@ export const searchApprovedBusinesses = createServerFn({ method: "GET" })
         description: true,
       },
       orderBy: { created_at: "desc" },
-      take: 12,
+      take: 200,
     });
-    return list;
+
+    // Fallback: if OR conditions returned few items, also include recent approved businesses
+    if (approvedList.length < 20) {
+      const recentList = await prisma.business.findMany({
+        where: { status: "approved" },
+        select: {
+          id: true,
+          company_name: true,
+          industry: true,
+          logo_url: true,
+          hq_location: true,
+          website: true,
+          description: true,
+        },
+        orderBy: { created_at: "desc" },
+        take: 100,
+      });
+
+      const existingIds = new Set(approvedList.map((b) => b.id));
+      for (const item of recentList) {
+        if (!existingIds.has(item.id)) {
+          approvedList.push(item);
+        }
+      }
+    }
+
+    const ranked = searchAndRankBusinesses(approvedList, q);
+    return ranked.slice(0, 15);
   });
 
 /**
@@ -173,9 +206,33 @@ export const requestBusinessAssociation = createServerFn({ method: "POST" })
         throw new Error("You are already an approved associate of this business.");
       }
       if (existing.role === "pending_associate") {
-        return { success: true, message: "Your association request is already pending." };
+        return { success: true, message: "Your association request is already pending.", companyName: business.company_name };
       }
     }
+
+    // Guard: Prevent requesting association if user is already an approved associate of another business
+    const existingApproved = await prisma.businessMember.findFirst({
+      where: {
+        user_id: dbUser.id,
+        role: "associate",
+        business_id: { not: data.businessId },
+      },
+      include: { business: true },
+    });
+    if (existingApproved) {
+      throw new Error(
+        `You are already an active associate of ${existingApproved.business.company_name}. Please disconnect your existing association before requesting a new one.`
+      );
+    }
+
+    // If the user had a pending association with a different business, clean it up so user can switch/edit
+    await prisma.businessMember.deleteMany({
+      where: {
+        user_id: dbUser.id,
+        role: "pending_associate",
+        business_id: { not: data.businessId },
+      },
+    });
 
     await prisma.businessMember.upsert({
       where: {
@@ -204,7 +261,7 @@ export const requestBusinessAssociation = createServerFn({ method: "POST" })
       },
     });
 
-    return { success: true };
+    return { success: true, companyName: business.company_name };
   });
 
 /**

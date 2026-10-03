@@ -26,6 +26,8 @@ import {
   Sparkles,
   User as UserIcon,
   X,
+  Clock,
+  CheckCircle2,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { toast } from "sonner";
@@ -39,6 +41,9 @@ import { getSentRequests } from "@/functions/getSentRequests";
 import { getMyOpportunities } from "@/functions/getMyOpportunities";
 import { getSavedOpportunities } from "@/functions/getSavedOpportunities";
 import { getKnowledgeInsights } from "@/functions/getKnowledgeInsights";
+import { getMyAssociationStatus } from "@/functions/association";
+import { openBusinessAssociationModal } from "@/lib/association-modal-store";
+import { SwitchProfileButton } from "@/components/profile/SwitchProfileButton";
 import { getCompanyInitials } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company-logo";
 import { PostTypeSelectionModal } from "@/components/post/PostTypeSelectionModal";
@@ -186,7 +191,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   }, [currentHref]);
 
   // 1. Onboarding / Business Profile Query
-  const { data: onboardingData } = useQuery({
+  const { data: onboardingData, isLoading: loadingOnboarding } = useQuery({
     queryKey: ["onboarding-status", userId],
     queryFn: async () => {
       if (!isSignedIn) return null;
@@ -196,7 +201,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
     staleTime: 1000 * 60 * 1,
   });
 
-  const { data: communityProfile } = useQuery({
+  const { data: communityProfile, isLoading: loadingCommunity } = useQuery({
     queryKey: ["community-profile", userId],
     queryFn: async () => {
       if (!isSignedIn) return null;
@@ -247,6 +252,17 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
     staleTime: 1000 * 60 * 2,
   });
   const listingsCount = myListings.length;
+
+  // Association Status Query
+  const { data: associationData } = useQuery({
+    queryKey: ["my-association-status"],
+    queryFn: async () => {
+      if (!isSignedIn) return null;
+      return await getMyAssociationStatus();
+    },
+    enabled: Boolean(isLoaded && isSignedIn && !business),
+    staleTime: 1000 * 30,
+  });
 
   // 5. Saved Opportunities Count
   const { data: savedItems = [] } = useQuery({
@@ -501,7 +517,32 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   // ═══════════════════════════════════════════════════════════════════════════
   const companyName = business?.company_name || "Your Business";
   const userInitials = getCompanyInitials(companyName);
-  const isCommunityMember = !business || communityProfile?.type === "community_member";
+  const isAuthResolving = !isLoaded || (isSignedIn && (loadingOnboarding || loadingCommunity));
+  const cachedAccountMode = typeof window !== "undefined" ? localStorage.getItem("relay_account_mode") : null;
+
+  const resolvedIsCommunityMember =
+    !business ||
+    communityProfile?.type === "community_member" ||
+    communityProfile?.type === "associate";
+
+  // Retain cached account mode while auth and onboarding are resolving so business accounts don't flash community navbar
+  const isCommunityMember =
+    isAuthResolving && cachedAccountMode
+      ? cachedAccountMode === "community_member"
+      : resolvedIsCommunityMember;
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn && !loadingOnboarding && !loadingCommunity) {
+      const mode = resolvedIsCommunityMember ? "community_member" : "business";
+      try {
+        localStorage.setItem("relay_account_mode", mode);
+      } catch (_) {}
+    } else if (isLoaded && !isSignedIn) {
+      try {
+        localStorage.removeItem("relay_account_mode");
+      } catch (_) {}
+    }
+  }, [isLoaded, isSignedIn, loadingOnboarding, loadingCommunity, resolvedIsCommunityMember]);
 
   const renderDisabledItem = (icon: React.ReactNode, label: string, badge?: string) => (
     <div
@@ -1138,16 +1179,10 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-3 shrink-0">
-            {/* Desktop Upgrade CTA */}
-            <div className="hidden md:flex items-center gap-2">
-              <Link
-                to="/onboarding"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded border border-slate-200 text-slate-950 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-colors shadow-2xs font-sans"
-              >
-                <Building2 className="w-3.5 h-3.5 text-slate-950" />
-                <span>Upgrade to Business</span>
-              </Link>
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {/* Shining Glass Switch Profile Button */}
+            <div className="hidden sm:flex items-center">
+              <SwitchProfileButton size="sm" />
             </div>
 
             {/* Profile Avatar Dropdown (First word initial only) */}
@@ -1296,32 +1331,73 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                       <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
                         Account & Affiliation
                       </div>
-                      <Link
-                        to="/onboarding"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-950"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <Building2 className="w-4 h-4 text-slate-600" />
-                          <span>Business Account</span>
+                      {isAuthResolving ? (
+                        <div className="flex flex-col gap-2 py-1">
+                          <div className="h-9 w-full bg-slate-100 rounded-lg animate-pulse" />
+                          <div className="h-9 w-full bg-slate-100 rounded-lg animate-pulse" />
                         </div>
-                        <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold border border-slate-200">
-                          Upgrade
-                        </span>
-                      </Link>
-                      <Link
-                        to="/association"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-950"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <Building2 className="w-4 h-4 text-slate-600" />
-                          <span>Association</span>
-                        </div>
-                        <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold border border-slate-200">
-                          Connect
-                        </span>
-                      </Link>
+                      ) : (
+                        <>
+                          <Link
+                            to="/onboarding"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-950"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <Building2 className="w-4 h-4 text-slate-600" />
+                              <span>Business Account</span>
+                            </div>
+                            <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold border border-slate-200">
+                              Upgrade
+                            </span>
+                          </Link>
+                          {associationData?.status === "pending" ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMobileMenuOpen(false);
+                                openBusinessAssociationModal();
+                              }}
+                              className="flex items-center justify-between w-full px-3 py-2 rounded-lg transition-colors font-medium text-amber-950 bg-amber-50/80 border border-amber-200/90 hover:bg-amber-100 text-left cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                                <span className="truncate">Association (Pending)</span>
+                              </div>
+                              <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 font-bold border border-amber-300 shrink-0">
+                                Edit
+                              </span>
+                            </button>
+                          ) : associationData?.status === "approved" ? (
+                            <div className="flex items-center justify-between w-full px-3 py-2 rounded-lg font-medium text-emerald-950 bg-emerald-50/80 border border-emerald-200 text-left">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                <span className="truncate">Associated: {associationData.business.company_name}</span>
+                              </div>
+                              <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-900 font-bold border border-emerald-300 shrink-0">
+                                Active
+                              </span>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMobileMenuOpen(false);
+                                openBusinessAssociationModal();
+                              }}
+                              className="flex items-center justify-between w-full px-3 py-2 rounded-lg transition-colors font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-950 text-left cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <Building2 className="w-4 h-4 text-slate-600" />
+                                <span>Association</span>
+                              </div>
+                              <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold border border-slate-200">
+                                Connect
+                              </span>
+                            </button>
+                          )}
+                        </>
+                      )}
                     </div>
 
                     {/* Platform Links */}
@@ -1394,7 +1470,8 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <SwitchProfileButton size="sm" />
                         <Link
                           to="/profile"
                           onClick={() => setMobileMenuOpen(false)}
@@ -1483,9 +1560,11 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           </form>
         </div>
 
-        {/* Right Actions: Post Opportunity + Notification Bell + User Avatar */}
+        {/* Right Actions: Post Opportunity + Switch Profile + Notification Bell + User Avatar */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-          {isCommunityMember ? (
+          {isAuthResolving ? (
+            <div className="h-8 w-28 bg-slate-100 rounded-lg animate-pulse hidden sm:block" />
+          ) : isCommunityMember ? (
             <button
               type="button"
               onClick={() => {
@@ -1515,6 +1594,11 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               <span className="sm:hidden">Post</span>
             </button>
           )}
+
+          {/* Shining Glass Switch Profile Button */}
+          <div className="hidden sm:flex items-center">
+            <SwitchProfileButton size="sm" />
+          </div>
 
           <div className="h-4 w-px bg-slate-200 hidden sm:block"></div>
 

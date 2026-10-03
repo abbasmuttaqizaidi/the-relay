@@ -34,6 +34,9 @@ import {
 import { getCommunityProfile, saveCommunityProfile } from "@/functions/communityProfile";
 import { getMyContributions } from "@/functions/getMyContributions";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
+import { getMyAssociationStatus } from "@/functions/association";
+import { openBusinessAssociationModal } from "@/lib/association-modal-store";
+import { SwitchProfileButton } from "@/components/profile/SwitchProfileButton";
 import { formatTimeAgo } from "@/lib/utils";
 import { createPrivateMeta } from "@/lib/seo";
 
@@ -57,7 +60,6 @@ function SimpleCommunityMemberProfilePage() {
   const [bio, setBio] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
 
   // 1. Fetch community profile
   const { data: dbProfile, isLoading: loadingProfile } = useQuery({
@@ -79,6 +81,17 @@ function SimpleCommunityMemberProfilePage() {
     },
     enabled: Boolean(isLoaded && isSignedIn),
     staleTime: 1000 * 60 * 5,
+  });
+
+  // 3. Fetch association status
+  const { data: associationData } = useQuery({
+    queryKey: ["my-association-status"],
+    queryFn: async () => {
+      if (!isSignedIn) return null;
+      return await getMyAssociationStatus();
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 30,
   });
 
   // 3. Fetch user's discussion contributions
@@ -221,20 +234,9 @@ function SimpleCommunityMemberProfilePage() {
                 </div>
               </div>
 
-              {/* Right: Shining Glass Switch Button using Design System Button */}
+              {/* Right: Shining Glass Switch Button */}
               <div className="flex items-center shrink-0">
-                <Button
-                  type="button"
-                  onClick={() => setIsSwitchModalOpen(true)}
-                  className="relative overflow-hidden group inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-white text-xs font-semibold select-none cursor-pointer backdrop-blur-md bg-gradient-to-b from-[#252b3b]/90 via-[#0d1322]/95 to-[#010611] border border-white/20 hover:border-white/40 shadow-[0_4px_14px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.35)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.28),inset_0_1px_2px_rgba(255,255,255,0.6)] active:scale-95 transition-all duration-300"
-                >
-                  {/* Shining glass reflection beam */}
-                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform pointer-events-none" />
-                  {/* Glass glossy top highlight */}
-                  <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/60 to-transparent pointer-events-none" />
-                  <ArrowLeftRight className="w-3.5 h-3.5 text-white/90 group-hover:rotate-180 transition-transform duration-500 shrink-0" />
-                  <span className="tracking-wide">Switch</span>
-                </Button>
+                <SwitchProfileButton size="default" />
               </div>
             </div>
 
@@ -415,117 +417,6 @@ function SimpleCommunityMemberProfilePage() {
             </div>
           )}
         </div>
-
-        {/* Switch Profile Modal strictly using @/design-system */}
-        <Modal
-          open={isSwitchModalOpen}
-          onOpenChange={setIsSwitchModalOpen}
-          maxWidth="max-w-xl"
-          className="max-h-[92dvh] sm:max-h-[88vh]"
-          title={
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#010611] text-white flex items-center justify-center shrink-0">
-                <ArrowLeftRight className="w-4 h-4" />
-              </div>
-              <span className="font-bold text-[#010611] text-base font-display">Switch Profile</span>
-            </div>
-          }
-          description="Choose how you want to operate on The Relay network."
-        >
-          <div className="space-y-4 pt-1 font-sans text-left">
-            {/* Warning State Banner: Policy Transition Guarantee using ExecutiveAlertBanner */}
-            <ExecutiveAlertBanner
-              variant="warning"
-              title="Profile Transition Guarantee"
-              badgeText="Zero Downtime"
-              description={
-                <span>
-                  If you switch to a Business Profile, your account will only convert after your verification is approved. Until then, your{" "}
-                  <strong className="underline decoration-amber-400 font-semibold underline-offset-2">
-                    Community Profile remains 100% active
-                  </strong>{" "}
-                  (zero downtime guarantee).
-                </span>
-              }
-              className="p-3.5 rounded-xl border border-amber-200"
-            />
-
-            {/* 2 Options Cards using Design System Card & Subcomponents */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              {/* Option 1: Switch to Business Profile */}
-              <Card
-                variant="hover"
-                radius="lg"
-                className="p-4 flex flex-col justify-between gap-3 group border-2 border-slate-200 hover:border-black transition-all bg-white"
-              >
-                <div className="space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-[#f2f4f6] text-[#010611] flex items-center justify-center group-hover:bg-[#010611] group-hover:text-white transition-colors">
-                    <Building2 className="w-4 h-4" />
-                  </div>
-                  <CardTitle className="text-xs font-bold text-[#010611]">
-                    Switch to Business Profile
-                  </CardTitle>
-                  <CardDescription className="text-[11px] text-[#505f76] leading-relaxed">
-                    Register your company as a primary verified business entity (KYB validation required).
-                  </CardDescription>
-                </div>
-                <CardFooter className="p-0 border-t-0 pt-1">
-                  <Button
-                    asChild
-                    variant="monochrome"
-                    size="sm"
-                    className="w-full h-8 text-xs font-semibold gap-1.5 cursor-pointer"
-                  >
-                    <Link
-                      to="/onboarding"
-                      onClick={() => setIsSwitchModalOpen(false)}
-                    >
-                      <span>{business ? "Manage Registration" : "Setup Business (KYB)"}</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-
-              {/* Option 2: Associate with a Verified Business */}
-              <Card
-                variant="hover"
-                radius="lg"
-                className="p-4 flex flex-col justify-between gap-3 group border-2 border-slate-200 hover:border-black transition-all bg-white"
-              >
-                <div className="space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-[#f2f4f6] text-[#010611] flex items-center justify-center group-hover:bg-[#010611] group-hover:text-white transition-colors">
-                    <Users className="w-4 h-4" />
-                  </div>
-                  <CardTitle className="text-xs font-bold text-[#010611]">
-                    Associate with a Business
-                  </CardTitle>
-                  <CardDescription className="text-[11px] text-[#505f76] leading-relaxed">
-                    Link your account with an existing verified company or join an organization team.
-                  </CardDescription>
-                </div>
-                <CardFooter className="p-0 border-t-0 pt-1">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setIsSwitchModalOpen(false);
-                      toast.info(
-                        "Business Affiliation: Link your contributor account via your corporate domain email or organization invite code. This capability is activating in an upcoming release.",
-                        { duration: 5000 }
-                      );
-                    }}
-                    className="w-full h-8 text-xs font-semibold gap-1.5 cursor-pointer border-slate-300 text-[#010611] hover:bg-slate-50"
-                  >
-                    <span>Request Association</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-          </div>
-        </Modal>
       </main>
     </div>
   );

@@ -17,7 +17,10 @@ import {
   ExternalLink,
   Users,
   AlertCircle,
+  Pencil,
+  X,
 } from "lucide-react";
+import { openBusinessAssociationModal } from "@/lib/association-modal-store";
 import {
   Card,
   CardTitle,
@@ -50,6 +53,8 @@ function AssociationPage() {
   const queryClient = useQueryClient();
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [submittedQuery, setSubmittedQuery] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<BusinessSearchResult | null>(null);
 
   // 1. Current user's association status
@@ -61,13 +66,14 @@ function AssociationPage() {
     enabled: Boolean(isLoaded && isSignedIn),
   });
 
-  // 2. Search approved businesses
+  // 2. Search approved businesses - only runs when user clicks Search or submits
   const { data: searchResults = [], isLoading: searching } = useQuery({
-    queryKey: ["search-approved-businesses", searchQuery],
+    queryKey: ["search-approved-businesses", submittedQuery],
     queryFn: async () => {
-      return await searchApprovedBusinesses({ data: { query: searchQuery } });
+      if (!submittedQuery.trim()) return [];
+      return await searchApprovedBusinesses({ data: { query: submittedQuery.trim() } });
     },
-    enabled: Boolean(isLoaded && isSignedIn && !associationData),
+    enabled: Boolean(isLoaded && isSignedIn && !associationData && hasSearched && submittedQuery.trim().length > 0),
   });
 
   // 3. Mutation: Request Association
@@ -78,6 +84,9 @@ function AssociationPage() {
     onSuccess: () => {
       toast.success("Association request sent successfully! The organization administrator has been notified.");
       setSelectedBusiness(null);
+      setSearchQuery("");
+      setSubmittedQuery("");
+      setHasSearched(false);
       queryClient.invalidateQueries({ queryKey: ["my-association-status"] });
     },
     onError: (err: any) => {
@@ -212,15 +221,26 @@ function AssociationPage() {
                 </div>
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => cancelMutation.mutate(associationData.business.id)}
-                disabled={cancelMutation.isPending}
-                className="shrink-0 text-xs border-amber-300 text-amber-900 hover:bg-amber-100 hover:text-amber-950"
-              >
-                {cancelMutation.isPending ? "Cancelling..." : "Cancel Request"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openBusinessAssociationModal()}
+                  className="shrink-0 text-xs border-amber-300 bg-white text-amber-950 hover:bg-amber-100 flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                >
+                  <Pencil className="w-3 h-3 text-amber-800" />
+                  <span>Edit Request</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => cancelMutation.mutate(associationData.business.id)}
+                  disabled={cancelMutation.isPending}
+                  className="shrink-0 text-xs border-amber-300 text-amber-900 hover:bg-amber-100 hover:text-amber-950 cursor-pointer"
+                >
+                  {cancelMutation.isPending ? "Cancelling..." : "Cancel Request"}
+                </Button>
+              </div>
             </div>
 
             {/* Requested Organization Details Card */}
@@ -308,42 +328,86 @@ function AssociationPage() {
               <label className="block text-xs font-bold text-slate-900 font-sans uppercase tracking-wider">
                 Search Approved Businesses on The Relay
               </label>
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <Input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Type company name (e.g. Acme Corp, Apex Logistics)..."
-                  className="pl-10 h-11 bg-white border-slate-200 rounded-lg text-xs placeholder:text-slate-400 focus:border-slate-950 focus:ring-1 focus:ring-slate-950 shadow-2xs font-sans"
-                />
-                {searching && (
-                  <Loader2 className="w-4 h-4 text-slate-400 animate-spin absolute right-3.5 top-1/2 -translate-y-1/2" />
-                )}
-              </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!searchQuery.trim()) {
+                    setSubmittedQuery("");
+                    setHasSearched(false);
+                    return;
+                  }
+                  setSubmittedQuery(searchQuery.trim());
+                  setHasSearched(true);
+                }}
+                className="relative flex items-center gap-2"
+              >
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search business by name, industry, or domain (e.g. A H Mobile)..."
+                    className="w-full h-10 pl-10 pr-10 bg-[#F8FAFC] border border-[#E2E8F0] rounded-md text-[#0F172A] placeholder:text-[#94A3B8] text-xs sm:text-sm focus:outline-none focus:border-[#0F172A] focus:bg-white transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setSubmittedQuery("");
+                        setHasSearched(false);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  className="h-10 px-3.5 rounded-md bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Search</span>
+                </button>
+              </form>
             </div>
 
             {/* Results Grid */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-wider text-slate-400 font-bold">
-                  {searchQuery.trim() ? "Search Results" : "Verified Businesses Available for Association"}
-                </span>
-                <span className="font-mono text-[10px] text-slate-400">
-                  {searchResults.length} {searchResults.length === 1 ? "entity" : "entities"} found
-                </span>
-              </div>
-
-              {searchResults.length === 0 ? (
+              {!hasSearched ? (
                 <div className="p-8 text-center bg-white border border-slate-200 rounded-lg space-y-2">
                   <Building2 className="w-8 h-8 text-slate-300 mx-auto" />
-                  <p className="text-xs font-bold text-slate-700">No approved businesses found matching &ldquo;{searchQuery}&rdquo;</p>
+                  <p className="text-xs font-bold text-slate-700">Search for a Business</p>
+                  <p className="text-[11px] text-slate-400">
+                    Type your company&apos;s name, domain, or industry above and click Search to locate your organization.
+                  </p>
+                </div>
+              ) : searching ? (
+                <div className="p-8 text-center bg-white border border-slate-200 rounded-lg flex flex-col items-center justify-center gap-2 text-slate-400">
+                  <Loader2 className="w-5 h-5 animate-spin text-slate-600" />
+                  <span className="text-xs font-medium">Searching verified businesses...</span>
+                </div>
+              ) : searchResults.length === 0 ? (
+                <div className="p-8 text-center bg-white border border-slate-200 rounded-lg space-y-2">
+                  <Building2 className="w-8 h-8 text-slate-300 mx-auto" />
+                  <p className="text-xs font-bold text-slate-700">No approved businesses found matching &ldquo;{submittedQuery}&rdquo;</p>
                   <p className="text-[11px] text-slate-400">
                     Make sure the business is already registered and approved on The Relay.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-slate-400 font-bold">
+                      Search Results
+                    </span>
+                    <span className="font-mono text-[10px] text-slate-400">
+                      {searchResults.length} {searchResults.length === 1 ? "entity" : "entities"} found
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   {searchResults.map((biz) => {
                     const isSelected = selectedBusiness?.id === biz.id;
                     const isSubmittingThis = requestMutation.isPending && isSelected;
@@ -386,8 +450,8 @@ function AssociationPage() {
                               setSelectedBusiness(biz);
                               requestMutation.mutate(biz.id);
                             }}
-                            disabled={isSubmittingThis}
-                            className="text-xs font-semibold bg-slate-950 text-white hover:bg-slate-800 transition-colors cursor-pointer h-8 px-3 rounded"
+                            disabled={isSubmittingThis || requestMutation.isPending}
+                            className="text-xs font-semibold bg-slate-950 text-white hover:bg-slate-800 transition-colors cursor-pointer h-8 px-3 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {isSubmittingThis ? (
                               <>
@@ -406,8 +470,9 @@ function AssociationPage() {
                     );
                   })}
                 </div>
-              )}
-            </div>
+              </>
+            )}
+          </div>
           </div>
         )}
       </div>

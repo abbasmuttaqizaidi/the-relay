@@ -21,6 +21,10 @@ import { GlobalTurnDock } from "@/components/GlobalTurnDock";
 import { ExecutiveToastContainer, GlobalExchangeActivityModal } from "@/design-system";
 import { useQuery } from "@tanstack/react-query";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
+import { getCommunityProfile } from "@/functions/communityProfile";
+import { GlobalAssociationBanner } from "@/components/association/GlobalAssociationBanner";
+import { BusinessAssociationModal } from "@/components/association/BusinessAssociationModal";
+import { SwitchProfileModal } from "@/components/profile/SwitchProfileModal";
 
 function NotFoundComponent() {
   return (
@@ -159,7 +163,7 @@ function AppLayout() {
     select: (state) => state.location,
   });
 
-  const { data: onboardingData } = useQuery({
+  const { data: onboardingData, isLoading: onboardingLoading } = useQuery({
     queryKey: ["onboarding-status", userId],
     queryFn: async () => {
       if (!isSignedIn) return null;
@@ -168,7 +172,28 @@ function AppLayout() {
     enabled: Boolean(isLoaded && isSignedIn),
     staleTime: 1000 * 60 * 1,
   });
-  const hasBusiness = Boolean(onboardingData?.business);
+
+  const { data: communityProfile, isLoading: communityLoading } = useQuery({
+    queryKey: ["community-profile", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return null;
+      return await getCommunityProfile();
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60 * 2,
+  });
+
+  const business = onboardingData?.business || null;
+  const isCommunityMember =
+    !business ||
+    communityProfile?.type === "community_member" ||
+    communityProfile?.type === "associate";
+
+  const isAuthResolving = !isLoaded || (isSignedIn && (onboardingLoading || communityLoading));
+  const cachedAccountMode = typeof window !== "undefined" ? localStorage.getItem("relay_account_mode") : null;
+  const showSidebar = Boolean(
+    isSignedIn && (isAuthResolving && cachedAccountMode ? cachedAccountMode === "business" : !isCommunityMember)
+  );
 
   useEffect(() => {
     if (isLoaded && typeof document !== "undefined") {
@@ -197,15 +222,18 @@ function AppLayout() {
       <Navbar />
       <main
         className={
-          isSignedIn && hasBusiness
+          showSidebar
             ? "pt-16 md:pl-60 flex-1 flex flex-col w-full"
             : isSignedIn
               ? "pt-16 flex-1 flex flex-col w-full"
               : "flex-1 flex flex-col w-full"
         }
       >
+        <GlobalAssociationBanner />
         <Outlet />
       </main>
+      <BusinessAssociationModal />
+      <SwitchProfileModal />
       <GlobalTurnDock />
       <GlobalExchangeActivityModal />
       <ExecutiveToastContainer />

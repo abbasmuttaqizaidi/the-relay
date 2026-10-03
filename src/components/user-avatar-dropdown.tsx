@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/components/ui/sonner";
-import { Building2, User, Shield, LogOut, Check, ChevronDown } from "lucide-react";
+import { Building2, User, Shield, LogOut, Check, ChevronDown, Clock, CheckCircle2 } from "lucide-react";
 import { TooltipSimple } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -18,6 +18,8 @@ import { getCompanyInitials } from "@/lib/utils";
 import { DefaultBusinessLogo } from "@/default_business_logo";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
 import { getCommunityProfile } from "@/functions/communityProfile";
+import { getMyAssociationStatus } from "@/functions/association";
+import { openBusinessAssociationModal } from "@/lib/association-modal-store";
 
 interface ProfileData {
   companyName: string;
@@ -62,6 +64,16 @@ export function UserAvatarDropdown({
 
   const dbBusiness = onboardingData?.business;
   const hasBusiness = Boolean(dbBusiness);
+
+  const { data: associationData } = useQuery({
+    queryKey: ["my-association-status"],
+    queryFn: async () => {
+      if (!user) return null;
+      return await getMyAssociationStatus();
+    },
+    enabled: Boolean(user?.id && !hasBusiness),
+    staleTime: 1000 * 30,
+  });
 
   useEffect(() => {
     const loadProfile = () => {
@@ -336,16 +348,57 @@ export function UserAvatarDropdown({
         <DropdownMenuSeparator className="bg-slate-100/80 my-1" />
         
         {!hasBusiness && (
-          <DropdownMenuItem
-            onClick={() => {
-              onNavigate?.();
-              navigate({ to: "/profile" });
-            }}
-            className="group px-3 py-2 text-xs text-slate-700 hover:text-black focus:text-black data-[highlighted]:text-black hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100 cursor-pointer flex items-center gap-2 rounded-md transition-colors"
-          >
-            <User className="w-3.5 h-3.5 text-slate-500 group-hover:text-black group-focus:text-black group-data-[highlighted]:text-black transition-colors shrink-0" />
-            <span className="group-hover:text-black group-focus:text-black group-data-[highlighted]:text-black transition-colors font-medium">Contributor Profile</span>
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem
+              onClick={() => {
+                onNavigate?.();
+                navigate({ to: "/profile" });
+              }}
+              className="group px-3 py-2 text-xs text-slate-700 hover:text-black focus:text-black data-[highlighted]:text-black hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100 cursor-pointer flex items-center gap-2 rounded-md transition-colors"
+            >
+              <User className="w-3.5 h-3.5 text-slate-500 group-hover:text-black group-focus:text-black group-data-[highlighted]:text-black transition-colors shrink-0" />
+              <span className="group-hover:text-black group-focus:text-black group-data-[highlighted]:text-black transition-colors font-medium">Contributor Profile</span>
+            </DropdownMenuItem>
+
+            {associationData?.status === "pending" ? (
+              <DropdownMenuItem
+                onClick={() => {
+                  onNavigate?.();
+                  openBusinessAssociationModal();
+                }}
+                className="group px-3 py-2 text-xs text-amber-900 bg-amber-50/50 hover:bg-amber-100/60 focus:bg-amber-100/60 cursor-pointer flex items-center justify-between gap-2 rounded-md transition-colors"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span className="font-semibold truncate">Association: Pending</span>
+                </div>
+                <span className="text-[9px] font-mono uppercase bg-amber-200/70 text-amber-900 px-1.5 py-0.5 rounded font-bold">
+                  Edit
+                </span>
+              </DropdownMenuItem>
+            ) : associationData?.status === "approved" ? (
+              <DropdownMenuItem
+                disabled
+                className="px-3 py-2 text-xs text-emerald-950 bg-emerald-50/50 opacity-90 cursor-default flex items-center gap-2 rounded-md"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="font-semibold truncate">
+                  Associated: {associationData.business.company_name}
+                </span>
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem
+                onClick={() => {
+                  onNavigate?.();
+                  openBusinessAssociationModal();
+                }}
+                className="group px-3 py-2 text-xs text-slate-700 hover:text-black focus:text-black data-[highlighted]:text-black hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100 cursor-pointer flex items-center gap-2 rounded-md transition-colors"
+              >
+                <Building2 className="w-3.5 h-3.5 text-slate-500 group-hover:text-black group-focus:text-black group-data-[highlighted]:text-black transition-colors shrink-0" />
+                <span className="group-hover:text-black group-focus:text-black group-data-[highlighted]:text-black transition-colors font-medium">Associate with Business</span>
+              </DropdownMenuItem>
+            )}
+          </>
         )}
 
         <DropdownMenuItem
