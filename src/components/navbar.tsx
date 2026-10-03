@@ -1595,11 +1595,6 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
             </button>
           )}
 
-          {/* Shining Glass Switch Profile Button */}
-          <div className="hidden sm:flex items-center">
-            <SwitchProfileButton size="sm" />
-          </div>
-
           <div className="h-4 w-px bg-slate-200 hidden sm:block"></div>
 
           <NotificationsDropdown />

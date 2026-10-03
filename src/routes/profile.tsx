@@ -234,10 +234,12 @@ function SimpleCommunityMemberProfilePage() {
                 </div>
               </div>
 
-              {/* Right: Shining Glass Switch Button */}
-              <div className="flex items-center shrink-0">
-                <SwitchProfileButton size="default" />
-              </div>
+              {/* Right: Shining Glass Switch Button (only visible for community members) */}
+              {(!business || business?.status !== "approved" || dbProfile?.type === "community_member" || dbProfile?.type === "associate") && (
+                <div className="flex items-center shrink-0">
+                  <SwitchProfileButton size="default" />
+                </div>
+              )}
             </div>
 
             {/* Display Name & Handle */}
