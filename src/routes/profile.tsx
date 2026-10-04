@@ -28,6 +28,7 @@ import { openBusinessAssociationModal } from "@/lib/association-modal-store";
 import { SwitchProfileButton } from "@/components/profile/SwitchProfileButton";
 import { formatTimeAgo } from "@/lib/utils";
 import { createPrivateMeta } from "@/lib/seo";
+import { isSigningOutActive } from "@/lib/logout";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -96,7 +97,7 @@ function SimpleCommunityMemberProfilePage() {
 
   // Redirect unauthenticated visitors to login
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    if (isLoaded && !isSignedIn && !isSigningOutActive()) {
       navigate({ to: "/login", replace: true });
     }
   }, [isLoaded, isSignedIn, navigate]);

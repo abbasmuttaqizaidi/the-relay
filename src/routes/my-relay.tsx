@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/tanstack-react-start";
+import { isSigningOutActive } from "@/lib/logout";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { toast } from "@/components/ui/sonner";
@@ -643,7 +644,7 @@ function MyRelayPage() {
 
   // Auth & Onboarding verification check
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    if (isLoaded && !isSignedIn && !isSigningOutActive()) {
       toast.error("Please sign in to access My Relay.", { id: "my-relay-auth-required" });
       navigate({ to: "/login", replace: true });
       return;

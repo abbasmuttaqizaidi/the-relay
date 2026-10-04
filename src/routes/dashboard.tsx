@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth, useUser } from "@clerk/tanstack-react-start";
+import { isSigningOutActive } from "@/lib/logout";
 import { useEffect, useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -101,7 +102,7 @@ export function DashboardCommandCenterPage() {
 
   // Redirect if not signed in or no business
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    if (isLoaded && !isSignedIn && !isSigningOutActive()) {
       navigate({ to: "/login", replace: true });
     } else if (onboardingData && onboardingData.isAuthenticated && !onboardingData.hasBusiness) {
       navigate({ to: "/onboarding", replace: true });

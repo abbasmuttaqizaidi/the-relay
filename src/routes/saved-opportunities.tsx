@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/tanstack-react-start";
+import { isSigningOutActive } from "@/lib/logout";
 import { toast } from "@/components/ui/sonner";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { OPPORTUNITIES } from "../lib/mock-opportunities";
@@ -74,7 +75,7 @@ function SavedOpportunitiesPage() {
   const business = onboardingStatus?.business || null;
 
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    if (isLoaded && !isSignedIn && !isSigningOutActive()) {
       navigate({ to: "/login", replace: true });
     } else if (onboardingStatus && onboardingStatus.isAuthenticated) {
       if (!onboardingStatus.hasBusiness) {

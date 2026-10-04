@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@clerk/tanstack-react-start";
+import { isSigningOutActive } from "@/lib/logout";
 import { useEffect, useCallback, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { executiveToast, exchangeActivityBus, showExchangeActivityModal } from "@/design-system";
@@ -219,6 +220,7 @@ function HandshakeDetailPage() {
     if (!isLoaded) return;
 
     if (!isSignedIn) {
+      if (isSigningOutActive()) return;
       const isOAuthHandshake =
         typeof window !== "undefined" &&
         (window.location.search.includes("__clerk") ||

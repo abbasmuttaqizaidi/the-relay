@@ -25,6 +25,7 @@ import { getCommunityProfile } from "@/functions/communityProfile";
 import { GlobalAssociationBanner } from "@/components/association/GlobalAssociationBanner";
 import { BusinessAssociationModal } from "@/components/association/BusinessAssociationModal";
 import { SwitchProfileModal } from "@/components/profile/SwitchProfileModal";
+import { useIsSigningOut, isSigningOutActive } from "@/lib/logout";
 
 function NotFoundComponent() {
   return (
@@ -51,6 +52,20 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+
+  if (isSigningOutActive()) {
+    if (typeof window !== "undefined") {
+      window.location.href = "/";
+    }
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-4 font-sans">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-900 mx-auto" />
+          <p className="text-xs font-mono text-slate-500 uppercase tracking-wider">Signing out...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -157,6 +172,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function AppLayout() {
+  const isSigningOut = useIsSigningOut();
   const { isSignedIn, isLoaded, userId } = useAuth();
   const navigate = useNavigate();
   const location = useRouterState({
@@ -216,6 +232,17 @@ function AppLayout() {
       }
     }
   }, [isLoaded, isSignedIn, location.pathname, navigate]);
+
+  if (isSigningOut) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center font-sans">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-900 mx-auto" />
+          <p className="text-xs font-mono text-slate-500 uppercase tracking-wider">Signing out...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F7F9FB] flex flex-col">

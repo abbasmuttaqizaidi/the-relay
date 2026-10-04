@@ -196,5 +196,25 @@ describe("OAuth Handshake & Route Guard Resiliency", () => {
 
       (window as any).location = originalLocation;
     });
+
+    it("sets and unsets isSigningOutActive during safeSignOut flow", async () => {
+      const { safeSignOut, isSigningOutActive } = await import("../src/lib/logout");
+
+      let wasSigningOutActiveDuringSignOut = false;
+      const signOutMock = vi.fn().mockImplementation(async () => {
+        wasSigningOutActiveDuringSignOut = isSigningOutActive();
+      });
+
+      const originalLocation = window.location;
+      delete (window as any).location;
+      (window as any).location = { href: "/profile", pathname: "/profile" };
+
+      await safeSignOut(signOutMock);
+
+      expect(wasSigningOutActiveDuringSignOut).toBe(true);
+      expect(isSigningOutActive()).toBe(false);
+
+      (window as any).location = originalLocation;
+    });
   });
 });

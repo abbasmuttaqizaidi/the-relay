@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@clerk/tanstack-react-start";
+import { isSigningOutActive } from "@/lib/logout";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -76,6 +77,7 @@ function ExchangeHubListingPage() {
     if (!isLoaded) return;
 
     if (!isSignedIn) {
+      if (isSigningOutActive()) return;
       const isOAuthHandshake =
         typeof window !== "undefined" &&
         (window.location.search.includes("__clerk") ||

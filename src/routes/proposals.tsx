@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@clerk/tanstack-react-start";
+import { isSigningOutActive } from "@/lib/logout";
 import { useEffect, useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
@@ -94,7 +95,7 @@ export function ProposalsPage() {
   });
 
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    if (isLoaded && !isSignedIn && !isSigningOutActive()) {
       navigate({ to: "/login", replace: true });
     } else if (onboardingData && onboardingData.isAuthenticated && !onboardingData.hasBusiness) {
       navigate({ to: "/onboarding", replace: true });
