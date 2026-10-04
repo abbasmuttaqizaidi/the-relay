@@ -229,13 +229,13 @@ function AppLayout() {
               : "flex-1 flex flex-col w-full"
         }
       >
-        <GlobalAssociationBanner />
+        {isSignedIn && <GlobalAssociationBanner />}
         <Outlet />
       </main>
-      <BusinessAssociationModal />
-      <SwitchProfileModal />
-      <GlobalTurnDock />
-      <GlobalExchangeActivityModal />
+      {isSignedIn && <BusinessAssociationModal />}
+      {isSignedIn && <SwitchProfileModal />}
+      {isSignedIn && <GlobalTurnDock />}
+      {isSignedIn && <GlobalExchangeActivityModal />}
       <ExecutiveToastContainer />
       <Toaster position="bottom-right" visibleToasts={1} />
     </div>

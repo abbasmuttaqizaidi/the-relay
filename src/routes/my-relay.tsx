@@ -1533,6 +1533,14 @@ function computeRequestWorkflow(req: any, currentBusinessId?: string) {
 
   const activeListingsCount = myOpps.filter((o) => o.status === "active").length;
 
+  if (isLoaded && !isSignedIn) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-900 mx-auto" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col font-sans overflow-x-hidden w-full max-w-full">
       {!isSignedIn || !isLoaded || (onboardingLoading && !onboardingData) ? (

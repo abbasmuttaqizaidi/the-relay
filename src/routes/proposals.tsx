@@ -284,6 +284,14 @@ export function ProposalsPage() {
 
   const isLoading = activeTab === "received" ? loadingIncoming : loadingSent;
 
+  if (isLoaded && !isSignedIn) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-900 mx-auto" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col selection:bg-[#171F2C] selection:text-white">
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">

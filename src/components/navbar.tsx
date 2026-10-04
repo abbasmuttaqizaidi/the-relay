@@ -44,6 +44,7 @@ import { getKnowledgeInsights } from "@/functions/getKnowledgeInsights";
 import { getMyAssociationStatus } from "@/functions/association";
 import { openBusinessAssociationModal } from "@/lib/association-modal-store";
 import { SwitchProfileButton } from "@/components/profile/SwitchProfileButton";
+import { safeSignOut } from "@/lib/logout";
 import { getCompanyInitials } from "@/lib/utils";
 import { CompanyLogo } from "@/components/company-logo";
 import { PostTypeSelectionModal } from "@/components/post/PostTypeSelectionModal";
@@ -1050,7 +1051,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => signOut(() => navigate({ to: "/" }))}
+                  onClick={() => safeSignOut(signOut)}
                   title="Sign Out"
                   className="p-1.5 text-slate-500 hover:text-red-600 rounded-md hover:bg-slate-200/70 transition-colors cursor-pointer"
                 >
@@ -1482,7 +1483,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                         </Link>
                         <button
                           type="button"
-                          onClick={() => signOut(() => navigate({ to: "/" }))}
+                          onClick={() => safeSignOut(signOut)}
                           title="Sign Out"
                           className="p-1.5 text-slate-500 hover:text-red-600 rounded-md hover:bg-slate-200/70 transition-colors cursor-pointer"
                         >

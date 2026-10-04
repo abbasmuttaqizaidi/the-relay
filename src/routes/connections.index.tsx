@@ -238,6 +238,14 @@ function ExchangeHubListingPage() {
     );
   }
 
+  if (isLoaded && !isSignedIn) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center font-sans">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-950 mx-auto" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-slate-900 selection:text-white flex flex-col w-full max-w-full overflow-x-hidden">
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-16 md:pt-8 md:pb-24 flex flex-col space-y-8">

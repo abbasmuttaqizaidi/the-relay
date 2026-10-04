@@ -238,6 +238,14 @@ function HandshakeDetailPage() {
     }
   }, [isLoaded, isSignedIn, onboardingData, navigate]);
 
+  if (isLoaded && !isSignedIn) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center font-sans">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-900 mx-auto" />
+      </div>
+    );
+  }
+
   if (loading && !exchangeData) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center font-sans">

@@ -150,4 +150,51 @@ describe("OAuth Handshake & Route Guard Resiliency", () => {
       expect(redirectMock).not.toHaveBeenCalled();
     });
   });
+
+  describe("Safe Sign Out Resiliency", () => {
+    it("clears application storage and redirects to '/' without throwing", async () => {
+      const { safeSignOut } = await import("../src/lib/logout");
+
+      localStorage.setItem("relay_account_mode", "business");
+      localStorage.setItem("relay.profile.v1", '{"companyName":"Test"}');
+      localStorage.setItem("relay.tour_completed", "true");
+      sessionStorage.setItem("relay_auth_return_url", "/test");
+
+      const signOutMock = vi.fn().mockResolvedValue(undefined);
+
+      // Save and mock window.location
+      const originalLocation = window.location;
+      delete (window as any).location;
+      (window as any).location = { href: "/profile", pathname: "/profile" };
+
+      await safeSignOut(signOutMock);
+
+      expect(signOutMock).toHaveBeenCalled();
+      expect(localStorage.getItem("relay_account_mode")).toBeNull();
+      expect(localStorage.getItem("relay.profile.v1")).toBeNull();
+      expect(sessionStorage.getItem("relay_auth_return_url")).toBeNull();
+      // Tour completed should remain intact
+      expect(localStorage.getItem("relay.tour_completed")).toBe("true");
+      // Clean window navigation to "/"
+      expect(window.location.href).toBe("/");
+
+      (window as any).location = originalLocation;
+    });
+
+    it("gracefully navigates to '/' even if Clerk signOut throws an error", async () => {
+      const { safeSignOut } = await import("../src/lib/logout");
+      const signOutMock = vi.fn().mockRejectedValue(new Error("Clerk Network Error"));
+
+      const originalLocation = window.location;
+      delete (window as any).location;
+      (window as any).location = { href: "/profile", pathname: "/profile" };
+
+      await safeSignOut(signOutMock);
+
+      expect(signOutMock).toHaveBeenCalled();
+      expect(window.location.href).toBe("/");
+
+      (window as any).location = originalLocation;
+    });
+  });
 });

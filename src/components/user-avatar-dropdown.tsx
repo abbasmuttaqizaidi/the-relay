@@ -20,6 +20,7 @@ import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
 import { getCommunityProfile } from "@/functions/communityProfile";
 import { getMyAssociationStatus } from "@/functions/association";
 import { openBusinessAssociationModal } from "@/lib/association-modal-store";
+import { safeSignOut } from "@/lib/logout";
 
 interface ProfileData {
   companyName: string;
@@ -134,57 +135,8 @@ export function UserAvatarDropdown({
 
 
   const handleLogout = async () => {
-    try {
-      await signOut();
-    } catch (err) {
-      console.error("Clerk signOut error:", err);
-    }
-
-    // Clear localStorage while preserving tour completion flags so returning users don't see the tour again
-    try {
-      const tourCompleted = localStorage.getItem("relay.tour_completed");
-      const tourKeys: [string, string][] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith("relay.tour_completed")) {
-          tourKeys.push([key, localStorage.getItem(key) || "true"]);
-        }
-      }
-      localStorage.clear();
-      if (tourCompleted) {
-        localStorage.setItem("relay.tour_completed", tourCompleted);
-      }
-      for (const [k, v] of tourKeys) {
-        localStorage.setItem(k, v);
-      }
-    } catch (e) {
-      console.error("Failed to clear localStorage:", e);
-    }
-
-    // Clear sessionStorage
-    try {
-      sessionStorage.clear();
-    } catch (e) {
-      console.error("Failed to clear sessionStorage:", e);
-    }
-
-    // Clear cookies
-    try {
-      const cookies = document.cookie.split(";");
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i];
-        const eqPos = cookie.indexOf("=");
-        const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
-        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + window.location.hostname;
-        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=." + window.location.hostname.replace(/^www\./, "");
-      }
-    } catch (e) {
-      console.error("Failed to clear cookies:", e);
-    }
-
-    toast.success("Signed out successfully.", { id: "signout-success" });
-    navigate({ to: "/" });
+    toast.success("Signing out...", { id: "signout-progress" });
+    await safeSignOut(signOut);
   };
 
   // Define tooltip content for the user verification tier

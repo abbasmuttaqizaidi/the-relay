@@ -287,6 +287,14 @@ export function DashboardCommandCenterPage() {
     }));
   }, [globalOpps, isApproved]);
 
+  if (isLoaded && !isSignedIn) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-950" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#171F2C] flex flex-col font-sans selection:bg-[#171F2C] selection:text-white pb-16">
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-10">
