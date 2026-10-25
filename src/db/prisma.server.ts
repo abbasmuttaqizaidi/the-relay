@@ -44,14 +44,18 @@ const isStalePrisma = Boolean(
       !(globalThis.prisma as any).exchangeAgreement ||
       !(globalThis.prisma as any).reliabilityEvent ||
       !(globalThis.prisma as any).insightView ||
-      !(globalThis.prisma as any)._relayViewsV1),
+      !(globalThis.prisma as any).marketingContact ||
+      !(globalThis.prisma as any).marketingCampaign ||
+      !(globalThis.prisma as any).marketingCampaignRecipient ||
+      !(globalThis.prisma as any).marketingSuppression ||
+      !(globalThis.prisma as any)._relayViewsV2),
 );
 
 export const prisma =
   (!isStalePrisma && globalThis.prisma) ? globalThis.prisma : getPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
-  (prisma as any)._relayViewsV1 = true;
+  (prisma as any)._relayViewsV2 = true;
   globalThis.prisma = prisma;
 }
 

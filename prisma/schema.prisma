@@ -294,6 +294,76 @@ model Notification {
   @@map("notifications")
 }
 
+model MarketingContact {
+  id                String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email             String                      @unique
+  name              String?
+  company           String?
+  phone             String?
+  notes             String?                     @db.Text
+  tags              String[]                    @default([])
+  marketing_consent Boolean                     @default(false)
+  consent_source    String?
+  consent_at        DateTime?                   @db.Timestamptz(6)
+  archived_at       DateTime?                   @db.Timestamptz(6)
+  created_at        DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime                    @updatedAt @db.Timestamptz(6)
+  recipients        MarketingCampaignRecipient[]
+
+  @@index([name])
+  @@index([company])
+  @@index([marketing_consent, archived_at])
+  @@map("marketing_contacts")
+}
+
+model MarketingCampaign {
+  id              String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subject         String
+  html_content    String                      @db.Text
+  status          String                      @default("draft")
+  recipient_count Int                         @default(0)
+  sent_count      Int                         @default(0)
+  failed_count    Int                         @default(0)
+  skipped_count   Int                         @default(0)
+  created_at      DateTime                    @default(now()) @db.Timestamptz(6)
+  started_at      DateTime?                   @db.Timestamptz(6)
+  completed_at    DateTime?                   @db.Timestamptz(6)
+  recipients      MarketingCampaignRecipient[]
+
+  @@index([status, created_at])
+  @@map("marketing_campaigns")
+}
+
+model MarketingCampaignRecipient {
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaign_id   String           @db.Uuid
+  contact_id    String?          @db.Uuid
+  clerk_user_id String?
+  email         String
+  status        String           @default("pending")
+  attempts      Int              @default(0)
+  resend_id     String?
+  last_error    String?          @db.Text
+  last_attempt_at DateTime?       @db.Timestamptz(6)
+  created_at    DateTime         @default(now()) @db.Timestamptz(6)
+  sent_at       DateTime?        @db.Timestamptz(6)
+  campaign      MarketingCampaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  contact       MarketingContact? @relation(fields: [contact_id], references: [id], onDelete: Restrict)
+
+  @@unique([campaign_id, email])
+  @@index([campaign_id, status, created_at])
+  @@map("marketing_campaign_recipients")
+}
+
+model MarketingSuppression {
+  email         String   @id
+  clerk_user_id String?
+  reason        String   @default("unsubscribe")
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("marketing_suppressions")
+}
+
 model Question {
   id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   business_id         String   @db.Uuid

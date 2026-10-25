@@ -17,6 +17,7 @@ export const acceptLegalAcknowledgement = createServerFn({ method: "POST" })
           legal_ack_accepted: true,
           legal_ack_accepted_at: new Date().toISOString(),
           marketing_consent: data?.marketingConsent ?? false,
+          marketing_consent_updated_at: new Date().toISOString(),
         },
       });
       return { success: true };

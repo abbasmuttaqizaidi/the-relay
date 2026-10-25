@@ -1,27 +1,26 @@
 import crypto from "crypto";
 
-const DEFAULT_SECRET = "relay_super_admin_session_hmac_secret_2026_x89a42f";
-const DEFAULT_ADMIN_EMAIL = "nexorembws@gmail.com";
-const DEFAULT_ADMIN_PASS = "PP@password110";
-
-export function getAdminSecret(): string {
-  return process.env.ADMIN_SESSION_SECRET || DEFAULT_SECRET;
+export function getAdminSecret(): string | null {
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  return secret && Buffer.byteLength(secret) >= 32 ? secret : null;
 }
 
-export function getAdminEmail(): string {
-  return process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL;
+export function getAdminEmail(): string | null {
+  return process.env.ADMIN_EMAIL?.trim() || null;
 }
 
-export function getAdminPassword(): string {
-  return process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASS;
+export function getAdminPassword(): string | null {
+  return process.env.ADMIN_PASSWORD || null;
 }
 
 /**
  * Validates super admin credentials using timing-safe comparison.
  */
 export function validateAdminCredentials(email: string, pass: string): boolean {
-  const expectedEmail = getAdminEmail().toLowerCase().trim();
+  const expectedEmail = getAdminEmail()?.toLowerCase().trim();
   const expectedPass = getAdminPassword();
+
+  if (!expectedEmail || !expectedPass) return false;
 
   const inputEmail = email.toLowerCase().trim();
   const inputPass = pass;
@@ -45,6 +44,11 @@ export function validateAdminCredentials(email: string, pass: string): boolean {
  * Never exposes the admin password in the token or cookie.
  */
 export function createAdminSessionToken(email: string): string {
+  const secret = getAdminSecret();
+  if (!secret) {
+    throw new Error("ADMIN_SESSION_SECRET must be configured with at least 32 bytes.");
+  }
+
   const payload = {
     email: email.toLowerCase().trim(),
     exp: Date.now() + 24 * 60 * 60 * 1000, // 24 hours validity
@@ -53,7 +57,7 @@ export function createAdminSessionToken(email: string): string {
 
   const payloadB64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
   const signature = crypto
-    .createHmac("sha256", getAdminSecret())
+    .createHmac("sha256", secret)
     .update(payloadB64)
     .digest("base64url");
 
@@ -80,12 +84,15 @@ export function verifyAdminSession(
 
   if (!token) return false;
 
+  const secret = getAdminSecret();
+  if (!secret) return false;
+
   const parts = token.split(".");
   if (parts.length !== 2) return false;
 
   const [payloadB64, signature] = parts;
   const expectedSignature = crypto
-    .createHmac("sha256", getAdminSecret())
+    .createHmac("sha256", secret)
     .update(payloadB64)
     .digest("base64url");
 

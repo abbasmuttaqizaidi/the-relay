@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { z } from "zod";
 import {
   questionTopicSchema,
@@ -79,31 +79,40 @@ const deleteAdminInsightItemSchema = z.object({
 
 describe("Admin Insights Feature: Manual Creation & Management", () => {
   const sampleBusinessId = "1eb1349c-2ab7-4458-afd6-14604cc1c2bd";
+  const configureAdminTestEnvironment = () => {
+    vi.stubEnv("ADMIN_EMAIL", "operator@example.test");
+    vi.stubEnv("ADMIN_PASSWORD", "test-password-only");
+    vi.stubEnv("ADMIN_SESSION_SECRET", "test-session-secret-that-is-at-least-32-bytes");
+  };
+
+  afterEach(() => vi.unstubAllEnvs());
 
   // ---------------------------------------------------------
   // 1. Admin Authentication & Cryptographic Session Guard
   // ---------------------------------------------------------
   describe("Admin Authentication Guard", () => {
     it("validates correct admin credentials and rejects wrong ones", async () => {
+      configureAdminTestEnvironment();
       const { validateAdminCredentials } = await import(
         "../src/lib/admin-auth.server"
       );
       expect(
-        validateAdminCredentials("nexorembws@gmail.com", "PP@password110"),
+        validateAdminCredentials("operator@example.test", "test-password-only"),
       ).toBe(true);
       expect(
-        validateAdminCredentials("nexorembws@gmail.com", "wrong_password"),
+        validateAdminCredentials("operator@example.test", "wrong_password"),
       ).toBe(false);
       expect(
-        validateAdminCredentials("attacker@gmail.com", "PP@password110"),
+        validateAdminCredentials("attacker@example.test", "test-password-only"),
       ).toBe(false);
     });
 
     it("authenticates caller with valid HMAC-SHA256 signed session token in cookie", async () => {
+      configureAdminTestEnvironment();
       const { createAdminSessionToken, verifyAdminSession } = await import(
         "../src/lib/admin-auth.server"
       );
-      const token = createAdminSessionToken("nexorembws@gmail.com");
+      const token = createAdminSessionToken("operator@example.test");
       const cookieHeader = `relay_admin_token=${token}; path=/; HttpOnly; SameSite=Strict`;
 
       expect(verifyAdminSession(cookieHeader)).toBe(true);
@@ -120,10 +129,11 @@ describe("Admin Insights Feature: Manual Creation & Management", () => {
     });
 
     it("rejects tampered or forged session tokens", async () => {
+      configureAdminTestEnvironment();
       const { createAdminSessionToken, verifyAdminSession } = await import(
         "../src/lib/admin-auth.server"
       );
-      const validToken = createAdminSessionToken("nexorembws@gmail.com");
+      const validToken = createAdminSessionToken("operator@example.test");
       const tampered = validToken.slice(0, -4) + "XXXX";
 
       expect(verifyAdminSession(`relay_admin_token=${tampered}`)).toBe(false);
@@ -137,6 +147,20 @@ describe("Admin Insights Feature: Manual Creation & Management", () => {
       const rawPasswordCookie = "relay_admin_token=PP@password110; path=/";
       expect(verifyAdminSession(rawPasswordCookie)).toBe(false);
       expect(verifyAdminSession("PP@password110")).toBe(false);
+    });
+
+    it("fails closed when production admin credentials or a strong session secret are missing", async () => {
+      vi.stubEnv("ADMIN_EMAIL", "");
+      vi.stubEnv("ADMIN_PASSWORD", "");
+      vi.stubEnv("ADMIN_SESSION_SECRET", "");
+      const { createAdminSessionToken, validateAdminCredentials, verifyAdminSession } =
+        await import("../src/lib/admin-auth.server");
+
+      expect(validateAdminCredentials("operator@example.test", "test-password-only")).toBe(false);
+      expect(() => createAdminSessionToken("operator@example.test")).toThrow(
+        "ADMIN_SESSION_SECRET must be configured",
+      );
+      expect(verifyAdminSession("forged.token")).toBe(false);
     });
   });
 

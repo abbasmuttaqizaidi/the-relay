@@ -52,6 +52,7 @@ import {
 import { AdminIncreaseViewsDialog, type AdminIncreaseViewsTarget } from "@/components/admin/AdminIncreaseViewsDialog";
 import { AdminEditPostTimeDialog, type AdminEditPostTimeTarget } from "@/components/admin/AdminEditPostTimeDialog";
 import { AdminTrafficSourcesCard, type TrafficSourceBreakdown } from "@/components/admin/AdminTrafficSourcesCard";
+import { AdminMarketingEmail } from "@/components/admin/AdminMarketingEmail";
 import { RelayVerificationSeal } from "@/components/relay-verification-seal";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 import { Button } from "@/components/ui/button";
@@ -343,7 +344,9 @@ function AdminDashboard() {
 
   const [isClient, setIsClient] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState<"users" | "promotions" | "insights">("users");
+  const [activeTab, setActiveTab] = useState<
+    "users" | "promotions" | "insights" | "marketing"
+  >("users");
   const [insightsSubTab, setInsightsSubTab] = useState<"questions" | "knowledge">("questions");
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [opportunities, setOpportunities] = useState<AdminOpportunity[]>([]);
@@ -925,7 +928,9 @@ function AdminDashboard() {
         <ExecutiveTabs
           variant="underline"
           activeTab={activeTab}
-          onTabChange={(tabId) => setActiveTab(tabId as "users" | "promotions" | "insights")}
+          onTabChange={(tabId) =>
+            setActiveTab(tabId as "users" | "promotions" | "insights" | "marketing")
+          }
           tabs={[
             { id: "users", label: "User Directory & Vetting" },
             {
@@ -941,8 +946,11 @@ function AdminDashboard() {
                   ? adminQuestions.length + adminKnowledge.length
                   : undefined,
             },
+            { id: "marketing", label: "Marketing Email" },
           ]}
         />
+
+        {activeTab === "marketing" && <AdminMarketingEmail />}
 
         {activeTab === "users" && (
           /* Directory Controls */

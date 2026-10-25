@@ -9,157 +9,161 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WhatToDoWithUnqualifiedLeadsRouteImport } from './routes/what-to-do-with-unqualified-leads'
-import { Route as TrustAndSafetyRouteImport } from './routes/trust-and-safety'
-import { Route as SsoCallbackRouteImport } from './routes/sso-callback'
-import { Route as SolutionsRouteImport } from './routes/solutions'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as SavedOpportunitiesRouteImport } from './routes/saved-opportunities'
-import { Route as ReferralPartnershipsRouteImport } from './routes/referral-partnerships'
-import { Route as QueryRelayRouteImport } from './routes/query-relay'
-import { Route as ProposalsRouteImport } from './routes/proposals'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as PostRouteImport } from './routes/post'
-import { Route as OpportunitiesRouteImport } from './routes/opportunities'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as NetworkRouteImport } from './routes/network'
-import { Route as MyRelayRouteImport } from './routes/my-relay'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as InsightsRouteImport } from './routes/insights'
-import { Route as HowToMonetizeUnqualifiedLeadsRouteImport } from './routes/how-to-monetize-unqualified-leads'
-import { Route as HowToFindDistributionPartnersRouteImport } from './routes/how-to-find-distribution-partners'
-import { Route as HowToFindB2bReferralPartnersRouteImport } from './routes/how-to-find-b2b-referral-partners'
-import { Route as HowToExchangeBusinessLeadsRouteImport } from './routes/how-to-exchange-business-leads'
-import { Route as HomeRouteImport } from './routes/home'
-import { Route as FaqRouteImport } from './routes/faq'
-import { Route as EightStepJourneyRouteImport } from './routes/eight-step-journey'
-import { Route as DistributionPartnersRouteImport } from './routes/distribution-partners'
-import { Route as DesignSystemRouteImport } from './routes/design-system'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as CorePillarsRouteImport } from './routes/core-pillars'
-import { Route as ChannelPartnershipsRouteImport } from './routes/channel-partnerships'
-import { Route as BusinessProfileRouteImport } from './routes/business-profile'
-import { Route as B2bReferralNetworkRouteImport } from './routes/b2b-referral-network'
-import { Route as B2bPartnershipNetworkRouteImport } from './routes/b2b-partnership-network'
-import { Route as B2bOpportunityExchangeRouteImport } from './routes/b2b-opportunity-exchange'
-import { Route as B2bLeadExchangeRouteImport } from './routes/b2b-lead-exchange'
-import { Route as AssociationRouteImport } from './routes/association'
-import { Route as AgencyLeadExchangeRouteImport } from './routes/agency-lead-exchange'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as R8StepJourneyRouteImport } from './routes/8-step-journey'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as OpportunitiesIndexRouteImport } from './routes/opportunities.index'
-import { Route as InsightsIndexRouteImport } from './routes/insights.index'
+import { Route as R8StepJourneyRouteImport } from './routes/8-step-journey'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AgencyLeadExchangeRouteImport } from './routes/agency-lead-exchange'
+import { Route as AssociationRouteImport } from './routes/association'
+import { Route as B2bLeadExchangeRouteImport } from './routes/b2b-lead-exchange'
+import { Route as B2bOpportunityExchangeRouteImport } from './routes/b2b-opportunity-exchange'
+import { Route as B2bPartnershipNetworkRouteImport } from './routes/b2b-partnership-network'
+import { Route as B2bReferralNetworkRouteImport } from './routes/b2b-referral-network'
+import { Route as BusinessProfileRouteImport } from './routes/business-profile'
+import { Route as ChannelPartnershipsRouteImport } from './routes/channel-partnerships'
+import { Route as CorePillarsRouteImport } from './routes/core-pillars'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DesignSystemRouteImport } from './routes/design-system'
+import { Route as DistributionPartnersRouteImport } from './routes/distribution-partners'
+import { Route as EightStepJourneyRouteImport } from './routes/eight-step-journey'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as HomeRouteImport } from './routes/home'
+import { Route as HowToExchangeBusinessLeadsRouteImport } from './routes/how-to-exchange-business-leads'
+import { Route as HowToFindB2bReferralPartnersRouteImport } from './routes/how-to-find-b2b-referral-partners'
+import { Route as HowToFindDistributionPartnersRouteImport } from './routes/how-to-find-distribution-partners'
+import { Route as HowToMonetizeUnqualifiedLeadsRouteImport } from './routes/how-to-monetize-unqualified-leads'
+import { Route as InsightsRouteImport } from './routes/insights'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as MyRelayRouteImport } from './routes/my-relay'
+import { Route as NetworkRouteImport } from './routes/network'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as OpportunitiesRouteImport } from './routes/opportunities'
+import { Route as PostRouteImport } from './routes/post'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ProposalsRouteImport } from './routes/proposals'
+import { Route as QueryRelayRouteImport } from './routes/query-relay'
+import { Route as ReferralPartnershipsRouteImport } from './routes/referral-partnerships'
+import { Route as SavedOpportunitiesRouteImport } from './routes/saved-opportunities'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SolutionsRouteImport } from './routes/solutions'
+import { Route as SsoCallbackRouteImport } from './routes/sso-callback'
+import { Route as TrustAndSafetyRouteImport } from './routes/trust-and-safety'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
+import { Route as WhatToDoWithUnqualifiedLeadsRouteImport } from './routes/what-to-do-with-unqualified-leads'
 import { Route as ConnectionsIndexRouteImport } from './routes/connections.index'
-import { Route as SignupSsoCallbackRouteImport } from './routes/signup_.sso-callback'
-import { Route as RequestsSentRouteImport } from './routes/requests.sent'
-import { Route as RequestsIncomingRouteImport } from './routes/requests.incoming'
-import { Route as OpportunitiesMyRouteImport } from './routes/opportunities.my'
-import { Route as LoginSsoCallbackRouteImport } from './routes/login_.sso-callback'
-import { Route as InsightsAskRouteImport } from './routes/insights.ask'
-import { Route as InsightsIdRouteImport } from './routes/insights.$id'
 import { Route as ConnectionsIdRouteImport } from './routes/connections.$id'
-import { Route as InsightsKnowledgeNewRouteImport } from './routes/insights.knowledge.new'
+import { Route as InsightsIndexRouteImport } from './routes/insights.index'
+import { Route as InsightsIdRouteImport } from './routes/insights.$id'
+import { Route as InsightsAskRouteImport } from './routes/insights.ask'
+import { Route as LoginSsoCallbackRouteImport } from './routes/login_.sso-callback'
+import { Route as OpportunitiesIndexRouteImport } from './routes/opportunities.index'
+import { Route as OpportunitiesMyRouteImport } from './routes/opportunities.my'
+import { Route as RequestsIncomingRouteImport } from './routes/requests.incoming'
+import { Route as RequestsSentRouteImport } from './routes/requests.sent'
+import { Route as SignupSsoCallbackRouteImport } from './routes/signup_.sso-callback'
 import { Route as InsightsKnowledgeIdRouteImport } from './routes/insights.knowledge.$id'
+import { Route as InsightsKnowledgeNewRouteImport } from './routes/insights.knowledge.new'
 import { Route as InsightsKnowledgeIdEditRouteImport } from './routes/insights.knowledge.$id.edit'
 
-const WhatToDoWithUnqualifiedLeadsRoute =
-  WhatToDoWithUnqualifiedLeadsRouteImport.update({
-    id: '/what-to-do-with-unqualified-leads',
-    path: '/what-to-do-with-unqualified-leads',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const TrustAndSafetyRoute = TrustAndSafetyRouteImport.update({
-  id: '/trust-and-safety',
-  path: '/trust-and-safety',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SsoCallbackRoute = SsoCallbackRouteImport.update({
-  id: '/sso-callback',
-  path: '/sso-callback',
+const R8StepJourneyRoute = R8StepJourneyRouteImport.update({
+  id: '/8-step-journey',
+  path: '/8-step-journey',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SolutionsRoute = SolutionsRouteImport.update({
-  id: '/solutions',
-  path: '/solutions',
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SavedOpportunitiesRoute = SavedOpportunitiesRouteImport.update({
-  id: '/saved-opportunities',
-  path: '/saved-opportunities',
+const AgencyLeadExchangeRoute = AgencyLeadExchangeRouteImport.update({
+  id: '/agency-lead-exchange',
+  path: '/agency-lead-exchange',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReferralPartnershipsRoute = ReferralPartnershipsRouteImport.update({
-  id: '/referral-partnerships',
-  path: '/referral-partnerships',
+const AssociationRoute = AssociationRouteImport.update({
+  id: '/association',
+  path: '/association',
   getParentRoute: () => rootRouteImport,
 } as any)
-const QueryRelayRoute = QueryRelayRouteImport.update({
-  id: '/query-relay',
-  path: '/query-relay',
+const B2bLeadExchangeRoute = B2bLeadExchangeRouteImport.update({
+  id: '/b2b-lead-exchange',
+  path: '/b2b-lead-exchange',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProposalsRoute = ProposalsRouteImport.update({
-  id: '/proposals',
-  path: '/proposals',
+const B2bOpportunityExchangeRoute = B2bOpportunityExchangeRouteImport.update({
+  id: '/b2b-opportunity-exchange',
+  path: '/b2b-opportunity-exchange',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const B2bPartnershipNetworkRoute = B2bPartnershipNetworkRouteImport.update({
+  id: '/b2b-partnership-network',
+  path: '/b2b-partnership-network',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PostRoute = PostRouteImport.update({
-  id: '/post',
-  path: '/post',
+const B2bReferralNetworkRoute = B2bReferralNetworkRouteImport.update({
+  id: '/b2b-referral-network',
+  path: '/b2b-referral-network',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OpportunitiesRoute = OpportunitiesRouteImport.update({
-  id: '/opportunities',
-  path: '/opportunities',
+const BusinessProfileRoute = BusinessProfileRouteImport.update({
+  id: '/business-profile',
+  path: '/business-profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OnboardingRoute = OnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
+const ChannelPartnershipsRoute = ChannelPartnershipsRouteImport.update({
+  id: '/channel-partnerships',
+  path: '/channel-partnerships',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NetworkRoute = NetworkRouteImport.update({
-  id: '/network',
-  path: '/network',
+const CorePillarsRoute = CorePillarsRouteImport.update({
+  id: '/core-pillars',
+  path: '/core-pillars',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MyRelayRoute = MyRelayRouteImport.update({
-  id: '/my-relay',
-  path: '/my-relay',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const DesignSystemRoute = DesignSystemRouteImport.update({
+  id: '/design-system',
+  path: '/design-system',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InsightsRoute = InsightsRouteImport.update({
-  id: '/insights',
-  path: '/insights',
+const DistributionPartnersRoute = DistributionPartnersRouteImport.update({
+  id: '/distribution-partners',
+  path: '/distribution-partners',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HowToMonetizeUnqualifiedLeadsRoute =
-  HowToMonetizeUnqualifiedLeadsRouteImport.update({
-    id: '/how-to-monetize-unqualified-leads',
-    path: '/how-to-monetize-unqualified-leads',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const HowToFindDistributionPartnersRoute =
-  HowToFindDistributionPartnersRouteImport.update({
-    id: '/how-to-find-distribution-partners',
-    path: '/how-to-find-distribution-partners',
+const EightStepJourneyRoute = EightStepJourneyRouteImport.update({
+  id: '/eight-step-journey',
+  path: '/eight-step-journey',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowToExchangeBusinessLeadsRoute =
+  HowToExchangeBusinessLeadsRouteImport.update({
+    id: '/how-to-exchange-business-leads',
+    path: '/how-to-exchange-business-leads',
     getParentRoute: () => rootRouteImport,
   } as any)
 const HowToFindB2bReferralPartnersRoute =
@@ -168,150 +172,122 @@ const HowToFindB2bReferralPartnersRoute =
     path: '/how-to-find-b2b-referral-partners',
     getParentRoute: () => rootRouteImport,
   } as any)
-const HowToExchangeBusinessLeadsRoute =
-  HowToExchangeBusinessLeadsRouteImport.update({
-    id: '/how-to-exchange-business-leads',
-    path: '/how-to-exchange-business-leads',
+const HowToFindDistributionPartnersRoute =
+  HowToFindDistributionPartnersRouteImport.update({
+    id: '/how-to-find-distribution-partners',
+    path: '/how-to-find-distribution-partners',
     getParentRoute: () => rootRouteImport,
   } as any)
-const HomeRoute = HomeRouteImport.update({
-  id: '/home',
-  path: '/home',
+const HowToMonetizeUnqualifiedLeadsRoute =
+  HowToMonetizeUnqualifiedLeadsRouteImport.update({
+    id: '/how-to-monetize-unqualified-leads',
+    path: '/how-to-monetize-unqualified-leads',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FaqRoute = FaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EightStepJourneyRoute = EightStepJourneyRouteImport.update({
-  id: '/eight-step-journey',
-  path: '/eight-step-journey',
+const MyRelayRoute = MyRelayRouteImport.update({
+  id: '/my-relay',
+  path: '/my-relay',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DistributionPartnersRoute = DistributionPartnersRouteImport.update({
-  id: '/distribution-partners',
-  path: '/distribution-partners',
+const NetworkRoute = NetworkRouteImport.update({
+  id: '/network',
+  path: '/network',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DesignSystemRoute = DesignSystemRouteImport.update({
-  id: '/design-system',
-  path: '/design-system',
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const OpportunitiesRoute = OpportunitiesRouteImport.update({
+  id: '/opportunities',
+  path: '/opportunities',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CorePillarsRoute = CorePillarsRouteImport.update({
-  id: '/core-pillars',
-  path: '/core-pillars',
+const PostRoute = PostRouteImport.update({
+  id: '/post',
+  path: '/post',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChannelPartnershipsRoute = ChannelPartnershipsRouteImport.update({
-  id: '/channel-partnerships',
-  path: '/channel-partnerships',
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BusinessProfileRoute = BusinessProfileRouteImport.update({
-  id: '/business-profile',
-  path: '/business-profile',
+const ProposalsRoute = ProposalsRouteImport.update({
+  id: '/proposals',
+  path: '/proposals',
   getParentRoute: () => rootRouteImport,
 } as any)
-const B2bReferralNetworkRoute = B2bReferralNetworkRouteImport.update({
-  id: '/b2b-referral-network',
-  path: '/b2b-referral-network',
+const QueryRelayRoute = QueryRelayRouteImport.update({
+  id: '/query-relay',
+  path: '/query-relay',
   getParentRoute: () => rootRouteImport,
 } as any)
-const B2bPartnershipNetworkRoute = B2bPartnershipNetworkRouteImport.update({
-  id: '/b2b-partnership-network',
-  path: '/b2b-partnership-network',
+const ReferralPartnershipsRoute = ReferralPartnershipsRouteImport.update({
+  id: '/referral-partnerships',
+  path: '/referral-partnerships',
   getParentRoute: () => rootRouteImport,
 } as any)
-const B2bOpportunityExchangeRoute = B2bOpportunityExchangeRouteImport.update({
-  id: '/b2b-opportunity-exchange',
-  path: '/b2b-opportunity-exchange',
+const SavedOpportunitiesRoute = SavedOpportunitiesRouteImport.update({
+  id: '/saved-opportunities',
+  path: '/saved-opportunities',
   getParentRoute: () => rootRouteImport,
 } as any)
-const B2bLeadExchangeRoute = B2bLeadExchangeRouteImport.update({
-  id: '/b2b-lead-exchange',
-  path: '/b2b-lead-exchange',
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AssociationRoute = AssociationRouteImport.update({
-  id: '/association',
-  path: '/association',
+const SolutionsRoute = SolutionsRouteImport.update({
+  id: '/solutions',
+  path: '/solutions',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AgencyLeadExchangeRoute = AgencyLeadExchangeRouteImport.update({
-  id: '/agency-lead-exchange',
-  path: '/agency-lead-exchange',
+const SsoCallbackRoute = SsoCallbackRouteImport.update({
+  id: '/sso-callback',
+  path: '/sso-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const TrustAndSafetyRoute = TrustAndSafetyRouteImport.update({
+  id: '/trust-and-safety',
+  path: '/trust-and-safety',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
-const R8StepJourneyRoute = R8StepJourneyRouteImport.update({
-  id: '/8-step-journey',
-  path: '/8-step-journey',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OpportunitiesIndexRoute = OpportunitiesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => OpportunitiesRoute,
-} as any)
-const InsightsIndexRoute = InsightsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => InsightsRoute,
-} as any)
+const WhatToDoWithUnqualifiedLeadsRoute =
+  WhatToDoWithUnqualifiedLeadsRouteImport.update({
+    id: '/what-to-do-with-unqualified-leads',
+    path: '/what-to-do-with-unqualified-leads',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ConnectionsIndexRoute = ConnectionsIndexRouteImport.update({
   id: '/connections/',
   path: '/connections/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignupSsoCallbackRoute = SignupSsoCallbackRouteImport.update({
-  id: '/signup_/sso-callback',
-  path: '/signup/sso-callback',
+const ConnectionsIdRoute = ConnectionsIdRouteImport.update({
+  id: '/connections/$id',
+  path: '/connections/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RequestsSentRoute = RequestsSentRouteImport.update({
-  id: '/requests/sent',
-  path: '/requests/sent',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RequestsIncomingRoute = RequestsIncomingRouteImport.update({
-  id: '/requests/incoming',
-  path: '/requests/incoming',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OpportunitiesMyRoute = OpportunitiesMyRouteImport.update({
-  id: '/my',
-  path: '/my',
-  getParentRoute: () => OpportunitiesRoute,
-} as any)
-const LoginSsoCallbackRoute = LoginSsoCallbackRouteImport.update({
-  id: '/login_/sso-callback',
-  path: '/login/sso-callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InsightsAskRoute = InsightsAskRouteImport.update({
-  id: '/ask',
-  path: '/ask',
+const InsightsIndexRoute = InsightsIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => InsightsRoute,
 } as any)
 const InsightsIdRoute = InsightsIdRouteImport.update({
@@ -319,19 +295,49 @@ const InsightsIdRoute = InsightsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => InsightsRoute,
 } as any)
-const ConnectionsIdRoute = ConnectionsIdRouteImport.update({
-  id: '/connections/$id',
-  path: '/connections/$id',
+const InsightsAskRoute = InsightsAskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
+  getParentRoute: () => InsightsRoute,
+} as any)
+const LoginSsoCallbackRoute = LoginSsoCallbackRouteImport.update({
+  id: '/login_/sso-callback',
+  path: '/login/sso-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InsightsKnowledgeNewRoute = InsightsKnowledgeNewRouteImport.update({
-  id: '/knowledge/new',
-  path: '/knowledge/new',
-  getParentRoute: () => InsightsRoute,
+const OpportunitiesIndexRoute = OpportunitiesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OpportunitiesRoute,
+} as any)
+const OpportunitiesMyRoute = OpportunitiesMyRouteImport.update({
+  id: '/my',
+  path: '/my',
+  getParentRoute: () => OpportunitiesRoute,
+} as any)
+const RequestsIncomingRoute = RequestsIncomingRouteImport.update({
+  id: '/requests/incoming',
+  path: '/requests/incoming',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RequestsSentRoute = RequestsSentRouteImport.update({
+  id: '/requests/sent',
+  path: '/requests/sent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupSsoCallbackRoute = SignupSsoCallbackRouteImport.update({
+  id: '/signup_/sso-callback',
+  path: '/signup/sso-callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const InsightsKnowledgeIdRoute = InsightsKnowledgeIdRouteImport.update({
   id: '/knowledge/$id',
   path: '/knowledge/$id',
+  getParentRoute: () => InsightsRoute,
+} as any)
+const InsightsKnowledgeNewRoute = InsightsKnowledgeNewRouteImport.update({
+  id: '/knowledge/new',
+  path: '/knowledge/new',
   getParentRoute: () => InsightsRoute,
 } as any)
 const InsightsKnowledgeIdEditRoute = InsightsKnowledgeIdEditRouteImport.update({
@@ -380,6 +386,7 @@ export interface FileRoutesByFullPath {
   '/solutions': typeof SolutionsRoute
   '/sso-callback': typeof SsoCallbackRoute
   '/trust-and-safety': typeof TrustAndSafetyRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/what-to-do-with-unqualified-leads': typeof WhatToDoWithUnqualifiedLeadsRoute
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
@@ -434,6 +441,7 @@ export interface FileRoutesByTo {
   '/solutions': typeof SolutionsRoute
   '/sso-callback': typeof SsoCallbackRoute
   '/trust-and-safety': typeof TrustAndSafetyRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/what-to-do-with-unqualified-leads': typeof WhatToDoWithUnqualifiedLeadsRoute
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
@@ -491,6 +499,7 @@ export interface FileRoutesById {
   '/solutions': typeof SolutionsRoute
   '/sso-callback': typeof SsoCallbackRoute
   '/trust-and-safety': typeof TrustAndSafetyRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/what-to-do-with-unqualified-leads': typeof WhatToDoWithUnqualifiedLeadsRoute
   '/connections/$id': typeof ConnectionsIdRoute
   '/insights/$id': typeof InsightsIdRoute
@@ -549,6 +558,7 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/sso-callback'
     | '/trust-and-safety'
+    | '/unsubscribe'
     | '/what-to-do-with-unqualified-leads'
     | '/connections/$id'
     | '/insights/$id'
@@ -603,6 +613,7 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/sso-callback'
     | '/trust-and-safety'
+    | '/unsubscribe'
     | '/what-to-do-with-unqualified-leads'
     | '/connections/$id'
     | '/insights/$id'
@@ -659,6 +670,7 @@ export interface FileRouteTypes {
     | '/solutions'
     | '/sso-callback'
     | '/trust-and-safety'
+    | '/unsubscribe'
     | '/what-to-do-with-unqualified-leads'
     | '/connections/$id'
     | '/insights/$id'
@@ -716,6 +728,7 @@ export interface RootRouteChildren {
   SolutionsRoute: typeof SolutionsRoute
   SsoCallbackRoute: typeof SsoCallbackRoute
   TrustAndSafetyRoute: typeof TrustAndSafetyRoute
+  UnsubscribeRoute: typeof UnsubscribeRoute
   WhatToDoWithUnqualifiedLeadsRoute: typeof WhatToDoWithUnqualifiedLeadsRoute
   ConnectionsIdRoute: typeof ConnectionsIdRoute
   LoginSsoCallbackRoute: typeof LoginSsoCallbackRoute
@@ -727,270 +740,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/what-to-do-with-unqualified-leads': {
-      id: '/what-to-do-with-unqualified-leads'
-      path: '/what-to-do-with-unqualified-leads'
-      fullPath: '/what-to-do-with-unqualified-leads'
-      preLoaderRoute: typeof WhatToDoWithUnqualifiedLeadsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/trust-and-safety': {
-      id: '/trust-and-safety'
-      path: '/trust-and-safety'
-      fullPath: '/trust-and-safety'
-      preLoaderRoute: typeof TrustAndSafetyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sso-callback': {
-      id: '/sso-callback'
-      path: '/sso-callback'
-      fullPath: '/sso-callback'
-      preLoaderRoute: typeof SsoCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/solutions': {
-      id: '/solutions'
-      path: '/solutions'
-      fullPath: '/solutions'
-      preLoaderRoute: typeof SolutionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/saved-opportunities': {
-      id: '/saved-opportunities'
-      path: '/saved-opportunities'
-      fullPath: '/saved-opportunities'
-      preLoaderRoute: typeof SavedOpportunitiesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/referral-partnerships': {
-      id: '/referral-partnerships'
-      path: '/referral-partnerships'
-      fullPath: '/referral-partnerships'
-      preLoaderRoute: typeof ReferralPartnershipsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/query-relay': {
-      id: '/query-relay'
-      path: '/query-relay'
-      fullPath: '/query-relay'
-      preLoaderRoute: typeof QueryRelayRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/proposals': {
-      id: '/proposals'
-      path: '/proposals'
-      fullPath: '/proposals'
-      preLoaderRoute: typeof ProposalsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/post': {
-      id: '/post'
-      path: '/post'
-      fullPath: '/post'
-      preLoaderRoute: typeof PostRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/opportunities': {
-      id: '/opportunities'
-      path: '/opportunities'
-      fullPath: '/opportunities'
-      preLoaderRoute: typeof OpportunitiesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/network': {
-      id: '/network'
-      path: '/network'
-      fullPath: '/network'
-      preLoaderRoute: typeof NetworkRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/my-relay': {
-      id: '/my-relay'
-      path: '/my-relay'
-      fullPath: '/my-relay'
-      preLoaderRoute: typeof MyRelayRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/insights': {
-      id: '/insights'
-      path: '/insights'
-      fullPath: '/insights'
-      preLoaderRoute: typeof InsightsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/how-to-monetize-unqualified-leads': {
-      id: '/how-to-monetize-unqualified-leads'
-      path: '/how-to-monetize-unqualified-leads'
-      fullPath: '/how-to-monetize-unqualified-leads'
-      preLoaderRoute: typeof HowToMonetizeUnqualifiedLeadsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/how-to-find-distribution-partners': {
-      id: '/how-to-find-distribution-partners'
-      path: '/how-to-find-distribution-partners'
-      fullPath: '/how-to-find-distribution-partners'
-      preLoaderRoute: typeof HowToFindDistributionPartnersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/how-to-find-b2b-referral-partners': {
-      id: '/how-to-find-b2b-referral-partners'
-      path: '/how-to-find-b2b-referral-partners'
-      fullPath: '/how-to-find-b2b-referral-partners'
-      preLoaderRoute: typeof HowToFindB2bReferralPartnersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/how-to-exchange-business-leads': {
-      id: '/how-to-exchange-business-leads'
-      path: '/how-to-exchange-business-leads'
-      fullPath: '/how-to-exchange-business-leads'
-      preLoaderRoute: typeof HowToExchangeBusinessLeadsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/home': {
-      id: '/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof HomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/faq': {
-      id: '/faq'
-      path: '/faq'
-      fullPath: '/faq'
-      preLoaderRoute: typeof FaqRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/eight-step-journey': {
-      id: '/eight-step-journey'
-      path: '/eight-step-journey'
-      fullPath: '/eight-step-journey'
-      preLoaderRoute: typeof EightStepJourneyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/distribution-partners': {
-      id: '/distribution-partners'
-      path: '/distribution-partners'
-      fullPath: '/distribution-partners'
-      preLoaderRoute: typeof DistributionPartnersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/design-system': {
-      id: '/design-system'
-      path: '/design-system'
-      fullPath: '/design-system'
-      preLoaderRoute: typeof DesignSystemRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/core-pillars': {
-      id: '/core-pillars'
-      path: '/core-pillars'
-      fullPath: '/core-pillars'
-      preLoaderRoute: typeof CorePillarsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/channel-partnerships': {
-      id: '/channel-partnerships'
-      path: '/channel-partnerships'
-      fullPath: '/channel-partnerships'
-      preLoaderRoute: typeof ChannelPartnershipsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/business-profile': {
-      id: '/business-profile'
-      path: '/business-profile'
-      fullPath: '/business-profile'
-      preLoaderRoute: typeof BusinessProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/b2b-referral-network': {
-      id: '/b2b-referral-network'
-      path: '/b2b-referral-network'
-      fullPath: '/b2b-referral-network'
-      preLoaderRoute: typeof B2bReferralNetworkRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/b2b-partnership-network': {
-      id: '/b2b-partnership-network'
-      path: '/b2b-partnership-network'
-      fullPath: '/b2b-partnership-network'
-      preLoaderRoute: typeof B2bPartnershipNetworkRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/b2b-opportunity-exchange': {
-      id: '/b2b-opportunity-exchange'
-      path: '/b2b-opportunity-exchange'
-      fullPath: '/b2b-opportunity-exchange'
-      preLoaderRoute: typeof B2bOpportunityExchangeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/b2b-lead-exchange': {
-      id: '/b2b-lead-exchange'
-      path: '/b2b-lead-exchange'
-      fullPath: '/b2b-lead-exchange'
-      preLoaderRoute: typeof B2bLeadExchangeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/association': {
-      id: '/association'
-      path: '/association'
-      fullPath: '/association'
-      preLoaderRoute: typeof AssociationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/agency-lead-exchange': {
-      id: '/agency-lead-exchange'
-      path: '/agency-lead-exchange'
-      fullPath: '/agency-lead-exchange'
-      preLoaderRoute: typeof AgencyLeadExchangeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/8-step-journey': {
@@ -1000,26 +754,278 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof R8StepJourneyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/opportunities/': {
-      id: '/opportunities/'
-      path: '/'
-      fullPath: '/opportunities/'
-      preLoaderRoute: typeof OpportunitiesIndexRouteImport
-      parentRoute: typeof OpportunitiesRoute
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/insights/': {
-      id: '/insights/'
-      path: '/'
-      fullPath: '/insights/'
-      preLoaderRoute: typeof InsightsIndexRouteImport
-      parentRoute: typeof InsightsRoute
+    '/agency-lead-exchange': {
+      id: '/agency-lead-exchange'
+      path: '/agency-lead-exchange'
+      fullPath: '/agency-lead-exchange'
+      preLoaderRoute: typeof AgencyLeadExchangeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/association': {
+      id: '/association'
+      path: '/association'
+      fullPath: '/association'
+      preLoaderRoute: typeof AssociationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/b2b-lead-exchange': {
+      id: '/b2b-lead-exchange'
+      path: '/b2b-lead-exchange'
+      fullPath: '/b2b-lead-exchange'
+      preLoaderRoute: typeof B2bLeadExchangeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/b2b-opportunity-exchange': {
+      id: '/b2b-opportunity-exchange'
+      path: '/b2b-opportunity-exchange'
+      fullPath: '/b2b-opportunity-exchange'
+      preLoaderRoute: typeof B2bOpportunityExchangeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/b2b-partnership-network': {
+      id: '/b2b-partnership-network'
+      path: '/b2b-partnership-network'
+      fullPath: '/b2b-partnership-network'
+      preLoaderRoute: typeof B2bPartnershipNetworkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/b2b-referral-network': {
+      id: '/b2b-referral-network'
+      path: '/b2b-referral-network'
+      fullPath: '/b2b-referral-network'
+      preLoaderRoute: typeof B2bReferralNetworkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business-profile': {
+      id: '/business-profile'
+      path: '/business-profile'
+      fullPath: '/business-profile'
+      preLoaderRoute: typeof BusinessProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/channel-partnerships': {
+      id: '/channel-partnerships'
+      path: '/channel-partnerships'
+      fullPath: '/channel-partnerships'
+      preLoaderRoute: typeof ChannelPartnershipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/core-pillars': {
+      id: '/core-pillars'
+      path: '/core-pillars'
+      fullPath: '/core-pillars'
+      preLoaderRoute: typeof CorePillarsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design-system': {
+      id: '/design-system'
+      path: '/design-system'
+      fullPath: '/design-system'
+      preLoaderRoute: typeof DesignSystemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/distribution-partners': {
+      id: '/distribution-partners'
+      path: '/distribution-partners'
+      fullPath: '/distribution-partners'
+      preLoaderRoute: typeof DistributionPartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eight-step-journey': {
+      id: '/eight-step-journey'
+      path: '/eight-step-journey'
+      fullPath: '/eight-step-journey'
+      preLoaderRoute: typeof EightStepJourneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-to-exchange-business-leads': {
+      id: '/how-to-exchange-business-leads'
+      path: '/how-to-exchange-business-leads'
+      fullPath: '/how-to-exchange-business-leads'
+      preLoaderRoute: typeof HowToExchangeBusinessLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-to-find-b2b-referral-partners': {
+      id: '/how-to-find-b2b-referral-partners'
+      path: '/how-to-find-b2b-referral-partners'
+      fullPath: '/how-to-find-b2b-referral-partners'
+      preLoaderRoute: typeof HowToFindB2bReferralPartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-to-find-distribution-partners': {
+      id: '/how-to-find-distribution-partners'
+      path: '/how-to-find-distribution-partners'
+      fullPath: '/how-to-find-distribution-partners'
+      preLoaderRoute: typeof HowToFindDistributionPartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-to-monetize-unqualified-leads': {
+      id: '/how-to-monetize-unqualified-leads'
+      path: '/how-to-monetize-unqualified-leads'
+      fullPath: '/how-to-monetize-unqualified-leads'
+      preLoaderRoute: typeof HowToMonetizeUnqualifiedLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-relay': {
+      id: '/my-relay'
+      path: '/my-relay'
+      fullPath: '/my-relay'
+      preLoaderRoute: typeof MyRelayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/network': {
+      id: '/network'
+      path: '/network'
+      fullPath: '/network'
+      preLoaderRoute: typeof NetworkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/opportunities': {
+      id: '/opportunities'
+      path: '/opportunities'
+      fullPath: '/opportunities'
+      preLoaderRoute: typeof OpportunitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/post': {
+      id: '/post'
+      path: '/post'
+      fullPath: '/post'
+      preLoaderRoute: typeof PostRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proposals': {
+      id: '/proposals'
+      path: '/proposals'
+      fullPath: '/proposals'
+      preLoaderRoute: typeof ProposalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/query-relay': {
+      id: '/query-relay'
+      path: '/query-relay'
+      fullPath: '/query-relay'
+      preLoaderRoute: typeof QueryRelayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/referral-partnerships': {
+      id: '/referral-partnerships'
+      path: '/referral-partnerships'
+      fullPath: '/referral-partnerships'
+      preLoaderRoute: typeof ReferralPartnershipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saved-opportunities': {
+      id: '/saved-opportunities'
+      path: '/saved-opportunities'
+      fullPath: '/saved-opportunities'
+      preLoaderRoute: typeof SavedOpportunitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions': {
+      id: '/solutions'
+      path: '/solutions'
+      fullPath: '/solutions'
+      preLoaderRoute: typeof SolutionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sso-callback': {
+      id: '/sso-callback'
+      path: '/sso-callback'
+      fullPath: '/sso-callback'
+      preLoaderRoute: typeof SsoCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trust-and-safety': {
+      id: '/trust-and-safety'
+      path: '/trust-and-safety'
+      fullPath: '/trust-and-safety'
+      preLoaderRoute: typeof TrustAndSafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/what-to-do-with-unqualified-leads': {
+      id: '/what-to-do-with-unqualified-leads'
+      path: '/what-to-do-with-unqualified-leads'
+      fullPath: '/what-to-do-with-unqualified-leads'
+      preLoaderRoute: typeof WhatToDoWithUnqualifiedLeadsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/connections/': {
       id: '/connections/'
@@ -1028,46 +1034,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConnectionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/signup_/sso-callback': {
-      id: '/signup_/sso-callback'
-      path: '/signup/sso-callback'
-      fullPath: '/signup/sso-callback'
-      preLoaderRoute: typeof SignupSsoCallbackRouteImport
+    '/connections/$id': {
+      id: '/connections/$id'
+      path: '/connections/$id'
+      fullPath: '/connections/$id'
+      preLoaderRoute: typeof ConnectionsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/requests/sent': {
-      id: '/requests/sent'
-      path: '/requests/sent'
-      fullPath: '/requests/sent'
-      preLoaderRoute: typeof RequestsSentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/requests/incoming': {
-      id: '/requests/incoming'
-      path: '/requests/incoming'
-      fullPath: '/requests/incoming'
-      preLoaderRoute: typeof RequestsIncomingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/opportunities/my': {
-      id: '/opportunities/my'
-      path: '/my'
-      fullPath: '/opportunities/my'
-      preLoaderRoute: typeof OpportunitiesMyRouteImport
-      parentRoute: typeof OpportunitiesRoute
-    }
-    '/login_/sso-callback': {
-      id: '/login_/sso-callback'
-      path: '/login/sso-callback'
-      fullPath: '/login/sso-callback'
-      preLoaderRoute: typeof LoginSsoCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/insights/ask': {
-      id: '/insights/ask'
-      path: '/ask'
-      fullPath: '/insights/ask'
-      preLoaderRoute: typeof InsightsAskRouteImport
+    '/insights/': {
+      id: '/insights/'
+      path: '/'
+      fullPath: '/insights/'
+      preLoaderRoute: typeof InsightsIndexRouteImport
       parentRoute: typeof InsightsRoute
     }
     '/insights/$id': {
@@ -1077,25 +1055,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InsightsIdRouteImport
       parentRoute: typeof InsightsRoute
     }
-    '/connections/$id': {
-      id: '/connections/$id'
-      path: '/connections/$id'
-      fullPath: '/connections/$id'
-      preLoaderRoute: typeof ConnectionsIdRouteImport
+    '/insights/ask': {
+      id: '/insights/ask'
+      path: '/ask'
+      fullPath: '/insights/ask'
+      preLoaderRoute: typeof InsightsAskRouteImport
+      parentRoute: typeof InsightsRoute
+    }
+    '/login_/sso-callback': {
+      id: '/login_/sso-callback'
+      path: '/login/sso-callback'
+      fullPath: '/login/sso-callback'
+      preLoaderRoute: typeof LoginSsoCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/insights/knowledge/new': {
-      id: '/insights/knowledge/new'
-      path: '/knowledge/new'
-      fullPath: '/insights/knowledge/new'
-      preLoaderRoute: typeof InsightsKnowledgeNewRouteImport
-      parentRoute: typeof InsightsRoute
+    '/opportunities/': {
+      id: '/opportunities/'
+      path: '/'
+      fullPath: '/opportunities/'
+      preLoaderRoute: typeof OpportunitiesIndexRouteImport
+      parentRoute: typeof OpportunitiesRoute
+    }
+    '/opportunities/my': {
+      id: '/opportunities/my'
+      path: '/my'
+      fullPath: '/opportunities/my'
+      preLoaderRoute: typeof OpportunitiesMyRouteImport
+      parentRoute: typeof OpportunitiesRoute
+    }
+    '/requests/incoming': {
+      id: '/requests/incoming'
+      path: '/requests/incoming'
+      fullPath: '/requests/incoming'
+      preLoaderRoute: typeof RequestsIncomingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/requests/sent': {
+      id: '/requests/sent'
+      path: '/requests/sent'
+      fullPath: '/requests/sent'
+      preLoaderRoute: typeof RequestsSentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup_/sso-callback': {
+      id: '/signup_/sso-callback'
+      path: '/signup/sso-callback'
+      fullPath: '/signup/sso-callback'
+      preLoaderRoute: typeof SignupSsoCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/insights/knowledge/$id': {
       id: '/insights/knowledge/$id'
       path: '/knowledge/$id'
       fullPath: '/insights/knowledge/$id'
       preLoaderRoute: typeof InsightsKnowledgeIdRouteImport
+      parentRoute: typeof InsightsRoute
+    }
+    '/insights/knowledge/new': {
+      id: '/insights/knowledge/new'
+      path: '/knowledge/new'
+      fullPath: '/insights/knowledge/new'
+      preLoaderRoute: typeof InsightsKnowledgeNewRouteImport
       parentRoute: typeof InsightsRoute
     }
     '/insights/knowledge/$id/edit': {
@@ -1193,6 +1213,7 @@ const rootRouteChildren: RootRouteChildren = {
   SolutionsRoute: SolutionsRoute,
   SsoCallbackRoute: SsoCallbackRoute,
   TrustAndSafetyRoute: TrustAndSafetyRoute,
+  UnsubscribeRoute: UnsubscribeRoute,
   WhatToDoWithUnqualifiedLeadsRoute: WhatToDoWithUnqualifiedLeadsRoute,
   ConnectionsIdRoute: ConnectionsIdRoute,
   LoginSsoCallbackRoute: LoginSsoCallbackRoute,
