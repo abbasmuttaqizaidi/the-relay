@@ -26,9 +26,7 @@ import { cn, formatOpportunityCode, formatExchangeCode } from "@/lib/utils";
 import { isExchangeCompleted } from "@/lib/exchange-status";
 
 export const Route = createFileRoute("/connections/")({
-  head: () => ({
-    meta: createPrivateMeta("Exchange Hub — The Relay"),
-  }),
+  head: () => createPrivateMeta("Exchange Hub — The Relay"),
   component: ExchangeHubListingPage,
 });
 

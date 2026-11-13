@@ -39,6 +39,7 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 }
 
 import { generateSitemapXml } from "./lib/sitemap.server";
+import { isPublicSeoRoute } from "./lib/public-routes";
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
@@ -57,7 +58,21 @@ export default {
 
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+
+      // Explicitly enforce clean indexing headers for all public SEO routes
+      if (isPublicSeoRoute(url.pathname)) {
+        const headers = new Headers(normalized.headers);
+        headers.delete("x-robots-tag");
+        headers.set("x-robots-tag", "index, follow, max-image-preview:large");
+        return new Response(normalized.body, {
+          status: normalized.status,
+          statusText: normalized.statusText,
+          headers,
+        });
+      }
+
+      return normalized;
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(error), {

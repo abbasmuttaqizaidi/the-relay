@@ -3,9 +3,7 @@ import { KnowledgeEditorWorkspace } from "@/components/insights/KnowledgeEditorW
 import { createPrivateMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/insights/knowledge/new")({
-  head: () => ({
-    meta: createPrivateMeta("Write Knowledge Article — The Relay"),
-  }),
+  head: () => createPrivateMeta("Write Knowledge Article — The Relay"),
   component: NewKnowledgePage,
 });
 

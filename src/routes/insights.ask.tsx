@@ -44,9 +44,7 @@ const askSearchSchema = z.object({
 
 export const Route = createFileRoute("/insights/ask")({
   validateSearch: zodValidator(askSearchSchema),
-  head: () => ({
-    meta: createPrivateMeta("Ask the Relay — Post a Business Question"),
-  }),
+  head: () => createPrivateMeta("Ask the Relay — Post a Business Question"),
   component: AskQuestionPage,
 });
 

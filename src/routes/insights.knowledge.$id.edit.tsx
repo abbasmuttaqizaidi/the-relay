@@ -14,13 +14,12 @@ export const Route = createFileRoute("/insights/knowledge/$id/edit")({
       return { insight: null };
     }
   },
-  head: ({ loaderData }) => ({
-    meta: createPrivateMeta(
+  head: ({ loaderData }) =>
+    createPrivateMeta(
       loaderData?.insight?.title
         ? `Edit: ${loaderData.insight.title} — The Relay`
         : "Edit Knowledge Article — The Relay"
     ),
-  }),
   component: EditKnowledgePage,
 });
 

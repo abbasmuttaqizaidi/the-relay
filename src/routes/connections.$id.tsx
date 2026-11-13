@@ -13,9 +13,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getSupabaseClientConfig } from "@/functions/getSupabaseClientConfig";
 
 export const Route = createFileRoute("/connections/$id")({
-  head: () => ({
-    meta: createPrivateMeta("Connection Details — The Relay"),
-  }),
+  head: () => createPrivateMeta("Connection Details — The Relay"),
   component: HandshakeDetailPage,
 });
 

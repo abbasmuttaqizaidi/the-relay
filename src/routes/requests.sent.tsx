@@ -33,9 +33,7 @@ import { ExecutiveTabs } from "@/design-system";
 import { isExchangeCompleted } from "@/lib/exchange-status";
 
 export const Route = createFileRoute("/requests/sent")({
-  head: () => ({
-    meta: createPrivateMeta("Sent Requests — The Relay"),
-  }),
+  head: () => createPrivateMeta("Sent Requests — The Relay"),
   component: SentRequestsPage,
 });
 

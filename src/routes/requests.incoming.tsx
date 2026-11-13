@@ -33,9 +33,7 @@ import { ExecutiveTabs } from "@/design-system";
 import { isExchangeCompleted } from "@/lib/exchange-status";
 
 export const Route = createFileRoute("/requests/incoming")({
-  head: () => ({
-    meta: createPrivateMeta("Incoming Requests — The Relay"),
-  }),
+  head: () => createPrivateMeta("Incoming Requests — The Relay"),
   component: IncomingRequestsPage,
 });
 

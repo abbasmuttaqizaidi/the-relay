@@ -5,8 +5,6 @@ export const Route = createFileRoute("/business-profile")({
   beforeLoad: () => {
     throw redirect({ to: "/onboarding", replace: true });
   },
-  head: () => ({
-    meta: createPrivateMeta("Business Profile — The Relay"),
-  }),
+  head: () => createPrivateMeta("Business Profile — The Relay"),
   component: () => null,
 });
