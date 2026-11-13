@@ -103,19 +103,32 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "The Relay — Business Opportunity Network for Verified Businesses" },
+      { title: "The Relay B2B — Opportunity Platform & Referral Exchange" },
       {
         name: "description",
         content:
-          "An operator-grade network where verified businesses exchange partnerships, referrals, vendors and growth opportunities. No feeds. No noise. Just outcomes.",
+          "The Relay is an operator-grade B2B opportunity platform and referral exchange for verified businesses to exchange commercial partnerships, warm referrals, and verified vendors.",
       },
-      { property: "og:title", content: "The Relay — Where growth finds momentum" },
+      {
+        name: "keywords",
+        content:
+          "The Relay B2B, Relay B2B, Relay B2B platform, Relay B2B website, Relay opportunity platform, Relay referral exchange, B2B opportunity network, commercial partnership exchange",
+      },
+      { property: "og:site_name", content: "The Relay" },
+      { property: "og:title", content: "The Relay B2B — Opportunity Platform & Referral Exchange" },
       {
         property: "og:description",
-        content: "A curated business opportunity network for verified businesses.",
+        content:
+          "An operator-grade B2B opportunity network and referral exchange where verified businesses exchange partnerships and growth opportunities.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "The Relay B2B — Opportunity Platform & Referral Exchange" },
+      {
+        name: "twitter:description",
+        content:
+          "Operator-grade B2B opportunity platform and referral exchange for verified businesses.",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

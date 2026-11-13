@@ -50,7 +50,7 @@ export function createSeoMeta({
   const canonicalUrl = buildCanonicalUrl(resolvedPath);
   const robotsDirective = noIndex ? "noindex, nofollow" : "index, follow";
 
-  const meta: Array<{ name?: string; property?: string; content: string }> = [
+  const meta: Array<{ name?: string; property?: string; content?: string; title?: string }> = [
     { title },
     { name: "description", content: description },
     { name: "robots", content: robotsDirective },
@@ -98,9 +98,44 @@ export function createOrganizationSchema() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "The Relay",
+    alternateName: [
+      "The Relay B2B",
+      "The Relay Network",
+      "Relay B2B Platform",
+      "Relay B2B Website",
+      "Relay Opportunity Platform",
+      "Relay Referral Exchange",
+    ],
     url: SITE_URL,
     logo: `${SITE_URL}/favicon.ico`,
-    description: "The governed B2B opportunity exchange for verified companies.",
+    description:
+      "Operator-grade B2B opportunity platform and referral exchange for verified companies and founders.",
+  };
+}
+
+export function createSoftwareApplicationSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "The Relay",
+    alternateName: [
+      "The Relay B2B",
+      "The Relay Network",
+      "Relay B2B Platform",
+      "Relay B2B Website",
+      "Relay Opportunity Platform",
+      "Relay Referral Exchange",
+    ],
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: SITE_URL,
+    description:
+      "An operator-grade B2B opportunity network and referral exchange where verified businesses exchange partnerships, referrals, and commercial opportunities.",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
   };
 }
 

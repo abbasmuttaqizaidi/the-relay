@@ -39,14 +39,21 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { getDynamicMedianResponseTime } from "@/lib/utils";
-import { createSeoMeta, createOrganizationSchema, createWebsiteSchema } from "@/lib/seo";
+import {
+  createSeoMeta,
+  createOrganizationSchema,
+  createWebsiteSchema,
+  createSoftwareApplicationSchema,
+} from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
   head: () =>
     createSeoMeta({
-      title: "The Relay — B2B Commercial Opportunity Network",
+      title: "The Relay B2B — Opportunity Platform & Referral Exchange",
       description:
-        "Monetize leads you can't fulfill, or source verified commercial partnerships—all within a private, zero-spam dealroom.",
+        "The Relay is an operator-grade B2B opportunity platform and referral exchange for verified businesses. Monetize unqualified leads and source verified commercial partnerships in a zero-spam environment.",
+      keywords:
+        "The Relay B2B, Relay B2B, Relay B2B platform, Relay B2B website, Relay opportunity platform, Relay referral exchange, B2B partnership exchange, commercial opportunity network",
       path: "/",
       ogType: "website",
     }),
@@ -985,28 +992,34 @@ export function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(createWebsiteSchema()) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(createSoftwareApplicationSchema()) }}
+      />
       <main className="flex-grow">
         {/* ═══════════════════════════════════════════════════════════════════
             BEGIN: HeroSection (Faithfully matching LANDINGPAGE.md)
             ═══════════════════════════════════════════════════════════════════ */}
         <section className="relative bg-[#FAFAFA] border-b border-slate-200/80 py-8 sm:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Top Eyebrow & Platform Headline for Mobile & Desktop (Single Semantic H1) */}
+            <div className="text-center max-w-3xl mx-auto mb-6 lg:mb-8">
+              <p className="text-xs font-mono tracking-widest text-slate-500 uppercase font-semibold">
+                Same Network. MORE POSSIBILITIES
+              </p>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight text-slate-950 font-display mt-2 uppercase leading-[1.08]">
+                <span className="sr-only">The Relay B2B — Opportunity Platform &amp; Referral Exchange: </span>
+                <span>ONE PLATFORM.</span>
+                <br className="sm:hidden" />
+                <span className="sm:ml-2">TWO ENGINES.</span>
+              </h1>
+              <p className="text-sm sm:text-base text-slate-600 mt-2.5 sm:mt-3 max-w-xl mx-auto leading-relaxed">
+                Monetize leads you can&apos;t fulfill, or source verified commercial partnerships—all within a private, zero-spam dealroom.
+              </p>
+            </div>
+
             {/* ─── MOBILE VIEW (< lg): Strict Step-by-Step 2-Engine Cards with Centered OR ─── */}
             <div className="lg:hidden">
-              {/* Top Eyebrow & Platform Headline for Mobile */}
-              <div className="text-center max-w-3xl mx-auto mb-6">
-                <p className="text-xs font-mono tracking-widest text-slate-500 uppercase font-semibold">
-                  Same Network. MORE POSSIBILITIES
-                </p>
-                <div className="text-3xl sm:text-4xl font-black tracking-tight text-slate-950 font-display mt-2 uppercase leading-[1.08]">
-                  <span>ONE PLATFORM.</span>
-                  <br />
-                  <span>TWO GROWTH ENGINES.</span>
-                </div>
-                <p className="text-sm text-slate-600 mt-2.5 max-w-xl mx-auto leading-relaxed">
-                  Turn opportunities into value or find the right partners to grow - all in one place
-                </p>
-              </div>
 
               {/* Full-screen backdrop click catcher when card is expanded */}
               {expandedMobileEngine && (
@@ -1766,16 +1779,6 @@ export function LandingPage() {
 
             {/* ─── DESKTOP VIEW (>= lg): Original Faithful 2-Column Engine Layout ─── */}
             <div className="hidden lg:block">
-              {/* Top Headline for Desktop */}
-              <div className="text-center max-w-3xl mx-auto mb-8">
-                <h1 className="text-5xl xl:text-6xl font-black text-slate-950 tracking-tight leading-[1.08] font-display">
-                  One Platform. Two Engines.
-                </h1>
-                <p className="text-base text-slate-600 mt-3 max-w-xl mx-auto leading-relaxed">
-                  Monetize leads you can't fulfill, or source verified commercial partnerships—all within a private, zero-spam dealroom.
-                </p>
-              </div>
-
               {/* Split 2-column Hero Grid for Desktop */}
               <div className="grid grid-cols-12 gap-12 items-center">
                 {/* Left Column (Engine 01) */}
