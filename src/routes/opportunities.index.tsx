@@ -424,13 +424,11 @@ export function OpportunitiesPage() {
     if (onboardingData && onboardingData.isAuthenticated) {
       if (!onboardingData.hasChosenRole) {
         navigate({ to: "/get-started", replace: true });
-      } else if (onboardingData.userType === "community_member" || !onboardingData.hasBusiness) {
-        if (onboardingData.userType === "business") {
-          navigate({ to: "/onboarding", replace: true });
-        } else {
-          toast.info("The Opportunities Board is exclusively for Verified Businesses.");
-          navigate({ to: "/insights", replace: true });
-        }
+      } else if (onboardingData.userType === "community_member") {
+        toast.info("The Opportunities Board is exclusively for Verified Businesses.");
+        navigate({ to: "/insights", replace: true });
+      } else if (onboardingData.userType === "business" && !onboardingData.hasBusiness) {
+        navigate({ to: "/onboarding", replace: true });
       }
     }
   }, [onboardingData, navigate]);

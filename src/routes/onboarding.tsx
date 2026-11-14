@@ -134,8 +134,9 @@ function getInitials(name: string) {
 }
 
 function OnboardingPage() {
-  const { isSignedIn, isLoaded, getToken } = useAuth();
+  const { isSignedIn, isLoaded, userId } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Dynamic Business Record & Status
   const [businessId, setBusinessId] = useState<string | null>(null);
@@ -453,9 +454,11 @@ function OnboardingPage() {
         } catch (_) {}
       }
 
+      let savedBusiness: any = null;
+
       if (businessId) {
         // Update existing business profile
-        await updateBusiness({
+        savedBusiness = await updateBusiness({
           data: {
             business_id: businessId,
             company_name: companyName.trim(),
@@ -475,7 +478,7 @@ function OnboardingPage() {
         toast.success("Business profile updated successfully!");
       } else {
         // Register new business profile
-        const createdBiz = await createBusiness({
+        savedBusiness = await createBusiness({
           data: {
             company_name: companyName.trim(),
             website: website.trim(),
@@ -491,8 +494,8 @@ function OnboardingPage() {
             twitter_url: twitterUrl.trim() || undefined,
           },
         });
-        if (createdBiz?.id) {
-          setBusinessId(createdBiz.id);
+        if (savedBusiness?.id) {
+          setBusinessId(savedBusiness.id);
         }
         setBusinessStatus("pending");
         toast.success("Business profile registered successfully! Vetting pending.");
@@ -509,9 +512,27 @@ function OnboardingPage() {
 
       try {
         sessionStorage.setItem("relay.just_signed_up", "true");
+        localStorage.setItem("relay_account_mode", "business");
       } catch (e) {}
 
-      navigate({ to: "/opportunities" });
+      // Synchronously populate React Query cache with the registered business
+      // so the destination route (/opportunities) immediately recognizes hasBusiness: true!
+      if (userId) {
+        queryClient.setQueryData(["onboarding-status", userId], (prev: any) => ({
+          ...(prev || {}),
+          isAuthenticated: true,
+          hasBusiness: true,
+          business: savedBusiness || { id: businessId, company_name: companyName.trim(), status: businessStatus || "pending" },
+          userType: "business",
+          hasChosenRole: true,
+          onboardingCompleted: true,
+        }));
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["onboarding-status"] });
+      await queryClient.invalidateQueries({ queryKey: ["community-profile"] });
+
+      navigate({ to: "/opportunities", replace: true });
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to save profile. Please try again.");

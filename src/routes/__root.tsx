@@ -214,15 +214,24 @@ function AppLayout() {
   });
 
   const business = onboardingData?.business || null;
-  const isCommunityMember =
-    !business ||
-    communityProfile?.type === "community_member" ||
-    communityProfile?.type === "associate";
+  const hasBusiness = Boolean(business);
+  const resolvedIsCommunityMember =
+    !hasBusiness &&
+    (onboardingData?.userType === "community_member" ||
+      communityProfile?.type === "community_member" ||
+      communityProfile?.type === "associate");
 
   const isAuthResolving = !isLoaded || (isSignedIn && (onboardingLoading || communityLoading));
   const cachedAccountMode = typeof window !== "undefined" ? localStorage.getItem("relay_account_mode") : null;
+
+  const isCommunityMember = hasBusiness
+    ? false
+    : isAuthResolving && cachedAccountMode
+      ? cachedAccountMode === "community_member"
+      : resolvedIsCommunityMember;
+
   const showSidebar = Boolean(
-    isSignedIn && (isAuthResolving && cachedAccountMode ? cachedAccountMode === "business" : !isCommunityMember)
+    isSignedIn && !isCommunityMember
   );
 
   useEffect(() => {

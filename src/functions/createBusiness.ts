@@ -32,6 +32,16 @@ export const createBusiness = createServerFn({ method: "POST" })
       twitter_url: data.twitter_url || undefined,
     });
 
+    // 4. Update user type to "business" in User table and clear user caches
+    const { UserService } = await import("../services/user.service");
+    await UserService.setUserType(user.id, "business");
+
+    const { serverCache } = await import("../lib/server-cache");
+    if (user.clerk_user_id) {
+      serverCache.delete(`user:clerk:${user.clerk_user_id}`);
+    }
+    serverCache.delete(`user:${user.id}`);
+
     if (user.clerk_user_id) {
       try {
         const { clerkClient } = await import("@clerk/tanstack-react-start/server");

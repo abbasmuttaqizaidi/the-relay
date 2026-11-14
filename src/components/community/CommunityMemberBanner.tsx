@@ -44,16 +44,19 @@ export function CommunityMemberBanner() {
   });
 
   const business = onboardingData?.business || null;
+  const hasBusiness = Boolean(business);
   const isAuthResolving = !isLoaded || (isSignedIn && (loadingOnboarding || loadingCommunity));
   const cachedAccountMode = typeof window !== "undefined" ? localStorage.getItem("relay_account_mode") : null;
 
   const resolvedIsCommunityMember =
-    !business ||
-    communityProfile?.type === "community_member" ||
-    communityProfile?.type === "associate";
+    !hasBusiness &&
+    (onboardingData?.userType === "community_member" ||
+      communityProfile?.type === "community_member" ||
+      communityProfile?.type === "associate");
 
-  const isCommunityMember =
-    isAuthResolving && cachedAccountMode
+  const isCommunityMember = hasBusiness
+    ? false
+    : isAuthResolving && cachedAccountMode
       ? cachedAccountMode === "community_member"
       : resolvedIsCommunityMember;
 

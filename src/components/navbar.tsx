@@ -217,25 +217,29 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   });
 
   const business = onboardingData?.business || null;
+  const hasBusiness = Boolean(business);
   const isApproved = business?.status === "approved";
 
   const isAuthResolving = !isLoaded || (isSignedIn && (loadingOnboarding || loadingCommunity));
   const cachedAccountMode = typeof window !== "undefined" ? localStorage.getItem("relay_account_mode") : null;
 
+  // A user is a community member ONLY if they DO NOT have a business profile AND their role is community_member/associate
   const resolvedIsCommunityMember =
-    !business ||
-    communityProfile?.type === "community_member" ||
-    communityProfile?.type === "associate";
+    !hasBusiness &&
+    (onboardingData?.userType === "community_member" ||
+      communityProfile?.type === "community_member" ||
+      communityProfile?.type === "associate");
 
-  // Retain cached account mode while auth and onboarding are resolving so business accounts don't flash community navbar
-  const isCommunityMember =
-    isAuthResolving && cachedAccountMode
+  // If a user has a registered business, they are NEVER a community member.
+  const isCommunityMember = hasBusiness
+    ? false
+    : isAuthResolving && cachedAccountMode
       ? cachedAccountMode === "community_member"
       : resolvedIsCommunityMember;
 
   useEffect(() => {
     if (isLoaded && isSignedIn && !loadingOnboarding && !loadingCommunity) {
-      const mode = resolvedIsCommunityMember ? "community_member" : "business";
+      const mode = hasBusiness ? "business" : resolvedIsCommunityMember ? "community_member" : "business";
       try {
         localStorage.setItem("relay_account_mode", mode);
       } catch (_) {}
@@ -244,7 +248,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
         localStorage.removeItem("relay_account_mode");
       } catch (_) {}
     }
-  }, [isLoaded, isSignedIn, loadingOnboarding, loadingCommunity, resolvedIsCommunityMember]);
+  }, [isLoaded, isSignedIn, loadingOnboarding, loadingCommunity, resolvedIsCommunityMember, hasBusiness]);
 
   // 2. Incoming Proposals Query
   const { data: incomingRequests = [] } = useQuery({

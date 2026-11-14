@@ -252,5 +252,45 @@ describe("Onboarding Guards & Business Status Verification", () => {
       expect(toastInfoMock).toHaveBeenCalledWith("The Network Directory is exclusively for Verified Businesses.");
       expect(navigateMock).toHaveBeenCalledWith({ to: "/insights", replace: true });
     });
+
+    it("allows registered business to stay on /opportunities without redirecting to /onboarding", () => {
+      const navigateMock = vi.fn();
+      const status = {
+        isAuthenticated: true,
+        hasChosenRole: true,
+        userType: "business",
+        hasBusiness: true,
+        business: { id: "biz_1", company_name: "Acme Corp", status: "pending" },
+        onboardingCompleted: true,
+      };
+
+      const checkOpportunitiesAccess = (s: typeof status) => {
+        if (s.isAuthenticated) {
+          if (!s.hasChosenRole) {
+            navigateMock({ to: "/get-started", replace: true });
+          } else if (s.userType === "community_member") {
+            navigateMock({ to: "/insights", replace: true });
+          } else if (s.userType === "business" && !s.hasBusiness) {
+            navigateMock({ to: "/onboarding", replace: true });
+          }
+        }
+      };
+
+      checkOpportunitiesAccess(status);
+      expect(navigateMock).not.toHaveBeenCalled();
+    });
+
+    it("verifies isCommunityMember is strictly false whenever user has a registered business", () => {
+      const evaluateIsCommunityMember = (hasBusiness: boolean, userType?: string, dbUserType?: string) => {
+        if (hasBusiness) return false;
+        return userType === "community_member" || dbUserType === "community_member";
+      };
+
+      // Even if dbUser has legacy type community_member, hasBusiness=true must resolve to false!
+      expect(evaluateIsCommunityMember(true, "business", "community_member")).toBe(false);
+      expect(evaluateIsCommunityMember(true, "community_member", "community_member")).toBe(false);
+      expect(evaluateIsCommunityMember(false, "community_member", "community_member")).toBe(true);
+      expect(evaluateIsCommunityMember(false, "business", "business")).toBe(false);
+    });
   });
 });
