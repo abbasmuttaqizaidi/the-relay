@@ -20,6 +20,15 @@ export const Route = createFileRoute("/login")({
     try {
       const authData = await checkOnboardingStatus();
       if (authData?.isAuthenticated) {
+        if (!authData.hasChosenRole) {
+          throw redirect({ to: "/get-started", replace: true });
+        }
+        if (!authData.onboardingCompleted) {
+          if (authData.userType === "business" && !authData.hasBusiness) {
+            throw redirect({ to: "/onboarding", replace: true });
+          }
+          throw redirect({ to: "/profile", replace: true });
+        }
         throw redirect({
           to: authData.business ? "/opportunities" : "/profile",
           replace: true,
@@ -97,13 +106,20 @@ function SignInPage() {
         const [path, hash] = explicitRedirect.split("#");
         navigate({ to: path as any, hash: hash ? `#${hash}` : undefined });
       } else {
-        // Community Member lands on /profile; Verified Business lands on /opportunities
         checkOnboardingStatus()
           .then((res) => {
-            if (!res?.business) {
-              navigate({ to: "/profile" });
-            } else {
+            if (!res?.hasChosenRole) {
+              navigate({ to: "/get-started" });
+            } else if (!res?.onboardingCompleted) {
+              if (res?.userType === "business" && !res?.hasBusiness) {
+                navigate({ to: "/onboarding" });
+              } else {
+                navigate({ to: "/profile" });
+              }
+            } else if (res?.business) {
               navigate({ to: "/opportunities" });
+            } else {
+              navigate({ to: "/profile" });
             }
           })
           .catch(() => {

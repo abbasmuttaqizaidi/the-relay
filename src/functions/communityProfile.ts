@@ -146,7 +146,7 @@ export const saveCommunityProfile = createServerFn({ method: "POST" })
       throw new Error("Failed to find or initialize user account.");
     }
 
-    return await UserService.updateCommunityProfile(user.id, {
+    const updated = await UserService.updateCommunityProfile(user.id, {
       name: data.name,
       handle: data.handle,
       title: data.title,
@@ -156,6 +156,21 @@ export const saveCommunityProfile = createServerFn({ method: "POST" })
       expertise_domain: data.expertise_domain,
       linkedin_url: data.linkedin_url,
     });
+
+    try {
+      const client = clerkClient();
+      await client.users.updateUserMetadata(authSession.userId, {
+        publicMetadata: {
+          role_selected: true,
+          account_type: "community_member",
+          onboarding_completed: true,
+        },
+      });
+    } catch (metaErr) {
+      console.error("[saveCommunityProfile] Failed to update Clerk metadata:", metaErr);
+    }
+
+    return updated;
   });
 
 export const setUserAccountType = createServerFn({ method: "POST" })
@@ -171,5 +186,20 @@ export const setUserAccountType = createServerFn({ method: "POST" })
       throw new Error("Failed to find or initialize user account.");
     }
 
-    return await UserService.setUserType(user.id, data.type);
+    const updatedUser = await UserService.setUserType(user.id, data.type);
+
+    try {
+      const client = clerkClient();
+      await client.users.updateUserMetadata(authSession.userId, {
+        publicMetadata: {
+          role_selected: true,
+          account_type: data.type,
+          onboarding_completed: false,
+        },
+      });
+    } catch (metaErr) {
+      console.error("[setUserAccountType] Failed to update Clerk metadata:", metaErr);
+    }
+
+    return updatedUser;
   });

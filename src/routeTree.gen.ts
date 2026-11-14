@@ -27,6 +27,7 @@ import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as DistributionPartnersRouteImport } from './routes/distribution-partners'
 import { Route as EightStepJourneyRouteImport } from './routes/eight-step-journey'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as GetStartedRouteImport } from './routes/get-started'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HowToExchangeBusinessLeadsRouteImport } from './routes/how-to-exchange-business-leads'
 import { Route as HowToFindB2bReferralPartnersRouteImport } from './routes/how-to-find-b2b-referral-partners'
@@ -155,6 +156,11 @@ const EightStepJourneyRoute = EightStepJourneyRouteImport.update({
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GetStartedRoute = GetStartedRouteImport.update({
+  id: '/get-started',
+  path: '/get-started',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeRoute = HomeRouteImport.update({
@@ -377,6 +383,7 @@ export interface FileRoutesByFullPath {
   '/distribution-partners': typeof DistributionPartnersRoute
   '/eight-step-journey': typeof EightStepJourneyRoute
   '/faq': typeof FaqRoute
+  '/get-started': typeof GetStartedRoute
   '/home': typeof HomeRoute
   '/how-to-exchange-business-leads': typeof HowToExchangeBusinessLeadsRoute
   '/how-to-find-b2b-referral-partners': typeof HowToFindB2bReferralPartnersRoute
@@ -436,6 +443,7 @@ export interface FileRoutesByTo {
   '/distribution-partners': typeof DistributionPartnersRoute
   '/eight-step-journey': typeof EightStepJourneyRoute
   '/faq': typeof FaqRoute
+  '/get-started': typeof GetStartedRoute
   '/home': typeof HomeRoute
   '/how-to-exchange-business-leads': typeof HowToExchangeBusinessLeadsRoute
   '/how-to-find-b2b-referral-partners': typeof HowToFindB2bReferralPartnersRoute
@@ -494,6 +502,7 @@ export interface FileRoutesById {
   '/distribution-partners': typeof DistributionPartnersRoute
   '/eight-step-journey': typeof EightStepJourneyRoute
   '/faq': typeof FaqRoute
+  '/get-started': typeof GetStartedRoute
   '/home': typeof HomeRoute
   '/how-to-exchange-business-leads': typeof HowToExchangeBusinessLeadsRoute
   '/how-to-find-b2b-referral-partners': typeof HowToFindB2bReferralPartnersRoute
@@ -555,6 +564,7 @@ export interface FileRouteTypes {
     | '/distribution-partners'
     | '/eight-step-journey'
     | '/faq'
+    | '/get-started'
     | '/home'
     | '/how-to-exchange-business-leads'
     | '/how-to-find-b2b-referral-partners'
@@ -614,6 +624,7 @@ export interface FileRouteTypes {
     | '/distribution-partners'
     | '/eight-step-journey'
     | '/faq'
+    | '/get-started'
     | '/home'
     | '/how-to-exchange-business-leads'
     | '/how-to-find-b2b-referral-partners'
@@ -671,6 +682,7 @@ export interface FileRouteTypes {
     | '/distribution-partners'
     | '/eight-step-journey'
     | '/faq'
+    | '/get-started'
     | '/home'
     | '/how-to-exchange-business-leads'
     | '/how-to-find-b2b-referral-partners'
@@ -731,6 +743,7 @@ export interface RootRouteChildren {
   DistributionPartnersRoute: typeof DistributionPartnersRoute
   EightStepJourneyRoute: typeof EightStepJourneyRoute
   FaqRoute: typeof FaqRoute
+  GetStartedRoute: typeof GetStartedRoute
   HomeRoute: typeof HomeRoute
   HowToExchangeBusinessLeadsRoute: typeof HowToExchangeBusinessLeadsRoute
   HowToFindB2bReferralPartnersRoute: typeof HowToFindB2bReferralPartnersRoute
@@ -890,6 +903,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/get-started': {
+      id: '/get-started'
+      path: '/get-started'
+      fullPath: '/get-started'
+      preLoaderRoute: typeof GetStartedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/home': {
@@ -1232,6 +1252,7 @@ const rootRouteChildren: RootRouteChildren = {
   DistributionPartnersRoute: DistributionPartnersRoute,
   EightStepJourneyRoute: EightStepJourneyRoute,
   FaqRoute: FaqRoute,
+  GetStartedRoute: GetStartedRoute,
   HomeRoute: HomeRoute,
   HowToExchangeBusinessLeadsRoute: HowToExchangeBusinessLeadsRoute,
   HowToFindB2bReferralPartnersRoute: HowToFindB2bReferralPartnersRoute,

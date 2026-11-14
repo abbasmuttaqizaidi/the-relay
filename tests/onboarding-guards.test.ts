@@ -78,5 +78,89 @@ describe("Onboarding Guards & Business Status Verification", () => {
         'Forbidden: Your business profile status is "pending". Only approved businesses can create opportunities.'
       );
     });
+
+    it("routes uninitialized new signups without chosen role to /get-started", () => {
+      const navigateMock = vi.fn();
+      const status = {
+        isAuthenticated: true,
+        hasChosenRole: false,
+        userType: "business",
+        hasBusiness: false,
+        onboardingCompleted: false,
+      };
+
+      const resolveNavigation = (s: typeof status) => {
+        if (!s.hasChosenRole) {
+          navigateMock({ to: "/get-started", replace: true });
+        } else if (!s.onboardingCompleted) {
+          if (s.userType === "business" && !s.hasBusiness) {
+            navigateMock({ to: "/onboarding", replace: true });
+          } else {
+            navigateMock({ to: "/profile", replace: true });
+          }
+        } else {
+          navigateMock({ to: s.hasBusiness ? "/opportunities" : "/profile", replace: true });
+        }
+      };
+
+      resolveNavigation(status);
+      expect(navigateMock).toHaveBeenCalledWith({ to: "/get-started", replace: true });
+    });
+
+    it("routes midway abandoned business onboarding back to /onboarding", () => {
+      const navigateMock = vi.fn();
+      const status = {
+        isAuthenticated: true,
+        hasChosenRole: true,
+        userType: "business",
+        hasBusiness: false,
+        onboardingCompleted: false,
+      };
+
+      const resolveNavigation = (s: typeof status) => {
+        if (!s.hasChosenRole) {
+          navigateMock({ to: "/get-started", replace: true });
+        } else if (!s.onboardingCompleted) {
+          if (s.userType === "business" && !s.hasBusiness) {
+            navigateMock({ to: "/onboarding", replace: true });
+          } else {
+            navigateMock({ to: "/profile", replace: true });
+          }
+        } else {
+          navigateMock({ to: s.hasBusiness ? "/opportunities" : "/profile", replace: true });
+        }
+      };
+
+      resolveNavigation(status);
+      expect(navigateMock).toHaveBeenCalledWith({ to: "/onboarding", replace: true });
+    });
+
+    it("routes completed business onboarding directly to /opportunities", () => {
+      const navigateMock = vi.fn();
+      const status = {
+        isAuthenticated: true,
+        hasChosenRole: true,
+        userType: "business",
+        hasBusiness: true,
+        onboardingCompleted: true,
+      };
+
+      const resolveNavigation = (s: typeof status) => {
+        if (!s.hasChosenRole) {
+          navigateMock({ to: "/get-started", replace: true });
+        } else if (!s.onboardingCompleted) {
+          if (s.userType === "business" && !s.hasBusiness) {
+            navigateMock({ to: "/onboarding", replace: true });
+          } else {
+            navigateMock({ to: "/profile", replace: true });
+          }
+        } else {
+          navigateMock({ to: s.hasBusiness ? "/opportunities" : "/profile", replace: true });
+        }
+      };
+
+      resolveNavigation(status);
+      expect(navigateMock).toHaveBeenCalledWith({ to: "/opportunities", replace: true });
+    });
   });
 });

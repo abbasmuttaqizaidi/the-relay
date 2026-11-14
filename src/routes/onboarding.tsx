@@ -311,6 +311,11 @@ function OnboardingPage() {
         const res = await checkOnboardingStatus();
         if (!isMounted) return;
 
+        if (res && !res.hasChosenRole) {
+          navigate({ to: "/get-started", replace: true });
+          return;
+        }
+
         // Check if legal acknowledgement is already accepted on backend or business exists
         let ackStatus = false;
         try {

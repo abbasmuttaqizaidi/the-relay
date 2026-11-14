@@ -173,11 +173,42 @@ export const checkOnboardingStatus = createServerFn({ method: "GET" })
         }
       }
 
+      // Evaluate onboarding lifecycle
+      const clerkMeta = (clerkUser?.publicMetadata as Record<string, any>) || {};
+      const hasBusiness = !!business;
+
+      // A user has explicitly chosen a role if:
+      // 1. They already own a registered business in the DB
+      // 2. They explicitly chose a role via /get-started (persisted in Clerk metadata)
+      // 3. Or they are already an active community member with an established name/handle
+      const hasChosenRole = Boolean(
+        hasBusiness ||
+        clerkMeta.role_selected === true ||
+        (clerkMeta.account_type && typeof clerkMeta.account_type === "string") ||
+        (dbUser && (dbUser.type === "community_member" || dbUser.type === "associate") && Boolean(dbUser.handle || dbUser.name))
+      );
+
+      const userType =
+        (clerkMeta.account_type as string) ||
+        (hasBusiness ? "business" : dbUser?.type === "community_member" ? "community_member" : "business");
+
+      let onboardingCompleted = false;
+      if (hasBusiness) {
+        onboardingCompleted = true;
+      } else if (clerkMeta.onboarding_completed === true) {
+        onboardingCompleted = true;
+      } else if (userType === "community_member" && Boolean(dbUser?.handle || dbUser?.name)) {
+        onboardingCompleted = true;
+      }
+
       return {
         isAuthenticated: true,
         hasBusiness: !!business,
         dbUserExists: true,
         business,
+        userType,
+        hasChosenRole,
+        onboardingCompleted,
         legalAckAccepted,
         telemetry: {
           completedExchanges,

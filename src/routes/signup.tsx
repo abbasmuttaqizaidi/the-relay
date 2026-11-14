@@ -20,6 +20,15 @@ export const Route = createFileRoute("/signup")({
     try {
       const authData = await checkOnboardingStatus();
       if (authData?.isAuthenticated) {
+        if (!authData.hasChosenRole) {
+          throw redirect({ to: "/get-started", replace: true });
+        }
+        if (!authData.onboardingCompleted) {
+          if (authData.userType === "business" && !authData.hasBusiness) {
+            throw redirect({ to: "/onboarding", replace: true });
+          }
+          throw redirect({ to: "/profile", replace: true });
+        }
         throw redirect({
           to: authData.business ? "/opportunities" : "/profile",
           replace: true,
@@ -84,19 +93,19 @@ function SignUpPage() {
     if (signupType === "community" || signupType === "contributor") {
       return "/profile";
     }
-    return "/opportunities";
+    return "/get-started";
   }, [search]);
 
   const { targetPath, targetHash } = useMemo(() => {
     const [path, hash] = redirectTarget.split("#");
     return {
-      targetPath: path || "/opportunities",
+      targetPath: path || "/get-started",
       targetHash: hash ? `#${hash}` : undefined,
     };
   }, [redirectTarget]);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && redirectTarget && redirectTarget !== "/opportunities") {
+    if (typeof window !== "undefined" && redirectTarget && redirectTarget !== "/get-started" && redirectTarget !== "/opportunities") {
       try {
         sessionStorage.setItem("relay_auth_return_url", redirectTarget);
       } catch {}
@@ -105,19 +114,27 @@ function SignUpPage() {
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      if (redirectTarget && redirectTarget !== "/opportunities") {
+      if (redirectTarget && redirectTarget !== "/get-started" && redirectTarget !== "/opportunities") {
         navigate({ to: targetPath as any, hash: targetHash as any });
       } else {
         checkOnboardingStatus()
           .then((res) => {
-            if (!res?.business) {
-              navigate({ to: "/profile" });
-            } else {
+            if (!res?.hasChosenRole) {
+              navigate({ to: "/get-started" });
+            } else if (!res?.onboardingCompleted) {
+              if (res?.userType === "business" && !res?.hasBusiness) {
+                navigate({ to: "/onboarding" });
+              } else {
+                navigate({ to: "/profile" });
+              }
+            } else if (res?.business) {
               navigate({ to: "/opportunities" });
+            } else {
+              navigate({ to: "/profile" });
             }
           })
           .catch(() => {
-            navigate({ to: "/profile" });
+            navigate({ to: "/get-started" });
           });
       }
     }

@@ -102,6 +102,17 @@ function SimpleCommunityMemberProfilePage() {
     }
   }, [isLoaded, isSignedIn, navigate]);
 
+  // Guard against unselected role or incomplete business onboarding
+  useEffect(() => {
+    if (onboardingData && onboardingData.isAuthenticated) {
+      if (!onboardingData.hasChosenRole) {
+        navigate({ to: "/get-started", replace: true });
+      } else if (onboardingData.userType === "business" && !onboardingData.hasBusiness) {
+        navigate({ to: "/onboarding", replace: true });
+      }
+    }
+  }, [onboardingData, navigate]);
+
   // Sync state with fetched database profile
   useEffect(() => {
     if (dbProfile) {

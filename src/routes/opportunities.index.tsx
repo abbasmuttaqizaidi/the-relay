@@ -419,10 +419,18 @@ export function OpportunitiesPage() {
       : business.status
     : null;
 
-  // Onboarding route check (Only redirect if logged in but has no business)
+  // Onboarding route check (Redirect users who haven't completed onboarding)
   useEffect(() => {
-    if (onboardingData && onboardingData.isAuthenticated && !onboardingData.hasBusiness) {
-      navigate({ to: "/onboarding", replace: true });
+    if (onboardingData && onboardingData.isAuthenticated) {
+      if (!onboardingData.hasChosenRole) {
+        navigate({ to: "/get-started", replace: true });
+      } else if (!onboardingData.onboardingCompleted) {
+        if (onboardingData.userType === "business" && !onboardingData.hasBusiness) {
+          navigate({ to: "/onboarding", replace: true });
+        } else if (onboardingData.userType === "community_member") {
+          navigate({ to: "/profile", replace: true });
+        }
+      }
     }
   }, [onboardingData, navigate]);
 

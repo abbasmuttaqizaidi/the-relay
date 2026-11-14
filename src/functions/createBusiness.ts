@@ -16,7 +16,7 @@ export const createBusiness = createServerFn({ method: "POST" })
     }
 
     // 3. Delegate to Service Layer
-    return await BusinessService.createBusiness({
+    const business = await BusinessService.createBusiness({
       owner_user_id: user.id,
       company_name: data.company_name,
       website: data.website,
@@ -31,5 +31,23 @@ export const createBusiness = createServerFn({ method: "POST" })
       funding_stage: data.funding_stage || undefined,
       twitter_url: data.twitter_url || undefined,
     });
+
+    if (user.clerk_user_id) {
+      try {
+        const { clerkClient } = await import("@clerk/tanstack-react-start/server");
+        const client = clerkClient();
+        await client.users.updateUserMetadata(user.clerk_user_id, {
+          publicMetadata: {
+            role_selected: true,
+            account_type: "business",
+            onboarding_completed: true,
+          },
+        });
+      } catch (metaErr) {
+        console.error("[createBusiness] Failed to update Clerk metadata:", metaErr);
+      }
+    }
+
+    return business;
   });
 export type CreateBusinessFn = typeof createBusiness;
