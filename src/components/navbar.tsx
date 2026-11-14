@@ -177,6 +177,10 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   const currentSearch = routerState.location.search as any;
   const currentHref = routerState.location.href;
 
+  if (currentPath === "/get-started") {
+    return null;
+  }
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [postTypeModalOpen, setPostTypeModalOpen] = useState(false);
   const [isMyOppsExpanded, setIsMyOppsExpanded] = useState(true);

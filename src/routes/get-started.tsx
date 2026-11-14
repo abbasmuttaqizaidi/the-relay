@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
-import { useAuth } from "@clerk/tanstack-react-start";
+import { useAuth, useClerk } from "@clerk/tanstack-react-start";
 import { useState, useEffect } from "react";
 import { Building2, User, ArrowRight, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { checkOnboardingStatus } from "../functions/checkOnboardingStatus";
 import { setUserAccountType } from "../functions/communityProfile";
+import { safeSignOut } from "@/lib/logout";
 import logoUrl from "../../assets/icons/white-transparent-horizontal.png";
 
 export const Route = createFileRoute("/get-started")({
@@ -49,6 +50,7 @@ export const Route = createFileRoute("/get-started")({
 
 function GetStartedPage() {
   const { isSignedIn, isLoaded } = useAuth();
+  const clerk = useClerk();
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<"business" | "community_member" | null>(null);
   const [loading, setLoading] = useState(false);
@@ -119,8 +121,8 @@ function GetStartedPage() {
   }
 
   return (
-    <div className="min-h-[calc(100dvh-3.5rem)] md:min-h-[calc(100dvh-4rem)] w-full bg-[#F8FAFC] flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 font-sans selection:bg-slate-900 selection:text-white">
-      <main className="w-full max-w-3xl mx-auto flex flex-col items-center text-center">
+    <div className="min-h-screen w-full bg-[#F8FAFC] flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 font-sans selection:bg-slate-900 selection:text-white">
+      <main className="w-full max-w-3xl mx-auto flex flex-col items-center text-center py-8">
         {/* Subtle Brand Logo */}
         <div className="mb-6 sm:mb-8">
           <img
@@ -222,10 +224,18 @@ function GetStartedPage() {
           </button>
         </div>
 
-        {/* Quiet footer reassurance */}
-        <p className="text-[11px] font-mono text-slate-400 uppercase tracking-widest mt-8">
-          Enterprise verification &amp; KYC required for commercial exchanges
-        </p>
+        {/* Quiet footer reassurance & optional sign out */}
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-8 text-[11px] font-mono text-slate-400 uppercase tracking-widest">
+          <span>Enterprise verification &amp; KYC required for commercial exchanges</span>
+          <span className="hidden sm:inline text-slate-300">•</span>
+          <button
+            type="button"
+            onClick={() => safeSignOut(clerk, navigate)}
+            className="hover:text-slate-800 underline underline-offset-2 transition-colors cursor-pointer"
+          >
+            Sign out
+          </button>
+        </div>
       </main>
     </div>
   );

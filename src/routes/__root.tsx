@@ -257,6 +257,19 @@ function AppLayout() {
     );
   }
 
+  // Full-screen focused onboarding route (no navbar, no switch button, no docks)
+  if (location.pathname === "/get-started") {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col selection:bg-slate-900 selection:text-white">
+        <main className="flex-1 flex flex-col w-full">
+          <Outlet />
+        </main>
+        <ExecutiveToastContainer />
+        <Toaster position="bottom-right" visibleToasts={1} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F7F9FB] flex flex-col">
       <Navbar />
