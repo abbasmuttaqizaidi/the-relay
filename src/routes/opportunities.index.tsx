@@ -419,15 +419,16 @@ export function OpportunitiesPage() {
       : business.status
     : null;
 
-  // Onboarding route check (Redirect users who haven't completed onboarding)
+  // Onboarding route check (Opportunities Board is strictly for Verified Businesses)
   useEffect(() => {
     if (onboardingData && onboardingData.isAuthenticated) {
       if (!onboardingData.hasChosenRole) {
         navigate({ to: "/get-started", replace: true });
-      } else if (!onboardingData.onboardingCompleted) {
-        if (onboardingData.userType === "business" && !onboardingData.hasBusiness) {
+      } else if (onboardingData.userType === "community_member" || !onboardingData.hasBusiness) {
+        if (onboardingData.userType === "business") {
           navigate({ to: "/onboarding", replace: true });
-        } else if (onboardingData.userType === "community_member") {
+        } else {
+          toast.info("The Opportunities Board is exclusively for Verified Businesses.");
           navigate({ to: "/insights", replace: true });
         }
       }

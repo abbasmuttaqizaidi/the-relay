@@ -97,6 +97,31 @@ function NetworkDirectoryPage() {
   const [selectedBiz, setSelectedBiz] = useState<any | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
+  // Guard against Community Member access
+  const { data: onboardingData } = useQuery({
+    queryKey: ["onboarding-status"],
+    queryFn: async () => {
+      if (!isSignedIn) return null;
+      return await checkOnboardingStatus();
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+  });
+
+  useEffect(() => {
+    if (onboardingData && onboardingData.isAuthenticated) {
+      if (!onboardingData.hasChosenRole) {
+        navigate({ to: "/get-started", replace: true });
+      } else if (onboardingData.userType === "community_member" || !onboardingData.hasBusiness) {
+        if (onboardingData.userType === "business") {
+          navigate({ to: "/onboarding", replace: true });
+        } else {
+          toast.info("The Network Directory is exclusively for Verified Businesses.");
+          navigate({ to: "/insights", replace: true });
+        }
+      }
+    }
+  }, [onboardingData, navigate]);
+
   // Sync search query
   useEffect(() => {
     setSearchInput(q);

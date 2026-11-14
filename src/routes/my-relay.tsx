@@ -651,10 +651,17 @@ function MyRelayPage() {
     }
 
     if (onboardingData && onboardingData.isAuthenticated && !onboardingData.hasBusiness) {
-      toast.error("Please register your business profile first.", {
-        id: "my-relay-onboarding-redirect",
-      });
-      navigate({ to: "/onboarding", replace: true });
+      if (!onboardingData.hasChosenRole) {
+        navigate({ to: "/get-started", replace: true });
+      } else if (onboardingData.userType === "business") {
+        toast.error("Please register your business profile first.", {
+          id: "my-relay-onboarding-redirect",
+        });
+        navigate({ to: "/onboarding", replace: true });
+      } else {
+        toast.info("My Relay commercial tools are exclusively for Verified Businesses.");
+        navigate({ to: "/insights", replace: true });
+      }
     }
   }, [isLoaded, isSignedIn, onboardingData, navigate]);
 

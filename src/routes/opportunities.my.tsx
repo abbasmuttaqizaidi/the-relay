@@ -180,10 +180,17 @@ function MyOpportunitiesPage() {
       toast.error("Please sign in to access this page.", { id: "my-opps-auth-required" });
       navigate({ to: "/login", replace: true });
     } else if (onboardingData && onboardingData.isAuthenticated && !onboardingData.hasBusiness) {
-      toast.error("Please register your business profile first.", {
-        id: "my-opps-onboarding-redirect",
-      });
-      navigate({ to: "/onboarding", replace: true });
+      if (!onboardingData.hasChosenRole) {
+        navigate({ to: "/get-started", replace: true });
+      } else if (onboardingData.userType === "business") {
+        toast.error("Please register your business profile first.", {
+          id: "my-opps-onboarding-redirect",
+        });
+        navigate({ to: "/onboarding", replace: true });
+      } else {
+        toast.info("Opportunities management is exclusively for Verified Businesses.");
+        navigate({ to: "/insights", replace: true });
+      }
     }
   }, [isLoaded, isSignedIn, onboardingData, navigate]);
 

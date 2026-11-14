@@ -91,7 +91,14 @@ function ExchangeHubListingPage() {
     }
 
     if (onboardingData && onboardingData.isAuthenticated && !onboardingData.hasBusiness) {
-      navigate({ to: "/onboarding", replace: true });
+      if (!onboardingData.hasChosenRole) {
+        navigate({ to: "/get-started", replace: true });
+      } else if (onboardingData.userType === "business") {
+        navigate({ to: "/onboarding", replace: true });
+      } else {
+        toast.info("The Exchange Hub is exclusively for Verified Businesses.");
+        navigate({ to: "/insights", replace: true });
+      }
     }
   }, [isLoaded, isSignedIn, onboardingData, navigate]);
 

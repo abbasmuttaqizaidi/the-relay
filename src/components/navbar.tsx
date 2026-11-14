@@ -384,10 +384,17 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate({
-        to: "/opportunities",
-        search: { q: searchQuery.trim(), page: 1 } as any,
-      });
+      if (isCommunityMember) {
+        navigate({
+          to: "/insights",
+          search: { q: searchQuery.trim(), tab: "knowledge" } as any,
+        });
+      } else {
+        navigate({
+          to: "/opportunities",
+          search: { q: searchQuery.trim(), page: 1 } as any,
+        });
+      }
     }
   };
 
@@ -400,13 +407,13 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
         if (searchInput) {
           searchInput.focus();
         } else {
-          navigate({ to: "/opportunities" });
+          navigate({ to: isCommunityMember ? "/insights" : "/opportunities" });
         }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [navigate]);
+  }, [navigate, isCommunityMember]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // LOGGED-OUT PUBLIC NAVBAR
@@ -633,38 +640,30 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           )}
         </nav>
 
-        {/* 1. MARKETPLACE */}
-        <nav className="flex flex-col gap-1">
-          <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
-            Marketplace
-          </div>
-          {/* Opportunities: PUBLIC ROUTE, fully enabled for everyone */}
-          <Link
-            to="/opportunities"
-            onClick={() => setMobileMenuOpen(false)}
-            className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isOpportunities && !isConnections
-                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <LayoutGrid className={`w-4 h-4 ${isOpportunities && !isConnections ? "text-slate-950" : "text-slate-500"}`} />
-              <span>Opportunities</span>
+        {/* 1. MARKETPLACE (Only visible to verified business accounts) */}
+        {!isCommunityMember && (
+          <nav className="flex flex-col gap-1">
+            <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              Marketplace
             </div>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-bold">
-              Explore
-            </span>
-          </Link>
+            <Link
+              to="/opportunities"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`group flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                isOpportunities && !isConnections
+                  ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <LayoutGrid className={`w-4 h-4 ${isOpportunities && !isConnections ? "text-slate-950" : "text-slate-500"}`} />
+                <span>Opportunities</span>
+              </div>
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 font-bold">
+                Explore
+              </span>
+            </Link>
 
-          {/* Exchange Hub: Requires verified business account */}
-          {isCommunityMember ? (
-            renderDisabledItem(
-              <ArrowLeftRight className="w-4 h-4 text-slate-400" />,
-              "Exchange Hub",
-              "Live"
-            )
-          ) : (
             <Link
               to="/connections"
               onClick={() => setMobileMenuOpen(false)}
@@ -682,8 +681,8 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
                 Live
               </span>
             </Link>
-          )}
-        </nav>
+          </nav>
+        )}
 
         {/* 2. HISTORY */}
         <nav className="flex flex-col gap-1">
@@ -969,27 +968,29 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
           </Link>
         </nav>
 
-        {/* 5. ECOSYSTEM */}
-        <nav className="flex flex-col gap-1">
-          <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
-            Ecosystem
-          </div>
-          <Link
-            to="/network"
-            onClick={() => setMobileMenuOpen(false)}
-            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
-              isNetwork
-                ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <ShieldCheck className={`w-4 h-4 ${isNetwork ? "text-slate-950" : "text-slate-500"}`} />
-              <span>Verified Network</span>
+        {/* 5. ECOSYSTEM (Only visible to verified business accounts) */}
+        {!isCommunityMember && (
+          <nav className="flex flex-col gap-1">
+            <div className="px-2 pb-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              Ecosystem
             </div>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          </Link>
-        </nav>
+            <Link
+              to="/network"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors font-medium ${
+                isNetwork
+                  ? "bg-slate-100 text-slate-950 font-bold shadow-2xs"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className={`w-4 h-4 ${isNetwork ? "text-slate-950" : "text-slate-500"}`} />
+                <span>Verified Network</span>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            </Link>
+          </nav>
+        )}
       </div>
 
       {/* Bottom Profile Footer Strip */}
@@ -1556,7 +1557,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search opportunities, NAICS, partner..."
+              placeholder={isCommunityMember ? "Search knowledge articles, insights..." : "Search opportunities, NAICS, partner..."}
               className="bg-transparent font-sans text-xs text-slate-900 placeholder:text-slate-400 outline-none w-full"
             />
             <kbd className="text-[9px] font-mono uppercase tracking-wider text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shrink-0 font-bold">
@@ -1569,25 +1570,7 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
           {isAuthResolving ? (
             <div className="h-8 w-28 bg-slate-100 rounded-lg animate-pulse hidden sm:block" />
-          ) : isCommunityMember ? (
-            <button
-              type="button"
-              onClick={() => {
-                toast.info("Posting commercial opportunities requires a Verified Business Account.", {
-                  action: {
-                    label: "Upgrade",
-                    onClick: () => navigate({ to: "/onboarding" }),
-                  },
-                });
-              }}
-              className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-400 hover:bg-slate-200 font-semibold text-xs px-3 sm:px-3.5 py-2 rounded-lg transition-colors shadow-2xs cursor-not-allowed border border-slate-200/80"
-              title="Verified Business Account required"
-            >
-              <Lock className="w-3.5 h-3.5 text-slate-400" />
-              <span className="hidden sm:inline">Post Opportunity</span>
-              <span className="sm:hidden">Post</span>
-            </button>
-          ) : (
+          ) : isCommunityMember ? null : (
             <button
               type="button"
               onClick={() => setPostTypeModalOpen(true)}

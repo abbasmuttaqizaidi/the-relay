@@ -105,7 +105,14 @@ export function DashboardCommandCenterPage() {
     if (isLoaded && !isSignedIn && !isSigningOutActive()) {
       navigate({ to: "/login", replace: true });
     } else if (onboardingData && onboardingData.isAuthenticated && !onboardingData.hasBusiness) {
-      navigate({ to: "/onboarding", replace: true });
+      if (!onboardingData.hasChosenRole) {
+        navigate({ to: "/get-started", replace: true });
+      } else if (onboardingData.userType === "business") {
+        navigate({ to: "/onboarding", replace: true });
+      } else {
+        toast.info("The Dashboard is exclusively for Verified Businesses.");
+        navigate({ to: "/insights", replace: true });
+      }
     }
   }, [isLoaded, isSignedIn, onboardingData, navigate]);
 

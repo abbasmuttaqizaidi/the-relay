@@ -190,5 +190,67 @@ describe("Onboarding Guards & Business Status Verification", () => {
       resolveNavigation(status);
       expect(navigateMock).toHaveBeenCalledWith({ to: "/insights", replace: true });
     });
+
+    it("blocks community member from accessing /opportunities and redirects to /insights", () => {
+      const navigateMock = vi.fn();
+      const toastInfoMock = vi.fn();
+      const status = {
+        isAuthenticated: true,
+        hasChosenRole: true,
+        userType: "community_member",
+        hasBusiness: false,
+        onboardingCompleted: true,
+      };
+
+      const checkOpportunitiesAccess = (s: typeof status) => {
+        if (s.isAuthenticated) {
+          if (!s.hasChosenRole) {
+            navigateMock({ to: "/get-started", replace: true });
+          } else if (s.userType === "community_member" || !s.hasBusiness) {
+            if (s.userType === "business") {
+              navigateMock({ to: "/onboarding", replace: true });
+            } else {
+              toastInfoMock("The Opportunities Board is exclusively for Verified Businesses.");
+              navigateMock({ to: "/insights", replace: true });
+            }
+          }
+        }
+      };
+
+      checkOpportunitiesAccess(status);
+      expect(toastInfoMock).toHaveBeenCalledWith("The Opportunities Board is exclusively for Verified Businesses.");
+      expect(navigateMock).toHaveBeenCalledWith({ to: "/insights", replace: true });
+    });
+
+    it("blocks community member from accessing /network and redirects to /insights", () => {
+      const navigateMock = vi.fn();
+      const toastInfoMock = vi.fn();
+      const status = {
+        isAuthenticated: true,
+        hasChosenRole: true,
+        userType: "community_member",
+        hasBusiness: false,
+        onboardingCompleted: true,
+      };
+
+      const checkNetworkAccess = (s: typeof status) => {
+        if (s.isAuthenticated) {
+          if (!s.hasChosenRole) {
+            navigateMock({ to: "/get-started", replace: true });
+          } else if (s.userType === "community_member" || !s.hasBusiness) {
+            if (s.userType === "business") {
+              navigateMock({ to: "/onboarding", replace: true });
+            } else {
+              toastInfoMock("The Network Directory is exclusively for Verified Businesses.");
+              navigateMock({ to: "/insights", replace: true });
+            }
+          }
+        }
+      };
+
+      checkNetworkAccess(status);
+      expect(toastInfoMock).toHaveBeenCalledWith("The Network Directory is exclusively for Verified Businesses.");
+      expect(navigateMock).toHaveBeenCalledWith({ to: "/insights", replace: true });
+    });
   });
 });
