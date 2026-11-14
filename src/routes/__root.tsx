@@ -23,6 +23,7 @@ import { useQuery } from "@tanstack/react-query";
 import { checkOnboardingStatus } from "@/functions/checkOnboardingStatus";
 import { getCommunityProfile } from "@/functions/communityProfile";
 import { GlobalAssociationBanner } from "@/components/association/GlobalAssociationBanner";
+import { CommunityMemberBanner } from "@/components/community/CommunityMemberBanner";
 import { BusinessAssociationModal } from "@/components/association/BusinessAssociationModal";
 import { SwitchProfileModal } from "@/components/profile/SwitchProfileModal";
 import { useIsSigningOut, isSigningOutActive } from "@/lib/logout";
@@ -282,6 +283,7 @@ function AppLayout() {
               : "flex-1 flex flex-col w-full"
         }
       >
+        {isSignedIn && <CommunityMemberBanner />}
         {isSignedIn && <GlobalAssociationBanner />}
         <Outlet />
       </main>

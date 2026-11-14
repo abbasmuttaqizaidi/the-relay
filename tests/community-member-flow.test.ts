@@ -51,21 +51,26 @@ describe("Community Member Contributor Flow & Validation", () => {
     expect(serverCache.get("test:user:2")).toBeNull();
   });
 
-  it("verifies community member navigation permissions for public routes and knowledge articles", () => {
-    // Public and community accessible routes
+  it("verifies community member navigation permissions and access boundaries", () => {
+    // Community accessible routes (read insights & FAQ)
     const communityAccessibleRoutes = [
-      "/opportunities",
+      "/insights",
       "/insights?tab=knowledge",
+      "/insights?tab=questions",
       "/faq",
-      "/network",
+      "/about",
     ];
 
-    // Business-only restricted routes
+    // Business-only restricted commercial and trading routes
     const businessOnlyRoutes = [
+      "/opportunities",
+      "/network",
       "/dashboard",
       "/connections",
       "/proposals",
       "/my-relay",
+      "/insights/ask",
+      "/insights/knowledge/new",
     ];
 
     const canCommunityMemberAccess = (route: string) => {
@@ -74,14 +79,26 @@ describe("Community Member Contributor Flow & Validation", () => {
       return false;
     };
 
-    expect(canCommunityMemberAccess("/opportunities")).toBe(true);
+    expect(canCommunityMemberAccess("/insights")).toBe(true);
     expect(canCommunityMemberAccess("/insights?tab=knowledge")).toBe(true);
     expect(canCommunityMemberAccess("/faq")).toBe(true);
-    expect(canCommunityMemberAccess("/network")).toBe(true);
+    expect(canCommunityMemberAccess("/about")).toBe(true);
 
+    expect(canCommunityMemberAccess("/opportunities")).toBe(false);
+    expect(canCommunityMemberAccess("/network")).toBe(false);
     expect(canCommunityMemberAccess("/dashboard")).toBe(false);
     expect(canCommunityMemberAccess("/connections")).toBe(false);
     expect(canCommunityMemberAccess("/proposals")).toBe(false);
     expect(canCommunityMemberAccess("/my-relay")).toBe(false);
+    expect(canCommunityMemberAccess("/insights/ask")).toBe(false);
+    expect(canCommunityMemberAccess("/insights/knowledge/new")).toBe(false);
+  });
+
+  it("verifies community member banner content conveys read/comment access and posting restriction", () => {
+    const bannerMessage =
+      "You can read Insights and write comments. You cannot post new insights or opportunities.";
+    expect(bannerMessage).toContain("read Insights");
+    expect(bannerMessage).toContain("write comments");
+    expect(bannerMessage).toContain("cannot post new insights or opportunities");
   });
 });

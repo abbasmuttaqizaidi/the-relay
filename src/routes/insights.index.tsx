@@ -428,6 +428,22 @@ export function InsightsIndexPage() {
   });
   const currentUserBusiness = (onboardingData?.business as Business) || null;
 
+  const { data: communityProfile } = useQuery({
+    queryKey: ["community-profile", userId],
+    queryFn: async () => {
+      if (!isSignedIn) return null;
+      return await getCommunityProfile();
+    },
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 1000 * 60 * 2,
+  });
+
+  const isCommunityMember =
+    Boolean(isSignedIn) &&
+    (!currentUserBusiness ||
+      communityProfile?.type === "community_member" ||
+      communityProfile?.type === "associate");
+
   // Global counts & collections for stats calculation
   const { data: allQuestionsForStats = [] } = useQuery<Question[]>({
     queryKey: ["all-questions-stats"],
@@ -650,6 +666,19 @@ export function InsightsIndexPage() {
       return;
     }
 
+    if (isCommunityMember) {
+      toast.info(
+        "Community members can read insights and write comments, but cannot post insights. Upgrade to a Verified Business to publish.",
+        {
+          action: {
+            label: "Upgrade",
+            onClick: () => navigate({ to: "/onboarding" }),
+          },
+        }
+      );
+      return;
+    }
+
     if (!currentUserBusiness) {
       toast.info("Please register your business profile before asking questions.");
       navigate({ to: "/onboarding" });
@@ -676,6 +705,19 @@ export function InsightsIndexPage() {
     if (!isSignedIn) {
       toast.info("Please sign in to share knowledge.");
       navigate({ to: "/login" });
+      return;
+    }
+
+    if (isCommunityMember) {
+      toast.info(
+        "Community members can read insights and write comments, but cannot post insights. Upgrade to a Verified Business to publish.",
+        {
+          action: {
+            label: "Upgrade",
+            onClick: () => navigate({ to: "/onboarding" }),
+          },
+        }
+      );
       return;
     }
 
@@ -871,6 +913,7 @@ export function InsightsIndexPage() {
                       type="button"
                       id="btn-ask-question"
                       onClick={handleAskClick}
+                      title={isCommunityMember ? "Verified Business required to post questions. Community members can read and comment." : undefined}
                       className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center justify-center gap-1.5 shadow-xs font-semibold cursor-pointer whitespace-nowrap"
                     >
                       <Plus className="w-3.5 h-3.5 shrink-0" />
@@ -919,6 +962,7 @@ export function InsightsIndexPage() {
                       type="button"
                       id="btn-share-knowledge"
                       onClick={handleShareKnowledgeClick}
+                      title={isCommunityMember ? "Verified Business required to share knowledge. Community members can read and comment." : undefined}
                       className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-md bg-[#0F172A] text-white text-xs border border-[#0F172A] hover:bg-[#1E293B] transition-all flex items-center justify-center gap-1.5 shadow-xs font-semibold cursor-pointer whitespace-nowrap"
                     >
                       <BookOpen className="w-3.5 h-3.5 shrink-0" />
