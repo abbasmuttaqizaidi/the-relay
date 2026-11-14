@@ -96,9 +96,9 @@ describe("Community Member Contributor Flow & Validation", () => {
 
   it("verifies community member banner content conveys read/comment access and posting restriction", () => {
     const bannerMessage =
-      "You can read Insights and write comments. You cannot post new insights or opportunities.";
+      "Community Profile: You can read Insights and write comments. Posting is exclusive to Verified Businesses.";
     expect(bannerMessage).toContain("read Insights");
     expect(bannerMessage).toContain("write comments");
-    expect(bannerMessage).toContain("cannot post new insights or opportunities");
+    expect(bannerMessage).toContain("Posting is exclusive to Verified Businesses");
   });
 });
