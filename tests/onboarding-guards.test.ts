@@ -96,10 +96,10 @@ describe("Onboarding Guards & Business Status Verification", () => {
           if (s.userType === "business" && !s.hasBusiness) {
             navigateMock({ to: "/onboarding", replace: true });
           } else {
-            navigateMock({ to: "/profile", replace: true });
+            navigateMock({ to: "/insights", replace: true });
           }
         } else {
-          navigateMock({ to: s.hasBusiness ? "/opportunities" : "/profile", replace: true });
+          navigateMock({ to: s.hasBusiness ? "/opportunities" : "/insights", replace: true });
         }
       };
 
@@ -124,10 +124,10 @@ describe("Onboarding Guards & Business Status Verification", () => {
           if (s.userType === "business" && !s.hasBusiness) {
             navigateMock({ to: "/onboarding", replace: true });
           } else {
-            navigateMock({ to: "/profile", replace: true });
+            navigateMock({ to: "/insights", replace: true });
           }
         } else {
-          navigateMock({ to: s.hasBusiness ? "/opportunities" : "/profile", replace: true });
+          navigateMock({ to: s.hasBusiness ? "/opportunities" : "/insights", replace: true });
         }
       };
 
@@ -152,15 +152,43 @@ describe("Onboarding Guards & Business Status Verification", () => {
           if (s.userType === "business" && !s.hasBusiness) {
             navigateMock({ to: "/onboarding", replace: true });
           } else {
-            navigateMock({ to: "/profile", replace: true });
+            navigateMock({ to: "/insights", replace: true });
           }
         } else {
-          navigateMock({ to: s.hasBusiness ? "/opportunities" : "/profile", replace: true });
+          navigateMock({ to: s.hasBusiness ? "/opportunities" : "/insights", replace: true });
         }
       };
 
       resolveNavigation(status);
       expect(navigateMock).toHaveBeenCalledWith({ to: "/opportunities", replace: true });
+    });
+
+    it("routes community members upon sign up / sign in directly to /insights", () => {
+      const navigateMock = vi.fn();
+      const status = {
+        isAuthenticated: true,
+        hasChosenRole: true,
+        userType: "community_member",
+        hasBusiness: false,
+        onboardingCompleted: true,
+      };
+
+      const resolveNavigation = (s: typeof status) => {
+        if (!s.hasChosenRole) {
+          navigateMock({ to: "/get-started", replace: true });
+        } else if (!s.onboardingCompleted) {
+          if (s.userType === "business" && !s.hasBusiness) {
+            navigateMock({ to: "/onboarding", replace: true });
+          } else {
+            navigateMock({ to: "/insights", replace: true });
+          }
+        } else {
+          navigateMock({ to: s.hasBusiness ? "/opportunities" : "/insights", replace: true });
+        }
+      };
+
+      resolveNavigation(status);
+      expect(navigateMock).toHaveBeenCalledWith({ to: "/insights", replace: true });
     });
   });
 });

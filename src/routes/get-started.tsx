@@ -19,7 +19,7 @@ export const Route = createFileRoute("/get-started")({
       // If onboarding is already completed, route directly to the active surface
       if (status.onboardingCompleted) {
         throw redirect({
-          to: status.hasBusiness ? "/opportunities" : "/profile",
+          to: status.hasBusiness ? "/opportunities" : "/insights",
           replace: true,
         });
       }
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/get-started")({
           throw redirect({ to: "/onboarding", replace: true });
         }
         if (status.userType === "community_member") {
-          throw redirect({ to: "/profile", replace: true });
+          throw redirect({ to: "/insights", replace: true });
         }
       }
     } catch (err) {
@@ -61,12 +61,12 @@ function GetStartedPage() {
       checkOnboardingStatus()
         .then((status) => {
           if (status?.onboardingCompleted) {
-            navigate({ to: status.hasBusiness ? "/opportunities" : "/profile", replace: true });
+            navigate({ to: status.hasBusiness ? "/opportunities" : "/insights", replace: true });
           } else if (status?.hasChosenRole) {
             if (status.userType === "business" && !status.hasBusiness) {
               navigate({ to: "/onboarding", replace: true });
             } else if (status.userType === "community_member") {
-              navigate({ to: "/profile", replace: true });
+              navigate({ to: "/insights", replace: true });
             }
           }
         })
@@ -102,7 +102,7 @@ function GetStartedPage() {
       if (role === "business") {
         navigate({ to: "/onboarding" });
       } else {
-        navigate({ to: "/profile" });
+        navigate({ to: "/insights" });
       }
     } catch (err: any) {
       console.error("[GetStarted] Role selection error:", err);

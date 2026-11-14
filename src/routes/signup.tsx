@@ -27,10 +27,10 @@ export const Route = createFileRoute("/signup")({
           if (authData.userType === "business" && !authData.hasBusiness) {
             throw redirect({ to: "/onboarding", replace: true });
           }
-          throw redirect({ to: "/profile", replace: true });
+          throw redirect({ to: "/insights", replace: true });
         }
         throw redirect({
-          to: authData.business ? "/opportunities" : "/profile",
+          to: authData.business ? "/opportunities" : "/insights",
           replace: true,
         });
       }
@@ -91,7 +91,7 @@ function SignUpPage() {
     }
     const signupType = (search as any)?.type;
     if (signupType === "community" || signupType === "contributor") {
-      return "/profile";
+      return "/insights";
     }
     return "/get-started";
   }, [search]);
@@ -125,12 +125,12 @@ function SignUpPage() {
               if (res?.userType === "business" && !res?.hasBusiness) {
                 navigate({ to: "/onboarding" });
               } else {
-                navigate({ to: "/profile" });
+                navigate({ to: "/insights" });
               }
             } else if (res?.business) {
               navigate({ to: "/opportunities" });
             } else {
-              navigate({ to: "/profile" });
+              navigate({ to: "/insights" });
             }
           })
           .catch(() => {

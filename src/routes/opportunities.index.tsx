@@ -428,7 +428,7 @@ export function OpportunitiesPage() {
         if (onboardingData.userType === "business" && !onboardingData.hasBusiness) {
           navigate({ to: "/onboarding", replace: true });
         } else if (onboardingData.userType === "community_member") {
-          navigate({ to: "/profile", replace: true });
+          navigate({ to: "/insights", replace: true });
         }
       }
     }
