@@ -21,7 +21,7 @@ export const Route = createFileRoute("/signup")({
       const authData = await checkOnboardingStatus();
       if (authData?.isAuthenticated) {
         throw redirect({
-          to: "/opportunities",
+          to: authData.business ? "/opportunities" : "/profile",
           replace: true,
         });
       }
@@ -80,6 +80,10 @@ function SignUpPage() {
     if (typeof target === "string" && target.startsWith("/")) {
       return target;
     }
+    const signupType = (search as any)?.type;
+    if (signupType === "community" || signupType === "contributor") {
+      return "/profile";
+    }
     return "/opportunities";
   }, [search]);
 
@@ -101,9 +105,23 @@ function SignUpPage() {
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      navigate({ to: targetPath as any, hash: targetHash as any });
+      if (redirectTarget && redirectTarget !== "/opportunities") {
+        navigate({ to: targetPath as any, hash: targetHash as any });
+      } else {
+        checkOnboardingStatus()
+          .then((res) => {
+            if (!res?.business) {
+              navigate({ to: "/profile" });
+            } else {
+              navigate({ to: "/opportunities" });
+            }
+          })
+          .catch(() => {
+            navigate({ to: "/profile" });
+          });
+      }
     }
-  }, [isLoaded, isSignedIn, navigate, targetPath, targetHash]);
+  }, [isLoaded, isSignedIn, navigate, redirectTarget, targetPath, targetHash]);
 
   // Appearance overrides strictly following sign_up.MD & Monochrome Executive design tokens
   const clerkAppearance = {
@@ -278,9 +296,7 @@ function SignUpPage() {
               routing="path"
               path="/signup"
               signInUrl="/login"
-              forceRedirectUrl={redirectTarget}
               fallbackRedirectUrl={redirectTarget}
-              signInForceRedirectUrl={redirectTarget}
               signInFallbackRedirectUrl={redirectTarget}
               appearance={clerkAppearance}
             />

@@ -21,7 +21,7 @@ export const Route = createFileRoute("/login")({
       const authData = await checkOnboardingStatus();
       if (authData?.isAuthenticated) {
         throw redirect({
-          to: authData.business ? "/opportunities" : "/insights",
+          to: authData.business ? "/opportunities" : "/profile",
           replace: true,
         });
       }
@@ -97,17 +97,17 @@ function SignInPage() {
         const [path, hash] = explicitRedirect.split("#");
         navigate({ to: path as any, hash: hash ? `#${hash}` : undefined });
       } else {
-        // Community Member lands on /insights; Verified Business lands on /opportunities
+        // Community Member lands on /profile; Verified Business lands on /opportunities
         checkOnboardingStatus()
           .then((res) => {
             if (!res?.business) {
-              navigate({ to: "/insights" });
+              navigate({ to: "/profile" });
             } else {
               navigate({ to: "/opportunities" });
             }
           })
           .catch(() => {
-            navigate({ to: "/insights" });
+            navigate({ to: "/profile" });
           });
       }
     }
@@ -235,10 +235,9 @@ function SignInPage() {
               routing="path"
               path="/login"
               signUpUrl="/signup"
-              forceRedirectUrl={explicitRedirect || "/login"}
-              fallbackRedirectUrl={explicitRedirect || "/login"}
-              signUpForceRedirectUrl={explicitRedirect || "/login"}
-              signUpFallbackRedirectUrl={explicitRedirect || "/login"}
+              forceRedirectUrl={explicitRedirect}
+              fallbackRedirectUrl={explicitRedirect || "/opportunities"}
+              signUpFallbackRedirectUrl={explicitRedirect || "/opportunities"}
               appearance={clerkAppearance}
             />
           </div>

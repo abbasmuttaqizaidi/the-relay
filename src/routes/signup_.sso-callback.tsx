@@ -23,10 +23,13 @@ function SignUpSSOCallbackPage() {
         params.get("sign_up_force_redirect_url") ||
         params.get("sign_in_force_redirect_url") ||
         params.get("redirect_url");
-      if (fromSearch) return fromSearch;
+      if (fromSearch && fromSearch !== "/login" && fromSearch !== "/signup") return fromSearch;
 
       const fromStorage = sessionStorage.getItem("relay_auth_return_url");
-      if (fromStorage) return fromStorage;
+      if (fromStorage && fromStorage !== "/login" && fromStorage !== "/signup") return fromStorage;
+
+      const pendingContributor = sessionStorage.getItem("relay_pending_contributor_onboarding");
+      if (pendingContributor) return "/profile";
     } catch {}
     return "/opportunities";
   }, []);

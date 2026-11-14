@@ -44,6 +44,8 @@ import { Route as ProposalsRouteImport } from './routes/proposals'
 import { Route as QueryRelayRouteImport } from './routes/query-relay'
 import { Route as ReferralPartnershipsRouteImport } from './routes/referral-partnerships'
 import { Route as SavedOpportunitiesRouteImport } from './routes/saved-opportunities'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as SsoCallbackRouteImport } from './routes/sso-callback'
@@ -244,6 +246,16 @@ const SavedOpportunitiesRoute = SavedOpportunitiesRouteImport.update({
   path: '/saved-opportunities',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -382,6 +394,8 @@ export interface FileRoutesByFullPath {
   '/query-relay': typeof QueryRelayRoute
   '/referral-partnerships': typeof ReferralPartnershipsRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
   '/sso-callback': typeof SsoCallbackRoute
@@ -437,6 +451,8 @@ export interface FileRoutesByTo {
   '/query-relay': typeof QueryRelayRoute
   '/referral-partnerships': typeof ReferralPartnershipsRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
   '/sso-callback': typeof SsoCallbackRoute
@@ -495,6 +511,8 @@ export interface FileRoutesById {
   '/query-relay': typeof QueryRelayRoute
   '/referral-partnerships': typeof ReferralPartnershipsRoute
   '/saved-opportunities': typeof SavedOpportunitiesRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
   '/sso-callback': typeof SsoCallbackRoute
@@ -554,6 +572,8 @@ export interface FileRouteTypes {
     | '/query-relay'
     | '/referral-partnerships'
     | '/saved-opportunities'
+    | '/sign-in'
+    | '/sign-up'
     | '/signup'
     | '/solutions'
     | '/sso-callback'
@@ -609,6 +629,8 @@ export interface FileRouteTypes {
     | '/query-relay'
     | '/referral-partnerships'
     | '/saved-opportunities'
+    | '/sign-in'
+    | '/sign-up'
     | '/signup'
     | '/solutions'
     | '/sso-callback'
@@ -666,6 +688,8 @@ export interface FileRouteTypes {
     | '/query-relay'
     | '/referral-partnerships'
     | '/saved-opportunities'
+    | '/sign-in'
+    | '/sign-up'
     | '/signup'
     | '/solutions'
     | '/sso-callback'
@@ -724,6 +748,8 @@ export interface RootRouteChildren {
   QueryRelayRoute: typeof QueryRelayRoute
   ReferralPartnershipsRoute: typeof ReferralPartnershipsRoute
   SavedOpportunitiesRoute: typeof SavedOpportunitiesRoute
+  SignInRoute: typeof SignInRoute
+  SignUpRoute: typeof SignUpRoute
   SignupRoute: typeof SignupRoute
   SolutionsRoute: typeof SolutionsRoute
   SsoCallbackRoute: typeof SsoCallbackRoute
@@ -985,6 +1011,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SavedOpportunitiesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -1209,6 +1249,8 @@ const rootRouteChildren: RootRouteChildren = {
   QueryRelayRoute: QueryRelayRoute,
   ReferralPartnershipsRoute: ReferralPartnershipsRoute,
   SavedOpportunitiesRoute: SavedOpportunitiesRoute,
+  SignInRoute: SignInRoute,
+  SignUpRoute: SignUpRoute,
   SignupRoute: SignupRoute,
   SolutionsRoute: SolutionsRoute,
   SsoCallbackRoute: SsoCallbackRoute,

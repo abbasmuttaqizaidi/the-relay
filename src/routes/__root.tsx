@@ -284,7 +284,9 @@ function AppLayout() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+  const publishableKey =
+    import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ||
+    (typeof process !== "undefined" ? (process.env?.CLERK_PUBLISHABLE_KEY as string) : undefined);
 
   const location = useRouterState({
     select: (state) => state.location,
@@ -330,6 +332,10 @@ function RootComponent() {
   return (
     <ClerkProvider
       publishableKey={publishableKey}
+      signInUrl="/login"
+      signUpUrl="/signup"
+      signInFallbackRedirectUrl="/opportunities"
+      signUpFallbackRedirectUrl="/opportunities"
       appearance={{
         elements: {
           footer: "hidden",

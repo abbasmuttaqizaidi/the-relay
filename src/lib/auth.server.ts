@@ -47,6 +47,10 @@ export async function getAuthenticatedUser(): Promise<User> {
           };
           const { serverCache } = await import("./server-cache");
           serverCache.set(`user:clerk:${userId}`, dbUser, 300);
+        } else {
+          dbUser = await UserService.createUser({ clerk_user_id: userId, email });
+          const { serverCache } = await import("./server-cache");
+          serverCache.set(`user:clerk:${userId}`, dbUser, 300);
         }
       }
     } catch (resolveErr) {
