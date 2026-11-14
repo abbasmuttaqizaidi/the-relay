@@ -219,6 +219,33 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   const business = onboardingData?.business || null;
   const isApproved = business?.status === "approved";
 
+  const isAuthResolving = !isLoaded || (isSignedIn && (loadingOnboarding || loadingCommunity));
+  const cachedAccountMode = typeof window !== "undefined" ? localStorage.getItem("relay_account_mode") : null;
+
+  const resolvedIsCommunityMember =
+    !business ||
+    communityProfile?.type === "community_member" ||
+    communityProfile?.type === "associate";
+
+  // Retain cached account mode while auth and onboarding are resolving so business accounts don't flash community navbar
+  const isCommunityMember =
+    isAuthResolving && cachedAccountMode
+      ? cachedAccountMode === "community_member"
+      : resolvedIsCommunityMember;
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn && !loadingOnboarding && !loadingCommunity) {
+      const mode = resolvedIsCommunityMember ? "community_member" : "business";
+      try {
+        localStorage.setItem("relay_account_mode", mode);
+      } catch (_) {}
+    } else if (isLoaded && !isSignedIn) {
+      try {
+        localStorage.removeItem("relay_account_mode");
+      } catch (_) {}
+    }
+  }, [isLoaded, isSignedIn, loadingOnboarding, loadingCommunity, resolvedIsCommunityMember]);
+
   // 2. Incoming Proposals Query
   const { data: incomingRequests = [] } = useQuery({
     queryKey: ["incoming-requests", userId],
@@ -529,32 +556,6 @@ export function Navbar({ incomingCount: propCount = 0 }: NavbarProps) {
   // ═══════════════════════════════════════════════════════════════════════════
   const companyName = business?.company_name || "Your Business";
   const userInitials = getCompanyInitials(companyName);
-  const isAuthResolving = !isLoaded || (isSignedIn && (loadingOnboarding || loadingCommunity));
-  const cachedAccountMode = typeof window !== "undefined" ? localStorage.getItem("relay_account_mode") : null;
-
-  const resolvedIsCommunityMember =
-    !business ||
-    communityProfile?.type === "community_member" ||
-    communityProfile?.type === "associate";
-
-  // Retain cached account mode while auth and onboarding are resolving so business accounts don't flash community navbar
-  const isCommunityMember =
-    isAuthResolving && cachedAccountMode
-      ? cachedAccountMode === "community_member"
-      : resolvedIsCommunityMember;
-
-  useEffect(() => {
-    if (isLoaded && isSignedIn && !loadingOnboarding && !loadingCommunity) {
-      const mode = resolvedIsCommunityMember ? "community_member" : "business";
-      try {
-        localStorage.setItem("relay_account_mode", mode);
-      } catch (_) {}
-    } else if (isLoaded && !isSignedIn) {
-      try {
-        localStorage.removeItem("relay_account_mode");
-      } catch (_) {}
-    }
-  }, [isLoaded, isSignedIn, loadingOnboarding, loadingCommunity, resolvedIsCommunityMember]);
 
   const renderDisabledItem = (icon: React.ReactNode, label: string, badge?: string) => (
     <div
