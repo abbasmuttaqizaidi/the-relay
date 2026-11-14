@@ -172,9 +172,8 @@ describe("OAuth Handshake & Route Guard Resiliency", () => {
       expect(signOutMock).toHaveBeenCalled();
       expect(localStorage.getItem("relay_account_mode")).toBeNull();
       expect(localStorage.getItem("relay.profile.v1")).toBeNull();
+      expect(localStorage.getItem("relay.tour_completed")).toBeNull();
       expect(sessionStorage.getItem("relay_auth_return_url")).toBeNull();
-      // Tour completed should remain intact
-      expect(localStorage.getItem("relay.tour_completed")).toBe("true");
       // Clean window navigation to "/"
       expect(window.location.href).toBe("/");
 

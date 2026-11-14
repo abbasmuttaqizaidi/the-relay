@@ -230,7 +230,7 @@ function GetStartedPage() {
           <span className="hidden sm:inline text-slate-300">•</span>
           <button
             type="button"
-            onClick={() => safeSignOut(clerk, navigate)}
+            onClick={() => safeSignOut(clerk.signOut)}
             className="hover:text-slate-800 underline underline-offset-2 transition-colors cursor-pointer"
           >
             Sign out
