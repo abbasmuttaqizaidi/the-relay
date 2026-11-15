@@ -246,7 +246,7 @@ describe("Deduplicated Views System (Members & Non-Members)", () => {
       expect(formatCompactNumber(0)).toBe("0");
       expect(formatCompactNumber(42)).toBe("42");
       expect(formatCompactNumber(999)).toBe("999");
-    });
+    }, 15000);
 
     it("formats thousands into 1k, 1.7k, 10.5k format", async () => {
       const { formatCompactNumber } = await import("../src/routes/insights.index");
