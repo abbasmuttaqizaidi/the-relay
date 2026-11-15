@@ -125,12 +125,17 @@ async function resolveOrCreateUser(userId: string): Promise<User | null> {
 
 export const getCommunityProfile = createServerFn({ method: "GET" })
   .handler(async () => {
-    const authSession = await auth();
-    if (!authSession.userId) {
+    try {
+      const authSession = await auth();
+      if (!authSession?.userId) {
+        return null;
+      }
+
+      return await resolveOrCreateUser(authSession.userId);
+    } catch (err) {
+      console.error("[getCommunityProfile] Auth error during profile resolution:", err);
       return null;
     }
-
-    return await resolveOrCreateUser(authSession.userId);
   });
 
 export const saveCommunityProfile = createServerFn({ method: "POST" })

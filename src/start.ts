@@ -2,6 +2,7 @@ import { createStart, createMiddleware } from "@tanstack/react-start";
 import { clerkMiddleware } from "@clerk/tanstack-react-start/server";
 import { renderErrorPage } from "./lib/error-page";
 import { isPublicSeoRoute } from "./lib/public-routes";
+import { record } from "./lib/error-capture";
 
 const rawClerkMiddleware = clerkMiddleware();
 
@@ -49,6 +50,12 @@ const authBoundaryMiddleware = createMiddleware().server(async ({ request, next 
     if (isPublic && err instanceof Response && err.status === 307) {
       return await next();
     }
+    // Middlewares should return thrown Responses (e.g. 307 Clerk handshake or redirects)
+    // rather than letting h3 treat them as unhandled exceptions.
+    if (err instanceof Response) {
+      return err;
+    }
+    record(err);
     throw err;
   }
 });
@@ -57,6 +64,10 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
     return await next();
   } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
+    record(error);
     if (error != null && typeof error === "object" && "statusCode" in error) {
       throw error;
     }

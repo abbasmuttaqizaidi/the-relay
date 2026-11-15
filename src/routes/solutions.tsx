@@ -32,7 +32,7 @@ export const Route = createFileRoute('/solutions')({
       const authData = await checkOnboardingStatus();
       if (authData?.isAuthenticated) {
         throw redirect({
-          to: '/opportunities',
+          to: authData.hasBusiness ? '/opportunities' : '/insights',
           replace: true,
         });
       }
