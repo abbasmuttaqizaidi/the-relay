@@ -168,8 +168,6 @@ function OnboardingPage() {
   const logoFileInputRef = useRef<HTMLInputElement>(null);
 
   // --- Associates Query & Mutations (only active for approved businesses) ---
-  const queryClient = useQueryClient();
-
   const { data: associatesData } = useQuery({
     queryKey: ["business-associates"],
     queryFn: () => getBusinessAssociates(),
